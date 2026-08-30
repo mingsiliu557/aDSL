@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, Mapping, Sequence
@@ -22,6 +23,28 @@ DEFAULT_SUN_STRENGTH = 1.25
 DEFAULT_WORLD_STRENGTH = 0.35
 DEFAULT_COLOR_EXPOSURE = -0.8
 DEFAULT_RENDER_ELEVATIONS = (15.0,)
+
+
+def _render_engine() -> Literal["CYCLES", "BLENDER_EEVEE"]:
+    value = os.environ.get("ADSL_RENDER_ENGINE", "BLENDER_EEVEE").strip().upper()
+    if value not in {"CYCLES", "BLENDER_EEVEE"}:
+        raise ValueError(
+            "ADSL_RENDER_ENGINE must be CYCLES or BLENDER_EEVEE"
+        )
+    return value  # type: ignore[return-value]
+
+
+def _positive_env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None:
+        return int(default)
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be a positive integer") from exc
+    if value <= 0:
+        raise ValueError(f"{name} must be a positive integer")
+    return value
 
 
 @dataclass(frozen=True)
@@ -346,7 +369,7 @@ def render_multiview(
     output_path.mkdir(parents=True, exist_ok=True)
 
     init_render_engine(
-        "BLENDER_EEVEE",
+        _render_engine(),
         render_samples=max(1, int(render_samples)),
     )
     scene_manager = SceneManager()
@@ -402,6 +425,9 @@ def render_video(
     background: Background = "transparent",
 ) -> None:
     """Export an Asset when needed and render orbit-view PNG images."""
+    width = _positive_env_int("ADSL_RENDER_WIDTH", width)
+    height = _positive_env_int("ADSL_RENDER_HEIGHT", height)
+    render_samples = _positive_env_int("ADSL_RENDER_SAMPLES", render_samples)
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 

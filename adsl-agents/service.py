@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 from typing import Any
@@ -34,6 +35,46 @@ _CONTEXT_POLICY = {
     "image_critic": "isolated per round with current renders, references, and explicit text-only prior judgements",
     "code_critic": "isolated per round with current renders and explicit critic history; source.py is read by tool",
 }
+
+
+def _asset_executor_timeout_seconds() -> float:
+    raw = os.environ.get("ADSL_ASSET_EXECUTOR_TIMEOUT_SECONDS", "300")
+    try:
+        timeout = float(raw)
+    except ValueError as exc:
+        raise ValueError(
+            "ADSL_ASSET_EXECUTOR_TIMEOUT_SECONDS must be a positive number"
+        ) from exc
+    if timeout <= 0:
+        raise ValueError(
+            "ADSL_ASSET_EXECUTOR_TIMEOUT_SECONDS must be a positive number"
+        )
+    return timeout
+
+
+def _positive_render_env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be a positive integer") from exc
+    if value <= 0:
+        raise ValueError(f"{name} must be a positive integer")
+    return value
+
+
+def _render_execution_config() -> dict[str, object]:
+    engine = os.environ.get("ADSL_RENDER_ENGINE", "BLENDER_EEVEE").strip().upper()
+    if engine not in {"CYCLES", "BLENDER_EEVEE"}:
+        raise ValueError("ADSL_RENDER_ENGINE must be CYCLES or BLENDER_EEVEE")
+    return {
+        "render_engine": engine,
+        "render_width": _positive_render_env_int("ADSL_RENDER_WIDTH", 1024),
+        "render_height": _positive_render_env_int("ADSL_RENDER_HEIGHT", 1024),
+        "render_samples": _positive_render_env_int("ADSL_RENDER_SAMPLES", 256),
+    }
 
 
 class ObjectWorkflow:
@@ -288,6 +329,7 @@ class ObjectWorkflow:
         mode: str,
         **fields: object,
     ) -> AgentRuntime:
+        executor_timeout = _asset_executor_timeout_seconds()
         runtime = AgentRuntime(
             model_profile=self.model_profile,
             workspace=workspace,
@@ -301,7 +343,8 @@ class ObjectWorkflow:
                 "render_view_count": 8,
                 "render_elevation": 15.0,
                 "export_urdf": True,
-                "timeout": 300.0,
+                "timeout": executor_timeout,
+                **_render_execution_config(),
             },
             context_policy=_CONTEXT_POLICY,
             mode=mode,
@@ -414,6 +457,7 @@ class ObjectWorkflow:
         final: tuple[int, ExecutionResult, bool, str] | None = None
         start_round = int(state.get("next_round", 1))
         end_round = start_round + request.max_rounds - 1
+        executor_timeout = _asset_executor_timeout_seconds()
 
         for round_number in range(start_round, end_round + 1):
             round_root = rounds_root / f"round_{round_number:02d}"
@@ -426,7 +470,7 @@ class ObjectWorkflow:
                     round_root,
                     render=True,
                     export_urdf=True,
-                    timeout=300.0,
+                    timeout=executor_timeout,
                 )
             except AssetExecutionError as exc:
                 failure = {"round": round_number, "stage": "execute", "error": str(exc)}
@@ -592,6 +636,8 @@ class ObjectWorkflow:
             raise RuntimeError("Object refinement ended without a publishable execution")
         selected_round, execution, approved, finalization_reason = final
         final_glb, final_urdf, final_renders = self._publish(workspace, execution)
+        joint_states_path = workspace / "scene.joint_states.json"
+        render_metadata_path = workspace / "render" / "meta.json"
         runtime.usage.update_manifest(
             status="completed",
             error_type=None,
@@ -608,6 +654,12 @@ class ObjectWorkflow:
             glb_path=str(final_glb),
             urdf_path=None if final_urdf is None else str(final_urdf),
             render_paths=[str(path) for path in final_renders],
+            joint_states_path=(
+                str(joint_states_path) if joint_states_path.is_file() else None
+            ),
+            render_metadata_path=(
+                str(render_metadata_path) if render_metadata_path.is_file() else None
+            ),
         )
         self._write_checkpoint(
             workspace,
@@ -729,6 +781,17 @@ class ObjectWorkflow:
             destination = render_root / source_render.name
             shutil.copy2(source_render, destination)
             render_paths.append(destination)
+        source_metadata = execution.glb_path.parent / "meta.json"
+        if source_metadata.is_file():
+            shutil.copy2(source_metadata, render_root / "meta.json")
+        source_joint_states = execution.glb_path.with_name(
+            f"{execution.glb_path.stem}.joint_states.json"
+        )
+        workspace_joint_states = workspace / "scene.joint_states.json"
+        if source_joint_states.is_file():
+            shutil.copy2(source_joint_states, workspace_joint_states)
+        else:
+            workspace_joint_states.unlink(missing_ok=True)
         return glb_path, urdf_path, render_paths
 
     @staticmethod

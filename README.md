@@ -61,6 +61,83 @@ params:
   include_usage: true
 ```
 
+## Stepcode HTTP API backend
+
+On machines where `stepcode system status` reports an API key and local base URL, aDSL can call the OpenAI-compatible HTTP API directly instead of launching `codex exec` for every model turn. The packaged profile is `adsl-agents/configs/llm/stepcode-gpt-5.6-sol.yaml`.
+
+The profile uses `credential.stepcode: true`; at startup aDSL runs `stepcode config get apiKey` as an argv-only subprocess, extracts the credential in memory, and never writes it to the repository, runtime metadata, or logs. Do not copy the key into YAML or commit it. The local profile also sets `trust_env: false` so requests to `127.0.0.1` do not get redirected through machine-wide HTTP proxy variables.
+
+Verify the non-secret status, then run the same workflows with the Stepcode profile:
+
+```bash
+stepcode system status
+
+adsl-run \
+  --model-config adsl-agents/configs/llm/stepcode-gpt-5.6-sol.yaml \
+  create "A simple wooden stool" \
+  --max-rounds 1 \
+  --output ./temp/stepcode-api-smoke-stool
+
+adsl-chat-run \
+  --workspace ./temp/stepcode-api-chat \
+  --model-config adsl-agents/configs/llm/stepcode-gpt-5.6-sol.yaml \
+  "Reply briefly to confirm the Stepcode HTTP backend is active"
+```
+
+`ADSL_STEPCODE_BIN` can select a non-default binary, and `ADSL_STEPCODE_TIMEOUT_SECONDS` controls only the credential lookup. Model requests use the profile's `timeout`. The Codex CLI backend remains available as a fallback and uses separate configuration.
+
+## Codex CLI backend (no API key)
+
+aDSL can also use an already logged-in [Codex CLI](https://developers.openai.com/codex/noninteractive) as the model transport. This backend still uses the existing OpenAI Agents SDK orchestration: aDSL owns sessions and executes its restricted file tools, while each model turn runs through an ephemeral, read-only `codex exec` subprocess.
+
+On this machine, use the dedicated Python 3.10 environment and the explicit Codex binary:
+
+```bash
+conda activate /vepfs_default/chanxueyan/lhp/lms/envs/adsl
+export ADSL_CODEX_CLI_BIN=/vepfs_default/chanxueyan/lhp/lms/npm-global/bin/codex
+codex login status
+```
+
+If login status is not successful, run `codex login`. Do not copy, print, or commit Codex's `auth.json`; the adapter reuses CLI login and does not require `OPENAI_API_KEY`.
+
+The packaged profile is `adsl-agents/configs/llm/codex-cli-gpt-5.6-sol.yaml`. A small first-stage create can run in the repository's ignored `temp/` directory:
+
+```bash
+adsl-run \
+  --model-config adsl-agents/configs/llm/codex-cli-gpt-5.6-sol.yaml \
+  create "A simple wooden stool" \
+  --max-rounds 1 \
+  --output ./temp/codex-smoke-stool
+```
+
+The same profile works for `edit`, `resume`, interactive chat, and one-shot chat:
+
+```bash
+adsl-chat \
+  --workspace ./temp/codex-chat \
+  --model-config adsl-agents/configs/llm/codex-cli-gpt-5.6-sol.yaml
+
+adsl-chat-run \
+  --workspace ./temp/codex-chat-once \
+  --model-config adsl-agents/configs/llm/codex-cli-gpt-5.6-sol.yaml \
+  "Create a compact nightstand"
+```
+
+Optional model-transport overrides are `ADSL_CODEX_CLI_TIMEOUT_SECONDS` and `ADSL_CODEX_CLI_MAX_PROMPT_CHARS`. Slow shared filesystems can also raise the isolated asset-process limit with `ADSL_ASSET_EXECUTOR_TIMEOUT_SECONDS` (the default remains 300 seconds). Proxy variables are inherited from the launching process; no proxy address or credential is hardcoded. The adapter deliberately ignores the user's Codex configuration while retaining CLI authentication, fixes the Codex sandbox to read-only, records sanitized per-call diagnostics under `<workspace>/codex_cli/`, and refuses to truncate an oversized prompt.
+
+Headless rendering does not require a GPU. If Eevee cannot create an EGL context on a CPU-only machine, select Blender Cycles and optionally lower the preview settings:
+
+```bash
+export ADSL_RENDER_ENGINE=CYCLES
+export ADSL_RENDER_WIDTH=512
+export ADSL_RENDER_HEIGHT=512
+export ADSL_RENDER_SAMPLES=16
+```
+
+The defaults remain `BLENDER_EEVEE`, 1024×1024, and 256 samples. The effective renderer, dimensions, samples, and asset-executor timeout are recorded in each workspace's `runtime_config.json`.
+
+For now, small cases may stay under `./temp/` because `/jiigan-hp` is inaccessible. When the data mount is healthy again, move substantive experiment outputs to the agreed data-disk location rather than the code repository.
+
 ## Agentic 3D Generation
 
 The generation process follows an execute–critic–refine loop. By default, the agent runs for up to `2` rounds.
