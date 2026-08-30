@@ -1,0 +1,292 @@
+{
+  "generated_at": "2026-08-30T17:46:21.500661+00:00",
+  "branch": "api-native-development",
+  "head": "8ca0f933717cbd9bf4f0869155b86b398fc8cda3",
+  "scope": "temp top-level inventory before approved cleanup",
+  "items": [
+    {
+      "path": "temp/__pycache__",
+      "bytes": 1691,
+      "file_count": 1,
+      "dir_count": 0,
+      "run_status": [],
+      "selected_sha256": {}
+    },
+    {
+      "path": "temp/codex-case-articulated-cabinet",
+      "bytes": 5790314,
+      "file_count": 59,
+      "dir_count": 11,
+      "run_status": [
+        {
+          "path": "codex-case-articulated-cabinet/run.json",
+          "status": "completed",
+          "approved": true,
+          "round": null,
+          "finalization_reason": "image_critic_approved"
+        }
+      ],
+      "selected_sha256": {
+        "codex-case-articulated-cabinet/source.py": "cb8c288681539d9b2e17af587b36d9c0e638c08d9f3a0af7846683725db2df4e",
+        "codex-case-articulated-cabinet/plan.json": "7057e34330b9064f13b8c1c7fd3f822598fc191a509b52c6093d27d042d25bc3",
+        "codex-case-articulated-cabinet/run.json": "58d4fcb0198524f263260ca02458d575b89a5ae57ea34059a588b8c595a236f8",
+        "codex-case-articulated-cabinet/contact_sheet.jpg": "74d3490039abe4e39574f5c726856d7ea53d9005d6cb9a4c9816bcbfd910a6dc"
+      }
+    },
+    {
+      "path": "temp/codex-case-bedside-table",
+      "bytes": 3358266,
+      "file_count": 52,
+      "dir_count": 10,
+      "run_status": [
+        {
+          "path": "codex-case-bedside-table/run.json",
+          "status": "completed",
+          "approved": false,
+          "round": null,
+          "finalization_reason": "round_limit_after_execution"
+        }
+      ],
+      "selected_sha256": {
+        "codex-case-bedside-table/source.py": "b116568a4a6716431fd6fb5b76508c20c9f6dc12517254a1a703786d7810537d",
+        "codex-case-bedside-table/plan.json": "9e33b4a6ec0283869df08c3a35d4c7ce0b4557ffa948f2c3d35af4b82cd7b319",
+        "codex-case-bedside-table/run.json": "b81588695a42de6a4ce8e9267af032197cba6f0ece29fbf78077f137e6738dab",
+        "codex-case-bedside-table/contact_sheet.jpg": "f8b4e01b65058ce69c4bc3143110c33c468d8e4e1b40e0fb98cd4385ab162554"
+      }
+    },
+    {
+      "path": "temp/codex-case-chair",
+      "bytes": 2823406,
+      "file_count": 50,
+      "dir_count": 10,
+      "run_status": [
+        {
+          "path": "codex-case-chair/run.json",
+          "status": "completed",
+          "approved": false,
+          "round": null,
+          "finalization_reason": "round_limit_after_execution"
+        }
+      ],
+      "selected_sha256": {
+        "codex-case-chair/source.py": "479ef519452801d761c97599f9d76c4b6e210a52c43db6b5722c6771fa6a3964",
+        "codex-case-chair/plan.json": "f260933e421c8721599e1795503cd7434943128e7a0810bf417384a461ba4505",
+        "codex-case-chair/run.json": "54671a95d0d487f7d26087380a14209e0491e1fd3776bb9529f458852a022267",
+        "codex-case-chair/contact_sheet.jpg": "486200a184faad023680eb64ffd292b61aaea0505e4980d7fa59cf51cfe2d33e"
+      }
+    },
+    {
+      "path": "temp/codex-case-repair-desk",
+      "bytes": 5290432,
+      "file_count": 57,
+      "dir_count": 11,
+      "run_status": [
+        {
+          "path": "codex-case-repair-desk/run.json",
+          "status": "completed",
+          "approved": true,
+          "round": null,
+          "finalization_reason": "image_critic_approved"
+        }
+      ],
+      "selected_sha256": {
+        "codex-case-repair-desk/source.py": "143ed5b3417afd4303476786372802a7d329cf567a152549c895e689b71f966a",
+        "codex-case-repair-desk/plan.json": "3a1cf9da3ebfa2690dc4d9670261a293642c293110f392941f8e63700993102a",
+        "codex-case-repair-desk/run.json": "bdf4e868a56b97fa3cb127164e5aed2c80b7f0a8e9c4a71524c8292a1ce9b9ee",
+        "codex-case-repair-desk/contact_sheet.jpg": "6a453820cfd34ee87722711eb002e0cc0e3c8f079861bf84d2a428db089131d7"
+      }
+    },
+    {
+      "path": "temp/codex-chat-smoke",
+      "bytes": 61487,
+      "file_count": 11,
+      "dir_count": 2,
+      "run_status": [
+        {
+          "path": "codex-chat-smoke/run.json",
+          "status": "completed",
+          "approved": null,
+          "round": null,
+          "finalization_reason": null
+        }
+      ],
+      "selected_sha256": {
+        "codex-chat-smoke/run.json": "a9bce34eaad5c950887d268d5b995be861f8aecc0dd3477808cc0a0d7c4e5880"
+      }
+    },
+    {
+      "path": "temp/codex-create-smoke",
+      "bytes": 3046008,
+      "file_count": 51,
+      "dir_count": 13,
+      "run_status": [
+        {
+          "path": "codex-create-smoke/run.json",
+          "status": "completed",
+          "approved": false,
+          "round": null,
+          "finalization_reason": "round_limit_after_execution"
+        }
+      ],
+      "selected_sha256": {
+        "codex-create-smoke/source.py": "e9eedbd4e986b6ed90074f8e47c43e9fd99f61a6029d6ca65ef580c20de663f4",
+        "codex-create-smoke/plan.json": "ce6bb966b1c16fca6c2fe8c34fd44dab38b8605cf40336f4bf43acbed8b8087d",
+        "codex-create-smoke/run.json": "7da3ab4f5b1811c969f45171faac66b47874bbc443ad7dd64d439ea5f9e4a29b",
+        "codex-create-smoke/contact_sheet.jpg": "d8d7d9f75865c6fbb022c5591a037f354a4e69aee81026316e91e271949c02f3"
+      }
+    },
+    {
+      "path": "temp/codex-create-smoke-preflight-timeout-20260829",
+      "bytes": 60095,
+      "file_count": 8,
+      "dir_count": 0,
+      "run_status": [
+        {
+          "path": "codex-create-smoke-preflight-timeout-20260829/run.json",
+          "status": "running",
+          "approved": null,
+          "round": null,
+          "finalization_reason": null
+        }
+      ],
+      "selected_sha256": {
+        "codex-create-smoke-preflight-timeout-20260829/source.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "codex-create-smoke-preflight-timeout-20260829/run.json": "67ec45623c9a05692e56f876f3fdae58ee655446d3f3cb572bd4191cee0b41e2"
+      }
+    },
+    {
+      "path": "temp/codex-edit-chair-armrests",
+      "bytes": 2951058,
+      "file_count": 58,
+      "dir_count": 12,
+      "run_status": [
+        {
+          "path": "codex-edit-chair-armrests/run.json",
+          "status": "completed",
+          "approved": false,
+          "round": null,
+          "finalization_reason": "round_limit_after_execution"
+        }
+      ],
+      "selected_sha256": {
+        "codex-edit-chair-armrests/source.py": "da239ce13f0829535b5fa23ad674fbdf84f56af96f6f37da270ed0c2e450183f",
+        "codex-edit-chair-armrests/plan.json": "30ab828db362ef2379ee6af9cd0d8909ecdf48307dcda68032d3b14daf023031",
+        "codex-edit-chair-armrests/run.json": "5b70becaf846a516e4ed974843c3c5d5a2f6292c016f7a15cdd3b6406eb1b9f9",
+        "codex-edit-chair-armrests/contact_sheet.jpg": "8bccf9301e5fb9e93c6ff36e5077fd60f178cb36c4ca9e9a429f989a70fd99b2"
+      }
+    },
+    {
+      "path": "temp/codex-provider-smoke",
+      "bytes": 1504,
+      "file_count": 4,
+      "dir_count": 2,
+      "run_status": [],
+      "selected_sha256": {}
+    },
+    {
+      "path": "temp/codex-reference-nightstand",
+      "bytes": 8023775,
+      "file_count": 65,
+      "dir_count": 14,
+      "run_status": [
+        {
+          "path": "codex-reference-nightstand/run.json",
+          "status": "completed",
+          "approved": true,
+          "round": null,
+          "finalization_reason": "code_critic_approved"
+        }
+      ],
+      "selected_sha256": {
+        "codex-reference-nightstand/source.py": "fdf0871092cb2c98686f9c3fd8ec938107c812909d2234e9e039d7f7872fd3e8",
+        "codex-reference-nightstand/reference_contact_sheet.jpg": "83be8192341429a064331f3543abfc5b7a314b9a5a5aa447115236c46055e3bb",
+        "codex-reference-nightstand/plan.json": "56a3acce8487a5377b7d99df48d4d7ddaccfe249faa3002c4fd06f4be0b9fd7f",
+        "codex-reference-nightstand/run.json": "df876924f8d63362cfa3dd0d0061c8409b993a6b200297cb79cc73af3d4ceeae"
+      }
+    },
+    {
+      "path": "temp/codex-resume-controlled",
+      "bytes": 2695849,
+      "file_count": 50,
+      "dir_count": 11,
+      "run_status": [
+        {
+          "path": "codex-resume-controlled/run.json",
+          "status": "completed",
+          "approved": false,
+          "round": null,
+          "finalization_reason": "round_limit_after_execution"
+        }
+      ],
+      "selected_sha256": {
+        "codex-resume-controlled/source.py": "3fa2ce4f1bcfd3739f7a6abc44f9460e435d6b6e1f3f3849b033a10bbf93b2d7",
+        "codex-resume-controlled/plan.json": "9de21d3a6538465ec20cc4e8f717291ebe53dceaac58f014b1572229d84e38af",
+        "codex-resume-controlled/run.json": "7b74b16ce44f342b7bba17cf8e506325282c52943b9799958efc3012f4a7b38d",
+        "codex-resume-controlled/contact_sheet.jpg": "ba85d7fe2b612ded557f33b9d5dc65439130f169fddfe9eb040eaaaa2030de9f"
+      }
+    },
+    {
+      "path": "temp/execution-cleanup-smoke",
+      "bytes": 13829,
+      "file_count": 4,
+      "dir_count": 2,
+      "run_status": [],
+      "selected_sha256": {}
+    },
+    {
+      "path": "temp/executor-diagnose-stool",
+      "bytes": 1458931,
+      "file_count": 12,
+      "dir_count": 2,
+      "run_status": [],
+      "selected_sha256": {}
+    },
+    {
+      "path": "temp/run_codex_demo_cases.py",
+      "bytes": 2075,
+      "file_count": 1,
+      "dir_count": 0,
+      "run_status": [],
+      "selected_sha256": {}
+    },
+    {
+      "path": "temp/stepcode-api-chat-smoke",
+      "bytes": 59684,
+      "file_count": 7,
+      "dir_count": 0,
+      "run_status": [
+        {
+          "path": "stepcode-api-chat-smoke/run.json",
+          "status": "completed",
+          "approved": null,
+          "round": null,
+          "finalization_reason": null
+        }
+      ],
+      "selected_sha256": {
+        "stepcode-api-chat-smoke/run.json": "068e36f30cbaea1122f3174a7b43649a1d679b5a79fb6b39f58a3be770ccca45"
+      }
+    },
+    {
+      "path": "temp/stepcode-api-create-smoke",
+      "bytes": 3114589,
+      "file_count": 38,
+      "dir_count": 6,
+      "run_status": [
+        {
+          "path": "stepcode-api-create-smoke/run.json",
+          "status": "completed",
+          "approved": false,
+          "round": null,
+          "finalization_reason": "round_limit_after_execution"
+        }
+      ],
+      "selected_sha256": {
+        "stepcode-api-create-smoke/source.py": "fbb37dc26df2d08d7630550247d5e8d8216a91cd5e71ae4e004c8fbedd7a098b",
+        "stepcode-api-create-smoke/plan.json": "ec9c329f539ff9d4df2cc8e6404a8043a546b449329ccfe73d4df8ef861b8d3e",
+        "stepcode-api-create-smoke/run.json": "a2b761782c86ec89f15a5dc16e53bac97e55d3b5a81378a8c120d802c53e2157",
+        "stepcode-api-create-smoke/contact_sheet.jpg": "a6f76ee2b41f7b97ebc45210b804a4af962f6d2790b0f2b9b1d8cd3deeab9bd7"
+      }
+    }
+  ]
+}

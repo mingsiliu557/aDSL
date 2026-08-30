@@ -1,0 +1,344 @@
+{
+  "schema_version": 1,
+  "study_id": "adsl_audit_20260830",
+  "status": "ANALYZED",
+  "scope": "Targeted diagnostic audit of public aDSL code, agent flow, and generated artifacts; not a full paper reproduction.",
+  "paper": "https://arxiv.org/abs/2608.17975",
+  "runtime": {
+    "model_profile": "adsl-agents/configs/llm/stepcode-gpt-5.6-sol.yaml",
+    "output_root": "temp/audit_20260830",
+    "hard_timeout_seconds": 5400,
+    "monitor_interval_seconds": 30,
+    "environment": {
+      "ADSL_ASSET_EXECUTOR_TIMEOUT_SECONDS": "900",
+      "ADSL_RENDER_ENGINE": "BLENDER_EEVEE",
+      "ADSL_RENDER_WIDTH": "512",
+      "ADSL_RENDER_HEIGHT": "512",
+      "ADSL_RENDER_SAMPLES": "16"
+    },
+    "gpu_required": false,
+    "retry_policy": "none"
+  },
+  "logical_cases": [
+    {
+      "id": "T01",
+      "category": "text_structure",
+      "claim": "Exact component count, contact, centering, and even spacing.",
+      "invocation_ids": [
+        "T01-main",
+        "T01-one-round-control"
+      ],
+      "expectations": [
+        "exactly four equal legs",
+        "legs touch seat underside at four corners",
+        "seat centered",
+        "exactly three evenly spaced back slats",
+        "no armrests"
+      ]
+    },
+    {
+      "id": "T02",
+      "category": "text_structure",
+      "claim": "Primitive composition can express a paper-like bookshelf prompt.",
+      "invocation_ids": [
+        "T02-bookshelf"
+      ],
+      "expectations": [
+        "exactly four curved deep-red shelves",
+        "top shelf smaller",
+        "books or boxes present"
+      ]
+    },
+    {
+      "id": "T03",
+      "category": "text_relations",
+      "claim": "Relational layout supports exact radial repetition and contact.",
+      "invocation_ids": [
+        "T03-radial-wheel"
+      ],
+      "expectations": [
+        "hub and rim",
+        "exactly sixteen evenly spaced spokes",
+        "spokes contact hub and rim"
+      ]
+    },
+    {
+      "id": "T04",
+      "category": "text_topology",
+      "claim": "DSL can express hollow forms and constructive geometry.",
+      "invocation_ids": [
+        "T04-hollow-mug"
+      ],
+      "expectations": [
+        "open top",
+        "visible wall thickness",
+        "connected handle",
+        "hollow interior",
+        "watertight where appropriate"
+      ]
+    },
+    {
+      "id": "T05",
+      "category": "text_appearance",
+      "claim": "DSL can satisfy patterned material and furniture structure requirements.",
+      "invocation_ids": [
+        "T05-patterned-desk"
+      ],
+      "expectations": [
+        "diagonal black-white desktop pattern",
+        "drawer and handle",
+        "two side panels"
+      ]
+    },
+    {
+      "id": "I01",
+      "category": "image_to_shape",
+      "claim": "Pure image-conditioned reconstruction works without textual expansion.",
+      "invocation_ids": [
+        "I01-example-image"
+      ],
+      "expectations": [
+        "recognizable match to asset/example.png",
+        "no prompt details beyond image instruction"
+      ]
+    },
+    {
+      "id": "I02",
+      "category": "image_to_articulation",
+      "claim": "Pure image-conditioned articulated reconstruction infers movable structure.",
+      "invocation_ids": [
+        "I02-example-arti"
+      ],
+      "expectations": [
+        "recognizable match to asset/example-arti.png",
+        "articulation represented in URDF",
+        "joint semantics visually plausible"
+      ]
+    },
+    {
+      "id": "A01",
+      "category": "articulation",
+      "claim": "Multiple revolute and prismatic joints have correct pivots, axes, limits, and motion.",
+      "invocation_ids": [
+        "A01-cabinet"
+      ],
+      "expectations": [
+        "two hinged doors",
+        "one prismatic drawer",
+        "correct axes and limits",
+        "non-colliding sampled motion"
+      ]
+    },
+    {
+      "id": "A02",
+      "category": "articulation",
+      "claim": "Small control affordances can be articulated semantically.",
+      "invocation_ids": [
+        "A02-faucet"
+      ],
+      "expectations": [
+        "two rotating knobs",
+        "one central lever",
+        "three movable joints",
+        "plausible pivots and limits"
+      ]
+    },
+    {
+      "id": "E01",
+      "category": "edit_preservation",
+      "claim": "Editing changes requested count/spacing while preserving unrelated geometry.",
+      "invocation_ids": [
+        "E01-chair-slat-edit"
+      ],
+      "expectations": [
+        "back slats change from three to five",
+        "leg and seat geometry preserved",
+        "no unrelated additions"
+      ]
+    },
+    {
+      "id": "S01",
+      "category": "scene_relations",
+      "claim": "Agent and DSL generalize from objects to a multi-object relational scene.",
+      "invocation_ids": [
+        "S01-living-room"
+      ],
+      "expectations": [
+        "sofa against back wall",
+        "coffee table in front",
+        "TV on right facing sofa",
+        "lamp on left",
+        "rug under table and front sofa legs"
+      ]
+    },
+    {
+      "id": "M01",
+      "category": "memory_edit",
+      "claim": "Persistent edit context helps a cyberpunk variant relative to scratch generation.",
+      "invocation_ids": [
+        "M01-base-motorcycle",
+        "M01-cyberpunk-edit",
+        "M01-cyberpunk-scratch"
+      ],
+      "expectations": [
+        "base motorcycle recognizable",
+        "edit preserves motorcycle identity",
+        "cyberpunk additions are localized",
+        "compare edit vs scratch rounds, tokens, and source diff"
+      ]
+    }
+  ],
+  "invocations": [
+    {
+      "id": "T01-main",
+      "logical_case": "T01",
+      "action": "create",
+      "output": "T01-main",
+      "max_rounds": 4,
+      "articulation": false,
+      "requirement": "Build a dining chair with exactly four equal straight legs. Each leg must touch the underside of a single centered rectangular seat at one of its four corners. Add a back supported by two rear uprights with exactly three identical horizontal back slats, evenly spaced vertically. Do not add armrests or any extra legs or slats."
+    },
+    {
+      "id": "T01-one-round-control",
+      "logical_case": "T01",
+      "action": "create",
+      "output": "T01-one-round-control",
+      "max_rounds": 1,
+      "articulation": false,
+      "requirement": "Build a dining chair with exactly four equal straight legs. Each leg must touch the underside of a single centered rectangular seat at one of its four corners. Add a back supported by two rear uprights with exactly three identical horizontal back slats, evenly spaced vertically. Do not add armrests or any extra legs or slats."
+    },
+    {
+      "id": "T02-bookshelf",
+      "logical_case": "T02",
+      "action": "create",
+      "output": "T02-bookshelf",
+      "max_rounds": 4,
+      "articulation": false,
+      "requirement": "Build a freestanding bookshelf with exactly four deep-red shelves. Each shelf should have a visibly curved front edge, and the top shelf must be smaller in width and depth than the three lower shelves. Add supporting side structure and place several distinct books or storage boxes on the shelves."
+    },
+    {
+      "id": "T03-radial-wheel",
+      "logical_case": "T03",
+      "action": "create",
+      "output": "T03-radial-wheel",
+      "max_rounds": 4,
+      "articulation": false,
+      "requirement": "Build a wheel standing upright with a central cylindrical hub, an outer rim, and exactly sixteen identical straight spokes. The spokes must be evenly spaced over 360 degrees and each spoke must visibly contact both the hub and the inner surface of the rim."
+    },
+    {
+      "id": "T04-hollow-mug",
+      "logical_case": "T04",
+      "action": "create",
+      "output": "T04-hollow-mug",
+      "max_rounds": 4,
+      "articulation": false,
+      "requirement": "Build a ceramic mug as a genuinely hollow open-top vessel with a visible bottom and consistent wall thickness. Add one C-shaped handle that is visibly connected to the mug body at both ends. The interior must not be capped or represented as a solid cylinder; use constructive geometry where appropriate."
+    },
+    {
+      "id": "T05-patterned-desk",
+      "logical_case": "T05",
+      "action": "create",
+      "output": "T05-patterned-desk",
+      "max_rounds": 4,
+      "articulation": false,
+      "requirement": "Build a modern office desk with a rectangular desktop covered by a clearly visible diagonal alternating black-and-white stripe pattern. Under the desktop add exactly one shallow centered drawer with a contrasting handle and two solid side support panels. Keep the front open except for the drawer."
+    },
+    {
+      "id": "I01-example-image",
+      "logical_case": "I01",
+      "action": "create",
+      "output": "I01-example-image",
+      "max_rounds": 4,
+      "articulation": false,
+      "images": [
+        "asset/example.png"
+      ],
+      "requirement": "Build the object in this image."
+    },
+    {
+      "id": "I02-example-arti",
+      "logical_case": "I02",
+      "action": "create",
+      "output": "I02-example-arti",
+      "max_rounds": 6,
+      "articulation": true,
+      "images": [
+        "asset/example-arti.png"
+      ],
+      "requirement": "Build the object in this image."
+    },
+    {
+      "id": "A01-cabinet",
+      "logical_case": "A01",
+      "action": "create",
+      "output": "A01-cabinet",
+      "max_rounds": 6,
+      "articulation": true,
+      "requirement": "Build a storage cabinet with two separate front doors, each attached by a revolute hinge on its own outer vertical edge, plus one drawer above the doors attached by a prismatic joint that slides straight forward. Use semantic joint names, realistic pivots, axes, limits, and initial states. Door motion and drawer motion must not be modeled as fixed decoration."
+    },
+    {
+      "id": "A02-faucet",
+      "logical_case": "A02",
+      "action": "create",
+      "output": "A02-faucet",
+      "max_rounds": 6,
+      "articulation": true,
+      "requirement": "Build a sink faucet assembly with a central spout, a left control knob, a right control knob, and a central top lever. Both side knobs must rotate about plausible local axes and the central lever must rotate about its hinge, for exactly three movable joints total. Use semantic joint names and realistic pivots, axes, and limits."
+    },
+    {
+      "id": "E01-chair-slat-edit",
+      "logical_case": "E01",
+      "action": "edit",
+      "output": "E01-chair-slat-edit",
+      "max_rounds": 4,
+      "articulation": false,
+      "edit_kind": "continue",
+      "depends_on": [
+        "T01-main"
+      ],
+      "source_from": "T01-main",
+      "requirement": "Change only the chair back from exactly three horizontal slats to exactly five identical horizontal slats, evenly spaced in the same vertical span. Preserve the seat, all four legs, rear uprights, dimensions, materials, and overall placement. Do not add armrests."
+    },
+    {
+      "id": "S01-living-room",
+      "logical_case": "S01",
+      "action": "create",
+      "output": "S01-living-room",
+      "max_rounds": 6,
+      "articulation": false,
+      "requirement": "Build a small living-room scene: a sofa centered against the back wall; a coffee table centered in front of the sofa; a television on the right side facing the sofa; a floor lamp on the left side of the sofa; and one rug centered under the coffee table that extends beneath the front legs of the sofa. Make all five named furnishings spatially distinct and preserve these left/right/front/under relations."
+    },
+    {
+      "id": "M01-base-motorcycle",
+      "logical_case": "M01",
+      "action": "create",
+      "output": "M01-base-motorcycle",
+      "max_rounds": 4,
+      "articulation": false,
+      "requirement": "Build a recognizable standard street motorcycle with two aligned wheels, frame, fuel tank, seat, front fork, handlebars, headlight, and compact engine. Keep the design conventional and unmodified, with coherent contact and proportions."
+    },
+    {
+      "id": "M01-cyberpunk-edit",
+      "logical_case": "M01",
+      "action": "edit",
+      "output": "M01-cyberpunk-edit",
+      "max_rounds": 4,
+      "articulation": false,
+      "edit_kind": "variant",
+      "depends_on": [
+        "M01-base-motorcycle"
+      ],
+      "source_from": "M01-base-motorcycle",
+      "requirement": "Create a cyberpunk variant of this motorcycle while preserving its two-wheel layout, frame proportions, seat, fork, and rideable identity. Add localized neon cyan and magenta accents, angular armor panels, and a compact futuristic instrument cluster. Avoid rebuilding unrelated geometry."
+    },
+    {
+      "id": "M01-cyberpunk-scratch",
+      "logical_case": "M01",
+      "action": "create",
+      "output": "M01-cyberpunk-scratch",
+      "max_rounds": 4,
+      "articulation": false,
+      "requirement": "Build a recognizable cyberpunk street motorcycle with two aligned wheels, coherent frame and seat, front fork and handlebars, localized neon cyan and magenta accents, angular armor panels, and a compact futuristic instrument cluster."
+    }
+  ]
+}

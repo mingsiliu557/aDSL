@@ -2,88 +2,247 @@
 
 更新时间：2026-08-30（UTC）
 
-本文是滚动的当前摘要，不是追加式日志。后续修改时应更新/替换过期内容。
+本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
 
-## 当前目标与状态
+## 当前分支与目标
 
-- 当前工作分支：`api-native-development`，直接基于原始项目 commit `e1742e3`。除本文件外，项目代码应与该原始版本一致；当前分支不包含 Codex CLI adapter 或 Stepcode profile。
-- 适配版保留在 `master`（以及历史分支 `stepcode-api-backend`），commit 为 `4426c83`。该版本同时支持 Stepcode OpenAI-compatible HTTP API 与 Codex CLI fallback，且已同步到远程。
-- 当前目标：在 `api-native-development` 上从原始 API workflow 继续开发，优先走本机 Stepcode OpenAI-compatible HTTP API，不把 Codex Exec transport 带入当前分支。适配版只作为已验证实现与排障参考。
-- 第一阶段端到端复现已在适配版完成：文本 create、reference-image create、articulated create、edit、受控 interrupted resume、两类 Critic 和 chat 均已有真实 Codex CLI 证据；本机资产执行与多视角渲染全部使用 CPU。
-- 适配版的 Stepcode profile：`adsl-agents/configs/llm/stepcode-gpt-5.6-sol.yaml`，使用本机 `http://127.0.0.1:44949/v1` 的 Responses API 与 `gpt-5.6-sol`；Codex fallback profile 为 `adsl-agents/configs/llm/codex-cli-gpt-5.6-sol.yaml`。
-- 原 OpenAI/OpenRouter profile 分支保留，仍要求原 credential；Codex profile 明确禁止 credential。
+- 仓库：/vepfs_default/chanxueyan/lhp/lms/aDSL
+- 当前分支：api-native-development
+- 原始公开代码基线：e1742e3
+- 当前目标：在不引入 Codex Exec transport 的前提下，用本机 Stepcode OpenAI-compatible API 运行原 Agent 流程；保持原 aDSL/Eevee 设计，并审计公开代码、Agent 缺陷和生成物质量。
+- master 保留此前 Codex CLI + Stepcode 双后端适配历史；当前分支不使用 Codex Exec。
+- 本轮论文导向审计状态为 ANALYZED，不是 VERIFIED，也不是完整论文复现。
+- 不向远程 push，除非用户明确要求。
 
-## 本机路径与资源规则
+## 本机路径与存储规则
 
-- 代码仓库：`/vepfs_default/chanxueyan/lhp/lms/aDSL`。
-- 项目环境：`/vepfs_default/chanxueyan/lhp/lms/envs/adsl`（Python 3.10，已安装 editable aDSL、Agents SDK 0.20.0、mesh/render 依赖）。
-- 当前小 case/smoke：仓库内的 `temp/`。适配版 `.gitignore` 会忽略该目录，但当前原始代码分支不会，因此在 `api-native-development` 上必须保持它未跟踪、不得误提交。Codex 证据保存在各自 `temp/codex-*` workspace；Stepcode HTTP 证据在 `temp/stepcode-api-chat-smoke/` 和 `temp/stepcode-api-create-smoke/`。已发布资产目录包含 `source.py`、`scene.glb`、`scene.urdf`、8 张 PNG、sidecar 和运行记录。这里只适合当前前期小数据，不作为长期正式实验目录。
-- 正式持久数据根目录按手册应为 `/jiigan-hp/ttrv-datasets`，aDSL 正式实验建议放 `/jiigan-hp/ttrv-datasets/experiments/adsl/`。但 2026-08-29 `/jiigan-hp` 不可访问/会挂起，因此暂时不要写该路径。
-- 数据盘恢复后，提交前必须用 `findmnt -T` 确认 target 是 `/jiigan-hp`、FSTYPE 是 `hpvs_fs`，再检查可写性；不能只看目录是否存在。
-- 本阶段 Codex CLI、Blender CPU smoke 不需要 GPU。
-- 若后续需要 GPU：先在普通登录节点开 `tmux`，再由 tmux 中的 manager 使用 `volc ml_devinstance launch` 申请，不能用 Slurm。队列 `q-20250901110548-6w2bl`；单卡 A800 flavor `ml.pni2l.3xlarge`，双卡 A800 flavor `ml.pni2l.7xlarge`。无人值守优先 direct launch `volc ... bash worker.sh`，worker 返回即释放申请。
+- Python 环境：/vepfs_default/chanxueyan/lhp/lms/envs/adsl
+- 当前小 case：仓库内 temp/；仅本地 Git exclude，不提交。
+- 审计 case 根：temp/audit_20260830/
+- 旧 temp 清理前清单：reports/adsl_audit_20260830/prior_temp_inventory.json
+- 保留旧证据：temp/prior_evidence/
+- GPU 手册：gpu_server_operation_manual.md；仅本地 exclude，禁止提交。
+- /jiigan-hp 未作为当前依赖。数据盘恢复后必须先用 findmnt -T 和写测试确认真实 mount/FSTYPE，再考虑移动；不要因为目录可 cd 就判断健康。
+- 当前工作全部可用 CPU 完成，未申请 GPU。若以后确需 GPU，严格按 gpu_server_operation_manual.md 从 tmux 内用 volc ml_devinstance launch 申请，不使用 Slurm。
 
-## 适配版已实现的 Stepcode HTTP API 协议
+## 用户级依赖规则
 
-- 本机 Stepcode gateway 在 `127.0.0.1:44949` 监听；带认证的 `/v1/models` 返回 `claude-opus-4-8`、`claude-opus-4-8-jigan`、`claude-opus-5` 和 `gpt-5.6-sol`。`/v1/chat/completions` 与 `/v1/responses` 的最小 `gpt-5.6-sol` 请求均返回 200；项目 profile 选择 Responses API。
-- `credential.stepcode: true` 会用 argv-only subprocess 调用 `stepcode config get apiKey`，从带格式的输出中只在内存提取唯一 `ak-*`/`sk-*` token。key 不写 YAML、runtime metadata、README、日志或 Git；`ModelProfile` 的 `repr` 也隐藏 `api_key`。
-- Stepcode credential lookup 的非零退出、超时、binary 缺失和模糊输出均 fail closed，错误消息不拼接 stdout/stderr。覆盖变量为 `ADSL_STEPCODE_BIN` 与 `ADSL_STEPCODE_TIMEOUT_SECONDS`。
-- 本机环境代理会把未绕过的 localhost HTTP 请求导向代理并返回 502；Stepcode profile 显式 `trust_env: false`，而现有 OpenRouter profile 的默认 `trust_env: true` 保持不变。
-- runtime 使用现有 `OpenAIResponsesModel`、Agents SDK sessions、Pydantic structured output 和 aDSL 文件工具，不需要自定义 codec 或 `codex_cli/call_*` 诊断目录。
+本机是 root，但本项目缺库时不能污染系统环境：
 
-## 适配版已实现的 Codex 协议
+- 用户级 runtime 放在 /vepfs_default/chanxueyan/lhp/lms 下。
+- 需要持久环境变量时写 /vepfs_default/chanxueyan/lhp/lms/.bashrc。
+- 运行前 source /vepfs_default/chanxueyan/lhp/lms/.bashrc。
+- 下载遇到网络问题可使用 127.0.0.1:7892 代理；直连能用时无需强制代理。
+- 不把 API key、auth 文件或 credential 输出写入 repo、temp 日志、报告或 Git。
 
-- `CodexCliModel` 实现固定版本 `openai-agents==0.20.0` 的 `Model` 接口，现有 SDK Runner 继续负责角色 session、工具循环、Pydantic output 和 usage 聚合。
-- 每个 turn 使用 `codex exec --ephemeral --ignore-user-config --ignore-rules --sandbox read-only --json --output-schema ... --output-last-message ...`；prompt 从 stdin 输入，不使用 shell。
-- SQLite session 是唯一会话真相，不使用 `codex exec resume`。
-- Codex 不直接写 asset workspace。`read_file`、`write_file`、`apply_patch` 仍由 aDSL 工具执行并受 `source.py` 范围限制。
-- 工具参数在 Codex schema 中是直接 JSON object；进入 SDK `ResponseFunctionToolCall.arguments` 时只序列化一次，避免长 Python/引号/换行/反斜杠的二次 JSON 损坏。
-- 每个 model turn 最多一个工具调用；unknown tool、非 object 参数、缺字段、typed final/tool 混用、坏 JSON 等均 fail closed。
-- Pydantic output 嵌入外层 `final_output` schema，并由 adapter 和 SDK 双重校验。
-- Responses data-URL 图片落到每次调用的临时文件，按 SHA-256 去重，通过重复 `--image` 传入；prompt 不含 base64，调用结束清理。
-- 从最后一个 `turn.completed.usage` 解析 input、cached、output、reasoning token。
-- 子进程新建 process group；timeout 后 TERM、KILL，再有界关闭 pipe transport，避免启动器后代继承 stdio 导致无限等待。
-- 每次调用把脱敏 metadata、JSONL events、最终 response 和 stderr 保存到 `<asset-workspace>/codex_cli/call_*`。metadata 只记录 prompt 长度与 SHA-256，不保存 prompt、图片 base64 或认证内容。
-- 模型环境变量：`ADSL_CODEX_CLI_BIN`、`ADSL_CODEX_CLI_TIMEOUT_SECONDS`、`ADSL_CODEX_CLI_MAX_PROMPT_CHARS`。执行/渲染覆盖：`ADSL_ASSET_EXECUTOR_TIMEOUT_SECONDS`、`ADSL_RENDER_ENGINE`、`ADSL_RENDER_WIDTH`、`ADSL_RENDER_HEIGHT`、`ADSL_RENDER_SAMPLES`。默认仍为 300 秒、Eevee、1024×1024、256 samples；本机 CPU smoke 使用 900 秒、Cycles、512×512、16 samples。有效配置写入每个 workspace 的 `runtime_config.json`。
+## Native Stepcode API 适配
 
-## 适配版验证结果
+当前 profile：
 
-- 离线测试：2026-08-30 最新全量 `41 passed in 234.38s`。除原 Codex/config/workflow/executor/render/publish 覆盖外，新增 Stepcode credential 提取、literal true、secret-safe repr/error 和 OpenRouter/Codex 回归。
-- Stepcode HTTP 最小协议探针：认证 `/v1/models` 成功；Chat Completions 返回精确短文本，Responses 返回 `status=completed`。
-- Stepcode one-shot chat：`adsl-chat-run` 经真实 Responses API/Pydantic router 返回 `action=chat`，没有 `codex exec` 或 `codex_cli/` 目录；证据在 `temp/stepcode-api-chat-smoke/`。
-- Stepcode side table create：Planner typed output、Coder 文件工具调用与 typed final 全部走 HTTP API；CPU 发布 10,368-byte GLB、2,927-byte URDF 与 8 张 PNG。3 requests、13,491 tokens，`runtime_config.json` 只记录 `credential_source=stepcode`，无 key。联系图：`temp/stepcode-api-create-smoke/contact_sheet.jpg`。
-- 真实最小 structured provider smoke：通过。返回 `{"ok":true,"message":"Structured output works."}`；usage 为 1 request、16,541 input、40 output tokens。证据在 `temp/codex-provider-smoke/`。
-- 木凳 `max_rounds=1`：端到端成功，发布 16,668-byte GLB、2,977-byte URDF、8 张 512×512 PNG。历史累计 3 个 Codex requests、58,720 tokens。联系图：`temp/codex-create-smoke/contact_sheet.jpg`。
-- 床头柜 `max_rounds=1`：端到端成功，包含顶板、浅抽屉、把手、开放搁板和侧板；发布 41,368-byte GLB、782-byte URDF、8 张 PNG。3 requests、64,692 tokens。联系图：`temp/codex-case-bedside-table/contact_sheet.jpg`。
-- 餐椅 `max_rounds=1`：端到端成功，包含四腿、座面、双后立柱和三条横档；发布 16,928-byte GLB、4,712-byte URDF、8 张 PNG。3 requests、59,680 tokens。联系图：`temp/codex-case-chair/contact_sheet.jpg`。
-- 三个 case 均使用 CPU Cycles；未申请或使用 GPU。`approved=false` 是 `max_rounds=1` 在首次成功 execution 后按设计以 `round_limit_after_execution` 发布、跳过 critic，不是失败。
-- Articulated 双门柜 `max_rounds=2`：第 1 轮 execution 成功，Image Critic 查看 8 张 PNG 后直接 `approved=true`，因此按设计不再调用 Code Critic/repair。发布 107,196-byte GLB、10,406-byte URDF、两个 door mesh、8 张 PNG 和两个初始值均为 0.4363 rad（约 25°）的 `scene.joint_states.json`。4 requests、88,922 tokens。联系图：`temp/codex-case-articulated-cabinet/contact_sheet.jpg`。
-- 餐椅 extend edit：基于 `temp/codex-case-chair/source.py` 增加左右直扶手，完整经过 Edit Planner `read_file` → typed EditPlan、Coder `read_file` → `apply_patch` → final，再次 CPU 执行/发布成功。原 source SHA-256 保持 `479ef5...a3964`，新 source 为 6,099 字节；5 requests、103,525 tokens。联系图：`temp/codex-edit-chair-armrests/contact_sheet.jpg`。
-- Reference-image 床头柜 `max_rounds=2`：以既有床头柜首张 512×512 render 为参考，Planner/Coder 均收到 1 张图片，Image Critic 与 Code Critic 均收到参考图加 8 个新视图。发布 53,012-byte GLB、11,027-byte URDF 和 8 张 PNG。Image Critic 认为抽屉缝隙过大而拒绝；Code Critic 读取源码后以对称的 0.05-unit 水平 reveal 和 0.0275-unit 垂直 reveal 纠正视觉误判，最终 `code_critic_approved`，未做无必要 repair。6 requests、137,122 tokens。对照图：`temp/codex-reference-nightstand/reference_contact_sheet.jpg`。
-- 受控 interrupted resume 茶几：在 Planner/Coder 完成、`checkpoint.stage=refining`、执行器尚未产出资产时发送 `Ctrl-C`；源码 2,164 字节与 checkpoint/usage 完整保留。确认旧 `D` 状态 executor 退出后，`adsl-run resume` 从 `next_round=1` 直接执行并发布 10,436-byte GLB、2,968-byte URDF 和 8 张 PNG；`run.json` 含 `resume=true`、`resumed=true`，请求总数恢复前后均为 3，证明没有重跑 Planner/Coder/Critic。联系图：`temp/codex-resume-controlled/contact_sheet.jpg`。
-- 进程组清理修复后的真实无渲染执行 smoke：通过 `execute_asset_source()` 正常发布 10,436-byte GLB 与 2,968-byte URDF，render 数为 0；证据在 `temp/execution-cleanup-smoke/`。
-- 复杂书桌 `max_rounds=2`：为自然触发 Repair Coder，要求矩形台面、四方腿、居中浅抽屉/把手、双层开放 hutch 和背部 X 支撑。首轮发布 51,544-byte GLB、798-byte URDF 与 8 张 PNG；Image Critic 确认所有结构清晰存在并 `approved=true`，八视图人工复核一致，因此没有为了覆盖率伪造 repair。4 requests、88,004 tokens。联系图：`temp/codex-case-repair-desk/contact_sheet.jpg`。
-- one-shot chat：`adsl-chat-run` 使用 Codex profile 成功返回 `action=chat` 和简短确认文本，`asset=null`，证据在 `temp/codex-chat-smoke/`。
-- 第一次触发旧 pipe 清理缺陷的 workspace 保留在 `temp/codex-create-smoke-preflight-timeout-20260829/`；缺陷已修复。
+- adsl-agents/configs/llm/stepcode-gpt-5.6-sol.yaml
+- model：gpt-5.6-sol
+- API：OpenAI-compatible Responses
+- credential.stepcode：true
+- trust_env：false，防止 localhost gateway 被代理劫持
 
-## 重要踩坑
+credential 行为：
 
-- 本机 `CODEX_HOME=/vepfs_default/chanxueyan/lhp/lms/.codex` 位于共享盘。2026-08-29 共享盘严重抖动时，Python/Agents SDK import 约需 3–5 分钟，`codex --version`/`login status` 也可能需数分钟。adapter 的一次性 preflight 上限为 300 秒，model call 使用 profile 的 900 秒。
-- Linux `D` 状态是不可中断 I/O 等待，不是模型或 GPU 错误。代码和 Python 环境都位于 `/vepfs_default`，首次 import 仍可能耗时数分钟；Stepcode HTTP 消除每轮 Codex CLI/preflight 开销，但不能消除进程首次读取共享盘依赖。后续可用常驻服务或本地盘环境缓存优化。
-- `adsl-agents/prompt/coder.md` 原先错误地强制 `from adsl import *`，而 bundled DSL 文档/示例要求 `from adsl.core import *`。editable 安装时 `adsl-agents` 的 namespace finder 会先占用顶层 `adsl`，导致前者没有 `Asset` 并报 `NameError`。提示词已统一为 `from adsl.core import *`，并有回归测试。
-- 本机没有可用的 `libEGL.so.1`，固定 Eevee 会在 GLB 成功后报 EGL 错误。Cycles 可纯 CPU 无头渲染，因此增加 `ADSL_RENDER_ENGINE=CYCLES` 及 preview 尺寸/采样覆盖；默认不变。
-- 每个新 asset runtime 都会重新做 Codex `--version` 和 `login status` preflight；同一进程跑多个 case 时目前仍重复，当前共享盘上每次可能浪费约 5 分钟。后续应做安全的进程内 preflight cache。
-- `asset_executor` 为隔离生成代码而每轮启动新 Python/Blender 子进程；共享盘上每次 import 可能约 3–5 分钟。900 秒覆盖只用于本机运行，项目默认保持 300 秒。
-- 受控中断验证发现旧 `execute_asset_source()` 使用普通 `subprocess.run`：父进程收到 `Ctrl-C` 后，正处于 Linux 不可中断磁盘睡眠的 executor 会短暂成为 PID 1 的子进程。现改为独立 process group，并在 timeout、`KeyboardInterrupt` 或其他异常时有界 TERM → KILL 整个组；但内核 `D` 状态仍只能等 I/O 返回后兑现 KILL。恢复前必须确认旧 executor PID 已消失，不能并发写同一 `round_01`。
-- 原 `_publish()` 会遗漏 executor 生成的 `scene.joint_states.json` 和 `render/meta.json`，导致 articulated 发布目录丢失初始关节状态与相机元数据。现已复制，新发布会在 `run.json` 记录路径；四个修复前的既有 case 也已回填 sidecar。修复后的餐椅 edit 已验证两个 manifest 字段。
-- Codex launcher/native 子进程退出后，分离后代可能暂时保持 stdout/stderr pipe。绝不能在 KILL 后无限 `await communicate()`；当前实现会有界关闭 transport 并取消任务。
-- `--ignore-rules` 指 Codex exec-policy rules；aDSL 的业务约束仍必须写进 transport prompt，不能依赖该 flag 代替 prompt。
-- 适配版中 `temp/` 已加入 `.gitignore`；原来忽略整个 `tests/` 的规则已移除，使 adapter 单元测试可以被版本控制；当前原始代码分支没有这些 ignore 变更。
-- 不读取、打印、复制或提交 Codex `auth.json`。CLI preflight 只调用 `--version` 和 `login status`。
+- adsl-agents/utils/config.py 以 argv-only subprocess 调用 stepcode config get apiKey。
+- adsl-run 未传 --model-config 时默认使用 Stepcode profile；原 OpenRouter profile 仍可显式选择。
+- 只在内存提取唯一 ak-/sk- token。
+- command 缺失、超时、非零退出或模糊输出全部 fail closed。
+- ModelProfile repr 隐藏 api_key。
+- runtime_config.json 只保存 credential_source=stepcode 等非秘密字段。
+- 当前分支没有 Codex provider/profile/transport。
 
-## 下一步建议
+## 原项目 Eevee 与 CPU 环境
 
-1. 在当前 `api-native-development` 分支基于原始 API workflow 做干净的 Stepcode 适配；不要 cherry-pick `adsl-agents/providers/codex_*` 或 Codex profile。需要参考已验证行为时只读取 `master` 的实现。
-2. 若要补齐最后一个自然分支，可专门运行一个确实需要修改源码的 Critic repair case；真实 Image Critic 与 Code Critic 已覆盖，但 Repair Coder 未自然触发。
-3. 可考虑常驻 agent 服务或本地盘 Python 环境缓存，减少 `/vepfs_default` 首次 import 的数分钟等待。
-4. `/jiigan-hp` 恢复后按 mount fail-closed 预检，把正式实验改到数据盘；当前 `temp/` 结果只作为小型开发证据。
+原项目默认渲染就是：
+
+- BLENDER_EEVEE
+- 1024×1024
+- 256 samples
+- 8 views
+- 15° elevation
+
+它不要求 GPU。先前失败是本机缺少 libEGL.so.1。
+
+已完成用户级修复：
+
+- EGL/Mesa deb 只解压到 /vepfs_default/chanxueyan/lhp/lms/adsl_runtime/egl
+- .bashrc 已加入 ADSL_EGL_ROOT、LD_LIBRARY_PATH、LIBGL_DRIVERS_PATH、__EGL_VENDOR_LIBRARY_DIRS
+- 修改前备份：/vepfs_default/chanxueyan/lhp/lms/.bashrc.before-adsl-egl-20260830
+- bash -n 已通过
+- bpy 4.0.0 使用 Mesa surfaceless EGL 在 CPU 上成功渲染
+- 日志先出现 EGL_NOT_INITIALIZED，随后出现 fallback to surfaceless EGL rendering 属于预期 fallback；以最终 exit code 和 PNG 为准
+
+本轮实验使用 env override：
+
+- ADSL_RENDER_ENGINE=BLENDER_EEVEE
+- ADSL_RENDER_WIDTH=512
+- ADSL_RENDER_HEIGHT=512
+- ADSL_RENDER_SAMPLES=16
+- ADSL_ASSET_EXECUTOR_TIMEOUT_SECONDS=900
+
+项目默认值仍保持 Eevee/1024/256/300 秒。
+
+/tmp/adsl_site_cache/bpy 是本轮加速用的易失缓存，机器或 /tmp 清理后可消失，不能当持久依赖。
+
+## 已实现的运行兼容修复
+
+- Coder prompt 的 import 修正为 from adsl.core import *，与论文和 DSL 文档一致。
+- render.py 支持 engine/width/height/samples 环境覆盖，默认不变。
+- execution.py 子进程使用独立 process group；timeout/中断时有界 TERM → KILL。
+- execution.py 直接执行同目录 asset_executor.py，不再用 python -m adsl.agents.utils.asset_executor，避免资产子进程无意义导入整个 Agent/OpenAI stack。
+- 同一 source smoke 在 /tmp bpy cache 下从 308.634 s 降到 3.727 s。
+- service.py 发布 scene.joint_states.json 和 render/meta.json，并记录有效 runtime 配置。
+- .gitignore 不再忽略整个 tests/。
+- tests 覆盖 config、credential 安全、execution cleanup/direct executor、prompt、publish 和 service config。
+
+## 2026-08-30 诊断审计
+
+Manifest：
+
+- experiments/adsl_audit_20260830/case_manifest.json
+- 12 个逻辑 case
+- 15 次 invocation
+- retry_policy=none；每个 invocation 最多启动一次
+- Agent 内部 Debugger/repair 是被测流程的一部分
+
+case 范围：
+
+- exact count/contact chair
+- curved bookshelf
+- 16-spoke radial wheel
+- hollow mug
+- patterned desk
+- pure image table
+- pure image articulated nightstand
+- two articulated text cases
+- localized chair edit
+- living-room relational scene
+- motorcycle base/edit/scratch memory comparison
+
+总体：
+
+- 15/15 最终生成 GLB/URDF/PNG
+- 14/15 被当前 workflow 标记 approved
+- 118 model requests
+- 836,614 total tokens
+- invocation elapsed 求和 4,226.324 s
+- 3 次首轮执行失败，全部为同类非法数字词语法，随后被 Debugger 修复
+- session DB 合计 53,882,880 bytes，原始内容有 195 次 data:image occurrence
+- 未申请 GPU
+
+详细报告：
+
+- reports/adsl_audit_20260830/README.md
+- reports/adsl_audit_20260830/paper_claim_matrix.md
+- reports/adsl_audit_20260830/code_agent_findings.md
+- reports/adsl_audit_20260830/generated_output_findings.md
+- reports/adsl_audit_20260830/case_results.json
+- reports/adsl_audit_20260830/case_results.md
+
+## 关键正面结果
+
+- T01：4 条等长腿、3 条背横档、无扶手满足；grid/stack 对 repeated structure 有效。
+- T03：源码明确用 radial_shapes 生成 16 根辐条并接触 hub/rim，是关系 DSL 的强证据。
+- E01：chair 3→5 slats，只 +6/-6 行，其他几何保持，支持 localized edit。
+- I02/A01/A02：URDF 都有精确 3 个 movable joints，语义名、轴和 limits 基本合理。
+- pose probe 将三组关节设到 85% 行程后重新导出/渲染，抽屉、门、knob/lever 都实际移动且保持连接。
+- T02/A02 的真实布局缺陷能在下一轮被 Critic/repair 修复，说明 loop 有实际价值。
+
+pose probe：
+
+- experiments/adsl_audit_20260830/render_pose_probe.py
+- temp/audit_20260830/pose_probes/
+- I02 drawers：0.2975
+- A01 doors：1.632 rad；drawer：0.3825
+- A02 knobs：0.455 rad；lever：0.5
+
+## 关键流程/代码缺陷
+
+1. asset_executor.py 用 runpy.run_path 不受限执行模型源码；子进程不是安全 sandbox。当前最高优先级。
+2. service.py 最后一轮执行成功后直接 round_limit_after_execution，不运行 Critic；max_rounds=1 恒定 critic_skipped。
+3. Image Critic approved 时跳过 Code Critic，与论文“Code Critic final adjudicator”不一致。
+4. Planner relations/checklist 只是 list[str]，没有 typed/executable constraints。
+5. 没有 deterministic count/contact/alignment/collision/topology/joint-motion gate。
+6. articulated 主流程只渲染 Joint.initial；Code Critic prompt 要求非零 pose，但没有对应工具或图。
+7. 固定 8×15° object orbit 看不到 mug interior，并让 living-room 约 3/8 视图被墙遮挡。
+8. Code Critic prompt 要求 MUST TRUST THE CODE LOGIC，可能把源码意图误当最终几何/视觉事实。
+9. 没有 AST/compile preflight；I01、I02、M01 scratch 首轮出现 0. thirty / 0. forty。
+10. bounds.py 明确存在 transformed/boolean AABB 近似；T02 已触发 floating books。
+11. SQLite selective context 不会物理删除旧 render data URL。
+12. 生成代码仍大量使用绝对数字；复杂外观 primitive/flat-color 感明显。
+13. 公开主流程没有论文的 SpaceControl/Trellis 高保真阶段。
+14. ObjectWorkflow 单体且相机/视图/URDF 硬编码，难做 verifier 注入和 ablation。
+15. 缺 Draco 时 Blender 打 ERROR 但 GLB 仍成功，日志容易误判。
+
+## 生成物主要不足
+
+- T02：curved nosing 视觉不明显；四个 nosing CSG 非 watertight，共 41 zero-area faces。
+- T04：源码有真实 hollow vessel，但八视图看起来仍接近封顶实心；C-handle 粗糙且 union 非 watertight。
+- T05：黑白条纹用 13 个薄 Cube + boolean 模拟，不是真正 texture/material。
+- I01/I02：语义可辨识，但比例、腿型、把手、木纹、接缝和曲面细节明显弱于参考。
+- A01：原八视图全关闭；motion 是审计 pose probe 才验证的。
+- A02：关节正确，但外形更像粗糙工业塔，faucet 识别度一般。
+- S01：空间关系大致成立，场景相机严重被墙遮挡。
+- M01 edit：保存基体且 wall time 比 scratch 少，但 tokens/requests 更多、源码膨胀、视觉 cyberpunk 更弱。
+- 拓扑统计必须先 merge_vertices(merge_tex=True, merge_norm=True)，否则 glTF hard-normal/UV 顶点拆分会把普通 cube 误报为非 watertight。
+
+## 论文复现边界
+
+论文使用：
+
+- Gemini 3 Pro，temperature=1
+- R=10
+- 1024×1024
+- 200 text prompts
+- Toys4K 30 image cases
+- 120 ablation prompts
+- CLIP/VQA/FID/Execution Success
+- baselines 和 38 人 user study
+- SpaceControl/Trellis high-fidelity application
+
+本轮均未完整复现，因此不能宣称论文 SOTA、100% execution success、CLIP/VQA/FID 或人类偏好已验证。
+
+## 常用复查命令
+
+先加载用户级 Eevee 库：
+
+~~~bash
+source /vepfs_default/chanxueyan/lhp/lms/.bashrc
+~~~
+
+重新分析既有 case：
+
+~~~bash
+/vepfs_default/chanxueyan/lhp/lms/envs/adsl/bin/python   experiments/adsl_audit_20260830/analyze_cases.py
+~~~
+
+测试：
+
+~~~bash
+/vepfs_default/chanxueyan/lhp/lms/envs/adsl/bin/python -m pytest -q
+~~~
+
+Git 提交前：
+
+- git diff --check
+- py_compile 修改过的 Python 文件
+- 全量 pytest
+- secret scan，不能输出或提交真实 ak-/sk- token
+- 确认 temp/ 和 gpu_server_operation_manual.md 不在 staged files
+- 只本地 commit，不 push
+
+## 建议的下一阶段修复顺序
+
+1. 生成代码 sandbox + AST allowlist。
+2. 修复 round off-by-one；每次成功 execution 都执行固定 verifier chain。
+3. 增加 syntax preflight。
+4. typed constraints + deterministic count/contact/topology/collision verifier。
+5. joint lower/mid/upper pose sampling。
+6. container/scene/articulation 的 asset-aware camera policy。
+7. session 图片 artifact 外置与 prune/compact。
+8. texture/material 或明确接入 high-fidelity generator。
+9. 拆分 ObjectWorkflow 并加入 benchmark/ablation runner。
