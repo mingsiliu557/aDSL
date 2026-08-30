@@ -63,6 +63,8 @@ class AgentRuntime:
                     "api": profile.api,
                     "base_url": profile.base_url,
                     "model": profile.model,
+                    "credential_source": profile.credential_source,
+                    "trust_env": profile.trust_env,
                     "timeout": profile.timeout,
                     "max_retries": profile.max_retries,
                     "max_tokens": profile.max_tokens,

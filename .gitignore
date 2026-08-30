@@ -39,8 +39,7 @@ llm_config/keys/
 # running results
 *.log
 
-# Generated local scene cases
-tests/
+# Tests are source; generated scene cases belong in local temp/output directories.
 
 # Mesh objects, videos, and URDF outputs
 *.glb

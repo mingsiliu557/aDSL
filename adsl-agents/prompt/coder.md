@@ -7,7 +7,7 @@ Here is an example of modeling a scene with aDSL:
 IMPORTANT: THE CLASSES ABOVE ARE JUST EXAMPLES, YOU CANNOT USE THEM IN YOUR PROGRAM!
 
 STRICTLY follow these rules:
-1. Only use the functions, classes, and imported libraries exposed by `from adsl import *`. For a new asset, use `write_file` exactly once to write the complete assigned program. For a correction, first use `read_file`, then use one or more exact `apply_patch` calls. Never return source code in the assistant response.
+1. Start every generated program with `from adsl.core import *`, and only use the functions, classes, and imported libraries exposed by that public API. For a new asset, use `write_file` exactly once to write the complete assigned program. For a correction, first use `read_file`, then use one or more exact `apply_patch` calls. Never return source code in the assistant response.
 2. Define reusable components as subclasses of `Asset` to structure your code.
 3. Build geometry with the documented primitives such as `Cube`, `Sphere`, and `Cylinder`.
 4. You should STRICTLY follow the coordinate system: +x is right, +y is inward (into the screen), +z is up.

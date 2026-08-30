@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import os
 from pathlib import Path
+import signal
 import subprocess
 import sys
 
@@ -19,6 +21,33 @@ class ExecutionResult:
 
 class AssetExecutionError(RuntimeError):
     pass
+
+
+def _stop_process_group(process: subprocess.Popen[str], *, grace_seconds: float = 1.0) -> None:
+    """Best-effort, bounded cleanup for the executor and any descendants it spawned."""
+
+    if process.poll() is not None:
+        return
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+    try:
+        process.wait(timeout=grace_seconds)
+        return
+    except subprocess.TimeoutExpired:
+        pass
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        return
+    try:
+        process.wait(timeout=grace_seconds)
+    except subprocess.TimeoutExpired:
+        # Linux processes in uninterruptible disk sleep cannot exit until the
+        # kernel I/O operation returns. Keep cleanup bounded; SIGKILL remains
+        # pending and will be honored as soon as the process becomes runnable.
+        pass
 
 
 def execute_asset_source(
@@ -46,8 +75,7 @@ def execute_asset_source(
     output.mkdir(parents=True, exist_ok=False)
     command = [
         sys.executable,
-        "-m",
-        "adsl.agents.utils.asset_executor",
+        str(Path(__file__).with_name("asset_executor.py")),
         "--source",
         str(source),
         "--output",
@@ -65,13 +93,24 @@ def execute_asset_source(
         )
     if export_urdf:
         command.append("--urdf")
-    completed = subprocess.run(
+    process = subprocess.Popen(
         command,
         cwd=workdir,
-        check=False,
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
-        timeout=timeout,
+        start_new_session=True,
+    )
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+    except BaseException:
+        _stop_process_group(process)
+        raise
+    completed = subprocess.CompletedProcess(
+        command,
+        process.returncode,
+        stdout,
+        stderr,
     )
     if completed.returncode != 0:
         raise AssetExecutionError(
