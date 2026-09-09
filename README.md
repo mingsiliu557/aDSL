@@ -55,6 +55,26 @@ HTTP profiles such as
 `adsl-agents/configs/llm/openrouter-gemini-3.1-pro.yaml` remain available only
 when selected explicitly with `--model-config`.
 
+### StepCode HTTP API backend
+
+When `stepcode system status` exposes a local OpenAI-compatible endpoint, aDSL
+can call it directly instead of launching `codex exec` for every model turn.
+Select `adsl-agents/configs/llm/stepcode-gpt-5.6-sol.yaml` explicitly:
+
+```bash
+adsl-run create "A simple wooden stool" \
+  --model-config adsl-agents/configs/llm/stepcode-gpt-5.6-sol.yaml \
+  --max-rounds 1 \
+  --output ./temp/stepcode-api-smoke-stool
+```
+
+The profile resolves the credential at runtime with `stepcode config get
+apiKey`; it does not store the key in YAML, runtime metadata, or logs. Set
+`ADSL_STEPCODE_BIN` only when selecting a non-default binary. The Codex CLI
+profile remains the packaged default and fallback.
+
+### GPU Eevee rendering
+
 For GPU Eevee rendering, start one persistent serial worker from the login node:
 
 ```bash
@@ -108,6 +128,7 @@ adsl-run create "Build the object in this image" \
   --output "./outputs/nightstand-arti" \
   --articulation
 ```
+
 ### Engineering checker gates
 
 Object workflows can register external engineering checkers. A required checker
@@ -133,7 +154,7 @@ the source. Materials, loads, boundary conditions, and thresholds remain in
 reviewable checker configs and are not editable by the Coder.
 
 See [the checker documentation](experiments/workflow_checkers/README.md) and
-[the frozen FEA feedback experiment](presentation_assets/results/fea_checker_loop/EXPERIMENT.md).
+[the physical-analysis notes](physics_analysis.md).
 
 ## Chat (Experimental)
 

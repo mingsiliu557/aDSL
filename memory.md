@@ -650,3 +650,19 @@ Toys4K 最小下载：
 - 代理流程：`lms_proxy start`、`lms_proxy health`、任务结束后 `lms_proxy stop`。LMS 私有代理监听 `127.0.0.1:44949`，启动时会停止全局旧 Supervisor 代理以释放端口。
 - localhost 健康检查必须绕过环境代理（`curl --noproxy "*" ...`）。直接 kill 全局代理会因 Supervisor 的 `autorestart=true` 被重新拉起，应使用 Supervisor stop；LMS 私有代理则由 `lms_proxy` 管理。
 - 当前验收结束后，全局代理和 LMS 私有代理均保持停止，`44949` 无监听。
+
+## 2026-09-09：物理 checker 代码同步主分支
+
+- 将站立稳定性、渐进打印稳定性、CalculiX FEA 和 PrusaSlicer overhang/support
+  checker 统一接入 aDSL 的 execute–critic–refine 工作流；required checker 参与最终
+  发布判定，`FAIL`/`INDETERMINATE` 进入 Engineering Critic，`ERROR` 按基础设施故障
+  fail closed。
+- 保留 `--check-first` 原始 round-1 基线、结构化反馈、checker 配置不可被 Coder 修改、
+  GPU Eevee 串行队列及 Codex CLI 默认传输；StepCode HTTP 后端仍可显式选择。
+- 物理 checker 主提交为 `fbf8915`。合并 `origin/master` 时保留其
+  `codex_api_plan.md` 与 `temp/` 忽略规则，并合并 README 的 StepCode、GPU 和 checker
+  使用说明。
+- 合并后在 aDSL Python 3.10 环境运行完整测试：`89 passed`。测试时清除机器级
+  `ADSL_STEPCODE_BIN`，避免主机私有 wrapper 改变配置单测的假设。
+- PDF、ZIP、`local_experiment/`、`presentation_assets/`、`presentation.md`、`temp`
+  和未接入正式队列的 `vram_guard.py` 均保留为本地实验材料，不进入 Git 提交。
