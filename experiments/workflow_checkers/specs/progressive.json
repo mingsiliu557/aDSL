@@ -1,0 +1,23 @@
+{
+  "name": "progressive",
+  "required": true,
+  "timeout_seconds": 3600,
+  "command": [
+    "{python}",
+    "{project_root}/experiments/workflow_checkers/run.py",
+    "progressive",
+    "--asset-dir",
+    "{asset_dir}",
+    "--source",
+    "{source}",
+    "--output-dir",
+    "{output_dir}",
+    "--config",
+    "{project_root}/experiments/workflow_checkers/configs/progressive.json"
+  ],
+  "prepend_environment": {
+    "PYTHONPATH": [
+      "/jiigan-hp/lms/aDSL/experiment/runtime/mujoco-py310"
+    ]
+  }
+}

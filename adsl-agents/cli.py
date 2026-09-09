@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import Sequence
 from uuid import uuid4
 
-from .models import ObjectRequest
+from .checkers import load_checker_spec
+from .models import CheckerSpec, ObjectRequest
 from .service import ObjectWorkflow
 from .utils.io import read_json
 
@@ -27,13 +28,34 @@ def _parser() -> argparse.ArgumentParser:
         command.add_argument("--image", type=Path, action="append", default=[])
         command.add_argument("--articulation", action="store_true")
         command.add_argument("--max-rounds", type=int, default=2)
+        command.add_argument(
+            "--checker-config",
+            type=Path,
+            action="append",
+            default=[],
+            help="JSON CheckerSpec; repeat to register multiple engineering gates.",
+        )
     edit.add_argument("--source", type=Path, required=True)
     edit.add_argument("--edit-kind", choices=["continue", "extend", "variant"], default="continue")
+    edit.add_argument(
+        "--check-first",
+        action="store_true",
+        help="Execute and check the supplied source before the first agent patch.",
+    )
     resume.add_argument("--output", type=Path, required=True)
     resume.add_argument("--task-id", default=None)
     resume.add_argument("--requirement", default=None)
     resume.add_argument("--max-rounds", type=int, default=2)
+    resume.add_argument("--checker-config", type=Path, action="append", default=[])
     return parser
+
+
+def _load_checker_specs(paths: Sequence[Path]) -> tuple[CheckerSpec, ...]:
+    specs = tuple(load_checker_spec(path) for path in paths)
+    names = [spec.name for spec in specs]
+    if len(names) != len(set(names)):
+        raise ValueError("checker names must be unique")
+    return specs
 
 
 def _resume_request(args: argparse.Namespace) -> ObjectRequest:
@@ -41,6 +63,14 @@ def _resume_request(args: argparse.Namespace) -> ObjectRequest:
     if not config_path.is_file():
         raise FileNotFoundError(config_path)
     payload = read_json(config_path).get("request", {})
+    checker_specs = (
+        _load_checker_specs(args.checker_config)
+        if args.checker_config
+        else tuple(
+            CheckerSpec.model_validate(value)
+            for value in payload.get("checker_specs", [])
+        )
+    )
     return ObjectRequest(
         requirement=args.requirement or str(payload.get("requirement", "")),
         workspace=args.output,
@@ -48,6 +78,8 @@ def _resume_request(args: argparse.Namespace) -> ObjectRequest:
         image_paths=tuple(Path(value) for value in payload.get("image_paths", [])),
         articulation=bool(payload.get("articulation", False)),
         max_rounds=args.max_rounds,
+        checker_specs=checker_specs,
+        check_first=bool(payload.get("check_first", False)),
     )
 
 
@@ -66,6 +98,8 @@ async def _run(args: argparse.Namespace) -> dict[str, object]:
         image_paths=tuple(args.image),
         articulation=args.articulation,
         max_rounds=args.max_rounds,
+        checker_specs=_load_checker_specs(args.checker_config),
+        check_first=bool(getattr(args, "check_first", False)),
     )
     if args.command == "create":
         result = await workflow.generate(request)

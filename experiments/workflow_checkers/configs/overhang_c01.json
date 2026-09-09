@@ -1,0 +1,36 @@
+{
+  "profile": {
+    "name": "generic_PLA_FFF_overhang_optimization",
+    "nozzle_diameter_mm": 0.4,
+    "extrusion_width_mm": 0.45,
+    "layer_height_mm": 0.2,
+    "overhang_threshold_from_horizontal_deg": 45,
+    "top_contact_z_distance_mm": 0.2,
+    "max_print_extent_mm": 180,
+    "bed_margin_mm": 10,
+    "critical_overlap_epsilon_mm2": 0.01
+  },
+  "case": {
+    "semantic_scale": {
+      "measure": "height",
+      "target_m": 0.9
+    },
+    "critical_reliable": false,
+    "critical_surfaces": []
+  },
+  "optimization": {
+    "baseline_nominal_contact_area_mm2": 1542.8980241358454,
+    "baseline_overhang_area_mm2": 3147.9683465222824,
+    "baseline_print_extent_mm": [
+      180.0,
+      41.142857142857146,
+      136.65306122448976
+    ],
+    "minimum_contact_area_reduction_fraction": 0.01,
+    "maximum_overhang_area_increase_fraction": 0.0,
+    "maximum_print_extent_delta_mm": 0.01
+  },
+  "slicer": "/vepfs_default/chanxueyan/lhp/lms/tools/prusaslicer/2.4.0/sysroot/usr/bin/prusa-slicer",
+  "profile_path": "experiments/support_requirement_critical_surfaces/fff_profile.ini",
+  "slicer_timeout_seconds": 900
+}

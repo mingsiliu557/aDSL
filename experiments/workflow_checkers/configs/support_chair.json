@@ -1,0 +1,36 @@
+{
+  "profile": {
+    "name": "generic_PLA_FFF_screening",
+    "nozzle_diameter_mm": 0.4,
+    "extrusion_width_mm": 0.45,
+    "layer_height_mm": 0.2,
+    "overhang_threshold_from_horizontal_deg": 45,
+    "top_contact_z_distance_mm": 0.2,
+    "max_print_extent_mm": 180,
+    "bed_margin_mm": 10,
+    "critical_overlap_epsilon_mm2": 0.01
+  },
+  "case": {
+    "semantic_scale": {
+      "measure": "height",
+      "target_m": 0.9
+    },
+    "critical_reliable": true,
+    "critical_surfaces": [
+      {
+        "label": "seat_use_surface",
+        "collision_regex": "seat",
+        "face": "top"
+      },
+      {
+        "label": "back_display",
+        "collision_regex": "back",
+        "face": "front"
+      }
+    ]
+  },
+  "forbid_support": false,
+  "slicer": "/vepfs_default/chanxueyan/lhp/lms/tools/prusaslicer/2.4.0/sysroot/usr/bin/prusa-slicer",
+  "profile_path": "experiments/support_requirement_critical_surfaces/fff_profile.ini",
+  "slicer_timeout_seconds": 900
+}

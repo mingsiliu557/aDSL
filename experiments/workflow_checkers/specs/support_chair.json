@@ -1,0 +1,24 @@
+{
+  "name": "support",
+  "required": true,
+  "timeout_seconds": 1200,
+  "command": [
+    "{python}",
+    "{project_root}/experiments/workflow_checkers/run.py",
+    "support",
+    "--asset-dir",
+    "{asset_dir}",
+    "--source",
+    "{source}",
+    "--output-dir",
+    "{output_dir}",
+    "--config",
+    "{project_root}/experiments/workflow_checkers/configs/support_chair.json"
+  ],
+  "prepend_environment": {
+    "LD_LIBRARY_PATH": [
+      "/vepfs_default/chanxueyan/lhp/lms/tools/prusaslicer/2.4.0/sysroot/usr/lib/x86_64-linux-gnu",
+      "/vepfs_default/chanxueyan/lhp/lms/tools/prusaslicer/2.4.0/sysroot/lib/x86_64-linux-gnu"
+    ]
+  }
+}

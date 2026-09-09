@@ -1,0 +1,109 @@
+{
+  "profile": {
+    "name": "generic_PLA_FFF_screening",
+    "nozzle_diameter_mm": 0.4,
+    "extrusion_width_mm": 0.45,
+    "layer_height_mm": 0.2,
+    "overhang_threshold_from_horizontal_deg": 45.0,
+    "top_contact_z_distance_mm": 0.2,
+    "max_print_extent_mm": 180.0,
+    "bed_margin_mm": 10.0,
+    "critical_overlap_epsilon_mm2": 0.01
+  },
+  "cases": {
+    "A01-cabinet": {
+      "semantic_scale": {"measure": "height", "target_m": 1.8},
+      "critical_reliable": true,
+      "critical_surfaces": [
+        {"label": "cabinet_top", "collision_regex": "storage_cabinet#", "face": "top"},
+        {"label": "doors_drawers_display", "collision_regex": "door_panel|drawer_front", "face": "front"},
+        {"label": "pull_grips", "collision_regex": "pull", "face": "all"}
+      ]
+    },
+    "A02-faucet": {
+      "semantic_scale": {"measure": "height", "target_m": 0.35},
+      "critical_reliable": true,
+      "critical_surfaces": [
+        {"label": "controls", "collision_regex": "knob_rotation|central_lever_hinge", "face": "all"},
+        {"label": "spout_display", "collision_regex": "central_spout", "face": "front"},
+        {"label": "outlet", "collision_regex": "aerator", "face": "all"}
+      ]
+    },
+    "E01-chair-slat-edit": {
+      "semantic_scale": {"measure": "height", "target_m": 0.9},
+      "critical_reliable": true,
+      "critical_surfaces": [
+        {"label": "seat", "collision_regex": "/seat/", "face": "top"},
+        {"label": "back_display", "collision_regex": "/back/", "face": "front"}
+      ]
+    },
+    "I01-example-image": {
+      "semantic_scale": {"measure": "height", "target_m": 0.75},
+      "critical_reliable": true,
+      "critical_surfaces": [
+        {"label": "tabletop", "collision_regex": "/tabletop/", "face": "top"},
+        {"label": "table_front", "collision_regex": "/tabletop/|front_apron", "face": "front"}
+      ]
+    },
+    "I02-example-arti": {
+      "semantic_scale": {"measure": "height", "target_m": 0.6},
+      "critical_reliable": true,
+      "critical_surfaces": [
+        {"label": "top", "collision_regex": "cabinet_fixed/top", "face": "top"},
+        {"label": "drawer_fronts", "collision_regex": "drawer_slide/front", "face": "front"},
+        {"label": "pull_grips", "collision_regex": "/pull/", "face": "all"}
+      ]
+    },
+    "M01-base-motorcycle": {
+      "semantic_scale": {"measure": "length", "target_m": 2.1},
+      "critical_reliable": false,
+      "critical_surfaces": [{"label": "upper_use_and_display_candidate", "collision_regex": ".*", "face": "upper_side"}]
+    },
+    "M01-cyberpunk-edit": {
+      "semantic_scale": {"measure": "length", "target_m": 2.1},
+      "critical_reliable": false,
+      "critical_surfaces": [{"label": "upper_use_and_display_candidate", "collision_regex": ".*", "face": "upper_side"}]
+    },
+    "M01-cyberpunk-scratch": {
+      "semantic_scale": {"measure": "length", "target_m": 2.1},
+      "critical_reliable": false,
+      "critical_surfaces": [{"label": "upper_use_and_display_candidate", "collision_regex": ".*", "face": "upper_side"}]
+    },
+    "T01-main": {
+      "semantic_scale": {"measure": "height", "target_m": 0.9},
+      "critical_reliable": true,
+      "critical_surfaces": [
+        {"label": "seat", "collision_regex": "/seat/", "face": "top"},
+        {"label": "back_display", "collision_regex": "/back/", "face": "front"}
+      ]
+    },
+    "T01-one-round-control": {
+      "semantic_scale": {"measure": "height", "target_m": 0.9},
+      "critical_reliable": true,
+      "critical_surfaces": [
+        {"label": "seat", "collision_regex": "/seat", "face": "top"},
+        {"label": "back_display", "collision_regex": "uprights|back_slats", "face": "front"}
+      ]
+    },
+    "T02-bookshelf": {
+      "semantic_scale": {"measure": "height", "target_m": 1.8},
+      "critical_reliable": false,
+      "critical_surfaces": [{"label": "shelf_top_candidates", "collision_regex": ".*", "face": "upward"}]
+    },
+    "T03-radial-wheel": {
+      "semantic_scale": {"measure": "diameter", "target_m": 0.6},
+      "critical_reliable": false,
+      "critical_surfaces": [{"label": "rim_and_side_candidates", "collision_regex": ".*", "face": "side"}]
+    },
+    "T04-hollow-mug": {
+      "semantic_scale": {"measure": "height", "target_m": 0.1},
+      "critical_reliable": false,
+      "critical_surfaces": [{"label": "rim_inner_handle_candidates", "collision_regex": ".*", "face": "upper_side"}]
+    },
+    "T05-patterned-desk": {
+      "semantic_scale": {"measure": "height", "target_m": 0.75},
+      "critical_reliable": false,
+      "critical_surfaces": [{"label": "desktop_and_front_candidates", "collision_regex": ".*", "face": "upper_or_front"}]
+    }
+  }
+}

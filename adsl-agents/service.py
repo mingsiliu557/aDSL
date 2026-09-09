@@ -7,11 +7,18 @@ from pathlib import Path
 import shutil
 from typing import Any
 
+from .checkers import (
+    CheckerExecutionError,
+    required_checker_errors,
+    required_checker_failures,
+    run_checkers,
+)
 from .models import (
     CodeCriticDecision,
     DebuggerDecision,
     EditKind,
     EditPlan,
+    EngineeringCriticDecision,
     ImageCriticDecision,
     ObjectPlan,
     ObjectRequest,
@@ -34,11 +41,19 @@ _CONTEXT_POLICY = {
     "debugger": "isolated per execution failure with current error; source.py is read by tool",
     "image_critic": "isolated per round with current renders, references, and explicit text-only prior judgements",
     "code_critic": "isolated per round with current renders and explicit critic history; source.py is read by tool",
+    "engineering_critic": "isolated per round with current renders, structured checker evidence, and source.py read by tool",
 }
 
 
+class WorkflowGateError(RuntimeError):
+    pass
+
+
 def _asset_executor_timeout_seconds() -> float:
-    raw = os.environ.get("ADSL_ASSET_EXECUTOR_TIMEOUT_SECONDS", "300")
+    raw = os.environ.get("ADSL_ASSET_EXECUTOR_TIMEOUT_SECONDS")
+    if raw is None:
+        queue_enabled = bool(os.environ.get("ADSL_GPU_RENDER_QUEUE", "").strip())
+        return 3660.0 if queue_enabled else 300.0
     try:
         timeout = float(raw)
     except ValueError as exc:
@@ -69,7 +84,14 @@ def _render_execution_config() -> dict[str, object]:
     engine = os.environ.get("ADSL_RENDER_ENGINE", "BLENDER_EEVEE").strip().upper()
     if engine not in {"CYCLES", "BLENDER_EEVEE"}:
         raise ValueError("ADSL_RENDER_ENGINE must be CYCLES or BLENDER_EEVEE")
+    queue_value = os.environ.get("ADSL_GPU_RENDER_QUEUE", "").strip()
+    if queue_value and engine != "BLENDER_EEVEE":
+        raise ValueError("ADSL_GPU_RENDER_QUEUE supports only BLENDER_EEVEE")
     return {
+        "render_backend": "gpu_queue" if queue_value else "local",
+        "gpu_render_queue": (
+            str(Path(queue_value).expanduser().resolve()) if queue_value else None
+        ),
         "render_engine": engine,
         "render_width": _positive_render_env_int("ADSL_RENDER_WIDTH", 1024),
         "render_height": _positive_render_env_int("ADSL_RENDER_HEIGHT", 1024),
@@ -166,25 +188,26 @@ class ObjectWorkflow:
             instructions=object_prompt("coder", articulation=request.articulation),
             tools=PATCH_TOOLS,
         )
-        await runtime.run(
-            agent=coder,
-            input=user_input(
-                json.dumps(
-                    {
-                        "edit_kind": edit_kind,
-                        "requirement": request.requirement,
-                        "plan": plan.model_dump(),
-                        "assignment": "Read source.py and apply the requested minimal patch.",
-                    },
-                    ensure_ascii=False,
+        if not request.check_first:
+            await runtime.run(
+                agent=coder,
+                input=user_input(
+                    json.dumps(
+                        {
+                            "edit_kind": edit_kind,
+                            "requirement": request.requirement,
+                            "plan": plan.model_dump(),
+                            "assignment": "Read source.py and apply the requested minimal patch.",
+                        },
+                        ensure_ascii=False,
+                    ),
+                    request.image_paths,
                 ),
-                request.image_paths,
-            ),
-            role="coder:initial",
-            stage="initial_patch",
-            context=context,
-        )
-        self._require_tool_event(context, "apply_patch", "initial edit coder")
+                role="coder:initial",
+                stage="initial_patch",
+                context=context,
+            )
+            self._require_tool_event(context, "apply_patch", "initial edit coder")
         self._write_checkpoint(
             workspace,
             mode="edit",
@@ -285,7 +308,10 @@ class ObjectWorkflow:
                     self._require_tool_event(context, "write_file", "initial coder")
             else:
                 initial_hash = checkpoint.get("initial_source_sha256")
-                if not initial_hash or initial_hash == self._source_sha256(source_path):
+                if (
+                    not request.check_first
+                    and (not initial_hash or initial_hash == self._source_sha256(source_path))
+                ):
                     context = AgentToolContext(workspace=workspace, source_path=source_path)
                     coder = runtime.agent(
                         name="object-coder",
@@ -447,9 +473,19 @@ class ObjectWorkflow:
             tools=READ_TOOLS,
             output_type=CodeCriticDecision,
         )
+        engineering_critic = runtime.agent(
+            name="object-engineering-critic",
+            instructions=object_prompt("engineering_critic", articulation=request.articulation),
+            tools=READ_TOOLS,
+            output_type=EngineeringCriticDecision,
+        )
         state = resume_state or {}
         image_history: list[dict[str, object]] = list(state.get("image_history", []))
         code_history: list[dict[str, object]] = list(state.get("code_history", []))
+        checker_history: list[dict[str, object]] = list(state.get("checker_history", []))
+        engineering_history: list[dict[str, object]] = list(
+            state.get("engineering_history", [])
+        )
         image_critic_corrections: list[str] = list(
             state.get("image_critic_corrections", [])
         )
@@ -458,6 +494,19 @@ class ObjectWorkflow:
         start_round = int(state.get("next_round", 1))
         end_round = start_round + request.max_rounds - 1
         executor_timeout = _asset_executor_timeout_seconds()
+
+        def checkpoint_fields(next_round: int) -> dict[str, object]:
+            return {
+                "mode": mode,
+                "stage": "refining",
+                "next_round": next_round,
+                "image_history": image_history,
+                "code_history": code_history,
+                "checker_history": checker_history,
+                "engineering_history": engineering_history,
+                "image_critic_corrections": image_critic_corrections,
+                "failures": failures,
+            }
 
         for round_number in range(start_round, end_round + 1):
             round_root = rounds_root / f"round_{round_number:02d}"
@@ -498,18 +547,12 @@ class ObjectWorkflow:
                 write_json(round_root / "debugger.json", decision.model_dump())
                 if round_number == end_round:
                     self._write_checkpoint(
-                        workspace,
-                        mode=mode,
-                        stage="refining",
-                        next_round=round_number + 1,
-                        image_history=image_history,
-                        code_history=code_history,
-                        image_critic_corrections=image_critic_corrections,
-                        failures=failures,
+                        workspace, **checkpoint_fields(round_number + 1)
                     )
                     runtime.usage.update_manifest(status="failed", failures=failures)
                     raise AssetExecutionError(
-                        f"Final generated source failed execution after {request.max_rounds} attempts: {exc}"
+                        f"Final generated source failed execution after "
+                        f"{request.max_rounds} attempts: {exc}"
                     ) from exc
                 await self._repair(
                     runtime=runtime,
@@ -526,18 +569,13 @@ class ObjectWorkflow:
                     },
                 )
                 self._write_checkpoint(
-                    workspace,
-                    mode=mode,
-                    stage="refining",
-                    next_round=round_number + 1,
-                    image_history=image_history,
-                    code_history=code_history,
-                    image_critic_corrections=image_critic_corrections,
-                    failures=failures,
+                    workspace, **checkpoint_fields(round_number + 1)
                 )
                 continue
 
-            if round_number == end_round:
+            # Preserve the historical last-round fallback only when no engineering
+            # gates are configured. Mandatory checkers always inspect the final round.
+            if not request.checker_specs and round_number == end_round:
                 final = (
                     round_number,
                     execution,
@@ -571,65 +609,256 @@ class ObjectWorkflow:
             )
             write_json(round_root / "image_critique.json", image_decision.model_dump())
             image_history.append(image_decision.model_dump())
-            if image_decision.approved:
-                final = (round_number, execution, True, "image_critic_approved")
+
+            checker_runs = run_checkers(
+                request.checker_specs,
+                execution=execution,
+                source_path=source_path,
+                round_root=round_root,
+            )
+            checker_record = {
+                "round": round_number,
+                "results": [
+                    {
+                        "required": run.spec.required,
+                        **run.result.model_dump(),
+                        "output_dir": str(run.output_dir),
+                    }
+                    for run in checker_runs
+                ],
+            }
+            checker_history.append(checker_record)
+            checker_errors = required_checker_errors(checker_runs)
+            if checker_errors:
+                error_details = [
+                    {
+                        "checker": run.spec.name,
+                        "summary": run.result.summary,
+                        "output_dir": str(run.output_dir),
+                    }
+                    for run in checker_errors
+                ]
+                failure = {
+                    "round": round_number,
+                    "stage": "checker",
+                    "error": "required checker infrastructure error",
+                    "details": error_details,
+                }
+                failures.append(failure)
+                self._write_checkpoint(
+                    workspace, **checkpoint_fields(round_number + 1)
+                )
+                runtime.usage.update_manifest(
+                    status="failed",
+                    error_type="CheckerExecutionError",
+                    error="required checker infrastructure error",
+                    failures=failures,
+                    checker_history=checker_history,
+                )
+                raise CheckerExecutionError(
+                    "Required checker infrastructure failed: "
+                    + "; ".join(
+                        f"{row['checker']}: {row['summary']}" for row in error_details
+                    )
+                )
+
+            mandatory_failures = required_checker_failures(checker_runs)
+            code_decision: CodeCriticDecision | None = None
+            appearance_approved = image_decision.approved
+            if not image_decision.approved:
+                code_context = AgentToolContext(
+                    workspace=workspace, source_path=source_path
+                )
+                code_result = await runtime.run(
+                    agent=code_critic,
+                    input=user_input(
+                        json.dumps(
+                            {
+                                "requirement": request.requirement,
+                                "plan": plan.model_dump(),
+                                "assigned_source": "source.py",
+                                "round": round_number,
+                                "max_rounds": end_round,
+                                "image_critic": image_decision.model_dump(),
+                                "previous_code_decisions": code_history,
+                            },
+                            ensure_ascii=False,
+                        ),
+                        (*request.image_paths, *execution.render_paths),
+                    ),
+                    role=f"code-critic:round:{round_number}",
+                    stage=f"code_critic:{round_number}",
+                    context=code_context,
+                )
+                self._require_tool_event(code_context, "read_file", "code critic")
+                code_decision = self._normalize_code_critic_decision(
+                    self._typed_output(code_result.final_output, CodeCriticDecision)
+                )
+                write_json(
+                    round_root / "code_critique.json", code_decision.model_dump()
+                )
+                code_history.append(code_decision.model_dump())
+                image_critic_corrections = code_decision.image_critic_corrections
+                appearance_approved = code_decision.approved
+
+            if not request.checker_specs:
+                if appearance_approved:
+                    reason = (
+                        "image_critic_approved"
+                        if image_decision.approved
+                        else "code_critic_approved"
+                    )
+                    final = (round_number, execution, True, reason)
+                    break
+                assert code_decision is not None
+                await self._repair(
+                    runtime=runtime,
+                    repairer=repairer,
+                    workspace=workspace,
+                    source_path=source_path,
+                    role=f"coder:critic-repair:{round_number}",
+                    stage=f"critic_patch:{round_number}",
+                    payload={
+                        "requirement": request.requirement,
+                        "plan": plan.model_dump(),
+                        "assignment": "Patch every valid required change from the Code Critic.",
+                        "code_critic": code_decision.model_dump(),
+                    },
+                )
+                self._write_checkpoint(
+                    workspace, **checkpoint_fields(round_number + 1)
+                )
+                continue
+
+            engineering_decision: EngineeringCriticDecision | None = None
+            if mandatory_failures:
+                engineering_context = AgentToolContext(
+                    workspace=workspace, source_path=source_path
+                )
+                engineering_result = await runtime.run(
+                    agent=engineering_critic,
+                    input=user_input(
+                        json.dumps(
+                            {
+                                "requirement": request.requirement,
+                                "plan": plan.model_dump(),
+                                "assigned_source": "source.py",
+                                "round": round_number,
+                                "max_rounds": end_round,
+                                "required_checker_failures": [
+                                    {
+                                        "required": run.spec.required,
+                                        **run.result.model_dump(),
+                                        "output_dir": str(run.output_dir),
+                                    }
+                                    for run in mandatory_failures
+                                ],
+                                "all_checker_results": checker_record["results"],
+                                "assignment": (
+                                    "Map measured violations to the smallest concrete "
+                                    "source.py repair. Do not alter checker assumptions."
+                                ),
+                            },
+                            ensure_ascii=False,
+                        ),
+                        (*request.image_paths, *execution.render_paths),
+                    ),
+                    role=f"engineering-critic:round:{round_number}",
+                    stage=f"engineering_critic:{round_number}",
+                    context=engineering_context,
+                )
+                self._require_tool_event(
+                    engineering_context, "read_file", "engineering critic"
+                )
+                engineering_decision = self._normalize_engineering_decision(
+                    self._typed_output(
+                        engineering_result.final_output,
+                        EngineeringCriticDecision,
+                    ),
+                    has_required_failures=True,
+                )
+                write_json(
+                    round_root / "engineering_critique.json",
+                    engineering_decision.model_dump(),
+                )
+                engineering_history.append(
+                    {"round": round_number, **engineering_decision.model_dump()}
+                )
+
+            if appearance_approved and not mandatory_failures:
+                final = (
+                    round_number,
+                    execution,
+                    True,
+                    "appearance_and_required_checkers_approved",
+                )
                 break
 
-            code_context = AgentToolContext(workspace=workspace, source_path=source_path)
-            code_result = await runtime.run(
-                agent=code_critic,
-                input=user_input(
-                    json.dumps(
-                        {
-                            "requirement": request.requirement,
-                            "plan": plan.model_dump(),
-                            "assigned_source": "source.py",
-                            "round": round_number,
-                            "max_rounds": end_round,
-                            "image_critic": image_decision.model_dump(),
-                            "previous_code_decisions": code_history,
-                        },
-                        ensure_ascii=False,
-                    ),
-                    (*request.image_paths, *execution.render_paths),
+            gate_details = {
+                "appearance_approved": appearance_approved,
+                "required_checker_failures": [
+                    {
+                        "checker": run.spec.name,
+                        "status": run.result.status,
+                        "summary": run.result.summary,
+                        "violations": run.result.violations,
+                    }
+                    for run in mandatory_failures
+                ],
+            }
+            if round_number == end_round:
+                failure = {
+                    "round": round_number,
+                    "stage": "publication_gate",
+                    "error": "mandatory publication gate did not pass",
+                    "details": gate_details,
+                }
+                failures.append(failure)
+                self._write_checkpoint(
+                    workspace, **checkpoint_fields(round_number + 1)
+                )
+                runtime.usage.update_manifest(
+                    status="failed",
+                    error_type="WorkflowGateError",
+                    error="mandatory publication gate did not pass",
+                    failures=failures,
+                    checker_history=checker_history,
+                    engineering_critic_history=engineering_history,
+                    image_critic_history=image_history,
+                    code_critic_history=code_history,
+                )
+                raise WorkflowGateError(
+                    "Final round was not published because appearance and all "
+                    "required checker gates did not pass"
+                )
+
+            repair_payload: dict[str, object] = {
+                "requirement": request.requirement,
+                "plan": plan.model_dump(),
+                "assignment": (
+                    "Apply one minimal patch covering every valid visual change "
+                    "and every Engineering Critic change. Preserve unrelated appearance. "
+                    "The next round will re-run the original checkers."
                 ),
-                role=f"code-critic:round:{round_number}",
-                stage=f"code_critic:{round_number}",
-                context=code_context,
-            )
-            self._require_tool_event(code_context, "read_file", "code critic")
-            code_decision = self._normalize_code_critic_decision(
-                self._typed_output(code_result.final_output, CodeCriticDecision)
-            )
-            write_json(round_root / "code_critique.json", code_decision.model_dump())
-            code_history.append(code_decision.model_dump())
-            image_critic_corrections = code_decision.image_critic_corrections
-            if code_decision.approved:
-                final = (round_number, execution, True, "code_critic_approved")
-                break
+            }
+            if code_decision is not None and not code_decision.approved:
+                repair_payload["code_critic"] = code_decision.model_dump()
+            if engineering_decision is not None:
+                repair_payload["engineering_critic"] = (
+                    engineering_decision.model_dump()
+                )
+                repair_payload["checker_evidence"] = checker_record["results"]
             await self._repair(
                 runtime=runtime,
                 repairer=repairer,
                 workspace=workspace,
                 source_path=source_path,
-                role=f"coder:critic-repair:{round_number}",
-                stage=f"critic_patch:{round_number}",
-                payload={
-                    "requirement": request.requirement,
-                    "plan": plan.model_dump(),
-                    "assignment": "Patch every valid required change from the Code Critic.",
-                    "code_critic": code_decision.model_dump(),
-                },
+                role=f"coder:gate-repair:{round_number}",
+                stage=f"gate_patch:{round_number}",
+                payload=repair_payload,
             )
             self._write_checkpoint(
-                workspace,
-                mode=mode,
-                stage="refining",
-                next_round=round_number + 1,
-                image_history=image_history,
-                code_history=code_history,
-                image_critic_corrections=image_critic_corrections,
-                failures=failures,
+                workspace, **checkpoint_fields(round_number + 1)
             )
 
         if final is None:
@@ -650,6 +879,8 @@ class ObjectWorkflow:
             failures=failures,
             image_critic_history=image_history,
             code_critic_history=code_history,
+            checker_history=checker_history,
+            engineering_critic_history=engineering_history,
             source_path=str(source_path),
             glb_path=str(final_glb),
             urdf_path=None if final_urdf is None else str(final_urdf),
@@ -668,6 +899,8 @@ class ObjectWorkflow:
             next_round=selected_round + 1,
             image_history=image_history,
             code_history=code_history,
+            checker_history=checker_history,
+            engineering_history=engineering_history,
             image_critic_corrections=image_critic_corrections,
             failures=failures,
             approved=approved,
@@ -813,6 +1046,9 @@ class ObjectWorkflow:
             raise ValueError("task_id must not be empty")
         if request.max_rounds < 1:
             raise ValueError("max_rounds must be at least 1")
+        names = [spec.name for spec in request.checker_specs]
+        if len(names) != len(set(names)):
+            raise ValueError("checker names must be unique")
         for image_path in request.image_paths:
             if not Path(image_path).expanduser().resolve().is_file():
                 raise FileNotFoundError(image_path)
@@ -850,6 +1086,8 @@ class ObjectWorkflow:
                 "image_paths": saved_images,
                 "articulation": request.articulation,
                 "max_rounds": request.max_rounds,
+                "checker_specs": [spec.model_dump() for spec in request.checker_specs],
+                "check_first": request.check_first,
             },
         )
 
@@ -867,5 +1105,15 @@ class ObjectWorkflow:
             return decision.model_copy(update={"approved": False})
         return decision
 
+    @staticmethod
+    def _normalize_engineering_decision(
+        decision: EngineeringCriticDecision,
+        *,
+        has_required_failures: bool,
+    ) -> EngineeringCriticDecision:
+        if (decision.approved and decision.required_changes) or has_required_failures:
+            return decision.model_copy(update={"approved": False})
+        return decision
 
-__all__ = ["ObjectWorkflow"]
+
+__all__ = ["ObjectWorkflow", "WorkflowGateError"]

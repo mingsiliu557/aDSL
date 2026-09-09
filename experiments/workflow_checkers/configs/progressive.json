@@ -1,0 +1,12 @@
+{
+  "height_step_fraction": 0.01,
+  "density_kg_m3": 1000,
+  "friction": 2,
+  "mujoco_pythonpath": "/jiigan-hp/lms/aDSL/experiment/runtime/mujoco-py310",
+  "criterion": {
+    "topple_threshold_deg": 25,
+    "settle_duration_seconds": 5,
+    "mode": "unbonded_partial_natural_settle"
+  },
+  "build_orientation": "authored_urdf_z_up"
+}

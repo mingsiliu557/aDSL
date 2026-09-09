@@ -13,6 +13,7 @@ ROLE_PROMPTS = {
     "debugger": "debugger.md",
     "image_critic": "critic_image.md",
     "code_critic": "critic_code_image.md",
+    "engineering_critic": "critic_engineering.md",
 }
 
 

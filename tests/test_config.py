@@ -10,16 +10,58 @@ from adsl.agents.utils import config
 from adsl.agents.utils.config import ModelProfile
 
 
+CODEX_PROFILE = """provider: codex-cli
+api: exec
+params:
+  model: gpt-5.6-sol
+  reasoning_effort: high
+  timeout: 900
+  max_prompt_chars: 200000
+"""
+
+
 def _profile(tmp_path: Path, content: str) -> Path:
     path = tmp_path / "model.yaml"
     path.write_text(content, encoding="utf-8")
     return path
 
 
-def test_packaged_profile_defaults_to_stepcode() -> None:
-    assert config.packaged_profile() == config.packaged_stepcode_profile()
-    assert config.packaged_profile().name == "stepcode-gpt-5.6-sol.yaml"
+def test_packaged_profile_defaults_to_codex_cli() -> None:
+    assert config.packaged_profile() == config.packaged_codex_profile()
+    assert config.packaged_profile().name == "codex-cli-gpt-5.6-sol.yaml"
     assert config.packaged_openrouter_profile().name == "openrouter-gemini-3.1-pro.yaml"
+
+
+def test_codex_profile_needs_no_api_credential(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("ADSL_CODEX_CLI_BIN", "/bin/true")
+    profile = ModelProfile.load(_profile(tmp_path, CODEX_PROFILE))
+    assert profile.provider == "codex-cli"
+    assert profile.api == "exec"
+    assert profile.api_key is None
+    assert profile.model == "gpt-5.6-sol"
+
+
+def test_codex_environment_overrides(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("ADSL_CODEX_CLI_BIN", "/bin/true")
+    monkeypatch.setenv("ADSL_CODEX_CLI_TIMEOUT_SECONDS", "12.5")
+    monkeypatch.setenv("ADSL_CODEX_CLI_MAX_PROMPT_CHARS", "1234")
+    profile = ModelProfile.load(_profile(tmp_path, CODEX_PROFILE))
+    assert profile.timeout == 12.5
+    assert profile.max_prompt_chars == 1234
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        CODEX_PROFILE.replace("api: exec", "api: responses"),
+        CODEX_PROFILE.replace("params:", "credential:\n  env: OPENAI_API_KEY\nparams:"),
+        CODEX_PROFILE.replace("  timeout: 900", "  unknown: true"),
+        CODEX_PROFILE.replace("  model: gpt-5.6-sol\n", ""),
+    ],
+)
+def test_bad_codex_profiles_fail_closed(tmp_path, content) -> None:
+    with pytest.raises(ValueError):
+        ModelProfile.load(_profile(tmp_path, content))
 
 
 def test_openai_profile_still_loads(tmp_path, monkeypatch) -> None:
@@ -33,6 +75,7 @@ params:
   model: test-model
 """
     profile = ModelProfile.load(_profile(tmp_path, content))
+    assert profile.provider == "openai"
     assert profile.api_key == "not-a-real-key"
     assert profile.credential_source == "env"
     assert profile.trust_env is True

@@ -1,0 +1,26 @@
+{
+  "name": "fea",
+  "required": true,
+  "timeout_seconds": 3600,
+  "command": [
+    "{python}",
+    "{project_root}/experiments/workflow_checkers/run.py",
+    "fea",
+    "--asset-dir",
+    "{asset_dir}",
+    "--source",
+    "{source}",
+    "--output-dir",
+    "{output_dir}",
+    "--config",
+    "{project_root}/experiments/workflow_checkers/configs/fea_chair.json"
+  ],
+  "prepend_environment": {
+    "PYTHONPATH": [
+      "/vepfs_default/chanxueyan/lhp/lms/fea_runtime/gmsh-4.15.2/lib"
+    ],
+    "LD_LIBRARY_PATH": [
+      "/vepfs_default/chanxueyan/lhp/lms/fea_runtime/sysroot/usr/lib/x86_64-linux-gnu"
+    ]
+  }
+}

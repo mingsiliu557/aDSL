@@ -1,0 +1,88 @@
+{
+  "material": {
+    "name": "isotropic_PLA_screening_proxy",
+    "youngs_modulus_pa": 3000000000.0,
+    "poisson_ratio": 0.35,
+    "density_kg_m3": 1240.0,
+    "yield_strength_pa": 50000000.0,
+    "evidence": "uniform screening assumption; not measured for these prints"
+  },
+  "cases": {
+    "A01-cabinet": {
+      "scale": {"measure": "height", "target_m": 1.8},
+      "functional_loads": [
+        {"name": "top_service", "pattern": "storage_cabinet#collision_0", "face": "top", "force_n": [0, 0, -500]},
+        {"name": "drawer_service", "pattern": "drawer_bottom", "face": "top", "force_n": [0, 0, -100]}
+      ]
+    },
+    "A02-faucet": {
+      "scale": {"measure": "height", "target_m": 0.35},
+      "functional_loads": [
+        {"name": "outlet_down", "pattern": "aerator", "face": "bottom", "force_n": [0, 0, -100]}
+      ],
+      "functional_moments": [{"name": "control_torque", "pattern": "central_lever_hinge", "moment_nm": [0, 0, 5]}]
+    },
+    "E01-chair-slat-edit": {
+      "scale": {"measure": "height", "target_m": 0.9},
+      "functional_loads": [
+        {"name": "seat_load", "pattern": "/seat/", "face": "top", "force_n": [0, 0, -1000]},
+        {"name": "back_load", "pattern": "/back/", "face": "y_max", "force_n": [0, 300, 0]}
+      ]
+    },
+    "I01-example-image": {
+      "scale": {"measure": "height", "target_m": 0.75},
+      "functional_loads": [
+        {"name": "tabletop_load", "pattern": "/tabletop/", "face": "top", "force_n": [0, 0, -1000]}
+      ]
+    },
+    "I02-example-arti": {
+      "scale": {"measure": "height", "target_m": 0.6},
+      "functional_loads": [
+        {"name": "top_load", "pattern": "cabinet_fixed/top", "face": "top", "force_n": [0, 0, -500]},
+        {"name": "drawer_load", "pattern": "drawer_slide/floor", "face": "top", "force_n": [0, 0, -100]}
+      ]
+    },
+    "M01-base-motorcycle": {
+      "scale": {"measure": "length", "target_m": 2.1},
+      "functional_loads": [{"name": "seat_screening", "pattern": ".*", "face": "top_center", "force_n": [0, 0, -1500]}]
+    },
+    "M01-cyberpunk-edit": {
+      "scale": {"measure": "length", "target_m": 2.1},
+      "functional_loads": [{"name": "seat_screening", "pattern": ".*", "face": "top_center", "force_n": [0, 0, -1500]}]
+    },
+    "M01-cyberpunk-scratch": {
+      "scale": {"measure": "length", "target_m": 2.1},
+      "functional_loads": [{"name": "seat_screening", "pattern": ".*", "face": "top_center", "force_n": [0, 0, -1500]}]
+    },
+    "T01-main": {
+      "scale": {"measure": "height", "target_m": 0.9},
+      "functional_loads": [
+        {"name": "seat_load", "pattern": "/seat/", "face": "top", "force_n": [0, 0, -1000]},
+        {"name": "back_load", "pattern": "/back/", "face": "y_max", "force_n": [0, 300, 0]}
+      ]
+    },
+    "T01-one-round-control": {
+      "scale": {"measure": "height", "target_m": 0.9},
+      "functional_loads": [
+        {"name": "seat_load", "pattern": "/seat", "face": "top", "force_n": [0, 0, -1000]},
+        {"name": "back_load", "pattern": "upright|back_slats", "face": "y_max", "force_n": [0, 300, 0]}
+      ]
+    },
+    "T02-bookshelf": {
+      "scale": {"measure": "height", "target_m": 1.8},
+      "functional_loads": [{"name": "shelf_loads", "pattern": ".*", "face": "shelf_tops", "force_n": [0, 0, -250], "repeat": 4}]
+    },
+    "T03-radial-wheel": {
+      "scale": {"measure": "diameter", "target_m": 0.6},
+      "functional_loads": [{"name": "rim_radial", "pattern": ".*", "face": "rim", "force_n": [0, 0, -500]}]
+    },
+    "T04-hollow-mug": {
+      "scale": {"measure": "height", "target_m": 0.1},
+      "functional_loads": [{"name": "handle_load", "pattern": ".*", "face": "handle", "force_n": [0, 0, -20]}]
+    },
+    "T05-patterned-desk": {
+      "scale": {"measure": "height", "target_m": 0.75},
+      "functional_loads": [{"name": "desktop_load", "pattern": ".*", "face": "top", "force_n": [0, 0, -1000]}]
+    }
+  }
+}

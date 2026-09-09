@@ -1,0 +1,23 @@
+{
+  "name": "standing",
+  "required": true,
+  "timeout_seconds": 900,
+  "command": [
+    "{python}",
+    "{project_root}/experiments/workflow_checkers/run.py",
+    "standing",
+    "--asset-dir",
+    "{asset_dir}",
+    "--source",
+    "{source}",
+    "--output-dir",
+    "{output_dir}",
+    "--config",
+    "{project_root}/experiments/workflow_checkers/configs/standing.json"
+  ],
+  "prepend_environment": {
+    "PYTHONPATH": [
+      "/jiigan-hp/lms/aDSL/experiment/runtime/mujoco-py310"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "density_kg_m3": 1000,
+  "friction": 2,
+  "mujoco_pythonpath": "/jiigan-hp/lms/aDSL/experiment/runtime/mujoco-py310",
+  "criterion": {
+    "topple_threshold_deg": 25,
+    "mode": "natural_settle"
+  }
+}

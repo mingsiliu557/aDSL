@@ -28,6 +28,7 @@ adsl-chat-run = "adsl.chat.cli:once_cli"
 [tool.setuptools]
 packages = [
     "adsl.agents",
+    "adsl.agents.providers",
     "adsl.agents.tools",
     "adsl.agents.utils",
     "adsl.chat",
@@ -35,6 +36,7 @@ packages = [
 
 [tool.setuptools.package-dir]
 "adsl.agents" = "adsl-agents"
+"adsl.agents.providers" = "adsl-agents/providers"
 "adsl.agents.tools" = "adsl-agents/tools"
 "adsl.agents.utils" = "adsl-agents/utils"
 "adsl.chat" = "adsl-chat"
@@ -44,3 +46,6 @@ packages = [
     "prompt/*.md",
     "configs/**/*.yaml",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

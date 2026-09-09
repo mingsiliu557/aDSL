@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from agents import Agent, Runner
+from pydantic import BaseModel
 
 from .config import ModelProfile
 from .io import write_json
@@ -15,6 +16,8 @@ from .usage import UsageRecorder
 def _json_value(value: Any) -> Any:
     if is_dataclass(value) and not isinstance(value, type):
         return _json_value(asdict(value))
+    if isinstance(value, BaseModel):
+        return _json_value(value.model_dump())
     if isinstance(value, Path):
         return str(value)
     if isinstance(value, dict):
@@ -33,12 +36,10 @@ class AgentRuntime:
         task_id: str,
     ) -> None:
         self.profile = ModelProfile.load(model_profile)
-        if self.profile.api not in {"chat_completions", "responses"}:
-            raise ValueError("AgentRuntime requires a chat_completions or responses profile")
         self.workspace = Path(workspace).expanduser().resolve()
         self.sessions = SessionManager(self.workspace, task_id)
         self.usage = UsageRecorder(self.workspace)
-        self.model = self.profile.agent_model()
+        self.model = self.profile.agent_model(workspace=self.workspace)
         self.model_settings = self.profile.model_settings()
 
     def write_runtime_config(
@@ -52,26 +53,11 @@ class AgentRuntime:
     ) -> Path:
         """Persist the effective non-secret configuration for one workflow run."""
 
-        profile = self.profile
         return write_json(
             self.workspace / "runtime_config.json",
             _json_value({
                 "workflow": workflow,
-                "model": {
-                    "profile_name": profile.path.name,
-                    "provider": "openai",
-                    "api": profile.api,
-                    "base_url": profile.base_url,
-                    "model": profile.model,
-                    "credential_source": profile.credential_source,
-                    "trust_env": profile.trust_env,
-                    "timeout": profile.timeout,
-                    "max_retries": profile.max_retries,
-                    "max_tokens": profile.max_tokens,
-                    "temperature": profile.temperature,
-                    "parallel_tool_calls": profile.parallel_tool_calls,
-                    "include_usage": profile.include_usage,
-                },
+                "model": self.profile.runtime_metadata(),
                 "request": request,
                 "execution": execution,
                 "context_policy": context_policy,

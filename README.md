@@ -34,32 +34,39 @@ Heng-Yi Wei, [Baoquan Chen](https://baoquanchen.info/), [Peng-Shuai Wang*](https
 
 ## LLM Configuration
 
-This repository is built on the [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/) and should support all models officially supported by the SDK.
-
-By default, we use [OpenRouter](https://openrouter.ai/) with *Gemini 3.1 Pro* via an OpenAI-compatible API.
-
-Set your OpenRouter API key with:
+This repository keeps the OpenAI Agents SDK orchestration, but the machine-local
+default transport is an authenticated
+[`codex exec`](https://developers.openai.com/codex/noninteractive) process.
+No API key is copied into the repository.
 
 ```bash
-echo -n "YOUR_OPENROUTER_API_KEY" > adsl-agents/configs/keys/openrouter_key.txt
+export ADSL_CODEX_CLI_BIN=/vepfs_default/chanxueyan/lhp/lms/npm-global/bin/codex
+codex login status
+
+adsl-run create "A laptop" \
+  --output /jiigan-hp/lms/aDSL/experiment/example_laptop
 ```
 
-The default *Gemini 3.1 Pro* profile is defined in `adsl-agents/configs/llm/openrouter-gemini-3.1-pro.yaml`:
+The default profile is
+`adsl-agents/configs/llm/codex-cli-gpt-5.6-sol.yaml`. It runs ephemeral,
+read-only Codex subprocesses while aDSL remains responsible for tools, sessions,
+asset execution, rendering, and critic/refinement rounds. OpenAI-compatible
+HTTP profiles such as
+`adsl-agents/configs/llm/openrouter-gemini-3.1-pro.yaml` remain available only
+when selected explicitly with `--model-config`.
 
-```yaml
-provider: openai
-api: responses
-credential:
-  file: ../keys/openrouter_key.txt
-params:
-  base_url: https://openrouter.ai/api/v1
-  model: google/gemini-3.1-pro-preview
-  timeout: 300
-  max_retries: 0
-  max_tokens: 32768
-  parallel_tool_calls: false
-  include_usage: true
+For GPU Eevee rendering, start one persistent serial worker from the login node:
+
+```bash
+source experiments/gpu_render_queue/activate.sh
+bash experiments/gpu_render_queue/control.sh start
+bash experiments/gpu_render_queue/control.sh wait
 ```
+
+The queue is fixed to
+`/jiigan-hp/lms/aDSL/experiment/gpu_render_queue`. It uses one A800 and launches
+only one foreground Blender process at a time. The next render starts only after
+the previous process exits and GPU memory returns to baseline.
 
 ## Agentic 3D Generation
 
@@ -101,6 +108,33 @@ adsl-run create "Build the object in this image" \
   --output "./outputs/nightstand-arti" \
   --articulation
 ```
+### Engineering checker gates
+
+Object workflows can register external engineering checkers. A required checker
+participates in the publication decision; the final asset is published only when
+appearance review and every required checker return `PASS`.
+
+For an existing model, `--check-first` preserves the supplied source as the
+untouched round-1 baseline:
+
+```bash
+adsl-run edit "Preserve appearance; repair only mandatory checker failures." \
+  --source path/to/source.py \
+  --output local_experiment/checker-repair \
+  --check-first --max-rounds 4 \
+  --checker-config experiments/workflow_checkers/specs/fea_chair.json
+```
+
+Repeat `--checker-config` to combine standing, FEA, and support gates. Checker
+`ERROR` stops as an infrastructure failure. `FAIL` or `INDETERMINATE` is
+passed as structured evidence to the Engineering Critic, which maps measured
+violations and hotspots to minimal `source.py` changes before the Coder patches
+the source. Materials, loads, boundary conditions, and thresholds remain in
+reviewable checker configs and are not editable by the Coder.
+
+See [the checker documentation](experiments/workflow_checkers/README.md) and
+[the frozen FEA feedback experiment](presentation_assets/results/fea_checker_loop/EXPERIMENT.md).
+
 ## Chat (Experimental)
 
 > This feature is experimental. CLI behavior, session state, and workspace interfaces may change in future versions.
@@ -153,7 +187,7 @@ adsl-chat --workspace PATH [OPTIONS]
 | `--workspace PATH`    | Yes      | —                                                | Conversation workspace. Generated assets are stored under `PATH/assets/`.                                               |
 | `--session-file PATH` | No       | `<workspace>/chat_state.json`                    | Load and save chat state using a specific file.                                                                         |
 | `--task-id ID`        | No       | Saved task ID or generated UUID                  | Override the task identifier for the session.                                                                           |
-| `--model-config PATH` | No       | Saved profile or packaged Gemini 3.1 Pro profile | Select the LLM profile YAML file.                                                                                       |
+| `--model-config PATH` | No       | Saved profile or packaged Codex CLI profile      | Select the LLM profile YAML file.                                                                                       |
 | `--max-rounds N`      | No       | `2`                                              | Set the maximum number of execute–critic–refine rounds for each asset action initiated from chat. Must be at least `1`. |
 | `-h`, `--help`        | No       | —                                                | Show help for the interactive chat CLI.                                                                                 |
 

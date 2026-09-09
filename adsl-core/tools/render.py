@@ -18,6 +18,7 @@ from bpyrenderer.render_output import enable_color_output
 
 
 Background = Literal["transparent", "white", "gray"]
+MaterialMode = Literal["native", "neutral"]
 DEFAULT_SUN_LOCATION = (20.0, -20.0, 0.0)
 DEFAULT_SUN_STRENGTH = 1.25
 DEFAULT_WORLD_STRENGTH = 0.35
@@ -219,6 +220,30 @@ def _smooth_scene() -> None:
     bpy.ops.object.select_all(action="DESELECT")
 
 
+def _set_material_mode(material_mode: MaterialMode) -> None:
+    if material_mode == "native":
+        return
+    if material_mode != "neutral":
+        raise ValueError(
+            f"Invalid material mode: {material_mode!r}. Expected native or neutral."
+        )
+
+    material = bpy.data.materials.get("ADSL_EvaluationNeutral")
+    if material is None:
+        material = bpy.data.materials.new(name="ADSL_EvaluationNeutral")
+    material.use_nodes = True
+    nodes = material.node_tree.nodes if material.node_tree is not None else None
+    principled = nodes.get("Principled BSDF") if nodes is not None else None
+    if principled is not None:
+        principled.inputs["Base Color"].default_value = (0.65, 0.65, 0.65, 1.0)
+        principled.inputs["Roughness"].default_value = 0.7
+        principled.inputs["Metallic"].default_value = 0.0
+
+    for obj in _mesh_objects():
+        obj.data.materials.clear()
+        obj.data.materials.append(material)
+
+
 def _set_first_supported(owner: Any, attribute: str, values: Sequence[Any]) -> None:
     for value in values:
         try:
@@ -325,8 +350,17 @@ def _write_metadata(
     height: int,
     cameras: Sequence[bpy.types.Object],
     views: Sequence[RenderView],
+    *,
+    background: Background,
+    material_mode: MaterialMode,
 ) -> None:
-    metadata = {"width": width, "height": height, "locations": []}
+    metadata = {
+        "width": width,
+        "height": height,
+        "background": background,
+        "material_mode": material_mode,
+        "locations": [],
+    }
     for camera, view in zip(cameras, views):
         record = {
             "index": f"{view.index:04d}",
@@ -359,6 +393,7 @@ def render_multiview(
     render_samples: int = 256,
     render_threads: int | None = None,
     background: Background = "transparent",
+    material_mode: MaterialMode = "native",
 ) -> None:
     if background not in {"transparent", "white", "gray"}:
         raise ValueError(
@@ -376,6 +411,7 @@ def render_multiview(
     scene_manager.clear(reset_keyframes=True)
 
     _import_glb(glb_path)
+    _set_material_mode(material_mode)
     _smooth_scene()
     _normalize_scene(0.8)
     _set_scene_background(background)
@@ -409,7 +445,15 @@ def render_multiview(
     _disable_ambient_occlusion()
 
     scene_manager.render()
-    _write_metadata(output_path, width, height, cameras, resolved_views)
+    _write_metadata(
+        output_path,
+        width,
+        height,
+        cameras,
+        resolved_views,
+        background=background,
+        material_mode=material_mode,
+    )
 
 
 def render_video(
@@ -423,6 +467,7 @@ def render_video(
     render_samples: int = 256,
     render_threads: int | None = None,
     background: Background = "transparent",
+    material_mode: MaterialMode = "native",
 ) -> None:
     """Export an Asset when needed and render orbit-view PNG images."""
     width = _positive_env_int("ADSL_RENDER_WIDTH", width)
@@ -457,6 +502,7 @@ def render_video(
         render_samples=render_samples,
         render_threads=render_threads,
         background=background,
+        material_mode=material_mode,
     )
 
 
@@ -482,6 +528,11 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=("transparent", "white", "gray"),
         default="transparent",
     )
+    parser.add_argument(
+        "--material-mode",
+        choices=("native", "neutral"),
+        default="native",
+    )
     return parser
 
 
@@ -500,6 +551,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         render_samples=args.render_samples,
         render_threads=args.render_threads,
         background=args.background,
+        material_mode=args.material_mode,
     )
 
 
