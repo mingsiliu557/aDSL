@@ -691,3 +691,29 @@ Toys4K 最小下载：
   完成后的大体积render/solver证据再归档到 `/jiigan-hp/lms/aDSL/experiment/`。
 - 本轮结束后 LMS StepCode proxy 已停止；A800 GPU renderer worker 保持运行，避免卡被
   回收。MuJoCo结果仍是固定代理条件下筛查，不是真实打印或安全认证。
+
+## 2026-09-09：30-object standing + FEA 配对实验协议
+
+- 新增 `experiments/standing_fea_30/`：固定 30 个唯一 CAP3D/MARVEL prompt，覆盖
+  chair/stool、table/desk、bookshelf、floor lamp、tower speaker 各 6 个；对 caption
+  做类别语义复核，排除 table lamp、desk-with-shelves、pendant light 和空 speaker
+  stand 等标签/描述冲突。论文未公开其精确 200 prompt ID，因此本实验明确标为
+  same-source/different-sample targeted subset，不声称精确复现。
+- 两臂均独立 prompt-to-3D、同一代码与 StepCode profile、temperature=0、最多四轮、
+  同一 512×512 Eevee GPU 队列；API 没有正式 seed，所以只固定 prompt selection、
+  arm order、Python hash seed 和所有 checker/render 配置，不声称 bitwise reproducible。
+- vanilla aDSL 不配置物理 checker；Ours 同时配置 required standing + category-specific
+  FEA，并允许统一 Engineering Critic/source repair。两臂最终源码都离线重跑同一
+  standing/FEA evaluator，避免只评 Ours；standing 严格 >25° 才失败。
+- FEA 的 `INDETERMINATE` 原样保留并按 NOT_MESHABLE、INVALID_LOAD_PATH 等原因统计，
+  不伪装成 FAIL/PASS，也不因 indeterminate 重采样。联合通过只定义为两个 checker
+  均 PASS；报告输出 paired bootstrap 95% interval 和 exact McNemar。
+- 五类合成连通夹具已跑真实 export→MuJoCo→Gmsh/CalculiX 预检，10/10 checker 都
+  产出有效判定：standing 五类均 PASS；FEA chair/table/lamp PASS，bookshelf/speaker
+  收敛后 FAIL，验证了成功和结构失败两条真实路径。证据在
+  `local_experiment/standing_fea_30_preflight_20260909/`。
+- StepCode 1.2.79 最小 Responses 请求验证 `temperature=0` 可用并返回 `OK`，代理随后
+  由 trap 关闭。完整仓库回归 109/109 通过。
+- 批处理启动前强制校验 GPU worker heartbeat；每次显式 resume 使用新日志文件，避免
+  覆盖历史；额度、GPU、checker 和其他错误分开标记并停批。活跃 SQLite/workspace
+  留在项目盘，完成后才将不可变大证据归档数据盘。

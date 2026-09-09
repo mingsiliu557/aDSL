@@ -1,0 +1,16 @@
+{
+  "material": {
+    "name": "isotropic_PLA_screening_proxy",
+    "youngs_modulus_pa": 3000000000,
+    "poisson_ratio": 0.35,
+    "density_kg_m3": 1240,
+    "yield_strength_pa": 50000000,
+    "evidence": "uniform screening assumption; not measured for this print"
+  },
+  "scale": {"measure": "height", "target_m": 1.2},
+  "functional_loads": [
+    {"name": "enclosure_lateral_load", "pattern": "speaker|enclosure|cabinet|body", "face": "y_max", "force_n": [0, 100, 0]}
+  ],
+  "ccx": "/vepfs_default/chanxueyan/lhp/lms/fea_runtime/calculix-2.23/ccx_2.23",
+  "solver_timeout_seconds": 900
+}

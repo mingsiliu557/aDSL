@@ -1,0 +1,663 @@
+{
+  "protocol": {
+    "name": "adsl_vs_checker_unified_standing_fea_30",
+    "sample_size_objects": 30,
+    "arms": [
+      "adsl",
+      "ours"
+    ],
+    "generation_runs": 60,
+    "selection_seed": "20260909",
+    "selection": "five instability-prone load-bearing categories; fixed dataset/caption slots; SHA256(seed:dataset:object_id:caption_source) rank; unique objects",
+    "paper_exact_prompt_ids_public": false,
+    "scope": "targeted same-source/different-sample CAP3D/MARVEL subset",
+    "prompt_engineering_for_physics": false,
+    "llm_seed_available": false,
+    "max_rounds_per_arm": 4,
+    "standing_threshold_deg": 25.0,
+    "fea_indeterminate_policy": "retain and report separately; do not resample"
+  },
+  "sources": {
+    "metadata_root": "/jiigan-hp/lms/aDSL/datasets/prompt_sources",
+    "cap3d_revision": "0f05a726ff7eb3db93444a4efc65f0552bce84a4",
+    "marvel_revision": "b44089646984abc6976baefdd5289b2198c46e2c",
+    "sha256": {
+      "cap3d/0f05a726ff7eb3db93444a4efc65f0552bce84a4/Cap3D_automated_ShapeNet.csv": "d1e881d7c22d3313ab989d1fdf5e43559526fe4a9e1d7e7b1c2d48ba702a9e54",
+      "cap3d/0f05a726ff7eb3db93444a4efc65f0552bce84a4/Cap3D_automated_ABO.csv": "442d23e1dc39b52e002c9fbc556a48ffdf1dfd255552982778dde1cdc497cbaf",
+      "marvel_40m/b44089646984abc6976baefdd5289b2198c46e2c/annotation/shapenet.csv": "af1faec8ad4601a1c7d424a6cf26edce4a6acec8e2e41676ab109837d2290c85",
+      "marvel_40m/b44089646984abc6976baefdd5289b2198c46e2c/annotation/abo.csv": "00776554b146d6e78d4c51d955c66ae4db152cbc41c0ae7e7bae19c4ea60da3d"
+    }
+  },
+  "cases": [
+    {
+      "dataset": "shapenet",
+      "object_id": "8a67fd47001e52414c350d7ea5fe2a3a",
+      "synset_id": "03001627",
+      "category": "chair_stool",
+      "filtered_name": "chair",
+      "caption_source": "cap3d",
+      "prompt": "A modern, curvilinear chair with a sleek, dark navy fabric upholstery. The design features a distinctive, segmented backrest that creates a comfortable seating area, supported by a sturdy, round metallic base. The base has a smooth, light gray finish, providing a contemporary contrast to the deep color of the upholstery. The chair’s overall shape is inviting with a slightly angled silhouette, embodying minimalist elegance.",
+      "rank_key": "00223eae3210a5cabe872a3a83350c2c0c81c60a8aba613c6a390fbd9850c9f6",
+      "eligible_candidate_count": 3876,
+      "fea_config": "fea_chair_stool.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 0.9
+      },
+      "case_id": "SF01",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "e158f7ba6828db5c654ea6737b0d3597",
+      "synset_id": "03001627",
+      "category": "chair_stool",
+      "filtered_name": "chair",
+      "caption_source": "marvel",
+      "prompt": "The 3D model of the chair consists of a flat, square seat, a slightly arched square backrest, and four vertical rectangular legs. The chair is symmetrically constructed with uniformly sized wooden blocks, maintaining a balanced and functional design. The backrest is about twice the width of one block, and the legs are approximately three times the width. The chair is textured to look like wood, with natural grain patterns and a medium brown color. It stands against a black background, emphasizing its clean lines and minimalist aesthetic.",
+      "rank_key": "0003e2f6faeb2080997f7cdbe656660913a6f5d7d447d191d997950210623012",
+      "eligible_candidate_count": 6007,
+      "fea_config": "fea_chair_stool.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 0.9
+      },
+      "case_id": "SF02",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "4a24652fbf2bed7e93583c67df8faf1",
+      "synset_id": "03001627",
+      "category": "chair_stool",
+      "filtered_name": "chair",
+      "caption_source": "cap3d",
+      "prompt": "A wooden chair featuring a high backrest and a simple, rectangular seat. The legs are sturdy and straight, giving it a robust appearance. The material has a rich, reddish-brown color with a textured finish, enhancing its aesthetic appeal. The overall design is minimalistic, suitable for various interior styles.",
+      "rank_key": "002b0b62b92213cf36683a640ed7ccb798a814b04936b5c769fabc9896fb174d",
+      "eligible_candidate_count": 3874,
+      "fea_config": "fea_chair_stool.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 0.9
+      },
+      "case_id": "SF03",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "55b00797abf243c3cce5160f0c502ac3",
+      "synset_id": "03001627",
+      "category": "chair_stool",
+      "filtered_name": "chair",
+      "caption_source": "marvel",
+      "prompt": "The modern armchair has a cubic shape with smooth, rounded edges and an asymmetrical backrest that angles more on the right side. The frame and base are made from sturdy materials, possibly wood or metal, with a matte finish. The legs are cylindrical and taper slightly towards the bottom. The seat, backrest, and armrests are upholstered in a bright red, high-quality fabric or leather, with a smooth surface and minimal stitching. The backrest is taller than the seat depth, providing good upper body support. The armrests are moderately wide for comfort. The chair is displayed in isolation on a black background.",
+      "rank_key": "00048a4614cc4dddca4025d0a03d142ee9769c73e82664d73de175c92e81c277",
+      "eligible_candidate_count": 6005,
+      "fea_config": "fea_chair_stool.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 0.9
+      },
+      "case_id": "SF04",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    },
+    {
+      "dataset": "abo",
+      "object_id": "B075YQXRBS",
+      "synset_id": "",
+      "category": "chair_stool",
+      "filtered_name": "",
+      "caption_source": "cap3d",
+      "prompt": "Swivel bar stool with a metal frame, upholstered padded seat and backrest.",
+      "rank_key": "006401ed70c0d5501cb7bee96c375d26c6329a8ce320e22231171c435926bc42",
+      "eligible_candidate_count": 1187,
+      "fea_config": "fea_chair_stool.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 0.9
+      },
+      "case_id": "SF05",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "abo",
+      "object_id": "B07DBHCKJ5",
+      "synset_id": "",
+      "category": "chair_stool",
+      "filtered_name": "",
+      "caption_source": "marvel",
+      "prompt": "The modern armchair has a rounded, ergonomic design with a slightly depressed seat cushion for comfort. The backrest curves smoothly for support, and the armrests are short and curved, positioned for elbow rest. Four straight, square wooden legs provide a stable base. The chair features nailhead trim along the bottom front edge, adding a decorative and functional element. The upholstery is a smooth, durable fabric, likely tweed or linen, in a solid gray color. The chair is symmetrical and presented against a plain black background.",
+      "rank_key": "000d2331285583a502a1652a042204f4f8c66833b506660078d089e23524446a",
+      "eligible_candidate_count": 1345,
+      "fea_config": "fea_chair_stool.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 0.9
+      },
+      "case_id": "SF06",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "8a2598fefd4a81e9c7b11e86284a2e",
+      "synset_id": "04379243",
+      "category": "table_desk",
+      "filtered_name": "table",
+      "caption_source": "cap3d",
+      "prompt": "A sleek, modern table featuring a round white top supported by a slender, tapered stem that transitions into a flared base. The design is minimalist, with a smooth surface and a glossy finish, creating a seamless flow from the top to the base. The overall aesthetic is elegant and contemporary, suitable for various interior styles.",
+      "rank_key": "0006c9a2f838e7890c561046e0365c62cacdcd1d8b79fa57e4372f703c62568a",
+      "eligible_candidate_count": 5255,
+      "fea_config": "fea_table_desk.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 0.75
+      },
+      "case_id": "SF07",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "b40b97894f2c750bdbf8817a0e330a74",
+      "synset_id": "04379243",
+      "category": "table_desk",
+      "filtered_name": "table",
+      "caption_source": "marvel",
+      "prompt": "The 3D model is a modern table with a circular, faceted top and a central cylindrical column. The tabletop is glossy, likely made of metal or polished stone, and reflects light. The base includes a ring-like structure for added stability. The table has a minimalist design with symmetrical proportions and is colored in shades of gray, emphasizing its geometric form and material properties.",
+      "rank_key": "0011b9e8ea8331ecebe578cc82240cdd034af36a2fe0a676cca775d2e059b045",
+      "eligible_candidate_count": 7884,
+      "fea_config": "fea_table_desk.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 0.75
+      },
+      "case_id": "SF08",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "3d4399c54a60ac26febad4f49b26ec52",
+      "synset_id": "04379243",
+      "category": "table_desk",
+      "filtered_name": "table",
+      "caption_source": "cap3d",
+      "prompt": "A dark wooden table featuring a slatted top design and tapered legs, with a sturdy structure and a rich brown finish. The legs display a gentle curve, adding an elegant touch to the overall geometric simplicity of the piece.",
+      "rank_key": "000cca23a3d11198947bcc7b56d4e011b247ac62d2920f1136d4d28a4276acc2",
+      "eligible_candidate_count": 5254,
+      "fea_config": "fea_table_desk.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 0.75
+      },
+      "case_id": "SF09",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "7fa4f9f5b204af31e95cd0dc8c2f0e83",
+      "synset_id": "04379243",
+      "category": "table_desk",
+      "filtered_name": "table",
+      "caption_source": "marvel",
+      "prompt": "The 3D model is a conference table with a rectangular tabletop that tapers slightly from front to back. The tabletop has straight, symmetrical edges and a smooth, glossy finish, possibly mimicking wood. Two central legs support the tabletop, connected by horizontal braces for stability. The legs have a matte finish and are colored black or dark gray, providing a strong contrast to the tabletop. The model focuses on the table's structure without any additional environmental context.",
+      "rank_key": "001306f0ee8013bda27f17071dacd84ebb760e0695a2ce8142ca78acda62c50b",
+      "eligible_candidate_count": 7882,
+      "fea_config": "fea_table_desk.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 0.75
+      },
+      "case_id": "SF10",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    },
+    {
+      "dataset": "abo",
+      "object_id": "B07H2HXQVC",
+      "synset_id": "",
+      "category": "table_desk",
+      "filtered_name": "",
+      "caption_source": "cap3d",
+      "prompt": "Rectangular console table with a top shelf, two slanted sides, and two drawers.",
+      "rank_key": "0002898a90c17f6b72fec54ef386a427f659b02d571047e3f2bebce802ba28a1",
+      "eligible_candidate_count": 524,
+      "fea_config": "fea_table_desk.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 0.75
+      },
+      "case_id": "SF11",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "abo",
+      "object_id": "B07GFT7H76",
+      "synset_id": "",
+      "category": "table_desk",
+      "filtered_name": "",
+      "caption_source": "marvel",
+      "prompt": "The 3D model is a rectangular desk with a minimalist design. It features a flat, broad top surface and two sturdy legs at each end for stability. A drawer unit is attached to the left side when viewed from the front. The desk has sharp, clean lines and a symmetrical appearance along the vertical axis, with the asymmetry primarily due to the drawer placement. The entire desk, including the drawer unit, is finished with a smooth texture, likely laminated or varnished wood. The model is rendered in a solid light gray color, maintaining a monochromatic scheme. The legs, while not fully visible from all angles, are consistent with the smooth finish of the desk. This model focuses solely on the desk itself, suitable for placement in a workspace setting.",
+      "rank_key": "00a14529bb878742c1f101944122eeffb9f8e9a0333350e56c39fbde3cbbf9aa",
+      "eligible_candidate_count": 1134,
+      "fea_config": "fea_table_desk.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 0.75
+      },
+      "case_id": "SF12",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "33c1b4d529f6899bd810b14a81e12eca",
+      "synset_id": "02871439",
+      "category": "bookshelf",
+      "filtered_name": "bookshelf",
+      "caption_source": "cap3d",
+      "prompt": "A tall, vertical bookshelf made of textured wood, featuring five shelves with a warm, reddish-brown finish. The design showcases a streamlined structure, emphasizing minimalism with evenly spaced, open compartments ideal for displaying books and decorative items.",
+      "rank_key": "004facbde419a61355f966f5804fc346e58def626f7343538f960a1d554c1982",
+      "eligible_candidate_count": 129,
+      "fea_config": "fea_bookshelf.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.8
+      },
+      "case_id": "SF13",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "6ae80779dd34c194c664c3d4e2d59341",
+      "synset_id": "02871439",
+      "category": "bookshelf",
+      "filtered_name": "bookshelf",
+      "caption_source": "marvel",
+      "prompt": "The bookshelf is a spiraling structure with three tiers, each spiraling upwards from left to right. The bottom tier is the largest and tapers as it rises, maintaining symmetry. Each tier has consistent depth for book placement. The bookshelf has a smooth, matte finish, likely made of painted wood or metal. Books are arranged neatly in rows, with spines in various textures (glossy and matte) and a range of colors (purple, green, red, black, yellow, blue, pink, orange, and turquoise). The bookshelf is white/gray, providing a neutral contrast to the colorful books. It stands against a plain, dark background, highlighting its design.",
+      "rank_key": "00e1ae0ea1e7ca0d5c443ac963bc60084978b2252366933dd60598af0d5f615e",
+      "eligible_candidate_count": 307,
+      "fea_config": "fea_bookshelf.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.8
+      },
+      "case_id": "SF14",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "46579c6050cac50a1c8c7b57a94dbb2e",
+      "synset_id": "02871439",
+      "category": "bookshelf",
+      "filtered_name": "bookshelf",
+      "caption_source": "cap3d",
+      "prompt": "A tall, rectangular wooden bookshelf with a grid of square cubbyholes filled with various colorful books. The back has a textured, paneled design.",
+      "rank_key": "00e6dc47a6b2cf1f173ff7c9296d8d7c289403ac0da1039b5b80a6262559f07e",
+      "eligible_candidate_count": 128,
+      "fea_config": "fea_bookshelf.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.8
+      },
+      "case_id": "SF15",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "5793619650b38e335acd449a2ae99009",
+      "synset_id": "02871439",
+      "category": "bookshelf",
+      "filtered_name": "bookshelf",
+      "caption_source": "marvel",
+      "prompt": "The bookshelf is a modern, minimalist design with three evenly spaced horizontal shelves supported by two vertical side panels. The top features a slightly slanted back panel for added stability. The overall shape is rectangular with a slight trapezoidal form. The design is symmetrical, with a height greater than its width. The shelves are smooth and flat, and the material has a matte finish, giving it a sleek, contemporary appearance. The color is monochromatic black, with subtle shading from lighting. The background is dark, emphasizing the bookshelf's form.",
+      "rank_key": "012765b1b4741e89d26bc4d0cebe55f4254ae0a2f0b7cca69b396c0c03a8dfdd",
+      "eligible_candidate_count": 305,
+      "fea_config": "fea_bookshelf.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.8
+      },
+      "case_id": "SF16",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "e3ae56f176b77359aa1bd50387389420",
+      "synset_id": "02871439",
+      "category": "bookshelf",
+      "filtered_name": "bookshelf",
+      "caption_source": "cap3d",
+      "prompt": "A tall, rectangular shelving unit made of light-colored wood with a smooth, polished surface. The wood features a natural grain pattern with small knots visible. It includes two open shelves, providing a minimalist design ideal for displaying or storing items. The overall shape is sturdy and geometric, with clean lines and rounded edges.",
+      "rank_key": "00f6ec6d5e33546973808f5cfe2d69b378e49de7761a3ff504c1d940ca890d05",
+      "eligible_candidate_count": 126,
+      "fea_config": "fea_bookshelf.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.8
+      },
+      "case_id": "SF17",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "abo",
+      "object_id": "B07JGY5LNV",
+      "synset_id": "",
+      "category": "bookshelf",
+      "filtered_name": "",
+      "caption_source": "marvel",
+      "prompt": "The 3D model is a tall, vertical bookcase with a rectangular frame and a flat top. It is perfectly symmetrical and emphasizes verticality due to its height being much greater than its width. The bookcase features multiple horizontal shelves of varying heights and widths, creating storage compartments. These shelves are evenly spaced, contributing to a balanced appearance. The material is wood or wood veneer, with a smooth and polished finish, giving it a modern look. The color is a consistent light oak or light brown. The bookcase is placed against a black background, highlighting its design and proportions.",
+      "rank_key": "041f143481b8b1c7d758665f278a971f4837e33923983159ec4a79592b6670ef",
+      "eligible_candidate_count": 55,
+      "fea_config": "fea_bookshelf.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.8
+      },
+      "case_id": "SF18",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "ab999b20d88829d5efb94709f30ce0d2",
+      "synset_id": "03636649",
+      "category": "floor_lamp",
+      "filtered_name": "lamp",
+      "caption_source": "cap3d",
+      "prompt": "A modern floor lamp featuring a cylindrical pole wrapped in alternating black and gray stripes, supporting a wide, conical lampshade adorned with a textured pattern in shades of purple and cream. The base is circular and solid, complementing the sleek design.",
+      "rank_key": "018e554c8606c1827e713f9aa6990c152c8f5f25d89dd1e015874fc759c4c8a5",
+      "eligible_candidate_count": 309,
+      "fea_config": "fea_floor_lamp.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.6
+      },
+      "case_id": "SF19",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "b479c49366c4d5def2cdf09737c19aad",
+      "synset_id": "03636649",
+      "category": "floor_lamp",
+      "filtered_name": "lamp",
+      "caption_source": "marvel",
+      "prompt": "The 3D model is a classic street lamp. It features a cylindrical base with a textured surface, transitioning into a decorative top section. The post is a slender, vertical metal pole with a smooth finish, leading to swirling, scroll-like decorative elements near the top. The light fixture is a traditional lantern with a clear glass enclosure and a metallic frame, attached to one side of the post near the top. The design is symmetrical and balanced, with the decorative elements adding ornamental detail. The base is muted gray or off-white, the post dark gray or black, and the decorative elements and light fixture have subtle color variations. The lamp is suitable for historical or classical urban settings.",
+      "rank_key": "003e2d645e02ed631c06cce5ecccc9aa5c3b508e79355c3a8aaba5b8d08fee5a",
+      "eligible_candidate_count": 431,
+      "fea_config": "fea_floor_lamp.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.6
+      },
+      "case_id": "SF20",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "7b39100755e9578799284d844aba7576",
+      "synset_id": "03636649",
+      "category": "floor_lamp",
+      "filtered_name": "lamp",
+      "caption_source": "cap3d",
+      "prompt": "A tall floor lamp featuring a slender black metal stand with a decorative twist in the middle, supported by three curved legs. Topped with a soft, light beige fabric lampshade, it exudes a classic and elegant aesthetic, ideal for enhancing ambiance in any room.",
+      "rank_key": "03cef61a9fbf1feda1d5143061728732c105352382d1b41c7b415f091bd6163c",
+      "eligible_candidate_count": 307,
+      "fea_config": "fea_floor_lamp.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.6
+      },
+      "case_id": "SF21",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "ec8dc2311d381a9e3d39d8012919dd25",
+      "synset_id": "03636649",
+      "category": "floor_lamp",
+      "filtered_name": "lamp",
+      "caption_source": "marvel",
+      "prompt": "The floor lamp has a symmetrical design with a circular base, a vertical stand, and a dome-shaped light shade. The base is flat and supports the entire structure, while the stand is slender and leads up to the shade. The shade is wider at the top, promoting soft light diffusion. Both the base and stand have a smooth, matte finish, with the stand potentially having a slight metallic sheen. The light shade is made of a fabric or textured material that diffuses light softly. The cord, coiled and extending from the base, is coated in rubber or PVC for safety. The color scheme is primarily white or off-white, with minimal variations.",
+      "rank_key": "03ea48acedf31e04542798e9b0a1c0cfae9d4cdb24bc42e98a4ab1de4008fbac",
+      "eligible_candidate_count": 429,
+      "fea_config": "fea_floor_lamp.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.6
+      },
+      "case_id": "SF22",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    },
+    {
+      "dataset": "abo",
+      "object_id": "B07DBHM1SZ",
+      "synset_id": "",
+      "category": "floor_lamp",
+      "filtered_name": "",
+      "caption_source": "cap3d",
+      "prompt": "3D model of a floor lamp with a spherical metal base, cylindrical stem, and glass shade.",
+      "rank_key": "00de9d2eb7fba81a01c9d3dacf66746ca765f2dc7b54edba91c8864a2fa25023",
+      "eligible_candidate_count": 30,
+      "fea_config": "fea_floor_lamp.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.6
+      },
+      "case_id": "SF23",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "abo",
+      "object_id": "B07MHMSDJ5",
+      "synset_id": "",
+      "category": "floor_lamp",
+      "filtered_name": "",
+      "caption_source": "marvel",
+      "prompt": "The three-tier floor lamp consists of three bell-shaped lampshades, each slightly flared at the top and made from a matte fabric or paper. The lampshades are arranged in descending size, each supported by its own socket and cylindrical base. A central vertical stand, divided into three segments, connects all tiers and provides stability. The stand and sockets are metallic with a smooth, polished surface, and the entire lamp is uniformly grey. The design is symmetrical and vertically elongated, emphasizing simplicity and elegance.",
+      "rank_key": "0141ea889973a40ec50ae83380deaec6e5ec39227d7d2e038dcdbf533bde7bf0",
+      "eligible_candidate_count": 98,
+      "fea_config": "fea_floor_lamp.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.6
+      },
+      "case_id": "SF24",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "119fc0c18388a2a2e338ca8c90019f12",
+      "synset_id": "03691459",
+      "category": "tower_speaker",
+      "filtered_name": "loudspeaker",
+      "caption_source": "cap3d",
+      "prompt": "A modern, sleek speaker design featuring a dark wood finish with a glossy black front panel. The speaker has a tapered silhouette with a curved top, highlighting its contemporary aesthetic. It incorporates circular and rectangular speaker grilles on the front, along with a metallic panel at the bottom, creating a stylish contrast. The base is rounded, providing stability, while subtle detailing enhances its refined appearance.",
+      "rank_key": "00b6c71883134ec6937ab0047a21a0cb74777e4ec68baeff6d14ddf6486810fb",
+      "eligible_candidate_count": 304,
+      "fea_config": "fea_tower_speaker.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.2
+      },
+      "case_id": "SF25",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "65bb8f59e10a0cd837f1b3cce66816ca",
+      "synset_id": "03691459",
+      "category": "tower_speaker",
+      "filtered_name": "loudspeaker",
+      "caption_source": "marvel",
+      "prompt": "The 3D model is a loudspeaker system with four components: a central speaker, two smaller satellite speakers, and a subwoofer. The central unit is a rectangular cube with slightly angled edges and a textured surface resembling geometric patterns or wood grain. The satellite speakers are smaller but similarly designed, placed symmetrically on either side. The subwoofer is a slender vertical rectangular box, positioned next to the central unit, with the same textured pattern. All units have smooth, glossy surfaces and are primarily dark gray or black, creating a sleek, sophisticated look.",
+      "rank_key": "007bbb87db80c97a3f0b1740b169d447ee6d86e34954f03fe8a70a7c922c4e55",
+      "eligible_candidate_count": 1042,
+      "fea_config": "fea_tower_speaker.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.2
+      },
+      "case_id": "SF26",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "b7b69bc187bfea4a8b1598dab950d979",
+      "synset_id": "03691459",
+      "category": "tower_speaker",
+      "filtered_name": "loudspeaker",
+      "caption_source": "cap3d",
+      "prompt": "A rectangular wooden speaker cabinet featuring a textured, brown exterior with visible knots. The front has a circular black speaker grille, complemented by four accessible compartments. Metallic castors are attached to the bottom for mobility, providing a practical, rugged design.",
+      "rank_key": "00d4393c20f1afa4e9be5debb96b22f9d4203d2ca541c49b05f74fa3622e17f3",
+      "eligible_candidate_count": 303,
+      "fea_config": "fea_tower_speaker.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.2
+      },
+      "case_id": "SF27",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "b703762eb7b1fd39d0cd692038573317",
+      "synset_id": "03691459",
+      "category": "tower_speaker",
+      "filtered_name": "loudspeaker",
+      "caption_source": "marvel",
+      "prompt": "The loudspeaker unit has an upright rectangular shape with a black mesh speaker grill on the front. The upper section is black with a geometric pattern, and the lower section is gray with subtle textures, housing additional speaker units or controls. The side panels are gray with vertical ribbed textures. Control buttons and LEDs are located at the front bottom. The top section is slightly angled backwards, and the front grill covers most of the central part, tapering upwards. The sides have a sleek vertical ribbed structure, and the design is symmetrical along the vertical axis. Textures include a mesh grill, smooth matte finishes, and vertical ribs. Materials are primarily plastic with metallic detailing. Colors are black and gray with smooth transitions. The loudspeaker is isolated against a plain background.",
+      "rank_key": "01870c0a548688599ae4092d93697dbc0175a3233e2abb1ec5a4e1ca4908cebb",
+      "eligible_candidate_count": 1040,
+      "fea_config": "fea_tower_speaker.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.2
+      },
+      "case_id": "SF28",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    },
+    {
+      "dataset": "shapenet",
+      "object_id": "3fe90423ef5b56386af2396cb8af8a8e",
+      "synset_id": "03691459",
+      "category": "tower_speaker",
+      "filtered_name": "loudspeaker",
+      "caption_source": "cap3d",
+      "prompt": "A tall, rectangular object with a smooth, matte beige surface and a golden frame, displaying a simple yet elegant design. A second object features a robust structure with a visible black speaker driver centered within a beige casing, complemented by internal chambers for enhanced sound quality. The casing has a minimalist aesthetic, emphasizing functionality and modern design.",
+      "rank_key": "00d89bea59dac18cb4d1716921423adaa79d124e8ba684a0eeaffa1118a32d56",
+      "eligible_candidate_count": 302,
+      "fea_config": "fea_tower_speaker.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.2
+      },
+      "case_id": "SF29",
+      "arm_order": [
+        "adsl",
+        "ours"
+      ]
+    },
+    {
+      "dataset": "abo",
+      "object_id": "B07YF25MT8",
+      "synset_id": "",
+      "category": "tower_speaker",
+      "filtered_name": "",
+      "caption_source": "marvel",
+      "prompt": "The 3D model is a wooden tower speaker with a square base and a vertical rectangular column forming the main body. The base is smaller in height compared to the main body, which tapers slightly towards the bottom. The main body features vents for cooling and control interfaces, with a flat top surface serving as an enclosure for internal components. The speaker is symmetrical along its vertical axis, with the front face featuring centrally aligned vents and controls. The front face also includes a black panel above the vents, likely housing additional controls or indicators, and an integrated display screen near the top center. The primary material is wood, with a smooth finish and visible grain patterns. Metal grills and plastic panels on the front face add a modern touch. The primary color is a rich brown, with black accents and minimal use of neutral tones. The color transitions create a subtle gradient effect on the wooden texture.",
+      "rank_key": "306ebe130a1812b1a94b0bcd0ff3700af535d81a12811b4beb429b9f5fcacc90",
+      "eligible_candidate_count": 3,
+      "fea_config": "fea_tower_speaker.json",
+      "semantic_scale": {
+        "measure": "height",
+        "target_m": 1.2
+      },
+      "case_id": "SF30",
+      "arm_order": [
+        "ours",
+        "adsl"
+      ]
+    }
+  ]
+}
