@@ -84,6 +84,7 @@ params:
 
 
 def test_stepcode_profile_loads_key_without_storing_it_in_repr(tmp_path, monkeypatch) -> None:
+    monkeypatch.delenv("ADSL_STEPCODE_BIN", raising=False)
     secret = "ak-testcredential1234567890"
     run = Mock(
         return_value=subprocess.CompletedProcess(

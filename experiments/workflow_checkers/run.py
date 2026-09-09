@@ -12,7 +12,13 @@ import sys
 import traceback
 from typing import Any
 
-from adsl.agents.models import CheckerResult
+from adsl.agents.models import (
+    CheckerAnalysisContext,
+    CheckerFinding,
+    CheckerResult,
+    MetricEvidence,
+    RegionEvidence,
+)
 
 
 REPO = Path(__file__).resolve().parents[2]
@@ -28,6 +34,262 @@ DEFAULT_SLICER = Path(
         "/vepfs_default/chanxueyan/lhp/lms/tools/prusaslicer/2.4.0/sysroot/usr/bin/prusa-slicer",
     )
 )
+
+
+def _region_from_rows(
+    rows: list[dict[str, Any]],
+    *,
+    frame: str,
+    unit: str,
+) -> RegionEvidence:
+    part_names: list[str] = []
+    bounds: list[list[float]] | None = None
+    lowers: list[list[float]] = []
+    uppers: list[list[float]] = []
+    for row in rows:
+        for key in ("object", "name", "part", "geometry", "collision", "semantic_path"):
+            if row.get(key):
+                part_names.append(str(row[key]))
+        for value in row.get("matched_geometries", []):
+            part_names.append(str(value))
+        candidate = row.get("bounds_mm") or row.get("bounds") or row.get("aabb")
+        if isinstance(candidate, list) and len(candidate) == 2:
+            lowers.append([float(value) for value in candidate[0]])
+            uppers.append([float(value) for value in candidate[1]])
+    if lowers and uppers:
+        bounds = [
+            [min(row[index] for row in lowers) for index in range(3)],
+            [max(row[index] for row in uppers) for index in range(3)],
+        ]
+    if part_names:
+        return RegionEvidence(
+            kind="parts",
+            frame=frame,
+            unit=unit,
+            part_names=sorted(set(part_names)),
+            bounds=bounds,
+            details={"raw_region_count": len(rows)},
+        )
+    if bounds is not None:
+        return RegionEvidence(kind="aabb", frame=frame, unit=unit, bounds=bounds)
+    return RegionEvidence(
+        kind="unknown",
+        frame=frame,
+        unit=unit,
+        details={"raw_region_count": len(rows)},
+    )
+
+
+def enrich_result(
+    result: CheckerResult,
+    config: dict[str, Any] | None = None,
+) -> CheckerResult:
+    """Add v2 findings while preserving every v1 field for compatibility."""
+
+    config = config or {}
+    checker = result.checker
+    context = CheckerAnalysisContext(checker=checker, checker_version=2)
+    if checker in {"standing", "progressive"}:
+        context = context.model_copy(
+            update={
+                "analysis_frame": "urdf_z_up",
+                "analysis_length_unit": "scene_unit",
+                "source_to_analysis": [
+                    [1.0, 0.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0, 0.0],
+                    [0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0],
+                ],
+                "details": {"assumptions": result.assumptions},
+            }
+        )
+    elif checker == "fea":
+        scale = result.assumptions.get("scale") or {}
+        factor = scale.get("factor_m_per_scene_unit")
+        matrix = None
+        if isinstance(factor, (int, float)) and float(factor) > 0:
+            value = float(factor)
+            matrix = [
+                [value, 0.0, 0.0, 0.0],
+                [0.0, value, 0.0, 0.0],
+                [0.0, 0.0, value, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]
+        context = context.model_copy(
+            update={
+                "analysis_frame": "fea_m",
+                "analysis_length_unit": "m",
+                "source_to_analysis": matrix,
+                "details": {"assumptions": result.assumptions},
+            }
+        )
+    elif checker in {"overhang", "support"}:
+        context = context.model_copy(
+            update={
+                "analysis_frame": "print_mm",
+                "analysis_length_unit": "mm",
+                "source_to_analysis": None,
+                "details": {
+                    "assumptions": result.assumptions,
+                    "transform_status": "not recorded by current slicer analyzer",
+                },
+            }
+        )
+
+    findings: list[CheckerFinding] = []
+    for index, violation in enumerate(result.violations, 1):
+        code = str(violation.get("code") or f"{checker.upper()}_{result.status}")
+        category = "physical_violation"
+        repairability = "geometry"
+        applicability = "applicable"
+        if result.status == "ERROR":
+            category, repairability, applicability = "infrastructure_error", "analysis", "unknown"
+        elif result.status == "INDETERMINATE" or code in {
+            "MESH_NOT_CONVERGED",
+            "PARTIAL_CLIP_FAILURE",
+        }:
+            category, repairability, applicability = "evidence_insufficient", "analysis", "unknown"
+        if "SEMANTIC" in code or code == "CRITICAL_SURFACE_INDETERMINATE":
+            category, repairability, applicability = "missing_semantics", "semantics", "unknown"
+
+        metric = None
+        region = None
+        if checker == "standing" and "TILT" in code:
+            metric = MetricEvidence(
+                name="peak_tilt_deg",
+                value=violation.get("peak_tilt_deg"),
+                unit="deg",
+                threshold=25.0,
+                comparator="le",
+            )
+            region = RegionEvidence(
+                kind="global",
+                frame="authored_scene",
+                details={"state": violation.get("state")},
+            )
+        elif checker == "progressive" and "TILT" in code:
+            metric = MetricEvidence(
+                name="peak_tilt_deg",
+                value=violation.get("peak_tilt_deg"),
+                unit="deg",
+                threshold=25.0,
+                comparator="le",
+            )
+            fraction = violation.get("height_fraction")
+            region = RegionEvidence(
+                kind="layers",
+                frame="authored_scene",
+                unit="fraction",
+                layer_range=[float(fraction), float(fraction)] if fraction is not None else None,
+                part_names=[str(value) for value in violation.get("active_geometry_names", [])],
+                details={"events": violation.get("events", [])},
+            )
+        elif checker == "fea":
+            threshold_map = result.metrics.get("thresholds", {})
+            if code == "DISPLACEMENT_GT_1PCT_CHARACTERISTIC_LENGTH":
+                metric = MetricEvidence(
+                    name="max_displacement_over_characteristic_length",
+                    value=result.metrics.get("max_displacement_over_characteristic_length"),
+                    unit="ratio",
+                    threshold=threshold_map.get("max_displacement_ratio"),
+                    comparator="le",
+                )
+            elif code == "NOMINAL_YIELD_FOS_LT_2":
+                metric = MetricEvidence(
+                    name="nominal_safety_factor",
+                    value=result.metrics.get("nominal_safety_factor"),
+                    unit="ratio",
+                    threshold=threshold_map.get("minimum_nominal_yield_fos"),
+                    comparator="ge",
+                )
+            elif code == "LINEAR_BUCKLING_FACTOR_LT_2":
+                metric = MetricEvidence(
+                    name="first_positive_buckling_factor",
+                    value=result.metrics.get("first_positive_buckling_factor"),
+                    unit="ratio",
+                    threshold=threshold_map.get("minimum_linear_buckling_factor"),
+                    comparator="ge",
+                )
+            hotspot = violation.get("hotspot_centroid_m")
+            if hotspot is not None:
+                region = RegionEvidence(
+                    kind="point",
+                    frame="fea_m",
+                    unit="m",
+                    point=[float(value) for value in hotspot],
+                )
+        elif checker == "overhang":
+            if code == "SUPPORT_CONTACT_AREA_REDUCTION_LT_TARGET":
+                metric = MetricEvidence(
+                    name="contact_area_reduction_fraction",
+                    value=violation.get("observed_reduction_fraction"),
+                    unit="fraction",
+                    threshold=violation.get("required_reduction_fraction"),
+                    comparator="ge",
+                )
+                region = _region_from_rows(
+                    list(violation.get("supported_regions", [])), frame="print_mm", unit="mm"
+                )
+            elif code == "GEOMETRIC_OVERHANG_AREA_INCREASED":
+                metric = MetricEvidence(
+                    name="overhang_area_change_fraction",
+                    value=violation.get("observed_increase_fraction"),
+                    unit="fraction",
+                    threshold=violation.get("maximum_increase_fraction"),
+                    comparator="le",
+                )
+            elif code == "PRINT_EXTENT_CHANGED":
+                baseline = violation.get("baseline_print_extent_mm") or []
+                current = violation.get("current_print_extent_mm") or []
+                deltas = [abs(float(a) - float(b)) for a, b in zip(current, baseline)]
+                metric = MetricEvidence(
+                    name="maximum_print_extent_delta_mm",
+                    value=max(deltas) if deltas else None,
+                    unit="mm",
+                    threshold=violation.get("maximum_delta_mm"),
+                    comparator="le",
+                )
+        elif checker == "support":
+            if code == "SUPPORT_TOUCHES_CRITICAL_SURFACE":
+                epsilon = config.get("profile", {}).get("critical_overlap_epsilon_mm2", 0.01)
+                metric = MetricEvidence(
+                    name="critical_contact_overlap_area_mm2",
+                    value=violation.get("contact_overlap_area_mm2"),
+                    unit="mm^2",
+                    threshold=epsilon,
+                    comparator="le",
+                )
+                region = _region_from_rows(
+                    list(violation.get("overlap_regions", [])), frame="print_mm", unit="mm"
+                )
+            elif code == "SUPPORT_REQUIRED":
+                metric = MetricEvidence(
+                    name="support_required",
+                    value=True,
+                    unit="boolean",
+                    threshold=False,
+                    comparator="eq",
+                )
+
+        identity = violation.get("state") or violation.get("height_fraction") or index
+        findings.append(
+            CheckerFinding(
+                finding_id=f"{checker}:{code}:{identity}",
+                rule_id=code,
+                category=category,
+                applicability=applicability,
+                applicability_basis="reported by the configured checker under its recorded assumptions",
+                metric=metric,
+                region=region,
+                evidence_refs=list(result.artifacts.values()),
+                repairability=repairability,
+                message=str(violation.get("message") or result.summary),
+                domain=dict(violation),
+            )
+        )
+    return result.model_copy(
+        update={"version": 2, "analysis_context": context, "findings": findings}
+    )
 
 
 def load_module(name: str, path: Path) -> Any:
@@ -767,6 +1029,7 @@ def main() -> int:
             ],
             artifacts={"traceback": str(error_path)},
         )
+    result = enrich_result(result, config)
     (output_dir / "result.json").write_text(
         result.model_dump_json(indent=2) + "\n", encoding="utf-8"
     )

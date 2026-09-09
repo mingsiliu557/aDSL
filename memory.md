@@ -666,3 +666,28 @@ Toys4K 最小下载：
   `ADSL_STEPCODE_BIN`，避免主机私有 wrapper 改变配置单测的假设。
 - PDF、ZIP、`local_experiment/`、`presentation_assets/`、`presentation.md`、`temp`
   和未接入正式队列的 `vram_guard.py` 均保留为本地实验材料，不进入 Git 提交。
+
+## 2026-09-09：Checker v2、源码定位与确定性候选修复
+
+- 按 `Physics_Checker_Unification_and_Source_Repair_Plan.md` 完成 protocol-v2
+  findings、AnalysisContext、AST+运行时 SourceIndex、坐标感知定位、结构化
+  RepairProposal、隔离候选执行和确定性接受/回退策略；旧 protocol-v1 保持兼容。
+- 每轮新增 `analysis_context.json`、`source_index.json`、`findings.json`、
+  `localization.json`、`repair_proposals.json`；候选保存全部 checker、图像评审和
+  `decision.json`，`repair_history.jsonl` 防止重复尝试。
+- 真实 `standing_u05` StepCode+GPU+MuJoCo 闭环完成：基线 peak/final tilt 为
+  97.1569°/96.9103°（FAIL）；Agent 只在 `SphericalBase` 增加半径0.15、高0.06、
+  底面位于z=0的居中低矮圆柱脚；候选降至0.3904°/0.2251°（PASS）。
+- 确定性策略确认 AST 范围合法、required checker 无回归、图像 critic approved，
+  因此接受候选。8视角平均归一化RGB MAE为0.000476，变化像素约0.246%；变化局部，
+  但这些视觉指标不等于功能证明。
+- 完整实验在 `local_experiment/physics_checker_unification_20260909_u05_local/`；
+  实施报告为 `reports/physics_checker_unification_20260909.md`。完整回归104项通过。
+- 踩坑：SourceIndex 必须把自定义 Asset 实例关联到构造类源码；Engineering Critic
+  的自由字典不能使用 SDK strict schema；StepCode瞬时502/503需要有限重试；GPU共享盘
+  heartbeat需短grace并将真实丢卡标成基础设施错误；Code Critic不读源码不能算通过。
+- 挂载盘上的 `sessions.sqlite3` 曾出现 `disk I/O error`；复制到项目盘后
+  `PRAGMA integrity_check=ok` 并成功resume。后续活跃workspace/SQLite/小文件放项目盘，
+  完成后的大体积render/solver证据再归档到 `/jiigan-hp/lms/aDSL/experiment/`。
+- 本轮结束后 LMS StepCode proxy 已停止；A800 GPU renderer worker 保持运行，避免卡被
+  回收。MuJoCo结果仍是固定代理条件下筛查，不是真实打印或安全认证。

@@ -4,7 +4,7 @@ from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from typing import Any, Sequence
 
-from agents import Agent, Runner
+from agents import Agent, AgentOutputSchema, Runner
 from pydantic import BaseModel
 
 from .config import ModelProfile
@@ -72,14 +72,21 @@ class AgentRuntime:
         instructions: str,
         tools: Sequence[Any] = (),
         output_type: type[Any] | None = None,
+        strict_json_schema: bool = True,
     ) -> Agent[Any]:
+        resolved_output: Any = output_type
+        if output_type is not None and not strict_json_schema:
+            resolved_output = AgentOutputSchema(
+                output_type,
+                strict_json_schema=False,
+            )
         return Agent(
             name=name,
             instructions=instructions,
             model=self.model,
             model_settings=self.model_settings,
             tools=list(tools),
-            output_type=output_type,
+            output_type=resolved_output,
         )
 
     async def run(

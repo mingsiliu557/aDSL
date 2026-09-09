@@ -143,15 +143,21 @@ adsl-run edit "Preserve appearance; repair only mandatory checker failures." \
   --source path/to/source.py \
   --output local_experiment/checker-repair \
   --check-first --max-rounds 4 \
-  --checker-config experiments/workflow_checkers/specs/fea_chair.json
+  --checker-config experiments/workflow_checkers/specs/fea_chair.json \
+  --repair-policy-config experiments/workflow_checkers/repair_policy.json
 ```
 
 Repeat `--checker-config` to combine standing, FEA, and support gates. Checker
 `ERROR` stops as an infrastructure failure. `FAIL` or `INDETERMINATE` is
-passed as structured evidence to the Engineering Critic, which maps measured
-violations and hotspots to minimal `source.py` changes before the Coder patches
-the source. Materials, loads, boundary conditions, and thresholds remain in
-reviewable checker configs and are not editable by the Coder.
+normalized into typed findings. A runtime/AST `SourceIndex` then maps direct
+part IDs, transformed regions, or conservative global heuristics to candidate
+source constructs. The Engineering Critic can propose only those localized
+targets. Each proposal is patched and checked in an isolated candidate folder;
+the controller rejects out-of-scope edits, changed analysis inputs, target
+non-improvement, regressions, and visual/function failures before atomically
+promoting an accepted source. Materials, loads, boundary conditions, print
+orientation, and thresholds remain fixed unless the explicit repair policy says
+otherwise.
 
 See [the checker documentation](experiments/workflow_checkers/README.md) and
 [the physical-analysis notes](physics_analysis.md).

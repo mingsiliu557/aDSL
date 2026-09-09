@@ -3,17 +3,22 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from dataclasses import dataclass
 from pathlib import Path
 import shutil
 from typing import Any
 
 from .checkers import (
     CheckerExecutionError,
+    CheckerRun,
     required_checker_errors,
     required_checker_failures,
     run_checkers,
 )
+from .feedback_schema import build_analysis_context, findings_payload
+from .localization import LocalizationReport, localize_findings
 from .models import (
+    AnalysisContext,
     CodeCriticDecision,
     DebuggerDecision,
     EditKind,
@@ -25,9 +30,21 @@ from .models import (
     ObjectRunResult,
 )
 from .prompts import object_prompt
+from .repair_controller import RepairController
+from .repair_policy import (
+    assess_candidate,
+    immutable_inputs_match,
+    validate_patch_scope,
+)
+from .source_index import SourceIndex, load_source_index
 from .tools import AgentToolContext, PATCH_TOOLS, READ_TOOLS, WRITE_TOOLS
 from .utils.config import packaged_profile
-from .utils.execution import AssetExecutionError, ExecutionResult, execute_asset_source
+from .utils.execution import (
+    AssetExecutionError,
+    AssetInfrastructureError,
+    ExecutionResult,
+    execute_asset_source,
+)
 from .utils.inputs import user_input
 from .utils.io import read_json, write_json
 from .utils.runner import AgentRuntime
@@ -47,6 +64,14 @@ _CONTEXT_POLICY = {
 
 class WorkflowGateError(RuntimeError):
     pass
+
+
+@dataclass(frozen=True)
+class _CandidateOutcome:
+    execution: ExecutionResult | None
+    checker_runs: tuple[CheckerRun, ...]
+    appearance_approved: bool
+    attempts: tuple[dict[str, object], ...]
 
 
 def _asset_executor_timeout_seconds() -> float:
@@ -478,6 +503,7 @@ class ObjectWorkflow:
             instructions=object_prompt("engineering_critic", articulation=request.articulation),
             tools=READ_TOOLS,
             output_type=EngineeringCriticDecision,
+            strict_json_schema=False,
         )
         state = resume_state or {}
         image_history: list[dict[str, object]] = list(state.get("image_history", []))
@@ -521,6 +547,23 @@ class ObjectWorkflow:
                     export_urdf=True,
                     timeout=executor_timeout,
                 )
+            except AssetInfrastructureError as exc:
+                failure = {
+                    "round": round_number,
+                    "stage": "execution_infrastructure",
+                    "error": str(exc),
+                }
+                failures.append(failure)
+                self._write_checkpoint(
+                    workspace, **checkpoint_fields(round_number)
+                )
+                runtime.usage.update_manifest(
+                    status="failed",
+                    error_type="AssetInfrastructureError",
+                    error="external execution infrastructure failed",
+                    failures=failures,
+                )
+                raise
             except AssetExecutionError as exc:
                 failure = {"round": round_number, "stage": "execute", "error": str(exc)}
                 failures.append(failure)
@@ -616,8 +659,68 @@ class ObjectWorkflow:
                 source_path=source_path,
                 round_root=round_root,
             )
+            analysis_context = build_analysis_context(
+                source_path=source_path,
+                geometry_path=execution.glb_path,
+                source_index_path=execution.source_index_path,
+                checker_runs=checker_runs,
+                print_orientation_editable=request.repair_policy.print_orientation_editable,
+            )
+            write_json(round_root / "analysis_context.json", analysis_context.model_dump())
+            localization_report: LocalizationReport | None = None
+            source_index = None
+            if execution.source_index_path is not None and execution.source_index_path.is_file():
+                source_index = load_source_index(execution.source_index_path)
+                all_findings = [
+                    finding
+                    for run in checker_runs
+                    for finding in run.result.findings
+                ]
+                localized, localization_report = localize_findings(
+                    all_findings,
+                    source_index,
+                    checker_contexts=analysis_context.checker_contexts,
+                )
+                localized_by_id = {finding.finding_id: finding for finding in localized}
+                checker_runs = [
+                    CheckerRun(
+                        spec=run.spec,
+                        result=run.result.model_copy(
+                            update={
+                                "findings": [
+                                    localized_by_id.get(finding.finding_id, finding)
+                                    for finding in run.result.findings
+                                ]
+                            }
+                        ),
+                        output_dir=run.output_dir,
+                        command=run.command,
+                    )
+                    for run in checker_runs
+                ]
+                for run in checker_runs:
+                    write_json(run.output_dir / "result.json", run.result.model_dump())
+                write_json(
+                    round_root / "localization.json",
+                    localization_report.model_dump(),
+                )
+            write_json(
+                round_root / "findings.json",
+                findings_payload(run.result for run in checker_runs),
+            )
             checker_record = {
                 "round": round_number,
+                "analysis_context": str(round_root / "analysis_context.json"),
+                "source_index": (
+                    str(execution.source_index_path)
+                    if execution.source_index_path is not None
+                    else None
+                ),
+                "localization": (
+                    str(round_root / "localization.json")
+                    if localization_report is not None
+                    else None
+                ),
                 "results": [
                     {
                         "required": run.spec.required,
@@ -690,9 +793,11 @@ class ObjectWorkflow:
                     stage=f"code_critic:{round_number}",
                     context=code_context,
                 )
-                self._require_tool_event(code_context, "read_file", "code critic")
                 code_decision = self._normalize_code_critic_decision(
-                    self._typed_output(code_result.final_output, CodeCriticDecision)
+                    self._typed_output(code_result.final_output, CodeCriticDecision),
+                    source_grounded=any(
+                        event.tool == "read_file" for event in code_context.events
+                    ),
                 )
                 write_json(
                     round_root / "code_critique.json", code_decision.model_dump()
@@ -754,9 +859,23 @@ class ObjectWorkflow:
                                     for run in mandatory_failures
                                 ],
                                 "all_checker_results": checker_record["results"],
+                                "analysis_context": analysis_context.model_dump(),
+                                "typed_findings": findings_payload(
+                                    run.result for run in checker_runs
+                                )["findings"],
+                                "localization": (
+                                    localization_report.model_dump()
+                                    if localization_report is not None
+                                    else None
+                                ),
+                                "repair_history": self._read_repair_history(workspace),
+                                "maximum_repair_proposals": (
+                                    request.repair_policy.max_candidates_per_round
+                                ),
                                 "assignment": (
-                                    "Map measured violations to the smallest concrete "
-                                    "source.py repair. Do not alter checker assumptions."
+                                    "Propose bounded source candidates supported by the "
+                                    "typed findings and localization. Do not alter checker "
+                                    "assumptions or claim a repair passes before regression."
                                 ),
                             },
                             ensure_ascii=False,
@@ -781,6 +900,17 @@ class ObjectWorkflow:
                     round_root / "engineering_critique.json",
                     engineering_decision.model_dump(),
                 )
+                write_json(
+                    round_root / "repair_proposals.json",
+                    {
+                        "version": 1,
+                        "proposals": [
+                            proposal.model_dump()
+                            for proposal in engineering_decision.repair_proposals
+                        ],
+                        "unresolved_findings": engineering_decision.unresolved_findings,
+                    },
+                )
                 engineering_history.append(
                     {"round": round_number, **engineering_decision.model_dump()}
                 )
@@ -793,6 +923,65 @@ class ObjectWorkflow:
                     "appearance_and_required_checkers_approved",
                 )
                 break
+
+            if mandatory_failures and engineering_decision is not None:
+                candidate_outcome = await self._attempt_engineering_candidates(
+                    runtime=runtime,
+                    request=request,
+                    workspace=workspace,
+                    source_path=source_path,
+                    round_root=round_root,
+                    round_number=round_number,
+                    plan=plan,
+                    repairer=repairer,
+                    image_critic=image_critic,
+                    code_critic=code_critic,
+                    baseline_execution=execution,
+                    baseline_runs=checker_runs,
+                    baseline_analysis_context=analysis_context,
+                    source_index=source_index,
+                    engineering_decision=engineering_decision,
+                    code_decision=code_decision,
+                )
+                checker_record["candidate_attempts"] = list(candidate_outcome.attempts)
+                if candidate_outcome.execution is not None:
+                    accepted_runs = list(candidate_outcome.checker_runs)
+                    accepted_record = {
+                        "round": round_number,
+                        "candidate": True,
+                        "results": [
+                            {
+                                "required": run.spec.required,
+                                **run.result.model_dump(),
+                                "output_dir": str(run.output_dir),
+                            }
+                            for run in accepted_runs
+                        ],
+                    }
+                    checker_history.append(accepted_record)
+                    accepted_failures = required_checker_failures(accepted_runs)
+                    if candidate_outcome.appearance_approved and not accepted_failures:
+                        final = (
+                            round_number,
+                            candidate_outcome.execution,
+                            True,
+                            "accepted_candidate_passed_all_required_gates",
+                        )
+                        break
+                    execution = candidate_outcome.execution
+                    checker_runs = accepted_runs
+                    mandatory_failures = accepted_failures
+                    appearance_approved = candidate_outcome.appearance_approved
+                    if round_number < end_round:
+                        self._write_checkpoint(
+                            workspace, **checkpoint_fields(round_number + 1)
+                        )
+                        continue
+                elif round_number < end_round:
+                    self._write_checkpoint(
+                        workspace, **checkpoint_fields(round_number + 1)
+                    )
+                    continue
 
             gate_details = {
                 "appearance_approved": appearance_approved,
@@ -844,10 +1033,9 @@ class ObjectWorkflow:
             if code_decision is not None and not code_decision.approved:
                 repair_payload["code_critic"] = code_decision.model_dump()
             if engineering_decision is not None:
-                repair_payload["engineering_critic"] = (
-                    engineering_decision.model_dump()
-                )
-                repair_payload["checker_evidence"] = checker_record["results"]
+                # Engineering changes are attempted only in isolated candidates.
+                # Reaching this branch means no required checker failure remains.
+                raise RuntimeError("unexpected direct engineering repair path")
             await self._repair(
                 runtime=runtime,
                 repairer=repairer,
@@ -890,6 +1078,11 @@ class ObjectWorkflow:
             ),
             render_metadata_path=(
                 str(render_metadata_path) if render_metadata_path.is_file() else None
+            ),
+            source_index_path=(
+                str(workspace / "source_index.json")
+                if (workspace / "source_index.json").is_file()
+                else None
             ),
         )
         self._write_checkpoint(
@@ -963,6 +1156,387 @@ class ObjectWorkflow:
             usage=usage,
         )
 
+    @staticmethod
+    def _read_repair_history(workspace: Path) -> list[dict[str, object]]:
+        history_path = workspace / "repair_history.jsonl"
+        if not history_path.is_file():
+            return []
+        rows: list[dict[str, object]] = []
+        for line in history_path.read_text(encoding="utf-8").splitlines():
+            try:
+                value = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(value, dict):
+                rows.append(value)
+        return rows[-20:]
+
+    async def _attempt_engineering_candidates(
+        self,
+        *,
+        runtime: AgentRuntime,
+        request: ObjectRequest,
+        workspace: Path,
+        source_path: Path,
+        round_root: Path,
+        round_number: int,
+        plan: ObjectPlan | EditPlan,
+        repairer: Any,
+        image_critic: Any,
+        code_critic: Any,
+        baseline_execution: ExecutionResult,
+        baseline_runs: list[CheckerRun],
+        baseline_analysis_context: AnalysisContext,
+        source_index: SourceIndex | None,
+        engineering_decision: EngineeringCriticDecision,
+        code_decision: CodeCriticDecision | None,
+    ) -> _CandidateOutcome:
+        attempts: list[dict[str, object]] = []
+        if source_index is None:
+            attempts.append(
+                {
+                    "accepted": False,
+                    "reason": "source index is unavailable; source repair is unresolved",
+                }
+            )
+            return _CandidateOutcome(None, (), False, tuple(attempts))
+
+        baseline_findings = [
+            finding for run in baseline_runs for finding in run.result.findings
+        ]
+        controller = RepairController(
+            workspace=workspace,
+            round_root=round_root,
+            baseline_source=source_path,
+            source_index=source_index,
+            findings=baseline_findings,
+            checker_specs_sha256=baseline_analysis_context.checker_specs_sha256,
+            policy=request.repair_policy,
+        )
+        proposals = engineering_decision.repair_proposals[
+            : request.repair_policy.max_candidates_per_round
+        ]
+        rejected_proposals: list[dict[str, object]] = []
+        for proposal_index, raw_proposal in enumerate(proposals, 1):
+            budget_error = controller.budget_error()
+            if budget_error:
+                rejected_proposals.append(
+                    {
+                        "proposal_id": raw_proposal.proposal_id,
+                        "reason": budget_error,
+                    }
+                )
+                break
+            proposal, proposal_errors = controller.normalize_proposal(raw_proposal)
+            if proposal is None:
+                record = {
+                    "round": round_number,
+                    "proposal_id": raw_proposal.proposal_id,
+                    "accepted": False,
+                    "reason": "proposal rejected before execution",
+                    "errors": proposal_errors,
+                }
+                attempts.append(record)
+                rejected_proposals.append(record)
+                controller.record(record)
+                continue
+
+            candidate_root, candidate_source, fingerprint = controller.prepare_candidate(
+                proposal, proposal_index
+            )
+            candidate_relative = candidate_source.relative_to(workspace).as_posix()
+            try:
+                await self._repair(
+                    runtime=runtime,
+                    repairer=repairer,
+                    workspace=workspace,
+                    source_path=candidate_source,
+                    role=f"coder:engineering-candidate:{round_number}:{proposal_index}",
+                    stage=f"engineering_candidate_patch:{round_number}:{proposal_index}",
+                    payload={
+                        "requirement": request.requirement,
+                        "plan": plan.model_dump(),
+                        "assignment": (
+                            "Apply only this bounded RepairProposal to the assigned "
+                            "candidate source. Preserve everything outside allowed_scopes."
+                        ),
+                        "repair_proposal": proposal.model_dump(),
+                        "checker_evidence": [
+                            run.result.model_dump() for run in baseline_runs
+                        ],
+                        "code_critic": (
+                            code_decision.model_dump()
+                            if code_decision is not None and not code_decision.approved
+                            else None
+                        ),
+                    },
+                )
+            except Exception as error:
+                record = {
+                    "round": round_number,
+                    "proposal_id": proposal.proposal_id,
+                    "fingerprint": fingerprint,
+                    "candidate": candidate_relative,
+                    "accepted": False,
+                    "reason": f"coder candidate failed: {type(error).__name__}: {error}",
+                }
+                write_json(candidate_root / "decision.json", record)
+                controller.record(record)
+                attempts.append(record)
+                continue
+
+            try:
+                scope_validation = validate_patch_scope(
+                    source_path,
+                    candidate_source,
+                    proposal=proposal,
+                    source_index=source_index,
+                )
+            except (SyntaxError, ValueError) as error:
+                scope_validation = None
+                scope_errors = [f"candidate source is invalid: {type(error).__name__}: {error}"]
+            else:
+                scope_errors = list(scope_validation.violations)
+            immutable_ok, immutable_errors = immutable_inputs_match(
+                baseline_analysis_context.immutable_inputs
+            )
+            if scope_validation is None or not scope_validation.valid or not immutable_ok:
+                record = {
+                    "round": round_number,
+                    "proposal_id": proposal.proposal_id,
+                    "fingerprint": fingerprint,
+                    "candidate": candidate_relative,
+                    "accepted": False,
+                    "reason": "candidate violated source scope or immutable analysis inputs",
+                    "scope_validation": (
+                        scope_validation.model_dump() if scope_validation is not None else None
+                    ),
+                    "errors": [*scope_errors, *immutable_errors],
+                }
+                write_json(candidate_root / "decision.json", record)
+                controller.record(record)
+                attempts.append(record)
+                continue
+
+            execution_root = candidate_root / "execution"
+            try:
+                candidate_execution = execute_asset_source(
+                    candidate_source,
+                    execution_root,
+                    render=True,
+                    export_urdf=True,
+                    timeout=_asset_executor_timeout_seconds(),
+                )
+            except AssetInfrastructureError:
+                raise
+            except AssetExecutionError as error:
+                record = {
+                    "round": round_number,
+                    "proposal_id": proposal.proposal_id,
+                    "fingerprint": fingerprint,
+                    "candidate": candidate_relative,
+                    "accepted": False,
+                    "reason": f"candidate execution failed: {error}",
+                    "scope_validation": scope_validation.model_dump(),
+                }
+                write_json(candidate_root / "decision.json", record)
+                controller.record(record)
+                attempts.append(record)
+                continue
+
+            candidate_runs = run_checkers(
+                request.checker_specs,
+                execution=candidate_execution,
+                source_path=candidate_source,
+                round_root=candidate_root,
+            )
+            candidate_context = build_analysis_context(
+                source_path=candidate_source,
+                geometry_path=candidate_execution.glb_path,
+                source_index_path=candidate_execution.source_index_path,
+                checker_runs=candidate_runs,
+                print_orientation_editable=request.repair_policy.print_orientation_editable,
+            )
+            write_json(
+                candidate_root / "analysis_context.json", candidate_context.model_dump()
+            )
+            if candidate_context.checker_specs_sha256 != baseline_analysis_context.checker_specs_sha256:
+                record = {
+                    "round": round_number,
+                    "proposal_id": proposal.proposal_id,
+                    "fingerprint": fingerprint,
+                    "candidate": candidate_relative,
+                    "accepted": False,
+                    "reason": "checker specification hash changed during candidate evaluation",
+                }
+                write_json(candidate_root / "decision.json", record)
+                controller.record(record)
+                attempts.append(record)
+                continue
+
+            candidate_errors = required_checker_errors(candidate_runs)
+            if candidate_errors:
+                record = {
+                    "round": round_number,
+                    "proposal_id": proposal.proposal_id,
+                    "fingerprint": fingerprint,
+                    "candidate": candidate_relative,
+                    "accepted": False,
+                    "reason": "required checker infrastructure failed for candidate",
+                    "errors": [run.result.summary for run in candidate_errors],
+                }
+                write_json(candidate_root / "decision.json", record)
+                controller.record(record)
+                attempts.append(record)
+                raise CheckerExecutionError(record["reason"])
+
+            if (
+                candidate_execution.source_index_path is not None
+                and candidate_execution.source_index_path.is_file()
+            ):
+                candidate_index = load_source_index(candidate_execution.source_index_path)
+                localized, report = localize_findings(
+                    [
+                        finding
+                        for run in candidate_runs
+                        for finding in run.result.findings
+                    ],
+                    candidate_index,
+                    checker_contexts=candidate_context.checker_contexts,
+                )
+                localized_by_id = {finding.finding_id: finding for finding in localized}
+                candidate_runs = [
+                    CheckerRun(
+                        spec=run.spec,
+                        result=run.result.model_copy(
+                            update={
+                                "findings": [
+                                    localized_by_id.get(finding.finding_id, finding)
+                                    for finding in run.result.findings
+                                ]
+                            }
+                        ),
+                        output_dir=run.output_dir,
+                        command=run.command,
+                    )
+                    for run in candidate_runs
+                ]
+                write_json(candidate_root / "localization.json", report.model_dump())
+            write_json(
+                candidate_root / "findings.json",
+                findings_payload(run.result for run in candidate_runs),
+            )
+
+            preservation_payload = {
+                "requirement": request.requirement,
+                "round": round_number,
+                "proposal": proposal.model_dump(),
+                "review_mode": "candidate_preservation",
+                "image_order": {
+                    "reference_count": len(request.image_paths),
+                    "baseline_count": len(baseline_execution.render_paths),
+                    "candidate_count": len(candidate_execution.render_paths),
+                },
+                "instruction": (
+                    "Judge whether the candidate preserves the requested appearance and "
+                    "function. Do not infer checker success from images."
+                ),
+            }
+            image_result = await runtime.run(
+                agent=image_critic,
+                input=user_input(
+                    json.dumps(preservation_payload, ensure_ascii=False),
+                    (
+                        *request.image_paths,
+                        *baseline_execution.render_paths,
+                        *candidate_execution.render_paths,
+                    ),
+                ),
+                role=f"image-critic:candidate:{round_number}:{proposal_index}",
+                stage=f"candidate_image_critic:{round_number}:{proposal_index}",
+            )
+            candidate_image_decision = self._typed_output(
+                image_result.final_output, ImageCriticDecision
+            )
+            write_json(
+                candidate_root / "image_critique.json",
+                candidate_image_decision.model_dump(),
+            )
+            candidate_appearance_approved = candidate_image_decision.approved
+            if not candidate_appearance_approved:
+                code_context = AgentToolContext(
+                    workspace=workspace, source_path=candidate_source
+                )
+                candidate_code_result = await runtime.run(
+                    agent=code_critic,
+                    input=user_input(
+                        json.dumps(
+                            {
+                                **preservation_payload,
+                                "assigned_source": candidate_relative,
+                                "image_critic": candidate_image_decision.model_dump(),
+                            },
+                            ensure_ascii=False,
+                        ),
+                        (
+                            *request.image_paths,
+                            *baseline_execution.render_paths,
+                            *candidate_execution.render_paths,
+                        ),
+                    ),
+                    role=f"code-critic:candidate:{round_number}:{proposal_index}",
+                    stage=f"candidate_code_critic:{round_number}:{proposal_index}",
+                    context=code_context,
+                )
+                candidate_code_decision = self._normalize_code_critic_decision(
+                    self._typed_output(candidate_code_result.final_output, CodeCriticDecision),
+                    source_grounded=any(
+                        event.tool == "read_file" for event in code_context.events
+                    ),
+                )
+                write_json(
+                    candidate_root / "code_critique.json",
+                    candidate_code_decision.model_dump(),
+                )
+                candidate_appearance_approved = candidate_code_decision.approved
+
+            decision = assess_candidate(
+                [run.result for run in baseline_runs],
+                [run.result for run in candidate_runs],
+                target_finding_ids=proposal.finding_ids,
+                appearance_approved=candidate_appearance_approved,
+                policy=request.repair_policy,
+            )
+            record = {
+                "round": round_number,
+                "proposal_id": proposal.proposal_id,
+                "fingerprint": fingerprint,
+                "candidate": candidate_relative,
+                "baseline_source_sha256": baseline_analysis_context.source_sha256,
+                "candidate_source_sha256": candidate_context.source_sha256,
+                "baseline_geometry_sha256": baseline_analysis_context.geometry_sha256,
+                "candidate_geometry_sha256": candidate_context.geometry_sha256,
+                "scope_validation": scope_validation.model_dump(),
+                **decision.model_dump(),
+            }
+            write_json(candidate_root / "decision.json", record)
+            controller.record(record)
+            attempts.append(record)
+            if decision.accepted:
+                shutil.copy2(candidate_source, source_path)
+                return _CandidateOutcome(
+                    candidate_execution,
+                    tuple(candidate_runs),
+                    candidate_appearance_approved,
+                    tuple(attempts),
+                )
+
+        write_json(
+            round_root / "proposal_rejections.json",
+            {"version": 1, "rejections": rejected_proposals},
+        )
+        return _CandidateOutcome(None, (), False, tuple(attempts))
+
     async def _repair(
         self,
         *,
@@ -975,7 +1549,8 @@ class ObjectWorkflow:
         payload: dict[str, object],
     ) -> None:
         context = AgentToolContext(workspace=workspace, source_path=source_path)
-        payload = {"assigned_source": "source.py", **payload}
+        assigned_source = source_path.relative_to(workspace).as_posix()
+        payload = {"assigned_source": assigned_source, **payload}
         await runtime.run(
             agent=repairer,
             input=json.dumps(payload, ensure_ascii=False),
@@ -1025,6 +1600,11 @@ class ObjectWorkflow:
             shutil.copy2(source_joint_states, workspace_joint_states)
         else:
             workspace_joint_states.unlink(missing_ok=True)
+        workspace_source_index = workspace / "source_index.json"
+        if execution.source_index_path is not None and execution.source_index_path.is_file():
+            shutil.copy2(execution.source_index_path, workspace_source_index)
+        else:
+            workspace_source_index.unlink(missing_ok=True)
         return glb_path, urdf_path, render_paths
 
     @staticmethod
@@ -1088,6 +1668,7 @@ class ObjectWorkflow:
                 "max_rounds": request.max_rounds,
                 "checker_specs": [spec.model_dump() for spec in request.checker_specs],
                 "check_first": request.check_first,
+                "repair_policy": request.repair_policy.model_dump(),
             },
         )
 
@@ -1100,9 +1681,23 @@ class ObjectWorkflow:
     @staticmethod
     def _normalize_code_critic_decision(
         decision: CodeCriticDecision,
+        *,
+        source_grounded: bool = True,
     ) -> CodeCriticDecision:
-        if decision.approved and decision.required_changes:
-            return decision.model_copy(update={"approved": False})
+        observations = list(decision.observations)
+        approved = decision.approved
+        if not source_grounded:
+            approved = False
+            observations.append(
+                "Code Critic did not inspect the assigned source; its decision "
+                "cannot approve appearance or function preservation."
+            )
+        if approved and decision.required_changes:
+            approved = False
+        if approved != decision.approved or observations != decision.observations:
+            return decision.model_copy(
+                update={"approved": approved, "observations": observations}
+            )
         return decision
 
     @staticmethod
@@ -1111,7 +1706,10 @@ class ObjectWorkflow:
         *,
         has_required_failures: bool,
     ) -> EngineeringCriticDecision:
-        if (decision.approved and decision.required_changes) or has_required_failures:
+        if (
+            decision.approved
+            and (decision.required_changes or decision.repair_proposals)
+        ) or has_required_failures:
             return decision.model_copy(update={"approved": False})
         return decision
 

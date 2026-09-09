@@ -171,6 +171,52 @@ def test_render_command_forwards_evaluation_appearance(tmp_path: Path) -> None:
     assert command[command.index("--material-mode") + 1] == "neutral"
 
 
+def test_wait_ignores_one_transient_worker_heartbeat_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    queue_root = queue.initialize_queue(tmp_path / "queue")
+    job_id = "transient-heartbeat"
+    live_states = iter((False, True))
+    monkeypatch.setattr(queue, "worker_is_live", lambda _root: next(live_states))
+
+    def complete_during_sleep(_seconds: float) -> None:
+        (queue_root / "completed" / f"{job_id}.json").write_text(
+            json.dumps({"job_id": job_id, "status": "completed"}),
+            encoding="utf-8",
+        )
+
+    monkeypatch.setattr(queue.time, "sleep", complete_during_sleep)
+
+    result = queue.wait_render_job(
+        queue_root=queue_root,
+        job_id=job_id,
+        timeout=1.0,
+        poll_interval=0.01,
+        worker_unavailable_grace=0.1,
+    )
+
+    assert result["status"] == "completed"
+    assert not (queue_root / "cancelled" / f"{job_id}.json").exists()
+
+
+def test_enqueue_ignores_one_transient_worker_heartbeat_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    queue_root = queue.initialize_queue(tmp_path / "queue")
+    live_states = iter((False, True))
+    monkeypatch.setattr(queue, "worker_is_live", lambda _root: next(live_states))
+    monkeypatch.setattr(queue.time, "sleep", lambda _seconds: None)
+
+    job_id = queue.enqueue_render_job(
+        queue_root=queue_root,
+        glb_path=_dummy_glb(tmp_path / "scene.glb"),
+        output_dir=tmp_path / "output",
+        worker_unavailable_grace=0.1,
+    )
+
+    assert (queue_root / "pending" / f"{job_id}.json").is_file()
+
+
 def test_renderer_hard_timeout_fails_job_without_retry(tmp_path: Path) -> None:
     queue_root = tmp_path / "queue"
     events = tmp_path / "events.log"

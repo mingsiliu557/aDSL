@@ -17,10 +17,23 @@ class ExecutionResult:
     render_paths: tuple[Path, ...]
     stdout: str
     stderr: str
+    source_index_path: Path | None = None
 
 
 class AssetExecutionError(RuntimeError):
     pass
+
+
+class AssetInfrastructureError(AssetExecutionError):
+    """The source ran, but an external execution service was unavailable."""
+
+
+_INFRASTRUCTURE_ERROR_MARKERS = (
+    "GpuRenderWorkerUnavailable",
+    "GpuRenderJobFailed",
+    "GpuRenderQueueError",
+    "GPU render worker became unavailable",
+)
 
 
 def _stop_process_group(process: subprocess.Popen[str], *, grace_seconds: float = 1.0) -> None:
@@ -113,7 +126,15 @@ def execute_asset_source(
         stderr,
     )
     if completed.returncode != 0:
-        raise AssetExecutionError(
+        error_type = (
+            AssetInfrastructureError
+            if any(
+                marker in completed.stderr or marker in completed.stdout
+                for marker in _INFRASTRUCTURE_ERROR_MARKERS
+            )
+            else AssetExecutionError
+        )
+        raise error_type(
             f"Generated source exited with code {completed.returncode}.\n"
             f"STDOUT:\n{completed.stdout}\nSTDERR:\n{completed.stderr}"
         )
@@ -131,6 +152,12 @@ def execute_asset_source(
     render_paths = tuple(sorted((output / "render").glob("*.png")))
     if render and not render_paths:
         raise AssetExecutionError("Rendering was requested but no PNG was produced")
+    source_index_value = manifest.get("source_index_path")
+    source_index_path = (
+        Path(source_index_value).resolve() if source_index_value else None
+    )
+    if source_index_path is not None and not source_index_path.is_file():
+        raise AssetExecutionError(f"Generated SourceIndex is missing: {source_index_path}")
     return ExecutionResult(
         output_root=output,
         glb_path=glb_path,
@@ -138,7 +165,13 @@ def execute_asset_source(
         render_paths=render_paths,
         stdout=completed.stdout,
         stderr=completed.stderr,
+        source_index_path=source_index_path,
     )
 
 
-__all__ = ["AssetExecutionError", "ExecutionResult", "execute_asset_source"]
+__all__ = [
+    "AssetExecutionError",
+    "AssetInfrastructureError",
+    "ExecutionResult",
+    "execute_asset_source",
+]

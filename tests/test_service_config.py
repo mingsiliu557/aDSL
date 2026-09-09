@@ -3,9 +3,11 @@ from __future__ import annotations
 import pytest
 
 from adsl.agents.service import (
+    ObjectWorkflow,
     _asset_executor_timeout_seconds,
     _render_execution_config,
 )
+from adsl.agents.models import CodeCriticDecision
 
 
 def test_asset_executor_timeout_defaults_to_300(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -113,3 +115,15 @@ def test_render_execution_config_rejects_invalid_overrides(
 
     with pytest.raises(ValueError, match=message):
         _render_execution_config()
+
+
+def test_ungrounded_code_critic_cannot_approve() -> None:
+    decision = CodeCriticDecision(approved=True, observations=[])
+
+    normalized = ObjectWorkflow._normalize_code_critic_decision(
+        decision,
+        source_grounded=False,
+    )
+
+    assert not normalized.approved
+    assert any("did not inspect" in row for row in normalized.observations)

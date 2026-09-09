@@ -9,6 +9,7 @@ from typing import Sequence
 
 # Blender must initialize before trimesh-backed modules on Windows.
 from adsl.core import Asset, export_glb, export_urdf
+from adsl.agents.source_index import build_source_index
 from adsl.tools.gpu_render_queue import submit_render_job
 from adsl.tools.render import render_video
 
@@ -58,6 +59,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     scene = namespace.get("scene")
     if not isinstance(scene, Asset):
         raise TypeError("Generated source must assign an adsl Asset to `scene`")
+    source_index_path = output / "source_index.json"
+    source_index_path.parent.mkdir(parents=True, exist_ok=True)
+    source_index_path.write_text(
+        build_source_index(source, scene).model_dump_json(indent=2),
+        encoding="utf-8",
+    )
     render_root = output / "render"
     render_root.mkdir(parents=True, exist_ok=True)
     glb_path = render_root / "scene.glb"
@@ -114,6 +121,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "urdf_path": None if urdf_path is None else str(urdf_path),
         "render_backend": render_backend,
         "render_job_id": None if render_job is None else render_job["job_id"],
+        "source_index_path": str(source_index_path),
     }
     (output / "execution.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False),

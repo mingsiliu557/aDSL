@@ -17,6 +17,7 @@ import uuid
 
 QUEUE_SCHEMA_VERSION = 1
 DEFAULT_WORKER_STALE_SECONDS = 30.0
+DEFAULT_WORKER_UNAVAILABLE_GRACE_SECONDS = 5.0
 RenderCommandBuilder = Callable[[Mapping[str, Any]], Sequence[str]]
 
 
@@ -137,6 +138,7 @@ def enqueue_render_job(
     background: str = "transparent",
     material_mode: str = "native",
     require_worker: bool = True,
+    worker_unavailable_grace: float = DEFAULT_WORKER_UNAVAILABLE_GRACE_SECONDS,
 ) -> str:
     root = initialize_queue(queue_root)
     source = Path(glb_path).expanduser().resolve()
@@ -146,10 +148,17 @@ def enqueue_render_job(
     output.mkdir(parents=True, exist_ok=True)
     if any(output.glob("render_*.png")) or (output / "meta.json").exists():
         raise FileExistsError(f"render output already exists: {output}")
-    if require_worker and not worker_is_live(root):
-        raise GpuRenderWorkerUnavailable(
-            f"GPU render worker is not live for queue: {root}"
+    if require_worker:
+        worker_unavailable_grace = _positive_float(
+            worker_unavailable_grace, "worker_unavailable_grace"
         )
+        unavailable_since = time.monotonic()
+        while not worker_is_live(root):
+            if time.monotonic() - unavailable_since >= worker_unavailable_grace:
+                raise GpuRenderWorkerUnavailable(
+                    f"GPU render worker is not live for queue: {root}"
+                )
+            time.sleep(min(0.2, worker_unavailable_grace))
 
     width = _positive_int(width, "width")
     height = _positive_int(height, "height")
@@ -211,11 +220,16 @@ def wait_render_job(
     job_id: str,
     timeout: float = 900.0,
     poll_interval: float = 0.2,
+    worker_unavailable_grace: float = DEFAULT_WORKER_UNAVAILABLE_GRACE_SECONDS,
 ) -> dict[str, Any]:
     root = initialize_queue(queue_root)
     timeout = _positive_float(timeout, "timeout")
     poll_interval = _positive_float(poll_interval, "poll_interval")
+    worker_unavailable_grace = _positive_float(
+        worker_unavailable_grace, "worker_unavailable_grace"
+    )
     started = time.monotonic()
+    unavailable_since: float | None = None
     while True:
         completed = root / "completed" / f"{job_id}.json"
         if completed.is_file():
@@ -230,7 +244,11 @@ def wait_render_job(
         if elapsed >= timeout:
             cancel_render_job(root, job_id, f"client timeout after {timeout:g}s")
             raise TimeoutError(f"GPU render job {job_id} timed out after {timeout:g}s")
-        if not worker_is_live(root):
+        if worker_is_live(root):
+            unavailable_since = None
+        elif unavailable_since is None:
+            unavailable_since = time.monotonic()
+        elif time.monotonic() - unavailable_since >= worker_unavailable_grace:
             cancel_render_job(root, job_id, "worker heartbeat became unavailable")
             raise GpuRenderWorkerUnavailable(
                 f"GPU render worker became unavailable while waiting for {job_id}"

@@ -32,6 +32,10 @@ text / image / articulated / edit cases
   and is not retried automatically.
 - If the client or worker disappears, the case fails explicitly. Queue mode
   never silently falls back to CPU rendering.
+- Worker heartbeat reads use a bounded five-second grace both before enqueue
+  and while waiting. This tolerates one transient `jiigan-hp` metadata read,
+  but a sustained stale/missing heartbeat still cancels the job and raises a
+  typed infrastructure error; it is never sent to the geometry repair agent.
 
 The default flavor is one A800 (`ml.pni2l.3xlarge`). Eevee uses one graphics
 device for this path, and the queue is deliberately single-lane, so requesting

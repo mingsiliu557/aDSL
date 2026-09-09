@@ -9,6 +9,7 @@ import subprocess
 import sys
 from typing import Iterable
 
+from .feedback_schema import canonicalize_result
 from .models import CheckerResult, CheckerSpec
 from .utils.execution import ExecutionResult
 from .utils.io import write_json
@@ -46,11 +47,14 @@ def _terminate(process: subprocess.Popen[str]) -> None:
 
 
 def _error_result(spec: CheckerSpec, summary: str) -> CheckerResult:
-    return CheckerResult(
-        checker=spec.name,
-        status="ERROR",
-        summary=summary,
-        violations=[{"code": "CHECKER_INFRASTRUCTURE_ERROR", "message": summary}],
+    return canonicalize_result(
+        CheckerResult(
+            checker=spec.name,
+            status="ERROR",
+            summary=summary,
+            violations=[{"code": "CHECKER_INFRASTRUCTURE_ERROR", "message": summary}],
+        ),
+        required=spec.required,
     )
 
 
@@ -144,6 +148,8 @@ def run_checker(
                 raise ValueError(
                     f"result checker {result.checker!r} does not match spec {spec.name!r}"
                 )
+            result = canonicalize_result(result, required=spec.required)
+            write_json(result_path, result.model_dump())
         except Exception as error:
             result = _error_result(spec, f"Invalid checker result: {type(error).__name__}: {error}")
             write_json(result_path, result.model_dump())

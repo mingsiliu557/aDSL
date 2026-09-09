@@ -6,7 +6,7 @@ params:
   base_url: http://127.0.0.1:44949/v1
   model: gpt-5.6-sol
   timeout: 900
-  max_retries: 0
+  max_retries: 2
   max_tokens: 32768
   parallel_tool_calls: false
   include_usage: true
