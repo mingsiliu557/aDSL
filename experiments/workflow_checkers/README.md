@@ -34,10 +34,12 @@ adsl-run edit "Preserve appearance; repair only mandatory checker failures." \
   --repair-policy-config experiments/workflow_checkers/repair_policy.json
 ```
 
-The `load_path` profile requires every selected load region to have a
-face/volume-connected OpenCASCADE path to a lowest support part. The
-`one_piece` profile requires all non-joint top-level parts to form one solid.
-Point-only contact, edge-only contact, and a positive gap do not count as a
+The `load_path` profile resolves every configured load separately, requires
+every final solid entity in each matched load part to reach a lowest support
+solid, and retains that entire support-connected component for FEA. The
+`one_piece` profile checks connectivity across all final OCC solid entities;
+multiple entities inside one semantic part are allowed when other parts connect
+them. Point-only contact, edge-only contact, and a positive gap do not count as a
 bond. A failure records both nearest semantic endpoints, closest points,
 distance, source spans, and their lowest common semantic ancestor as the local
 connector scope. FEA remains `INDETERMINATE` until topology passes; a separate

@@ -555,6 +555,7 @@ def analyze_mesh_level(
                 scale=scale,
                 mesh_size=mesh_size,
                 output=level_dir / "mesh_raw.inp",
+                entity_ids=analytic["topology"]["active_entity_ids"],
             )
         nodes, elements = parse_gmsh_inp(Path(mesh["mesh_path"]))
     except Exception as error:

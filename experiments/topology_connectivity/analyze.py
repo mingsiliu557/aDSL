@@ -29,6 +29,15 @@ class _Part:
     volumes: list[int]
 
 
+@dataclass
+class _Entity:
+    entity_id: str
+    part: _Part
+    index: int
+    tag: int
+    bounds: list[list[float]]
+
+
 def load_manifest(path: str | Path) -> dict[str, Any]:
     payload = json.loads(Path(path).expanduser().resolve().read_text(encoding="utf-8"))
     if payload.get("version") != 1 or not isinstance(payload.get("root"), dict):
@@ -184,54 +193,66 @@ def _part(gmsh: Any, node: dict[str, Any], scale: float) -> _Part:
     )
 
 
-def _probe(gmsh: Any, left: _Part, right: _Part, tolerance: float) -> dict[str, Any]:
-    best: tuple[float, tuple[float, ...], int, int] | None = None
-    connected = False
-    for left_tag in left.volumes:
-        for right_tag in right.volumes:
-            distance = tuple(map(float, gmsh.model.occ.getDistance(3, left_tag, 3, right_tag)))
-            if distance[0] < 0:
-                continue
-            if best is None or distance[0] < best[0]:
-                best = (distance[0], distance, left_tag, right_tag)
-            if distance[0] <= tolerance:
-                copies_left = gmsh.model.occ.copy([(3, left_tag)])
-                copies_right = gmsh.model.occ.copy([(3, right_tag)])
-                fused, _ = gmsh.model.occ.fuse(
-                    copies_left,
-                    copies_right,
-                    removeObject=True,
-                    removeTool=True,
+
+def _entities(gmsh: Any, parts: list[_Part]) -> list[_Entity]:
+    output: list[_Entity] = []
+    for part in parts:
+        for index, tag in enumerate(part.volumes):
+            raw = np.asarray(gmsh.model.occ.getBoundingBox(3, tag), dtype=float)
+            bounds = raw.reshape(2, 3)
+            if not np.all(np.isfinite(bounds)):
+                raise TopologyAnalysisError("solid bounds are unavailable")
+            output.append(
+                _Entity(
+                    entity_id=f"{part.path}#solid:{index}",
+                    part=part,
+                    index=index,
+                    tag=tag,
+                    bounds=bounds.tolist(),
                 )
-                fused_volumes = _volumes(fused)
-                if len(fused_volumes) == 1:
-                    connected = True
-                if fused:
-                    gmsh.model.occ.remove(fused, recursive=True)
-                if connected:
-                    break
-        if connected:
-            break
-    if best is None:
+            )
+    return output
+
+
+def _probe(gmsh: Any, left: _Entity, right: _Entity, tolerance: float) -> dict[str, Any]:
+    distance = tuple(map(float, gmsh.model.occ.getDistance(3, left.tag, 3, right.tag)))
+    if distance[0] < 0:
         return {
-            "left_path": left.path,
-            "right_path": right.path,
+            "left_entity_id": left.entity_id,
+            "right_entity_id": right.entity_id,
+            "left_path": left.part.path,
+            "right_path": right.part.path,
             "status": "distance_unavailable",
             "connected": False,
         }
-    minimum, coordinates, _, _ = best
+    connected = False
+    if distance[0] <= tolerance:
+        copies_left = gmsh.model.occ.copy([(3, left.tag)])
+        copies_right = gmsh.model.occ.copy([(3, right.tag)])
+        fused, _ = gmsh.model.occ.fuse(
+            copies_left,
+            copies_right,
+            removeObject=True,
+            removeTool=True,
+        )
+        connected = len(_volumes(fused)) == 1
+        if fused:
+            gmsh.model.occ.remove(fused, recursive=True)
+    minimum = distance[0]
     weak = minimum <= tolerance and not connected
     return {
-        "left_path": left.path,
-        "right_path": right.path,
-        "left_feature_id": left.feature_id,
-        "right_feature_id": right.feature_id,
-        "left_source_ids": left.source_ids,
-        "right_source_ids": right.source_ids,
-        "left_source_locations": left.source_locations,
-        "right_source_locations": right.source_locations,
+        "left_entity_id": left.entity_id,
+        "right_entity_id": right.entity_id,
+        "left_path": left.part.path,
+        "right_path": right.part.path,
+        "left_feature_id": left.part.feature_id,
+        "right_feature_id": right.part.feature_id,
+        "left_source_ids": left.part.source_ids,
+        "right_source_ids": right.part.source_ids,
+        "left_source_locations": left.part.source_locations,
+        "right_source_locations": right.part.source_locations,
         "distance_m": minimum,
-        "closest_points_m": [list(coordinates[1:4]), list(coordinates[4:7])],
+        "closest_points_m": [list(distance[1:4]), list(distance[4:7])],
         "connected": connected,
         "contact_kind": (
             "face_or_volume" if connected else "point_or_edge" if weak else "gap"
@@ -239,15 +260,16 @@ def _probe(gmsh: Any, left: _Part, right: _Part, tolerance: float) -> dict[str, 
     }
 
 
-def _components(paths: list[str], contacts: list[dict[str, Any]]) -> list[list[str]]:
-    adjacency = {path: set() for path in paths}
+def _components(entity_ids: list[str], contacts: list[dict[str, Any]]) -> list[list[str]]:
+    adjacency = {entity_id: set() for entity_id in entity_ids}
     for contact in contacts:
         if contact.get("connected"):
-            left, right = contact["left_path"], contact["right_path"]
+            left = contact["left_entity_id"]
+            right = contact["right_entity_id"]
             adjacency[left].add(right)
             adjacency[right].add(left)
     output: list[list[str]] = []
-    remaining = set(paths)
+    remaining = set(entity_ids)
     while remaining:
         start = min(remaining)
         seen = {start}
@@ -268,16 +290,19 @@ def _matches(value: str, patterns: list[str]) -> bool:
 
 def _nearest_between(
     contacts: list[dict[str, Any]],
-    left_paths: set[str],
-    right_paths: set[str],
+    left_entities: set[str],
+    right_entities: set[str],
 ) -> dict[str, Any] | None:
     rows = [
         row
         for row in contacts
         if (
-            row.get("left_path") in left_paths and row.get("right_path") in right_paths
-        ) or (
-            row.get("right_path") in left_paths and row.get("left_path") in right_paths
+            row.get("left_entity_id") in left_entities
+            and row.get("right_entity_id") in right_entities
+        )
+        or (
+            row.get("right_entity_id") in left_entities
+            and row.get("left_entity_id") in right_entities
         )
     ]
     rows = [row for row in rows if isinstance(row.get("distance_m"), (int, float))]
@@ -312,140 +337,189 @@ def analyze_manifest(
         ]
         parts = [_part(gmsh, node, scale) for node in nodes]
         gmsh.model.occ.synchronize()
+        entities = _entities(gmsh, parts)
+        if not entities:
+            raise TopologyAnalysisError("assembly produced no solid entities")
         contacts = [
             _probe(gmsh, left, right, tolerance)
-            for index, left in enumerate(parts)
-            for right in parts[index + 1 :]
+            for index, left in enumerate(entities)
+            for right in entities[index + 1 :]
+        ]
+        if any(
+            contact.get("status") == "distance_unavailable" for contact in contacts
+        ):
+            raise TopologyAnalysisError("OCC solid distance query is unavailable")
+        entity_ids = [entity.entity_id for entity in entities]
+        entity_by_id = {entity.entity_id: entity for entity in entities}
+        entity_components = _components(entity_ids, contacts)
+        component_for = {
+            entity_id: set(component)
+            for component in entity_components
+            for entity_id in component
+        }
+        components = [
+            sorted({entity_by_id[entity_id].part.path for entity_id in component})
+            for component in entity_components
         ]
         paths = [part.path for part in parts]
-        components = _components(paths, contacts)
-        component_for = {
-            path: set(component) for component in components for path in component
-        }
         violations: list[dict[str, Any]] = []
 
         active_paths: list[str] = []
+        active_entity_ids: list[str] = []
         missing_inputs: list[str] = []
         load_paths: list[str] = []
         support_paths: list[str] = []
+        support_entity_ids: list[str] = []
+        load_requirements: list[dict[str, Any]] = []
         if mode == "one_piece":
-            if len(components) > 1:
-                anchor = set(components[0])
-                for component in components[1:]:
+            if len(entity_components) > 1:
+                anchor = set(entity_components[0])
+                for component in entity_components[1:]:
                     relation = _nearest_between(contacts, set(component), anchor)
                     violations.append(
                         {
                             "code": "ONE_PIECE_DISCONNECTED",
-                            "message": "A required one-piece component is disconnected",
-                            "part_paths": sorted(component),
+                            "message": "A required final solid component is disconnected",
+                            "part_paths": sorted(
+                                {
+                                    entity_by_id[entity_id].part.path
+                                    for entity_id in component
+                                }
+                            ),
+                            "entity_ids": sorted(component),
                             "relation": relation,
                         }
                     )
             active_paths = paths
+            active_entity_ids = entity_ids
         else:
-            load_patterns = [
-                str(value.get("pattern"))
-                for value in profile.get("loads", [])
-                if value.get("pattern")
-            ]
-            if not load_patterns:
+            raw_loads = profile.get("loads", [])
+            if not isinstance(raw_loads, list) or not raw_loads:
                 missing_inputs.append("load selectors")
-            load_paths = [
-                part.path
-                for part in parts
-                if _matches(f"{part.name} {part.path}", load_patterns)
-            ]
-            if not load_paths:
-                missing_inputs.append("matched load parts")
-            bounds_rows = [
-                (part.path, np.asarray(part.bounds, dtype=float))
-                for part in parts
-                if part.bounds is not None
-            ]
-            if bounds_rows:
-                minimum_z = min(float(bounds[0, 2]) for _, bounds in bounds_rows)
-                height = max(
-                    max(float(bounds[1, 2]) for _, bounds in bounds_rows) - minimum_z,
-                    1e-9,
-                )
-                support_tolerance = max(height * 1e-6, tolerance)
-                support_paths = [
-                    path
-                    for path, bounds in bounds_rows
-                    if float(bounds[0, 2]) <= minimum_z + support_tolerance
-                ]
-            if not support_paths:
-                missing_inputs.append("support parts")
+            else:
+                for index, value in enumerate(raw_loads):
+                    if not isinstance(value, dict) or not value.get("pattern"):
+                        missing_inputs.append(f"load[{index}]: pattern")
+                        continue
+                    pattern = str(value["pattern"])
+                    name = str(value.get("name") or pattern)
+                    matched_parts = [
+                        part
+                        for part in parts
+                        if _matches(f"{part.name} {part.path}", [pattern])
+                    ]
+                    if not matched_parts:
+                        missing_inputs.append(f"{name}: matched load parts")
+                        continue
+                    matched_paths = sorted({part.path for part in matched_parts})
+                    matched_entities = sorted(
+                        entity.entity_id
+                        for entity in entities
+                        if entity.part.path in matched_paths
+                    )
+                    load_paths.extend(matched_paths)
+                    load_requirements.append(
+                        {
+                            "name": name,
+                            "pattern": pattern,
+                            "part_paths": matched_paths,
+                            "entity_ids": matched_entities,
+                        }
+                    )
 
-            if not missing_inputs:
-                common_components = [
-                    component
-                    for component in components
-                    if set(load_paths).issubset(component)
-                    and bool(set(support_paths) & set(component))
-                ]
-                if common_components:
-                    active_paths = list(common_components[0])
-                else:
-                    support_components = {
-                        path
-                        for support in support_paths
-                        for path in component_for[support]
-                    }
-                    disconnected_components = {
-                        tuple(sorted(component_for[load_path]))
-                        for load_path in load_paths
-                        if not (component_for[load_path] & set(support_paths))
-                    }
-                    for component in sorted(disconnected_components):
-                        relation = _nearest_between(
-                            contacts,
-                            set(component),
-                            support_components,
-                        )
-                        affected_loads = sorted(set(component) & set(load_paths))
+            if entities:
+                minimum_z = min(entity.bounds[0][2] for entity in entities)
+                maximum_z = max(entity.bounds[1][2] for entity in entities)
+                height = max(maximum_z - minimum_z, 1e-9)
+                support_tolerance = max(height * 1e-6, tolerance)
+                support_entity_ids = sorted(
+                    entity.entity_id
+                    for entity in entities
+                    if entity.bounds[0][2] <= minimum_z + support_tolerance
+                )
+                support_paths = sorted(
+                    {entity_by_id[entity_id].part.path for entity_id in support_entity_ids}
+                )
+            if not support_entity_ids:
+                missing_inputs.append("support solids")
+
+            if support_entity_ids and load_requirements:
+                support_entities = {
+                    entity_id
+                    for support_entity_id in support_entity_ids
+                    for entity_id in component_for[support_entity_id]
+                }
+                active_components: set[tuple[str, ...]] = set()
+                for requirement in load_requirements:
+                    disconnected = sorted(
+                        entity_id
+                        for entity_id in requirement["entity_ids"]
+                        if not (component_for[entity_id] & set(support_entity_ids))
+                    )
+                    if disconnected:
+                        disconnected_component = {
+                            member
+                            for entity_id in disconnected
+                            for member in component_for[entity_id]
+                        }
                         violations.append(
                             {
                                 "code": "LOAD_PATH_DISCONNECTED",
                                 "message": (
-                                    f"{len(affected_loads)} load part(s) have no bonded "
-                                    "path to support"
+                                    f"{requirement['name']}: {len(disconnected)} load "
+                                    "solid(s) have no bonded path to support"
                                 ),
-                                "load_part_paths": affected_loads,
-                                "disconnected_component_paths": list(component),
+                                "load_name": requirement["name"],
+                                "load_pattern": requirement["pattern"],
+                                "load_part_paths": sorted(
+                                    {
+                                        entity_by_id[entity_id].part.path
+                                        for entity_id in disconnected
+                                    }
+                                ),
+                                "load_entity_ids": disconnected,
+                                "disconnected_component_paths": sorted(
+                                    {
+                                        entity_by_id[entity_id].part.path
+                                        for entity_id in disconnected_component
+                                    }
+                                ),
+                                "disconnected_entity_ids": sorted(disconnected_component),
                                 "support_part_paths": support_paths,
-                                "relation": relation,
+                                "support_entity_ids": support_entity_ids,
+                                "relation": _nearest_between(
+                                    contacts,
+                                    set(disconnected),
+                                    support_entities,
+                                ),
                             }
                         )
-                    if not disconnected_components:
-                        violations.append(
-                            {
-                                "code": "LOAD_PATH_SPLIT_ACROSS_COMPONENTS",
-                                "message": "configured load parts do not share one support-connected solid",
-                                "load_part_paths": load_paths,
-                                "support_part_paths": support_paths,
-                            }
+                    else:
+                        active_components.update(
+                            tuple(sorted(component_for[entity_id]))
+                            for entity_id in requirement["entity_ids"]
                         )
 
-        checked_paths = (
-            set(paths)
-            if mode == "one_piece"
-            else set(active_paths) | set(load_paths) | set(support_paths)
-        )
-        for part in parts:
-            if part.path not in checked_paths or len(part.volumes) == 1:
-                continue
-            violations.append(
-                {
-                    "code": "INTERNAL_PART_DISCONNECTED",
-                    "message": f"{part.path} contains {len(part.volumes)} disconnected solids",
-                    "part_paths": [part.path],
-                    "feature_ids": [part.feature_id] if part.feature_id else [],
-                    "source_ids": part.source_ids,
-                    "source_locations": part.source_locations,
-                    "component_count": len(part.volumes),
-                }
-            )
+                if not violations and len(active_components) == 1:
+                    active_entity_ids = list(next(iter(active_components)))
+                    active_paths = sorted(
+                        {
+                            entity_by_id[entity_id].part.path
+                            for entity_id in active_entity_ids
+                        }
+                    )
+                elif not violations and len(active_components) > 1:
+                    missing_inputs.append(
+                        "multiple support-connected load-bearing components are "
+                        "unsupported by the current FEA path"
+                    )
+                    violations.append(
+                        {
+                            "code": "UNSUPPORTED_MULTIPLE_LOAD_COMPONENTS",
+                            "message": missing_inputs[-1],
+                        }
+                    )
+
 
         weak_contacts = [
             row for row in contacts if row.get("contact_kind") == "point_or_edge"
@@ -460,6 +534,7 @@ def analyze_manifest(
             "scale_m_per_scene_unit": float(scale),
             "numerical_tolerance_m": tolerance,
             "part_count": len(parts),
+            "entity_count": len(entities),
             "parts": [
                 {
                     "semantic_path": part.path,
@@ -469,18 +544,30 @@ def analyze_manifest(
                     "source_locations": part.source_locations,
                     "bounds_m": part.bounds,
                     "internal_volume_count": len(part.volumes),
+                    "entity_ids": [
+                        f"{part.path}#solid:{index}"
+                        for index in range(len(part.volumes))
+                    ],
                 }
                 for part in parts
             ],
             "contacts": contacts,
             "weak_contacts": weak_contacts,
             "components": components,
-            "component_count": len(components),
+            "entity_components": entity_components,
+            "component_count": len(entity_components),
             "active_part_paths": sorted(active_paths),
+            "active_entity_ids": sorted(active_entity_ids),
+            "support_part_paths": support_paths,
+            "support_entity_ids": support_entity_ids,
+            "load_requirements": load_requirements,
             "missing_inputs": missing_inputs,
             "violations": violations,
             "assumptions": {
-                "connection_rule": "OCC fuse must produce one volume; point/edge contact is insufficient",
+                "connection_rule": (
+                    "final OCC solid entities are graph nodes; pairwise fuse must "
+                    "produce one volume, while point/edge contact is insufficient"
+                ),
                 "joint_policy": "joint children are excluded from bonded-solid connectivity",
                 "aabb_policy": "bounds select load/support candidates but never prove connection",
             },
@@ -513,10 +600,14 @@ def build_fused_mesh(
     scale: float,
     mesh_size: float,
     output: str | Path,
+    entity_ids: Iterable[str] | None = None,
 ) -> dict[str, Any]:
     import gmsh
 
-    selected = set(map(str, part_paths))
+    selected_parts = set(map(str, part_paths))
+    selected_entities = (
+        None if entity_ids is None else set(map(str, entity_ids))
+    )
     destination = Path(output)
     destination.parent.mkdir(parents=True, exist_ok=True)
     gmsh.initialize()
@@ -526,10 +617,25 @@ def build_fused_mesh(
         nodes = [
             node
             for node in _root_parts(manifest["root"])
-            if str(node.get("semantic_path")) in selected
+            if str(node.get("semantic_path")) in selected_parts
         ]
         parts = [_part(gmsh, node, scale) for node in nodes]
-        fused = _fuse(gmsh, [tag for part in parts for tag in part.volumes])
+        available = {
+            f"{part.path}#solid:{index}": tag
+            for part in parts
+            for index, tag in enumerate(part.volumes)
+        }
+        if selected_entities is None:
+            selected_entities = set(available)
+        missing = selected_entities - set(available)
+        if missing:
+            raise TopologyAnalysisError(
+                f"FEA entity selection is unavailable: {sorted(missing)}"
+            )
+        fused = _fuse(
+            gmsh,
+            [available[entity_id] for entity_id in sorted(selected_entities)],
+        )
         if len(fused) != 1:
             raise TopologyAnalysisError(
                 f"FEA active load path produced {len(fused)} OCC volumes"
@@ -558,7 +664,8 @@ def build_fused_mesh(
             "minimum_scaled_jacobian": float(np.min(quality)),
             "mesh_size_m": float(mesh_size),
             "gmsh_version": gmsh.option.getString("General.Version"),
-            "active_part_paths": sorted(selected),
+            "active_part_paths": sorted(selected_parts),
+            "active_entity_ids": sorted(selected_entities),
         }
     finally:
         gmsh.finalize()

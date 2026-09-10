@@ -50,6 +50,24 @@ def _cube(name: str, center: tuple[float, float, float]) -> dict[str, object]:
     }
 
 
+def _multi_cube(
+    name: str,
+    *centers: tuple[float, float, float],
+) -> dict[str, object]:
+    part = _cube(name, centers[0])
+    part["primitives"] = [
+        primitive
+        for index, center in enumerate(centers)
+        for primitive in _cube(f"{name}_{index}", center)["primitives"]
+    ]
+    values = list(zip(*centers))
+    part["bounds"] = [
+        [min(values[index]) - 0.5 for index in range(3)],
+        [max(values[index]) + 0.5 for index in range(3)],
+    ]
+    return part
+
+
 def _manifest(*children: dict[str, object]) -> dict[str, object]:
     lowers = [child["bounds"][0] for child in children]
     uppers = [child["bounds"][1] for child in children]
@@ -138,21 +156,15 @@ def test_connected_load_path_builds_one_c3d10_mesh(tmp_path: Path) -> None:
         scale=1.0,
         mesh_size=0.25,
         output=tmp_path / "mesh.inp",
+        entity_ids=result["active_entity_ids"],
     )
     assert Path(mesh["mesh_path"]).is_file()
     assert mesh["element_count"] > 0
     assert mesh["minimum_scaled_jacobian"] > 0
 
 
-def test_load_path_ignores_unrelated_disconnected_decoration() -> None:
-    decoration = _cube("decoration", (5, 0, 3))
-    other_decoration = _cube("other_decoration", (7, 0, 3))
-    decoration["primitives"] = [
-        *decoration["primitives"],
-        *other_decoration["primitives"],
-    ]
-    decoration["bounds"] = [[4.5, -0.5, 2.5], [7.5, 0.5, 3.5]]
-
+def test_load_path_keeps_only_complete_bearing_component(tmp_path: Path) -> None:
+    decoration = _multi_cube("decoration", (1, 0, 1), (7, 0, 3))
     manifest = _manifest(
         _cube("support", (0, 0, 0)),
         _cube("seat", (0, 0, 1)),
@@ -166,4 +178,102 @@ def test_load_path_ignores_unrelated_disconnected_decoration() -> None:
         },
     )
     assert load_path["status"] == "PASS"
-    assert "Root/decoration" not in load_path["active_part_paths"]
+    assert "Root/decoration" in load_path["active_part_paths"]
+    decoration_ids = next(
+        part
+        for part in load_path["parts"]
+        if part["semantic_path"] == "Root/decoration"
+    )["entity_ids"]
+    assert len(set(decoration_ids) & set(load_path["active_entity_ids"])) == 1
+
+    mesh = TOPOLOGY.build_fused_mesh(
+        manifest,
+        load_path["active_part_paths"],
+        scale=1.0,
+        mesh_size=0.25,
+        output=tmp_path / "active_component.inp",
+        entity_ids=load_path["active_entity_ids"],
+    )
+    assert mesh["element_count"] > 0
+
+
+def test_one_piece_uses_final_assembly_components() -> None:
+    split_part = _multi_cube("split", (-1, 0, 0), (1, 0, 0))
+    bridged = TOPOLOGY.analyze_manifest(
+        _manifest(split_part, _cube("bridge", (0, 0, 0))),
+        {"mode": "one_piece"},
+    )
+    assert bridged["status"] == "PASS"
+    assert bridged["component_count"] == 1
+    assert next(
+        part for part in bridged["parts"] if part["semantic_path"] == "Root/split"
+    )["internal_volume_count"] == 2
+
+    unbridged = TOPOLOGY.analyze_manifest(
+        _manifest(split_part),
+        {"mode": "one_piece"},
+    )
+    assert unbridged["status"] == "FAIL"
+    assert unbridged["component_count"] == 2
+    assert {row["code"] for row in unbridged["violations"]} == {
+        "ONE_PIECE_DISCONNECTED"
+    }
+
+
+def test_load_path_checks_every_solid_in_a_matched_part() -> None:
+    result = TOPOLOGY.analyze_manifest(
+        _manifest(
+            _cube("support", (0, 0, 0)),
+            _multi_cube("seat", (0, 0, 1), (3, 0, 1)),
+        ),
+        {
+            "mode": "load_path",
+            "loads": [{"name": "seat_load", "pattern": "seat"}],
+        },
+    )
+    assert result["status"] == "FAIL"
+    violation = next(
+        row for row in result["violations"]
+        if row["code"] == "LOAD_PATH_DISCONNECTED"
+    )
+    assert violation["load_name"] == "seat_load"
+    assert len(violation["load_entity_ids"]) == 1
+
+
+def test_load_path_marks_unmatched_requirement_indeterminate() -> None:
+    result = TOPOLOGY.analyze_manifest(
+        _manifest(
+            _cube("support", (0, 0, 0)),
+            _cube("seat", (0, 0, 1.1)),
+        ),
+        {
+            "mode": "load_path",
+            "loads": [
+                {"name": "seat_load", "pattern": "seat"},
+                {"name": "missing_load", "pattern": "back"},
+            ],
+        },
+    )
+    assert result["status"] == "INDETERMINATE"
+    assert "missing_load: matched load parts" in result["missing_inputs"]
+    assert any(
+        row["code"] == "LOAD_PATH_DISCONNECTED"
+        for row in result["violations"]
+    )
+
+def test_empty_assembly_is_indeterminate() -> None:
+    result = TOPOLOGY.analyze_manifest(
+        {
+            "version": 1,
+            "source_sha256": "source",
+            "geometry_sha256": "geometry",
+            "root": {
+                "semantic_path": "Root",
+                "primitives": [],
+                "children": [],
+            },
+        },
+        {"mode": "one_piece"},
+    )
+    assert result["status"] == "INDETERMINATE"
+    assert result["violations"][0]["code"] == "ANALYTIC_RECONSTRUCTION_UNAVAILABLE"
