@@ -101,6 +101,21 @@ class RepairController:
         elif not set(target_features).issubset(allowed_features):
             errors.append("proposal targets a feature outside localization evidence")
 
+        bridge_features = {
+            candidate.feature_id
+            for candidate in allowed_candidates
+            if candidate.relation_role == "bridge_parent"
+        }
+        if bridge_features:
+            if proposal.action == "add_local_structure":
+                if not set(target_features).issubset(bridge_features):
+                    errors.append(
+                        "add_local_structure must target the localized bridge_parent scope"
+                    )
+            elif set(target_features) & bridge_features:
+                errors.append(
+                    "endpoint geometry edits cannot target the bridge_parent scope"
+                )
         target_candidates = [
             candidate
             for candidate in allowed_candidates

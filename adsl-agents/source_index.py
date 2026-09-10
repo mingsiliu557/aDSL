@@ -110,6 +110,7 @@ class _SourceVisitor(ast.NodeVisitor):
         self.scope: list[str] = []
         self.class_stack: list[str] = []
         self.nodes: list[SourceNode] = []
+        self.occurrences: dict[tuple[str, str, str], int] = {}
 
     def _span(self, node: ast.AST) -> SourceSpan:
         return SourceSpan(
@@ -150,9 +151,20 @@ class _SourceVisitor(ast.NodeVisitor):
             }
         )
         identity_name = semantic_name or name
+        occurrence_key = (kind, self._scope_name(), identity_name)
+        occurrence = self.occurrences.get(occurrence_key, 0)
+        self.occurrences[occurrence_key] = occurrence + 1
         self.nodes.append(
             SourceNode(
-                source_id=_source_id(kind, self._scope_name(), identity_name),
+                # Source indexes are scoped to one source hash, so an ordinal is
+                # preferable to a line number: it disambiguates repeated calls
+                # without making every ID move after an unrelated line insertion.
+                source_id=_source_id(
+                    kind,
+                    self._scope_name(),
+                    identity_name,
+                    occurrence,
+                ),
                 kind=kind,
                 name=name,
                 scope=self._scope_name(),

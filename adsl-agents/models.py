@@ -88,11 +88,29 @@ class RegionEvidence(BaseModel):
     details: dict[str, Any] = Field(default_factory=dict)
 
 
+class RelationEndpoint(BaseModel):
+    role: str
+    part_names: list[str] = Field(default_factory=list)
+    feature_ids: list[str] = Field(default_factory=list)
+    point: list[float] | None = None
+
+
+class RelationEvidence(BaseModel):
+    kind: Literal["disconnected", "weak_contact"]
+    frame: str = "authored_scene"
+    unit: str = "scene_unit"
+    endpoints: list[RelationEndpoint] = Field(min_length=2, max_length=2)
+    distance: MetricEvidence | None = None
+    bridge_feature_id: str | None = None
+    details: dict[str, Any] = Field(default_factory=dict)
+
+
 class SourceCandidate(BaseModel):
     feature_id: str
     source_ids: list[str] = Field(default_factory=list)
     source_locations: list[str] = Field(default_factory=list)
-    method: Literal["direct", "geometric", "dependency", "global_heuristic"]
+    method: Literal["direct", "relation", "geometric", "dependency", "global_heuristic"]
+    relation_role: str | None = None
     overlap_score: float | None = Field(default=None, ge=0)
     evidence: list[str] = Field(default_factory=list)
     ambiguous: bool = False
@@ -106,6 +124,7 @@ class CheckerFinding(BaseModel):
     applicability_basis: str | None = None
     metric: MetricEvidence | None = None
     region: RegionEvidence | None = None
+    relations: list[RelationEvidence] = Field(default_factory=list)
     evidence_refs: list[str] = Field(default_factory=list)
     source_candidates: list[SourceCandidate] = Field(default_factory=list)
     required: bool = True
@@ -255,6 +274,8 @@ __all__ = [
     "ObjectRequest",
     "ObjectRunResult",
     "RegionEvidence",
+    "RelationEndpoint",
+    "RelationEvidence",
     "RepairPolicy",
     "RepairProposal",
     "RepairTarget",

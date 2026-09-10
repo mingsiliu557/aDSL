@@ -6,7 +6,14 @@ from typing import Iterable
 import numpy as np
 from pydantic import BaseModel, Field
 
-from .models import CheckerAnalysisContext, CheckerFinding, RegionEvidence, SourceCandidate
+from .models import (
+    CheckerAnalysisContext,
+    CheckerFinding,
+    RegionEvidence,
+    RelationEndpoint,
+    RelationEvidence,
+    SourceCandidate,
+)
 from .source_index import RuntimeFeature, SourceIndex
 
 
@@ -37,12 +44,14 @@ def _candidate(
     score: float | None,
     evidence: list[str],
     ambiguous: bool = False,
+    relation_role: str | None = None,
 ) -> SourceCandidate:
     return SourceCandidate(
         feature_id=feature.feature_id,
         source_ids=feature.source_ids,
         source_locations=feature.source_locations,
         method=method,
+        relation_role=relation_role,
         overlap_score=score,
         evidence=evidence,
         ambiguous=ambiguous or feature.resolution != "complete",
@@ -121,14 +130,16 @@ def _direct_candidates(
     region: RegionEvidence,
     features: list[RuntimeFeature],
 ) -> list[SourceCandidate]:
-    names = {_clean_part_name(value) for value in region.part_names}
-    matched = [
-        feature
-        for feature in features
-        if feature.name in names
-        or feature.semantic_path in region.part_names
-        or _clean_part_name(feature.semantic_path) in names
-    ]
+    exact_paths = set(region.part_names)
+    matched = [feature for feature in features if feature.semantic_path in exact_paths]
+    if not matched:
+        names = {_clean_part_name(value) for value in region.part_names}
+        matched = [
+            feature
+            for feature in features
+            if feature.name in names
+            or _clean_part_name(feature.semantic_path) in names
+        ]
     ambiguous = len(matched) > 1
     return [
         _candidate(
@@ -141,6 +152,118 @@ def _direct_candidates(
         for feature in matched
     ]
 
+
+
+def _endpoint_features(
+    endpoint: RelationEndpoint,
+    features: list[RuntimeFeature],
+) -> list[RuntimeFeature]:
+    feature_ids = set(endpoint.feature_ids)
+    matched = [feature for feature in features if feature.feature_id in feature_ids]
+    if matched:
+        return matched
+    exact_paths = set(endpoint.part_names)
+    matched = [feature for feature in features if feature.semantic_path in exact_paths]
+    if matched:
+        return matched
+    names = {_clean_part_name(value) for value in endpoint.part_names}
+    return [
+        feature
+        for feature in features
+        if feature.name in names or _clean_part_name(feature.semantic_path) in names
+    ]
+
+
+def _lowest_common_ancestor(
+    paths: list[str],
+    features: list[RuntimeFeature],
+) -> RuntimeFeature | None:
+    if len(paths) < 2:
+        return None
+    split = [path.split("/") for path in paths]
+    common: list[str] = []
+    for values in zip(*split):
+        if len(set(values)) != 1:
+            break
+        common.append(values[0])
+    if not common:
+        return None
+    semantic_path = "/".join(common)
+    return next(
+        (feature for feature in features if feature.semantic_path == semantic_path),
+        None,
+    )
+
+
+def _relation_candidates(
+    relation: RelationEvidence,
+    features: list[RuntimeFeature],
+) -> tuple[list[SourceCandidate], list[str], str | None]:
+    candidates: list[SourceCandidate] = []
+    ambiguity: list[str] = []
+    endpoint_matches: list[list[RuntimeFeature]] = []
+    for endpoint in relation.endpoints:
+        matched = _endpoint_features(endpoint, features)
+        endpoint_matches.append(matched)
+        if not matched:
+            ambiguity.append(f"relation endpoint {endpoint.role!r} did not match a source feature")
+            continue
+        if len(matched) > 1:
+            ambiguity.append(
+                f"relation endpoint {endpoint.role!r} matched {len(matched)} features"
+            )
+        for feature in matched:
+            evidence = [
+                f"{relation.kind} relation endpoint role={endpoint.role}",
+                f"checker identified semantic part {feature.semantic_path}",
+            ]
+            if relation.distance is not None and relation.distance.value is not None:
+                evidence.append(
+                    f"endpoint separation={relation.distance.value} "
+                    f"{relation.distance.unit or ''}".strip()
+                )
+            candidates.append(
+                _candidate(
+                    feature,
+                    method="relation",
+                    score=1.0,
+                    evidence=evidence,
+                    ambiguous=len(matched) > 1,
+                    relation_role=endpoint.role,
+                )
+            )
+
+    matched_paths = [
+        group[0].semantic_path for group in endpoint_matches if len(group) == 1
+    ]
+    bridge = next(
+        (
+            feature
+            for feature in features
+            if relation.bridge_feature_id
+            and feature.feature_id == relation.bridge_feature_id
+        ),
+        None,
+    )
+    if bridge is None:
+        bridge = _lowest_common_ancestor(matched_paths, features)
+    endpoint_ids = {candidate.feature_id for candidate in candidates}
+    if bridge is not None and bridge.feature_id not in endpoint_ids:
+        candidates.append(
+            _candidate(
+                bridge,
+                method="relation",
+                score=None,
+                evidence=[
+                    "lowest common semantic ancestor of the disconnected endpoints",
+                    "allowed scope for a local bridging feature",
+                ],
+                relation_role="bridge_parent",
+            )
+        )
+    if not candidates:
+        return [], ambiguity, "relation endpoints were not found in the runtime feature index"
+    return candidates, ambiguity, None
 
 def _global_candidates(features: list[RuntimeFeature]) -> list[SourceCandidate]:
     bounded = [feature for feature in features if feature.bounds is not None and feature.parent_feature_id]
@@ -203,6 +326,15 @@ def localize_findings(
         unresolved_reason = None
         if finding.repairability not in {"geometry", "design_variable"}:
             unresolved_reason = f"repairability={finding.repairability} is not source-editable"
+        elif finding.relations:
+            for relation in finding.relations:
+                related, notes, error = _relation_candidates(
+                    relation, source_index.features
+                )
+                candidates.extend(related)
+                ambiguity.extend(notes)
+                if error is not None:
+                    unresolved_reason = error
         elif region is None or region.kind == "unknown":
             unresolved_reason = "checker did not provide a localizable region"
         elif region.kind == "parts":
@@ -233,7 +365,14 @@ def localize_findings(
                         evidence=["checker region overlaps the feature AABB after coordinate conversion"],
                         ambiguous=len(matched) > 1,
                     )
-                    for feature, score in sorted(matched, key=lambda item: item[1], reverse=True)
+                    for feature, score in sorted(
+                        matched,
+                        key=lambda item: (
+                            -item[1],
+                            float(np.prod(np.asarray(item[0].bounds[1]) - np.asarray(item[0].bounds[0]))),
+                            -item[0].semantic_path.count("/"),
+                        ),
+                    )
                 ]
                 if not candidates:
                     unresolved_reason = "checker region does not overlap any indexed feature AABB"

@@ -15,6 +15,39 @@ adsl-run edit "Preserve appearance; repair only mandatory checker failures." \
   --repair-policy-config experiments/workflow_checkers/repair_policy.json
 ```
 
+## Topology before FEA
+
+Every asset execution now writes `analysis_geometry.json` beside
+`source_index.json`. It preserves analytic primitives, Boolean structure,
+semantic part paths, feature IDs, and source spans before GLB/URDF flattening.
+The topology checker and FEA use this manifest when it is available.
+
+Use both topology and FEA for a load-bearing chair:
+
+```bash
+adsl-run edit "Preserve appearance; repair only mandatory checker failures." \
+  --source path/to/source.py \
+  --output local_experiment/checker_repair \
+  --check-first --max-rounds 4 \
+  --checker-config experiments/workflow_checkers/specs/topology_chair.json \
+  --checker-config experiments/workflow_checkers/specs/fea_chair.json \
+  --repair-policy-config experiments/workflow_checkers/repair_policy.json
+```
+
+The `load_path` profile requires every selected load region to have a
+face/volume-connected OpenCASCADE path to a lowest support part. The
+`one_piece` profile requires all non-joint top-level parts to form one solid.
+Point-only contact, edge-only contact, and a positive gap do not count as a
+bond. A failure records both nearest semantic endpoints, closest points,
+distance, source spans, and their lowest common semantic ancestor as the local
+connector scope. FEA remains `INDETERMINATE` until topology passes; a separate
+topology FAIL is the source-editable geometry finding.
+
+This checker supports aDSL cube, cylinder, sphere, and the existing
+UNION/DIFFERENCE/INTERSECT hierarchy. Unsupported analytic constructs return
+`INDETERMINATE`; the system does not infer connectivity from overlapping
+AABBs or silently repair a triangle mesh.
+
 Use `specs/progressive.json` for the fixed 1%-height, event-augmented partial-build scan. It is intentionally an unbonded rigid-body stress test, not a deposition simulation; real FFF decisions must also use slicer support/brim paths and a calibrated bed-adhesion model. Repeat `--checker-config` to require multiple gates. A round publishes only after its appearance review and every required checker return `PASS`. `FAIL` or `INDETERMINATE` becomes structured Engineering Critic feedback; `ERROR` stops as infrastructure failure and is never disguised as a geometry defect.
 
 ## Feedback protocol and source localization

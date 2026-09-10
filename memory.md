@@ -717,3 +717,33 @@ Toys4K 最小下载：
 - 批处理启动前强制校验 GPU worker heartbeat；每次显式 resume 使用新日志文件，避免
   覆盖历史；额度、GPU、checker 和其他错误分开标记并停批。活跃 SQLite/workspace
   留在项目盘，完成后才将不可变大证据归档数据盘。
+
+
+## 2026-09-10：Topology 连接性与双端源码定位
+
+- 新增执行期 `analysis_geometry.json`：在 GLB/URDF 扁平化前保存 aDSL
+  primitive、Boolean 层级、semantic path、feature/source ID 与源码行号；重复 DSL
+  调用的 source ID 通过同 scope 内 occurrence 区分。
+- 新增 OpenCASCADE topology checker：
+  `load_path` 检查指定载荷部件到最低支撑部件的实体连接；
+  `one_piece` 检查非 joint 顶层部件是否为一个实体。面接触或体积重叠才算连接，
+  点/边接触与正间隙均失败；AABB 只选候选，不证明连接。
+- 断裂 finding 记录最近的两个语义端点、最近点、距离和源码位置；定位器另外给出
+  两端最低共同语义父级 `bridge_parent`。resize/reshape/relayout 只能针对端点，
+  新增局部连接件只能针对 bridge scope；候选仍必须重跑全部 configured checkers。
+- FEA 在 manifest 可用时从同一解析几何构建 Gmsh C3D10 网格；topology FAIL 由
+  topology checker 作为可编辑几何失败报告，而 FEA 保持 INDETERMINATE，不再把
+  GLB Boolean/export 故障误报成真实结构断裂。旧 URDF collision 路径保留为兼容回退。
+- SF01 真实回归：从旧 `BOOLEAN_UNION_EMPTY` 改为明确的两个问题：
+  segmented backrest 含 3 个断开实体；seat/back 承载组件与 pedestal 最近间隙
+  `0.0201189931 m`。定位到 seat `L158/L9-70`、pedestal `L168/L112-147`
+  和 bridge parent `L150-168`，没有 unresolved finding。
+- 已有改进椅子回归：10 个语义部件形成 1 个连通分量，topology PASS；
+  analytic geometry 路径的 coarse/medium/fine 三层 CalculiX 均 SOLVED。最终仍因
+  位移比约 `2.169%` 超过 1% 门槛而 FEA FAIL，与历史物理结论一致。
+- `load_path` 只检查并保留载荷—支撑连通分量，完全无关的断开装饰件不阻塞 FEA；
+  `one_piece` 仍检查全部非 joint 顶层部件。
+- topology 与统一定位针对性测试共 22 项通过，全量回归 120 项通过。临时验证证据位于
+  `/tmp/adsl_topology_sf01_*` 与 `/tmp/adsl_topology_connected_*`，不作为长期归档。
+- 按 `AGENTS.md` 控制范围：本轮不实现 adaptive registry、依赖调度器、新状态机、
+  30-case/5-case 实验或其他非必要重构。

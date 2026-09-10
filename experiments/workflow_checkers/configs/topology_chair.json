@@ -1,0 +1,20 @@
+{
+  "scale": {
+    "measure": "height",
+    "target_m": 0.9
+  },
+  "profile": {
+    "mode": "load_path",
+    "numerical_tolerance_m": 1e-8,
+    "loads": [
+      {
+        "name": "seat_load",
+        "pattern": "seat"
+      },
+      {
+        "name": "back_load",
+        "pattern": "back"
+      }
+    ]
+  }
+}

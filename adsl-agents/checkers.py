@@ -78,6 +78,16 @@ def run_checker(
         "asset_dir": str(execution.glb_path.parent.resolve()),
         "round_dir": str(round_root.resolve()),
         "output_dir": str(output_dir.resolve()),
+        "analysis_geometry": (
+            ""
+            if execution.analysis_geometry_path is None
+            else str(execution.analysis_geometry_path.resolve())
+        ),
+        "source_index": (
+            ""
+            if execution.source_index_path is None
+            else str(execution.source_index_path.resolve())
+        ),
     }
     try:
         command = tuple(token.format_map(values) for token in spec.command)

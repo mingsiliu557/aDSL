@@ -9,6 +9,7 @@ from typing import Sequence
 
 # Blender must initialize before trimesh-backed modules on Windows.
 from adsl.core import Asset, export_glb, export_urdf
+from adsl.agents.analysis_geometry import build_analysis_geometry
 from adsl.agents.source_index import build_source_index
 from adsl.tools.gpu_render_queue import submit_render_job
 from adsl.tools.render import render_video
@@ -61,8 +62,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise TypeError("Generated source must assign an adsl Asset to `scene`")
     source_index_path = output / "source_index.json"
     source_index_path.parent.mkdir(parents=True, exist_ok=True)
-    source_index_path.write_text(
-        build_source_index(source, scene).model_dump_json(indent=2),
+    source_index = build_source_index(source, scene)
+    source_index_path.write_text(source_index.model_dump_json(indent=2), encoding="utf-8")
+    analysis_geometry_path = output / "analysis_geometry.json"
+    analysis_geometry_path.write_text(
+        json.dumps(
+            build_analysis_geometry(source, scene, source_index),
+            indent=2,
+            ensure_ascii=False,
+        ),
         encoding="utf-8",
     )
     render_root = output / "render"
@@ -122,6 +130,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "render_backend": render_backend,
         "render_job_id": None if render_job is None else render_job["job_id"],
         "source_index_path": str(source_index_path),
+        "analysis_geometry_path": str(analysis_geometry_path),
     }
     (output / "execution.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False),

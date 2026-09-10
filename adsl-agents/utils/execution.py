@@ -18,6 +18,7 @@ class ExecutionResult:
     stdout: str
     stderr: str
     source_index_path: Path | None = None
+    analysis_geometry_path: Path | None = None
 
 
 class AssetExecutionError(RuntimeError):
@@ -158,6 +159,14 @@ def execute_asset_source(
     )
     if source_index_path is not None and not source_index_path.is_file():
         raise AssetExecutionError(f"Generated SourceIndex is missing: {source_index_path}")
+    analysis_geometry_value = manifest.get("analysis_geometry_path")
+    analysis_geometry_path = (
+        Path(analysis_geometry_value).resolve() if analysis_geometry_value else None
+    )
+    if analysis_geometry_path is not None and not analysis_geometry_path.is_file():
+        raise AssetExecutionError(
+            f"Generated analysis geometry is missing: {analysis_geometry_path}"
+        )
     return ExecutionResult(
         output_root=output,
         glb_path=glb_path,
@@ -166,6 +175,7 @@ def execute_asset_source(
         stdout=completed.stdout,
         stderr=completed.stderr,
         source_index_path=source_index_path,
+        analysis_geometry_path=analysis_geometry_path,
     )
 
 

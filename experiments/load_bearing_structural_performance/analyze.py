@@ -29,6 +29,16 @@ FINAL = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = FINAL
 SPEC.loader.exec_module(FINAL)
 
+TOPOLOGY_PATH = HERE.parents[0] / "topology_connectivity" / "analyze.py"
+TOPOLOGY_SPEC = importlib.util.spec_from_file_location(
+    "adsl_shared_topology_fea", TOPOLOGY_PATH
+)
+if TOPOLOGY_SPEC is None or TOPOLOGY_SPEC.loader is None:
+    raise RuntimeError(f"cannot import {TOPOLOGY_PATH}")
+TOPOLOGY = importlib.util.module_from_spec(TOPOLOGY_SPEC)
+sys.modules[TOPOLOGY_SPEC.name] = TOPOLOGY
+TOPOLOGY_SPEC.loader.exec_module(TOPOLOGY)
+
 G = 9.81
 STATUSES = {
     "SOLVED", "NOT_MESHABLE", "INVALID_LOAD_PATH", "LOAD_REGION_AMBIGUOUS",
@@ -425,15 +435,127 @@ def run_ccx(ccx: Path, deck: Path, timeout: int) -> dict[str, Any]:
     return parsed
 
 
-def analyze_mesh_level(case_id: str, case_dir: Path, items: list[Any], scale: float,
-                       level: str, ratio: float, case_cfg: dict[str, Any],
-                       material: dict[str, Any], ccx: Path, output: Path,
-                       timeout: int) -> dict[str, Any]:
-    height = float((all_bounds(items)[1, 2] - all_bounds(items)[0, 2]) * scale)
+
+def scale_factor_manifest(
+    manifest: dict[str, Any],
+    rule: dict[str, Any],
+) -> tuple[float, dict[str, Any]]:
+    bounds = np.asarray(manifest["root"]["bounds"], dtype=float)
+    extents = bounds[1] - bounds[0]
+    measure = rule["measure"]
+    if measure == "height":
+        source = float(extents[2])
+    elif measure == "length":
+        source = float(max(extents[0], extents[1]))
+    elif measure == "diameter":
+        source = float(max(extents))
+    else:
+        raise ValueError(f"unknown scale measure {measure}")
+    if not math.isfinite(source) or source <= 0:
+        raise ValueError("invalid analytic source extent")
+    factor = float(rule["target_m"]) / source
+    return factor, {
+        "measure": measure,
+        "source_scene_units": source,
+        "target_m": float(rule["target_m"]),
+        "factor_m_per_scene_unit": factor,
+        "source_bounds": bounds.tolist(),
+    }
+
+
+def manifest_bounds(
+    manifest: dict[str, Any],
+    scale: float,
+) -> np.ndarray:
+    bounds = np.asarray(manifest["root"]["bounds"], dtype=float) * float(scale)
+    if bounds.shape != (2, 3) or not np.all(np.isfinite(bounds)):
+        raise ValueError("invalid analysis geometry root bounds")
+    return bounds
+
+
+def semantic_bounds_manifest(
+    parts: list[dict[str, Any]],
+    pattern: str,
+) -> tuple[np.ndarray | None, list[str]]:
+    regex = re.compile(pattern, re.IGNORECASE)
+    selected = [
+        row for row in parts
+        if regex.search(f"{row.get('name', '')} {row.get('semantic_path', '')}")
+        and row.get("bounds_m") is not None
+    ]
+    if not selected:
+        return None, []
+    values = [np.asarray(row["bounds_m"], dtype=float) for row in selected]
+    bounds = np.vstack((
+        np.min(np.vstack([value[0] for value in values]), axis=0),
+        np.max(np.vstack([value[1] for value in values]), axis=0),
+    ))
+    return bounds, [str(row["semantic_path"]) for row in selected]
+
+
+def resolve_regions_manifest(
+    nodes: dict[int, np.ndarray],
+    parts: list[dict[str, Any]],
+    loads: list[dict[str, Any]],
+    mesh_size: float,
+) -> tuple[list[dict[str, Any]], list[str]]:
+    resolved: list[dict[str, Any]] = []
+    failures: list[str] = []
+    for load in loads:
+        bounds, names = semantic_bounds_manifest(parts, load["pattern"])
+        if bounds is None or load["face"] not in {"top", "bottom", "y_max", "top_center"}:
+            failures.append(
+                f"{load['name']}: semantic region is unavailable or uses an unsupported selector"
+            )
+            continue
+        selected = face_nodes(nodes, bounds, load["face"], mesh_size * 0.55)
+        if not selected:
+            selected = face_nodes(nodes, bounds, load["face"], mesh_size * 1.10)
+        if not selected:
+            failures.append(f"{load['name']}: no mesh nodes on semantic face")
+            continue
+        resolved.append({
+            **load,
+            "node_ids": selected,
+            "matched_geometries": names,
+            "semantic_bounds_m": bounds.tolist(),
+        })
+    return resolved, failures
+
+def analyze_mesh_level(
+    case_id: str,
+    case_dir: Path,
+    items: list[Any] | None,
+    scale: float,
+    level: str,
+    ratio: float,
+    case_cfg: dict[str, Any],
+    material: dict[str, Any],
+    ccx: Path,
+    output: Path,
+    timeout: int,
+    analytic: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    if analytic is None:
+        if items is None:
+            raise ValueError("legacy FEA geometry is unavailable")
+        height = float((all_bounds(items)[1, 2] - all_bounds(items)[0, 2]) * scale)
+    else:
+        bounds = manifest_bounds(analytic["manifest"], scale)
+        height = float(bounds[1, 2] - bounds[0, 2])
     mesh_size = max(height * ratio, 1e-5)
     level_dir = output / level
     try:
-        mesh = build_occ_mesh(items, scale, mesh_size, level_dir)
+        if analytic is None:
+            mesh = build_occ_mesh(items, scale, mesh_size, level_dir)
+        else:
+            mesh = TOPOLOGY.build_fused_mesh(
+                analytic["manifest"],
+                analytic["topology"]["active_part_paths"],
+                scale=scale,
+                mesh_size=mesh_size,
+                output=level_dir / "mesh_raw.inp",
+            )
         nodes, elements = parse_gmsh_inp(Path(mesh["mesh_path"]))
     except Exception as error:
         return {"mesh_level": level, "status": "NOT_MESHABLE",
@@ -443,7 +565,17 @@ def analyze_mesh_level(case_id: str, case_dir: Path, items: list[Any], scale: fl
     if len(support) < 3:
         return {"mesh_level": level, "status": "LOAD_REGION_AMBIGUOUS", **mesh,
                 "error": f"only {len(support)} fixed-base nodes"}
-    resolved, failures = resolve_regions(nodes, items, scale, case_cfg["functional_loads"], mesh_size)
+    if analytic is None:
+        resolved, failures = resolve_regions(
+            nodes, items, scale, case_cfg["functional_loads"], mesh_size
+        )
+    else:
+        resolved, failures = resolve_regions_manifest(
+            nodes,
+            analytic["topology"]["parts"],
+            case_cfg["functional_loads"],
+            mesh_size,
+        )
     if failures:
         return {"mesh_level": level, "status": "LOAD_REGION_AMBIGUOUS", **mesh,
                 "support_node_count": len(support), "load_region_failures": failures}
@@ -468,32 +600,114 @@ def analyze_mesh_level(case_id: str, case_dir: Path, items: list[Any], scale: fl
             "support_node_count": len(support), "analyses": analyses}
 
 
-def analyze_case(case_id: str, case_dir: Path, case_cfg: dict[str, Any],
-                 material: dict[str, Any], ccx: Path, output: Path,
-                 timeout: int) -> dict[str, Any]:
-    parsed = FINAL.parse_urdf(case_dir / "scene.urdf")
-    items = FINAL.collision_geometries(parsed, FINAL.state_values(parsed)["initial"])
-    scale, scale_info = scale_factor(items, case_cfg["scale"])
-    gate_status, gate, _ = exact_union_gate(items)
-    result: dict[str, Any] = {"case_id": case_id, "status": gate_status,
-                              "input_urdf": str(case_dir / "scene.urdf"),
-                              "input_urdf_sha256": parsed.sha256,
-                              "input_scene_glb_sha256": FINAL.sha256_file(case_dir / "scene.glb"),
-                              "input_source_py_sha256": FINAL.sha256_file(case_dir / "source.py"),
-                              "scale": scale_info, "geometry_gate": gate,
-                              "intended_functional_loads": case_cfg["functional_loads"],
-                              "mesh_levels": []}
+def analyze_case(
+    case_id: str,
+    case_dir: Path,
+    case_cfg: dict[str, Any],
+    material: dict[str, Any],
+    ccx: Path,
+    output: Path,
+    timeout: int,
+) -> dict[str, Any]:
+    manifest_path = case_dir / "analysis_geometry.json"
+    items: list[Any] | None = None
+    analytic: dict[str, Any] | None = None
+    if manifest_path.is_file():
+        manifest = TOPOLOGY.load_manifest(manifest_path)
+        scale, scale_info = scale_factor_manifest(manifest, case_cfg["scale"])
+        topology_profile = {
+            "mode": "load_path",
+            "loads": case_cfg["functional_loads"],
+            "numerical_tolerance_m": float(
+                case_cfg.get("topology_numerical_tolerance_m", 1e-8)
+            ),
+            "exclude_patterns": case_cfg.get("topology_exclude_patterns", []),
+        }
+        topology = TOPOLOGY.analyze_manifest(
+            manifest,
+            topology_profile,
+            scale=scale,
+        )
+        analytic = {"manifest": manifest, "topology": topology}
+        if topology["status"] == "PASS":
+            gate_status = "SOLVED"
+        elif topology["status"] == "FAIL":
+            gate_status = "INVALID_LOAD_PATH"
+        else:
+            gate_status = "NOT_MESHABLE"
+        gate = {
+            "source": "analysis_geometry",
+            "reason": (
+                None
+                if gate_status == "SOLVED"
+                else "; ".join(
+                    str(row.get("message") or row.get("code"))
+                    for row in topology.get("violations", [])
+                )
+            ),
+            "topology": topology,
+            "union_component_count": topology.get("component_count"),
+            "active_part_paths": topology.get("active_part_paths", []),
+        }
+        parsed = None
+    else:
+        parsed = FINAL.parse_urdf(case_dir / "scene.urdf")
+        items = FINAL.collision_geometries(
+            parsed, FINAL.state_values(parsed)["initial"]
+        )
+        scale, scale_info = scale_factor(items, case_cfg["scale"])
+        gate_status, gate, _ = exact_union_gate(items)
+        gate["source"] = "legacy_urdf_collision"
+
+    result: dict[str, Any] = {
+        "case_id": case_id,
+        "status": gate_status,
+        "input_urdf": str(case_dir / "scene.urdf"),
+        "input_urdf_sha256": (
+            parsed.sha256 if parsed is not None
+            else FINAL.sha256_file(case_dir / "scene.urdf")
+        ),
+        "input_scene_glb_sha256": FINAL.sha256_file(case_dir / "scene.glb"),
+        "input_source_py_sha256": FINAL.sha256_file(case_dir / "source.py"),
+        "input_analysis_geometry_sha256": (
+            FINAL.sha256_file(manifest_path) if manifest_path.is_file() else None
+        ),
+        "scale": scale_info,
+        "geometry_gate": gate,
+        "intended_functional_loads": case_cfg["functional_loads"],
+        "mesh_levels": [],
+    }
     if case_cfg.get("functional_moments"):
         result["intended_functional_moments"] = case_cfg["functional_moments"]
     if gate_status != "SOLVED":
         return result
     for level, ratio in MESH_LEVELS.items():
         print(f"  {case_id}: {level}", flush=True)
-        result["mesh_levels"].append(analyze_mesh_level(
-            case_id, case_dir, items, scale, level, ratio, case_cfg, material,
-            ccx, output / case_id, timeout))
-    result["status"] = "SOLVED" if all(row["status"] == "SOLVED" for row in result["mesh_levels"]) else next(
-        row["status"] for row in result["mesh_levels"] if row["status"] != "SOLVED")
+        result["mesh_levels"].append(
+            analyze_mesh_level(
+                case_id,
+                case_dir,
+                items,
+                scale,
+                level,
+                ratio,
+                case_cfg,
+                material,
+                ccx,
+                output / case_id,
+                timeout,
+                analytic=analytic,
+            )
+        )
+    result["status"] = (
+        "SOLVED"
+        if all(row["status"] == "SOLVED" for row in result["mesh_levels"])
+        else next(
+            row["status"]
+            for row in result["mesh_levels"]
+            if row["status"] != "SOLVED"
+        )
+    )
     result["mesh_convergence"] = mesh_convergence(result["mesh_levels"])
     return result
 

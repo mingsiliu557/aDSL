@@ -6,6 +6,7 @@ from agents import AgentOutputSchema
 import runpy
 
 from adsl.agents.feedback_schema import canonicalize_result
+from adsl.agents.analysis_geometry import build_analysis_geometry
 from adsl.agents.localization import localize_findings
 from adsl.agents.models import (
     CheckerAnalysisContext,
@@ -17,12 +18,14 @@ from adsl.agents.models import (
     RepairPolicy,
     RepairProposal,
     RepairTarget,
+    RelationEndpoint,
+    RelationEvidence,
     SourceCandidate,
 )
 from adsl.agents.repair_controller import RepairController
 from adsl.agents.repair_policy import assess_candidate, validate_patch_scope
 from adsl.agents.source_index import RuntimeFeature, SourceIndex, build_source_index
-from experiments.workflow_checkers.run import enrich_result, standing_result
+from experiments.workflow_checkers.run import enrich_result, standing_result, topology_result
 
 
 def test_engineering_decision_can_use_non_strict_sdk_schema() -> None:
@@ -477,3 +480,165 @@ def test_repair_controller_rejects_unlocalized_feature_and_duplicate(tmp_path: P
         policy=RepairPolicy(max_total_candidates=1),
     )
     assert limited.budget_error() == "maximum total candidate budget reached"
+
+def test_source_ids_are_unique_for_repeated_dsl_calls(tmp_path: Path) -> None:
+    source = _source(tmp_path)
+    scene = runpy.run_path(str(source))["scene"]
+    index = build_source_index(source, scene)
+    ids = [node.source_id for node in index.source_nodes]
+    assert len(ids) == len(set(ids))
+
+
+def test_analysis_geometry_preserves_source_linked_hierarchy(tmp_path: Path) -> None:
+    source = _source(tmp_path)
+    scene = runpy.run_path(str(source))["scene"]
+    index = build_source_index(source, scene)
+    manifest = build_analysis_geometry(source, scene, index)
+    assert manifest["source_sha256"] == index.source_sha256
+    assert manifest["source_index_sha256"] == index.index_sha256
+    assert manifest["geometry_sha256"]
+    children = manifest["root"]["children"]
+    assert {child["name"] for child in children} == {"base", "leg_0", "leg_1"}
+    assert all(child["feature_id"] for child in children)
+    assert children[0]["primitives"]
+
+
+def _topology_raw() -> dict[str, object]:
+    return {
+        "status": "FAIL",
+        "mode": "load_path",
+        "part_count": 3,
+        "component_count": 2,
+        "components": [["Stand/base"], ["Stand/leg_0", "Stand/leg_1"]],
+        "active_part_paths": [],
+        "weak_contacts": [],
+        "numerical_tolerance_m": 1e-8,
+        "scale": {"factor_m_per_scene_unit": 1.0},
+        "violations": [{
+            "code": "LOAD_PATH_DISCONNECTED",
+            "message": "load has no bonded path to support",
+            "load_part_paths": ["Stand/leg_0"],
+            "disconnected_component_paths": ["Stand/leg_0", "Stand/leg_1"],
+            "support_part_paths": ["Stand/base"],
+            "relation": {
+                "left_path": "Stand/leg_0",
+                "right_path": "Stand/base",
+                "left_feature_id": "feature:Stand/leg_0",
+                "right_feature_id": "feature:Stand/base",
+                "distance_m": 0.1,
+                "closest_points_m": [[0, 0, 0.1], [0, 0, 0]],
+                "contact_kind": "gap",
+            },
+        }],
+    }
+
+
+def test_topology_relation_localizes_both_endpoints_and_bridge(tmp_path: Path) -> None:
+    source = _source(tmp_path)
+    scene = runpy.run_path(str(source))["scene"]
+    index = build_source_index(source, scene)
+    result = enrich_result(topology_result(_topology_raw(), tmp_path / "raw.json"))
+    finding = result.findings[0]
+    assert finding.category == "physical_violation"
+    assert finding.repairability == "geometry"
+    assert len(finding.relations) == 1
+    localized, report = localize_findings(
+        result.findings,
+        index,
+        checker_contexts=[result.analysis_context],
+    )
+    candidates = localized[0].source_candidates
+    roles = {candidate.relation_role for candidate in candidates}
+    assert {"load", "support", "bridge_parent"}.issubset(roles)
+    assert {candidate.feature_id for candidate in candidates} == {
+        "feature:Stand/leg_0",
+        "feature:Stand/base",
+        "feature:Stand",
+    }
+    assert report.findings[0].unresolved_reason is None
+
+
+def test_repair_controller_enforces_relation_bridge_scope(tmp_path: Path) -> None:
+    source = _source(tmp_path)
+    scene = runpy.run_path(str(source))["scene"]
+    index = build_source_index(source, scene)
+    result = enrich_result(topology_result(_topology_raw(), tmp_path / "raw.json"))
+    localized, _ = localize_findings(
+        result.findings,
+        index,
+        checker_contexts=[result.analysis_context],
+    )
+    finding = localized[0]
+    controller = RepairController(
+        workspace=tmp_path,
+        round_root=tmp_path / "round_topology",
+        baseline_source=source,
+        source_index=index,
+        findings=[finding],
+        checker_specs_sha256="topology-spec",
+        policy=RepairPolicy(),
+    )
+    bridge = next(
+        candidate
+        for candidate in finding.source_candidates
+        if candidate.relation_role == "bridge_parent"
+    )
+    endpoint = next(
+        candidate
+        for candidate in finding.source_candidates
+        if candidate.relation_role == "load"
+    )
+    wrong = RepairProposal(
+        proposal_id="wrong-bridge-resize",
+        finding_ids=[finding.finding_id],
+        hypothesis="incorrectly resize the bridge scope",
+        target=RepairTarget(
+            feature_ids=[bridge.feature_id],
+            source_ids=bridge.source_ids,
+        ),
+        action="resize",
+        rerun_checkers=["topology", "fea", "standing"],
+    )
+    assert controller.normalize_proposal(wrong)[0] is None
+    connector = RepairProposal(
+        proposal_id="add-local-connector",
+        finding_ids=[finding.finding_id],
+        hypothesis="a bounded connector can bond the measured gap",
+        target=RepairTarget(
+            feature_ids=[bridge.feature_id],
+            source_ids=bridge.source_ids,
+        ),
+        action="add_local_structure",
+        parameter_bounds={"maximum_connector_extent_scene_units": 0.15},
+        rerun_checkers=["topology", "fea", "standing"],
+    )
+    normalized, errors = controller.normalize_proposal(connector)
+    assert normalized is not None
+    assert not errors
+    assert normalized.target.feature_ids == [bridge.feature_id]
+
+    wrong_connector = connector.model_copy(
+        update={
+            "proposal_id": "wrong-endpoint-connector",
+            "target": RepairTarget(
+                feature_ids=[endpoint.feature_id],
+                source_ids=endpoint.source_ids,
+            ),
+        }
+    )
+    assert controller.normalize_proposal(wrong_connector)[0] is None
+
+
+def test_topology_indeterminate_is_not_source_editable(tmp_path: Path) -> None:
+    raw = {
+        "status": "INDETERMINATE",
+        "mode": "load_path",
+        "violations": [{
+            "code": "ANALYTIC_RECONSTRUCTION_UNAVAILABLE",
+            "message": "unsupported analytic primitive",
+        }],
+    }
+    result = enrich_result(topology_result(raw, tmp_path / "raw.json"))
+    finding = result.findings[0]
+    assert finding.category == "evidence_insufficient"
+    assert finding.repairability == "analysis"

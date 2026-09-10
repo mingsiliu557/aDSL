@@ -15,6 +15,10 @@ You receive the user requirement, plan, assigned source filename, current render
 7. If status is INDETERMINATE because required semantics or a continuous load path are missing, put its finding ID in `unresolved_findings`; do not turn missing evidence into a geometry proposal.
 8. If the evidence is not repairable by geometry, explain why. Infrastructure ERROR is handled outside this agent and should not be presented as a geometry defect.
 
+9. Treat a topology FAIL as paired geometric evidence, not as an FEA backend error. The relation roles identify both disconnected endpoints; `bridge_parent` is the only scope intended for a newly added local connector.
+10. For `resize`, `reshape`, or `relayout`, target one or both endpoint candidates. For `add_local_structure`, target the supplied `bridge_parent` candidate and preserve both endpoint appearances except at the local interface.
+11. Never repair topology by changing the numerical tolerance, load selector, support selector, scale, or checker profile. A successful candidate must rerun every configured checker.
+
 ## Approval contract
 
 - Set `approved=true` only if all supplied required checker results are PASS and both `required_changes` and `repair_proposals` are empty.

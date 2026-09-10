@@ -18,6 +18,8 @@ from adsl.agents.models import (
     CheckerResult,
     MetricEvidence,
     RegionEvidence,
+    RelationEndpoint,
+    RelationEvidence,
 )
 
 
@@ -103,7 +105,7 @@ def enrich_result(
                 "details": {"assumptions": result.assumptions},
             }
         )
-    elif checker == "fea":
+    elif checker in {"fea", "topology"}:
         scale = result.assumptions.get("scale") or {}
         factor = scale.get("factor_m_per_scene_unit")
         matrix = None
@@ -154,6 +156,7 @@ def enrich_result(
 
         metric = None
         region = None
+        relations: list[RelationEvidence] = []
         if checker == "standing" and "TILT" in code:
             metric = MetricEvidence(
                 name="peak_tilt_deg",
@@ -184,6 +187,89 @@ def enrich_result(
                 part_names=[str(value) for value in violation.get("active_geometry_names", [])],
                 details={"events": violation.get("events", [])},
             )
+        elif checker == "topology":
+            paths = [
+                str(value)
+                for key in (
+                    "part_paths",
+                    "load_part_paths",
+                    "disconnected_component_paths",
+                    "support_part_paths",
+                )
+                for value in violation.get(key, [])
+            ]
+            if paths:
+                region = RegionEvidence(
+                    kind="parts",
+                    frame="authored_scene",
+                    unit="scene_unit",
+                    part_names=sorted(set(paths)),
+                )
+            component_count = violation.get("component_count")
+            if component_count is not None:
+                metric = MetricEvidence(
+                    name="component_count",
+                    value=component_count,
+                    unit="count",
+                    threshold=1,
+                    comparator="le",
+                )
+            raw_relation = violation.get("relation")
+            if isinstance(raw_relation, dict):
+                distance = raw_relation.get("distance_m")
+                left_path = str(raw_relation.get("left_path", ""))
+                right_path = str(raw_relation.get("right_path", ""))
+                load_paths = set(map(str, violation.get("load_part_paths", [])))
+                support_paths = set(map(str, violation.get("support_part_paths", [])))
+                points = raw_relation.get("closest_points_m") or [None, None]
+                left_role = (
+                    "load" if left_path in load_paths
+                    else "support" if left_path in support_paths
+                    else "left"
+                )
+                right_role = (
+                    "load" if right_path in load_paths
+                    else "support" if right_path in support_paths
+                    else "right"
+                )
+                relations = [
+                    RelationEvidence(
+                        kind=(
+                            "weak_contact"
+                            if raw_relation.get("contact_kind") == "point_or_edge"
+                            else "disconnected"
+                        ),
+                        frame="occ_m",
+                        unit="m",
+                        endpoints=[
+                            RelationEndpoint(
+                                role=left_role,
+                                part_names=[left_path],
+                                feature_ids=[str(raw_relation["left_feature_id"])]
+                                if raw_relation.get("left_feature_id") else [],
+                                point=points[0],
+                            ),
+                            RelationEndpoint(
+                                role=right_role,
+                                part_names=[right_path],
+                                feature_ids=[str(raw_relation["right_feature_id"])]
+                                if raw_relation.get("right_feature_id") else [],
+                                point=points[1],
+                            ),
+                        ],
+                        distance=MetricEvidence(
+                            name="endpoint_separation",
+                            value=distance,
+                            unit="m",
+                            threshold=0.0,
+                            comparator="le",
+                            absolute_tolerance=float(
+                                result.assumptions.get("numerical_tolerance_m", 1e-8)
+                            ),
+                        ),
+                        details={"contact_kind": raw_relation.get("contact_kind")},
+                    )
+                ]
         elif checker == "fea":
             threshold_map = result.metrics.get("thresholds", {})
             if code == "DISPLACEMENT_GT_1PCT_CHARACTERISTIC_LENGTH":
@@ -282,6 +368,7 @@ def enrich_result(
                 metric=metric,
                 region=region,
                 evidence_refs=list(result.artifacts.values()),
+                relations=relations,
                 repairability=repairability,
                 message=str(violation.get("message") or result.summary),
                 domain=dict(violation),
@@ -306,9 +393,16 @@ def stage_case(asset_dir: Path, source: Path, output_dir: Path) -> Path:
     case_dir = output_dir / "input_case"
     case_dir.mkdir(parents=True, exist_ok=False)
     shutil.copy2(source, case_dir / "source.py")
-    for name in ("scene.glb", "scene.urdf", "scene.joint_states.json"):
-        candidate = asset_dir / name
-        if candidate.is_file():
+    for name in (
+        "scene.glb",
+        "scene.urdf",
+        "scene.joint_states.json",
+        "source_index.json",
+        "analysis_geometry.json",
+    ):
+        candidates = (asset_dir / name, asset_dir.parent / name)
+        candidate = next((path for path in candidates if path.is_file()), None)
+        if candidate is not None:
             shutil.copy2(candidate, case_dir / name)
     meshes = asset_dir / "meshes"
     if meshes.is_dir():
@@ -317,6 +411,81 @@ def stage_case(asset_dir: Path, source: Path, output_dir: Path) -> Path:
         if not (case_dir / required).is_file():
             raise FileNotFoundError(f"checker requires {required}")
     return case_dir
+
+
+def _manifest_scale(
+    manifest: dict[str, Any],
+    rule: dict[str, Any],
+) -> tuple[float, dict[str, Any]]:
+    bounds = manifest.get("root", {}).get("bounds")
+    if not isinstance(bounds, list) or len(bounds) != 2:
+        raise ValueError("analysis geometry root bounds are unavailable")
+    extents = [
+        float(bounds[1][index]) - float(bounds[0][index])
+        for index in range(3)
+    ]
+    measure = str(rule.get("measure", "height"))
+    if measure == "height":
+        source = extents[2]
+    elif measure == "length":
+        source = max(extents[0], extents[1])
+    elif measure == "diameter":
+        source = max(extents)
+    else:
+        raise ValueError(f"unknown scale measure {measure}")
+    if source <= 0:
+        raise ValueError("analysis geometry has a non-positive characteristic extent")
+    factor = float(rule["target_m"]) / source
+    return factor, {
+        "measure": measure,
+        "source_scene_units": source,
+        "target_m": float(rule["target_m"]),
+        "factor_m_per_scene_unit": factor,
+        "source_bounds": bounds,
+    }
+
+
+def topology_result(raw: dict[str, Any], raw_path: Path) -> CheckerResult:
+    status = str(raw.get("status", "INDETERMINATE"))
+    mode = str(raw.get("mode", "load_path"))
+    violations = list(raw.get("violations", []))
+    assumptions = {
+        **dict(raw.get("assumptions", {})),
+        "mode": mode,
+        "numerical_tolerance_m": raw.get("numerical_tolerance_m"),
+        "scale": raw.get("scale"),
+    }
+    if status == "PASS":
+        summary = (
+            f"Verified one bonded component across {raw.get('part_count', 0)} parts"
+            if mode == "one_piece"
+            else "Every configured load region has a bonded OCC path to a support part"
+        )
+    elif status == "FAIL":
+        summary = (
+            f"Topology validation found {len(violations)} disconnected load-path or one-piece violation(s)"
+        )
+    else:
+        summary = "Topology could not be determined from the available analytic geometry or semantics"
+    return CheckerResult(
+        checker="topology",
+        status=status if status in {"PASS", "FAIL", "INDETERMINATE"} else "ERROR",
+        summary=summary,
+        metrics={
+            "mode": mode,
+            "part_count": raw.get("part_count"),
+            "component_count": raw.get("component_count"),
+            "components": raw.get("components", []),
+            "active_part_paths": raw.get("active_part_paths", []),
+            "weak_contact_count": len(raw.get("weak_contacts", [])),
+        },
+        violations=violations,
+        assumptions=assumptions,
+        artifacts={
+            "raw_result": str(raw_path),
+            "analysis_geometry": str(raw_path.parent.parent / "input_case" / "analysis_geometry.json"),
+        },
+    )
 
 
 def standing_result(raw: dict[str, Any], raw_path: Path) -> CheckerResult:
@@ -906,6 +1075,35 @@ def run_progressive(
     return progressive_result(raw, raw_path)
 
 
+
+def run_topology(
+    case_dir: Path, output_dir: Path, config: dict[str, Any]
+) -> CheckerResult:
+    analyzer = load_module(
+        "adsl_workflow_topology",
+        REPO / "experiments" / "topology_connectivity" / "analyze.py",
+    )
+    manifest_path = case_dir / "analysis_geometry.json"
+    if not manifest_path.is_file():
+        raise FileNotFoundError(
+            "topology checker requires source-linked analysis_geometry.json"
+        )
+    manifest = analyzer.load_manifest(manifest_path)
+    scale, scale_info = _manifest_scale(manifest, config["scale"])
+    profile = dict(config.get("profile", {}))
+    if "loads" not in profile and config.get("functional_loads"):
+        profile["loads"] = config["functional_loads"]
+    raw = analyzer.analyze_manifest(manifest, profile, scale=scale)
+    raw["scale"] = scale_info
+    raw_root = output_dir / "raw"
+    raw_root.mkdir(parents=True, exist_ok=True)
+    raw_path = raw_root / "result.json"
+    raw_path.write_text(
+        json.dumps(raw, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return topology_result(raw, raw_path)
+
 def run_fea(case_dir: Path, output_dir: Path, config: dict[str, Any]) -> CheckerResult:
     analyzer = load_module(
         "adsl_workflow_fea",
@@ -986,7 +1184,10 @@ def run_support(
 
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser()
-    result.add_argument("checker", choices=("standing", "progressive", "fea", "support", "overhang"))
+    result.add_argument(
+        "checker",
+        choices=("standing", "progressive", "topology", "fea", "support", "overhang"),
+    )
     result.add_argument("--asset-dir", type=Path, required=True)
     result.add_argument("--source", type=Path, required=True)
     result.add_argument("--output-dir", type=Path, required=True)
@@ -1008,6 +1209,8 @@ def main() -> int:
             result = run_standing(case_dir, output_dir, config)
         elif args.checker == "progressive":
             result = run_progressive(case_dir, output_dir, config)
+        elif args.checker == "topology":
+            result = run_topology(case_dir, output_dir, config)
         elif args.checker == "fea":
             result = run_fea(case_dir, output_dir, config)
         elif args.checker == "overhang":
