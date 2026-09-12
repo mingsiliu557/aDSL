@@ -27,7 +27,7 @@ def _parser() -> argparse.ArgumentParser:
         command.add_argument("--task-id", default=None)
         command.add_argument("--image", type=Path, action="append", default=[])
         command.add_argument("--articulation", action="store_true")
-        command.add_argument("--max-rounds", type=int, default=2)
+        command.add_argument("--max-rounds", type=int, default=10)
         command.add_argument(
             "--checker-config",
             type=Path,
@@ -46,7 +46,7 @@ def _parser() -> argparse.ArgumentParser:
     resume.add_argument("--output", type=Path, required=True)
     resume.add_argument("--task-id", default=None)
     resume.add_argument("--requirement", default=None)
-    resume.add_argument("--max-rounds", type=int, default=2)
+    resume.add_argument("--max-rounds", type=int, default=10)
     resume.add_argument("--checker-config", type=Path, action="append", default=[])
     resume.add_argument("--repair-policy-config", type=Path)
     return parser

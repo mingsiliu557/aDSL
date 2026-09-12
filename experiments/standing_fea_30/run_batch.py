@@ -196,8 +196,8 @@ def runtime_environment(output_root: Path, gpu_queue: Path | None) -> dict[str, 
         "ADSL_ASSET_EXECUTOR_TIMEOUT_SECONDS": "1800",
         "ADSL_GPU_RENDER_WAIT_TIMEOUT_SECONDS": "3600",
         "ADSL_RENDER_ENGINE": "BLENDER_EEVEE",
-        "ADSL_RENDER_WIDTH": "512",
-        "ADSL_RENDER_HEIGHT": "512",
+        "ADSL_RENDER_WIDTH": "1024",
+        "ADSL_RENDER_HEIGHT": "1024",
         "ADSL_RENDER_SAMPLES": "64",
         "PYTHONHASHSEED": "20260909",
         "TMPDIR": str(scratch.resolve()),
@@ -464,7 +464,7 @@ def main() -> int:
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--case", action="append", default=[])
     parser.add_argument("--arm", action="append", choices=VALID_ARMS, default=[])
-    parser.add_argument("--max-rounds", type=int, default=4)
+    parser.add_argument("--max-rounds", type=int, default=10)
     parser.add_argument("--case-timeout-seconds", type=float, default=21600)
     parser.add_argument("--resume-existing", action="store_true")
     parser.add_argument("--python", type=Path, default=DEFAULT_PYTHON)
@@ -475,8 +475,8 @@ def main() -> int:
     parser.add_argument("--gpu-queue", type=Path, default=DEFAULT_GPU_QUEUE)
     parser.add_argument("--local-render", action="store_true")
     args = parser.parse_args()
-    if args.max_rounds != 4:
-        parser.error("the frozen experiment requires exactly four maximum rounds")
+    if args.max_rounds != 10:
+        parser.error("the current experiment requires a ten-round maximum")
     for path in (
         args.python, args.adsl_run, args.model_config, args.checker_run,
         args.asset_executor, DEFAULT_TOPOLOGY_SPEC, DEFAULT_STANDING_SPEC,
@@ -510,7 +510,7 @@ def main() -> int:
         "max_rounds": args.max_rounds,
         "render": {
             "backend": "local_cpu" if args.local_render else "gpu_queue",
-            "width": 512, "height": 512, "samples": 64, "views": 8,
+            "width": 1024, "height": 1024, "samples": 64, "views": 8,
         },
         "llm_seed_available": False,
         "python_hash_seed": 20260909,

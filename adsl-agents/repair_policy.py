@@ -205,6 +205,8 @@ def assess_candidate(
             regressions.append(f"{checker}: PASS -> {after.status}")
         elif before.status == "FAIL" and after.status not in {"PASS", "FAIL"}:
             regressions.append(f"{checker}: evaluated failure became unavailable ({after.status})")
+        elif before.status not in {"PASS", "FAIL"} and after.status == "FAIL":
+            regressions.append(f"{checker}: newly evaluated physical failure (previously {before.status})")
     if not appearance_approved:
         regressions.append("appearance/function preservation review did not approve")
 
@@ -214,6 +216,11 @@ def assess_candidate(
     target_improvements: list[str] = []
     for checker, before in baseline.items():
         after = candidate[checker]
+        if (before.checker == "fea" and before.status == "INDETERMINATE"
+                and after.status == "PASS" and any(
+                    finding.rule_id == "MESH_INVALID" and finding.finding_id in target_ids
+                    for finding in before.findings)):
+            target_improvements.append(f"{checker}: targeted invalid mesh resolved and physical checks reached PASS")
         if before.status not in {"PASS", "FAIL"} or after.status not in {"PASS", "FAIL"}:
             continue
         targeted_rules = {

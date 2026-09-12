@@ -1,6 +1,14 @@
 # 30-object standing + FEA paired experiment
 
-This protocol compares independently generated vanilla aDSL and checker-unified outputs for 30 unique objects: six prompts in each of five instability-prone, load-bearing categories. Both arms use the same repository revision, StepCode model profile, render settings, and maximum four rounds. Only `ours` enables the required standing and FEA checkers plus source repair.
+This protocol compares independently generated vanilla aDSL and checker-unified outputs for 30 unique objects: six prompts in each of five instability-prone, load-bearing categories. Both arms use the same repository revision, StepCode model profile, 1024x1024 eight-view render settings, and maximum ten rounds. Only `ours` enables the required topology, standing and FEA checkers plus source repair.
+
+As of 2026-09-12, engineering repair uses one candidate per round, at most ten
+candidate attempts overall, with the existing 7200-second repair safety budget.
+The paper specifies a ten-round limit, but not a multi-candidate search budget;
+one candidate is our sequential-refinement mapping, not a reported paper hyperparameter.
+Keep our StepCode backbone/settings. All checker summaries are presented together;
+only topology non-PASS blocks dependent FEA. Use a new output directory: existing
+four-round frozen batches and completed diagnostic budgets must not be rewritten.
 
 The exact 200 prompt IDs used by the aDSL paper are not public. This is a targeted CAP3D/MARVEL same-source/different-sample comparison, not an exact paper reproduction. Prompt selection is deterministic; model generation is not bitwise reproducible because the API exposes no formal seed.
 
@@ -28,7 +36,7 @@ bash experiments/standing_fea_30/run_batch.sh \
   --case SF01 --case SF07 --case SF13 --case SF19 --case SF25
 ```
 
-The wrapper starts and always stops the user-local proxy. Use `--resume-existing` only after reviewing the terminal status. The runner stops at the first genuine failure and labels quota, GPU, checker, and other errors separately. A four-round `WorkflowGateError` with a valid source is an expected unpublished outcome and is still evaluated offline.
+The wrapper starts and always stops the user-local proxy. Use `--resume-existing` only after reviewing the terminal status and matching the frozen configuration. Budget exhaustion with a valid source is an expected unverified outcome and is still evaluated offline.
 
 Summarize a partial or complete run:
 

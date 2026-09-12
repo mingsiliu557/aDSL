@@ -146,6 +146,8 @@ def enrich_result(
         applicability = "applicable"
         if result.status == "ERROR":
             category, repairability, applicability = "infrastructure_error", "analysis", "unknown"
+        elif checker == "fea" and code == "MESH_INVALID" and result.status == "INDETERMINATE":
+            category, repairability, applicability = "geometry_failure", "geometry", "unknown"
         elif result.status == "INDETERMINATE" or code in {
             "MESH_NOT_CONVERGED",
             "PARTIAL_CLIP_FAILURE",
@@ -271,6 +273,9 @@ def enrich_result(
                     )
                 ]
         elif checker == "fea":
+            if code == "MESH_INVALID" and violation.get("bounds_m") is not None:
+                region = RegionEvidence(kind="aabb", frame="fea_m", unit="m",
+                                        bounds=violation["bounds_m"])
             threshold_map = result.metrics.get("thresholds", {})
             if code == "DISPLACEMENT_GT_1PCT_CHARACTERISTIC_LENGTH":
                 metric = MetricEvidence(
@@ -692,6 +697,21 @@ def fea_result(raw: dict[str, Any], raw_path: Path) -> CheckerResult:
         "boundary_condition": "all translational DOFs fixed on global minimum-z nodes",
         "analysis": "linear static plus linear eigenvalue buckling",
     }
+    invalid_levels = [level for level in raw.get("mesh_levels", [])
+                      if level.get("status") == "MESH_INVALID"]
+    if status == "MESH_INVALID" or invalid_levels:
+        return CheckerResult(
+            checker="fea", status="INDETERMINATE",
+            summary="MESH_INVALID: geometric cause is undetermined; structural performance is unverified",
+            violations=[{
+                "code": "MESH_INVALID", "stage": "volume_mesh_validation",
+                "mesh_level": level.get("mesh_level"), **level.get("mesh_invalid", {}),
+            } for level in invalid_levels] or [{
+                "code": "MESH_INVALID", "stage": "volume_mesh_validation",
+                "message": "Invalid mesh; no local evidence available. Structural performance unverified.",
+            }],
+            assumptions=assumptions, artifacts={"raw_result": str(raw_path)},
+        )
     mesh_errors = [
         str(level.get("error", ""))
         for level in raw.get("mesh_levels", [])

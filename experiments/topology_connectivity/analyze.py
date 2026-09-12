@@ -687,6 +687,9 @@ def build_fused_mesh(
             "node_count": int(len(gmsh.model.mesh.getNodes()[0])),
             "element_count": int(sum(len(tags) for tags in element_tags)),
             "minimum_scaled_jacobian": float(np.min(quality)),
+            "invalid_jacobian_element_ids": np.concatenate(element_tags)[
+                ~np.isfinite(quality) | (np.asarray(quality) <= 0)
+            ].astype(int).tolist(),
             "mesh_size_m": float(mesh_size),
             "gmsh_version": gmsh.option.getString("General.Version"),
             "active_part_paths": sorted(selected_parts),

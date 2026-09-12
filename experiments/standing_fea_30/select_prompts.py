@@ -182,7 +182,7 @@ def build_manifest(metadata_root: Path) -> dict[str, Any]:
             "scope": "targeted same-source/different-sample CAP3D/MARVEL subset",
             "prompt_engineering_for_physics": False,
             "llm_seed_available": False,
-            "max_rounds_per_arm": 4,
+            "max_rounds_per_arm": 10,
             "standing_threshold_deg": 25.0,
             "fea_indeterminate_policy": "retain and report separately; do not resample",
         },

@@ -67,7 +67,9 @@ class WorkflowGateError(RuntimeError):
 
 def _actionable_findings(run: CheckerRun) -> list[CheckerFinding]:
     return [finding for finding in run.result.findings
-            if run.result.status == "FAIL"
+            if (run.result.status == "FAIL" or
+                run.result.status == "INDETERMINATE" and run.result.checker == "fea"
+                and finding.rule_id == "MESH_INVALID")
             and finding.category in {"physical_violation", "geometry_failure"}
             and finding.repairability in {"geometry", "design_variable"}]
 
@@ -81,7 +83,7 @@ def _checker_evidence(
     for run in runs:
         selected = [
             (index, finding) for index, finding in enumerate(run.result.findings)
-            if run.result.status == "FAIL"
+            if (run.result.status == "FAIL" or finding in _actionable_findings(run))
             and finding.category in {"physical_violation", "geometry_failure", "missing_semantics"}
             and (finding_ids is None or finding.finding_id in finding_ids)
         ]
@@ -100,7 +102,7 @@ def _checker_evidence(
             summaries[-1].update({
                 "stage": str(violation.get("stage", "evaluation"))[:80],
                 "code": str(violation.get("code", run.result.status))[:100],
-                "geometry_repair_allowed": False,
+                "geometry_repair_allowed": bool(_actionable_findings(run)),
             })
         for index, finding in selected:
             row = finding.model_dump(exclude={"domain"}, exclude_none=True)
@@ -136,7 +138,7 @@ def _engineering_feedback(
         **evidence,
         "required_checker_failures": [r.spec.name for r in runs if r.spec.required and r.result.status == "FAIL"],
         "unverified_checks": [r.spec.name for r in runs if r.result.status in {"ERROR", "INDETERMINATE"}],
-        "unavailable_feedback_policy": "Unavailable checks are not evidence of a geometry defect. Do not propose geometry edits for infrastructure errors or missing analysis; repair only the actionable typed findings.",
+        "unavailable_feedback_policy": "Unavailable checks are not proof of a geometry defect. Only typed MESH_INVALID may motivate a bounded local geometry hypothesis; its geometric cause is undetermined and structural performance unverified. Never repair infrastructure errors or missing analysis. Never delete mesh elements or change tolerances, thresholds, checker/solver settings to pass.",
         "analysis_context": context.model_dump(exclude={"checker_contexts": {"__all__": {"details"}}}),
         "analysis_context_ref": relative(round_root / "analysis_context.json"),
         "localization": [
@@ -848,9 +850,9 @@ class ObjectWorkflow:
                     checker_history=checker_history,
                 )
 
-            # An unavailable checker cannot provide actionable repair guidance. Keep
-            # its unavailable result in the evidence/history, but let the visual/code loop
-            # continue and never present an infrastructure failure as a repair target.
+            # Keep unavailable results in history. Only the typed MESH_INVALID
+            # exception can motivate a local geometry hypothesis; infrastructure
+            # failures remain non-actionable and independent checks continue.
             mandatory_failures = [
                 run
                 for run in required_checker_failures(checker_runs)
@@ -1357,7 +1359,9 @@ class ObjectWorkflow:
                         "plan": plan.model_dump(),
                         "assignment": (
                             "Apply only this bounded RepairProposal to the assigned "
-                            "candidate source. Preserve everything outside allowed_scopes."
+                            "candidate source. Preserve everything outside allowed_scopes. "
+                            "Never delete mesh elements or change tolerances, thresholds, "
+                            "checker code, mesh generation or solver settings to obtain a pass."
                         ),
                         "repair_proposal": proposal.model_dump(),
                         "checker_evidence": _checker_evidence(

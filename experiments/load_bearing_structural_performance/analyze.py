@@ -42,7 +42,7 @@ TOPOLOGY_SPEC.loader.exec_module(TOPOLOGY)
 G = 9.81
 STATUSES = {
     "SOLVED", "NOT_MESHABLE", "INVALID_LOAD_PATH", "LOAD_REGION_AMBIGUOUS",
-    "NOT_CONVERGED", "SOLVER_FAILED",
+    "NOT_CONVERGED", "SOLVER_FAILED", "MESH_INVALID",
 }
 MESH_LEVELS = {"coarse": 0.10, "medium": 0.06, "fine": 0.04}
 
@@ -197,6 +197,9 @@ def build_occ_mesh(items: list[Any], scale: float, mesh_size: float, output: Pat
         )
         return {"mesh_path": str(mesh_path), "node_count": int(node_count),
                 "element_count": int(element_count), "minimum_scaled_jacobian": float(np.min(quality)),
+                "invalid_jacobian_element_ids": np.concatenate(gmsh.model.mesh.getElements(3)[1])[
+                    ~np.isfinite(quality) | (np.asarray(quality) <= 0)
+                ].astype(int).tolist(),
                 "mesh_size_m": mesh_size, "gmsh_version": gmsh.option.getString("General.Version")}
     finally:
         gmsh.finalize()
@@ -234,6 +237,42 @@ def format_ids(values: Iterable[int], per_line: int = 16) -> list[str]:
     ids = list(map(int, values))
     return [", ".join(map(str, ids[index:index + per_line]))
             for index in range(0, len(ids), per_line)]
+
+
+def mesh_invalid_report(nodes: dict[int, np.ndarray], elements: dict[int, list[int]],
+                        mesh: dict[str, Any]) -> dict[str, Any] | None:
+    """Validity gate, not a shape-quality threshold. No mesh edits or tolerances.
+
+    Current C3D10 meshes use SecondOrderLinear=1: the corner determinant is
+    six times signed volume. Gmsh minSJ is the sampled minimum scaled Jacobian,
+    not an aspect-ratio score or a proof of continuum mesh convergence.
+    Small positive values alone are NOT rejected.
+    """
+    tags = list(elements)
+    corners = np.asarray([[nodes[n] for n in elements[tag][:4]] for tag in tags])
+    determinants = np.linalg.det(corners[:, 1:] - corners[:, :1])
+    invalid = {tag for tag, det in zip(tags, determinants) if not np.isfinite(det) or det <= 0}
+    invalid.update(mesh.get("invalid_jacobian_element_ids", []))
+    minimum = mesh.get("minimum_scaled_jacobian")
+    bad_quality = minimum is not None and (not np.isfinite(minimum) or minimum <= 0)
+    if not invalid and not bad_quality:
+        return None
+    ids = sorted(invalid)
+    points = np.asarray([nodes[n] for tag in ids if tag in elements for n in elements[tag]])
+    finite_points = points[np.isfinite(points).all(axis=1)] if points.size else points
+    return {
+        "invalid_element_count": len(ids),
+        "count_is_complete": "invalid_jacobian_element_ids" in mesh or not bad_quality,
+        "invalid_element_ids": ids,
+        "bounds_m": [finite_points.min(axis=0).tolist(), finite_points.max(axis=0).tolist()]
+                    if finite_points.size else None,
+        "minimum_scaled_jacobian": minimum if minimum is not None and np.isfinite(minimum) else None,
+        "minimum_corner_determinant_m3": float(np.min(determinants))
+                    if np.isfinite(determinants).all() else None,
+        "metric_meaning": "corner determinant = 6 * signed volume (linear-sided C3D10); minSJ = sampled minimum scaled Jacobian; nonpositive/nonfinite is invalid, low positive quality alone is not",
+        "mesh_report": mesh.get("mesh_path"),
+        "message": "Invalid volume mesh. Geometric cause is not established; structural performance remains unverified.",
+    }
 
 
 def face_nodes(nodes: dict[int, np.ndarray], bounds: np.ndarray, face: str,
@@ -561,6 +600,10 @@ def analyze_mesh_level(
     except Exception as error:
         return {"mesh_level": level, "status": "NOT_MESHABLE",
                 "error": f"{type(error).__name__}: {error}"}
+    invalid = mesh_invalid_report(nodes, elements, mesh)
+    if invalid is not None:
+        return {"mesh_level": level, "status": "MESH_INVALID", **mesh,
+                "mesh_invalid": invalid}
     zmin = min(float(xyz[2]) for xyz in nodes.values())
     support = sorted(tag for tag, xyz in nodes.items() if xyz[2] <= zmin + max(height * 1e-6, 1e-9))
     if len(support) < 3:

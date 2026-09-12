@@ -50,9 +50,35 @@ UNION/DIFFERENCE/INTERSECT hierarchy. Unsupported analytic constructs return
 `INDETERMINATE`; the system does not infer connectivity from overlapping
 AABBs or silently repair a triangle mesh.
 
-Use `specs/progressive.json` for the fixed 1%-height, event-augmented partial-build scan. It is intentionally an unbonded rigid-body stress test, not a deposition simulation; real FFF decisions must also use slicer support/brim paths and a calibrated bed-adhesion model. Repeat `--checker-config` to require multiple gates. A round publishes only after its appearance review and every required checker return `PASS`. `FAIL` or `INDETERMINATE` becomes structured Engineering Critic feedback; `ERROR` stops as infrastructure failure and is never disguised as a geometry defect.
+Use `specs/progressive.json` for the fixed 1%-height, event-augmented partial-build scan. It is intentionally an unbonded rigid-body stress test, not a deposition simulation; real FFF decisions must also use slicer support/brim paths and a calibrated bed-adhesion model. Repeat `--checker-config` to require multiple gates. A round publishes only after its appearance review and every available required checker return `PASS`. `FAIL` or `INDETERMINATE` becomes structured Engineering Critic feedback. `ERROR` is recorded as unavailable evidence, is not used as repair feedback, and prevents a verified approval; the workflow may continue and publish only as explicitly unverified.
 
 ## Feedback protocol and source localization
+
+### Invalid FEA volume meshes
+
+Before load setup or CalculiX, the FEA adapter checks the saved C3D10 volume
+mesh. For the current `SecondOrderLinear=1` mesh, the corner determinant is
+six times signed volume; Gmsh `minSJ` is the sampled minimum scaled Jacobian,
+not an aspect-ratio quality score or a convergence certificate. Nonpositive
+or nonfinite values are invalid. Small positive quality values alone are not
+rejected. No tolerance, geometry, mesh elements or solver setting is changed.
+
+Invalid meshes return `INDETERMINATE / MESH_INVALID`, not physical `FAIL`.
+The detailed report records element IDs/count, local bounds in metres, metric
+meaning and raw mesh path. The existing coordinate transform/source index
+retrieves source candidates; these are possible locations, not proof of cause.
+The short feedback includes count, region, available source candidates and
+report pointers; full IDs/logs stay on disk. Historical reports lacking
+per-element Jacobian IDs explicitly label counts as incomplete/lower bounds.
+
+Only this typed unavailable finding can motivate a bounded local geometry
+hypothesis. Infrastructure/dependency failures remain non-actionable. All
+existing candidate budgets, scope checks, visual review and independent
+checkers still apply. Unavailable-to-unavailable is not improvement;
+`MESH_INVALID` reaching a real physical `PASS` can improve that target.
+A newly evaluated physical `FAIL` rejects the candidate and is preserved in
+its report. Other real improvements may retain an unverified working model,
+but unfinished required FEA always means `approved=false`.
 
 The adapters emit protocol-v2 `CheckerResult` records while the runner remains
 compatible with protocol-v1 checkers. A v1 result is upgraded conservatively:
