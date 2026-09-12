@@ -9,7 +9,6 @@ import shutil
 from typing import Any
 
 from .checkers import (
-    CheckerExecutionError,
     CheckerRun,
     required_checker_errors,
     required_checker_failures,
@@ -64,6 +63,55 @@ _CONTEXT_POLICY = {
 
 class WorkflowGateError(RuntimeError):
     pass
+
+
+def _engineering_feedback(
+    runs: list[CheckerRun], *, context: AnalysisContext,
+    localization: LocalizationReport | None, history: list[dict[str, object]],
+    round_root: Path, workspace: Path,
+) -> dict[str, Any]:
+    """Send evidence once; preserve full on-disk reports for read_file."""
+    def relative(path: Path) -> str:
+        return path.resolve().relative_to(workspace.resolve()).as_posix()
+
+    findings = {}
+    summaries = []
+    for run in runs:
+        result_ref = relative(run.output_dir / "result.json")
+        summaries.append({
+            "checker": run.spec.name, "required": run.spec.required,
+            "status": run.result.status, "summary": run.result.summary,
+            "finding_ids": [f.finding_id for f in run.result.findings],
+            "result_ref": result_ref,
+        })
+        for finding in run.result.findings:
+            # Typed metrics, regions, relations and source candidates remain inline.
+            # Legacy-only evidence must not disappear when no typed equivalent exists.
+            typed = finding.metric is not None or finding.region is not None or bool(finding.relations)
+            row = finding.model_dump(exclude={"domain"} if typed else set(), exclude_none=True)
+            row["result_ref"] = result_ref
+            findings[finding.finding_id] = row
+    return {
+        "checker_summary": summaries,
+        "required_checker_failures": [r.spec.name for r in required_checker_failures(runs)],
+        "typed_findings": list(findings.values()),
+        "analysis_context": context.model_dump(exclude={"checker_contexts": {"__all__": {"details"}}}),
+        "analysis_context_ref": relative(round_root / "analysis_context.json"),
+        "localization": [
+            row.model_dump(exclude={"candidates"}, exclude_none=True)
+            for row in (localization.findings if localization is not None else [])
+        ],
+        "localization_ref": relative(round_root / "localization.json") if localization is not None else None,
+        "repair_history": [
+            {key: row[key] for key in (
+                "round", "proposal_id", "candidate", "accepted", "reason",
+                "target_improvements", "regressions", "unavailable_checks", "errors",
+            ) if key in row}
+            for row in history
+        ],
+        "repair_history_ref": "repair_history.jsonl" if history else None,
+        "evidence_access": "Use read_file on result_ref and report refs for full metrics, assumptions and raw evidence before proposing a repair when the inline evidence is insufficient.",
+    }
 
 
 @dataclass(frozen=True)
@@ -743,29 +791,27 @@ class ObjectWorkflow:
                 ]
                 failure = {
                     "round": round_number,
-                    "stage": "checker",
-                    "error": "required checker infrastructure error",
+                    "stage": "checker_feedback_unavailable",
+                    "error": "required checker did not produce usable feedback",
                     "details": error_details,
                 }
                 failures.append(failure)
-                self._write_checkpoint(
-                    workspace, **checkpoint_fields(round_number + 1)
-                )
                 runtime.usage.update_manifest(
-                    status="failed",
-                    error_type="CheckerExecutionError",
-                    error="required checker infrastructure error",
+                    status="running",
+                    error_type=None,
+                    error=None,
                     failures=failures,
                     checker_history=checker_history,
                 )
-                raise CheckerExecutionError(
-                    "Required checker infrastructure failed: "
-                    + "; ".join(
-                        f"{row['checker']}: {row['summary']}" for row in error_details
-                    )
-                )
 
-            mandatory_failures = required_checker_failures(checker_runs)
+            # An unavailable checker cannot provide actionable repair guidance. Keep
+            # its ERROR result in the evidence/history, but let the visual/code loop
+            # continue and never present an infrastructure failure as a repair target.
+            mandatory_failures = [
+                run
+                for run in required_checker_failures(checker_runs)
+                if run.result.status != "ERROR"
+            ]
             code_decision: CodeCriticDecision | None = None
             appearance_approved = image_decision.approved
             if not image_decision.approved:
@@ -850,25 +896,12 @@ class ObjectWorkflow:
                                 "assigned_source": "source.py",
                                 "round": round_number,
                                 "max_rounds": end_round,
-                                "required_checker_failures": [
-                                    {
-                                        "required": run.spec.required,
-                                        **run.result.model_dump(),
-                                        "output_dir": str(run.output_dir),
-                                    }
-                                    for run in mandatory_failures
-                                ],
-                                "all_checker_results": checker_record["results"],
-                                "analysis_context": analysis_context.model_dump(),
-                                "typed_findings": findings_payload(
-                                    run.result for run in checker_runs
-                                )["findings"],
-                                "localization": (
-                                    localization_report.model_dump()
-                                    if localization_report is not None
-                                    else None
+                                **_engineering_feedback(
+                                    checker_runs, context=analysis_context,
+                                    localization=localization_report,
+                                    history=self._read_repair_history(workspace),
+                                    round_root=round_root, workspace=workspace,
                                 ),
-                                "repair_history": self._read_repair_history(workspace),
                                 "maximum_repair_proposals": (
                                     request.repair_policy.max_candidates_per_round
                                 ),
@@ -919,8 +952,12 @@ class ObjectWorkflow:
                 final = (
                     round_number,
                     execution,
-                    True,
-                    "appearance_and_required_checkers_approved",
+                    not bool(checker_errors),
+                    (
+                        "appearance_and_required_checkers_approved"
+                        if not checker_errors
+                        else "appearance_approved_checker_feedback_unavailable"
+                    ),
                 )
                 break
 
@@ -985,6 +1022,13 @@ class ObjectWorkflow:
 
             gate_details = {
                 "appearance_approved": appearance_approved,
+                "required_checker_unavailable": [
+                    {
+                        "checker": run.spec.name,
+                        "summary": run.result.summary,
+                    }
+                    for run in checker_errors
+                ],
                 "required_checker_failures": [
                     {
                         "checker": run.spec.name,
@@ -1388,7 +1432,10 @@ class ObjectWorkflow:
                 write_json(candidate_root / "decision.json", record)
                 controller.record(record)
                 attempts.append(record)
-                raise CheckerExecutionError(record["reason"])
+                # Reject this candidate, but continue evaluating later proposals.
+                # A checker infrastructure failure is local to the candidate and
+                # must not abort the whole repair round.
+                continue
 
             if (
                 candidate_execution.source_index_path is not None

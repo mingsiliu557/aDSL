@@ -46,6 +46,12 @@ def fields(name: str, result: dict[str, Any] | None) -> dict[str, Any]:
         state = dig(result or {}, "metrics", "states", "initial") or {}
         row.update(standing_peak_tilt_deg=state.get("peak_tilt_deg"),
                    standing_final_tilt_deg=state.get("final_tilt_deg"))
+    elif name == "topology":
+        metrics = (result or {}).get("metrics") or {}
+        row.update(
+            topology_component_count=metrics.get("component_count"),
+            topology_weak_contact_count=metrics.get("weak_contact_count"),
+        )
     else:
         metrics = (result or {}).get("metrics") or {}
         row.update(
@@ -64,6 +70,7 @@ def collect_rows(manifest: dict[str, Any], root: Path) -> list[dict[str, Any]]:
             state_path = root / "state" / arm / f"{case['case_id']}.json"
             state = read_json(state_path) if state_path.is_file() else {}
             workspace = root / "workspaces" / arm / case["case_id"]
+            topology = dig(state, "evaluation", "checkers", "topology", "result")
             standing = dig(state, "evaluation", "checkers", "standing", "result")
             fea = dig(state, "evaluation", "checkers", "fea", "result")
             row = {
@@ -76,13 +83,15 @@ def collect_rows(manifest: dict[str, Any], root: Path) -> list[dict[str, Any]]:
                 "elapsed_seconds": dig(state, "generation_process", "elapsed_seconds"),
                 "total_tokens": dig(state, "usage", "total_tokens"),
             }
+            row.update(fields("topology", topology))
             row.update(fields("standing", standing))
             row.update(fields("fea", fea))
             row["joint_pass"] = (
-                (standing or {}).get("status") == "PASS"
+                (topology or {}).get("status") == "PASS"
+                and (standing or {}).get("status") == "PASS"
                 and (fea or {}).get("status") == "PASS"
             ) if state.get("status") == "COMPLETED" else None
-            for checker in ("standing", "fea"):
+            for checker in ("topology", "standing", "fea"):
                 value = first_result(workspace, checker)
                 row[f"initial_{checker}_status"] = (value or {}).get("status")
                 row[f"initial_{checker}_reason"] = reason(value)
@@ -135,7 +144,7 @@ def summarize(rows: list[dict[str, Any]], expected: int) -> dict[str, Any]:
         "status_counts": {
             arm: {
                 field: counts(rows, arm, f"{field}_status" if field != "run" else "run_status")
-                for field in ("run", "standing", "fea")
+                for field in ("run", "topology", "standing", "fea")
             } for arm in VALID_ARMS
         },
         "fea_indeterminate_causes": {
@@ -158,8 +167,17 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
+    parser.add_argument("--case", action="append", default=[])
     args = parser.parse_args()
     manifest = read_json(args.manifest.resolve())
+    selected = set(args.case)
+    if selected:
+        manifest["cases"] = [
+            case for case in manifest["cases"] if case["case_id"] in selected
+        ]
+        found = {case["case_id"] for case in manifest["cases"]}
+        if found != selected:
+            raise ValueError(f"unknown cases: {sorted(selected - found)}")
     root = args.output_root.resolve()
     rows = collect_rows(manifest, root)
     summary = summarize(rows, len(manifest["cases"]))
@@ -173,7 +191,7 @@ def main() -> int:
                 for key, value in row.items()
             })
     paired = summary["paired_joint_pass"]
-    report = f"""# Standing + FEA 30-object paired experiment
+    report = f"""# Topology + Standing + FEA paired experiment
 
 Status: **{'complete' if summary['experiment_complete'] else 'in progress'}**; {summary['complete_pairs']}/{summary['expected_pairs']} complete pairs.
 
@@ -202,8 +220,8 @@ FEA `INDETERMINATE` is retained separately and is never relabeled as structural 
 
 - Artifact root: `{root}`
 - Prompt scope: {manifest['protocol']['scope']}; selection seed `{manifest['protocol']['selection_seed']}`.
-- Sample: 30 unique objects, five categories, two independently generated arms.
-- Same code/model/render settings and four-round cap; only Ours enables standing + FEA checking and source repair.
+- Sample: {len(manifest['cases'])} unique objects, five categories, two independently generated arms.
+- Same code/model/render settings and four-round cap; only Ours enables topology + standing + FEA checking and source repair.
 - The model API exposes no formal seed, so generation is not bitwise reproducible.
 - Standing fails only when natural-settle tilt is strictly greater than 25 degrees.
 - FEA is linear static/eigenvalue-buckling PLA screening defined by the category config.

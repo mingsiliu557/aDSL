@@ -24,6 +24,7 @@ DEFAULT_MODEL_CONFIG = EXPERIMENT / "configs/stepcode-temperature-zero.yaml"
 DEFAULT_CHECKER_RUN = REPO / "experiments/workflow_checkers/run.py"
 DEFAULT_ASSET_EXECUTOR = REPO / "adsl-agents/utils/asset_executor.py"
 DEFAULT_STANDING_SPEC = REPO / "experiments/workflow_checkers/specs/standing.json"
+DEFAULT_TOPOLOGY_SPEC = REPO / "experiments/workflow_checkers/specs/topology_one_piece.json"
 DEFAULT_REPAIR_POLICY = REPO / "experiments/workflow_checkers/repair_policy.json"
 DEFAULT_GPU_QUEUE = Path("/jiigan-hp/lms/aDSL/experiment/gpu_render_queue")
 MUJOCO_PYTHONPATH = Path("/jiigan-hp/lms/aDSL/experiment/runtime/mujoco-py310")
@@ -142,6 +143,7 @@ def generation_command(
     ]
     if arm == "ours":
         command.extend([
+            "--checker-config", str(DEFAULT_TOPOLOGY_SPEC.resolve()),
             "--checker-config", str(DEFAULT_STANDING_SPEC.resolve()),
             "--checker-config", str(fea_spec_path(case).resolve()),
             "--repair-policy-config", str(DEFAULT_REPAIR_POLICY.resolve()),
@@ -177,6 +179,7 @@ def resume_command(
     ]
     if arm == "ours":
         command.extend([
+            "--checker-config", str(DEFAULT_TOPOLOGY_SPEC.resolve()),
             "--checker-config", str(DEFAULT_STANDING_SPEC.resolve()),
             "--checker-config", str(fea_spec_path(case).resolve()),
             "--repair-policy-config", str(DEFAULT_REPAIR_POLICY.resolve()),
@@ -184,12 +187,12 @@ def resume_command(
     return command
 
 
-def runtime_environment(output_root: Path, gpu_queue: Path) -> dict[str, str]:
+def runtime_environment(output_root: Path, gpu_queue: Path | None) -> dict[str, str]:
     environment = dict(os.environ)
+    environment.pop("ADSL_GPU_RENDER_QUEUE", None)
     scratch = output_root / "scratch"
     scratch.mkdir(parents=True, exist_ok=True)
     environment.update({
-        "ADSL_GPU_RENDER_QUEUE": str(gpu_queue.resolve()),
         "ADSL_ASSET_EXECUTOR_TIMEOUT_SECONDS": "1800",
         "ADSL_GPU_RENDER_WAIT_TIMEOUT_SECONDS": "3600",
         "ADSL_RENDER_ENGINE": "BLENDER_EEVEE",
@@ -199,6 +202,8 @@ def runtime_environment(output_root: Path, gpu_queue: Path) -> dict[str, str]:
         "PYTHONHASHSEED": "20260909",
         "TMPDIR": str(scratch.resolve()),
     })
+    if gpu_queue is not None:
+        environment["ADSL_GPU_RENDER_QUEUE"] = str(gpu_queue.resolve())
     return environment
 
 
@@ -328,38 +333,39 @@ def evaluate_final_source(
         result["status"] = "EXPORT_ERROR"
         return result
 
-    configs = {
-        "standing": REPO / "experiments/workflow_checkers/configs/standing.json",
-        "fea": EXPERIMENT / "configs" / case["fea_config"],
-    }
-    check_env = checker_environment(environment)
-    for checker, config in configs.items():
-        checker_output = attempt / "checkers" / checker
-        command = [
-            str(python.resolve()), str(checker_run.resolve()), checker,
-            "--asset-dir", str((asset_dir / "render").resolve()),
-            "--source", str(source.resolve()),
-            "--output-dir", str(checker_output.resolve()),
-            "--config", str(config.resolve()),
-        ]
-        process = run_logged(
-            command,
-            environment=check_env,
-            stdout_path=attempt / f"logs/{checker}.stdout.log",
-            stderr_path=attempt / f"logs/{checker}.stderr.log",
-            timeout_seconds=timeout_seconds,
-        )
-        result_path = checker_output / "result.json"
-        payload = read_json(result_path) if result_path.is_file() else None
-        result["checkers"][checker] = {
-            "process": process,
+    from adsl.agents.checkers import load_checker_spec, run_checkers
+    from adsl.agents.utils.execution import ExecutionResult
+
+    specs = []
+    for path in (DEFAULT_TOPOLOGY_SPEC, DEFAULT_STANDING_SPEC, fea_spec_path(case)):
+        spec = load_checker_spec(path)
+        command = list(spec.command)
+        command[0] = str(python.resolve())
+        command[1] = str(checker_run.resolve())
+        specs.append(spec.model_copy(update={"command": command}))
+    execution = ExecutionResult(
+        output_root=asset_dir,
+        glb_path=asset_dir / "render/scene.glb",
+        urdf_path=asset_dir / "render/scene.urdf",
+        render_paths=(), stdout="", stderr="",
+        analysis_geometry_path=asset_dir / "analysis_geometry.json",
+        source_index_path=asset_dir / "source_index.json",
+    )
+    runs = run_checkers(
+        specs, execution=execution, source_path=source, round_root=attempt,
+        environment=checker_environment(environment),
+    )
+    for run in runs:
+        result_path = run.output_dir / "result.json"
+        result["checkers"][run.spec.name] = {
+            "process": {
+                "executed": bool(run.command),
+                "timeout_seconds": run.spec.timeout_seconds,
+            },
             "result_path": str(result_path.relative_to(output_root)),
-            "result": payload,
+            "result": run.result.model_dump(),
         }
-        if process["return_code"] != 0 or payload is None:
-            result["status"] = "CHECKER_ERROR"
-            return result
-    result["status"] = "COMPLETED"
+    result["status"] = "CHECKER_ERROR" if any(run.result.status == "ERROR" for run in runs) else "COMPLETED"
     return result
 
 
@@ -435,6 +441,9 @@ def run_arm(
         append_jsonl(output_root / "events.jsonl", {**record, "event": "generation_stopped"})
         return record
 
+    record["status"] = "EVALUATING"
+    write_json(state_path, record)
+    append_jsonl(output_root / "events.jsonl", {**record, "event": "generation_finished"})
     evaluation = evaluate_final_source(
         case=case, arm=arm, workspace=workspace, output_root=output_root,
         python=args.python, checker_run=args.checker_run,
@@ -464,22 +473,24 @@ def main() -> int:
     parser.add_argument("--checker-run", type=Path, default=DEFAULT_CHECKER_RUN)
     parser.add_argument("--asset-executor", type=Path, default=DEFAULT_ASSET_EXECUTOR)
     parser.add_argument("--gpu-queue", type=Path, default=DEFAULT_GPU_QUEUE)
+    parser.add_argument("--local-render", action="store_true")
     args = parser.parse_args()
     if args.max_rounds != 4:
         parser.error("the frozen experiment requires exactly four maximum rounds")
     for path in (
         args.python, args.adsl_run, args.model_config, args.checker_run,
-        args.asset_executor, DEFAULT_STANDING_SPEC, DEFAULT_REPAIR_POLICY,
+        args.asset_executor, DEFAULT_TOPOLOGY_SPEC, DEFAULT_STANDING_SPEC,
+        DEFAULT_REPAIR_POLICY,
     ):
         if not path.expanduser().resolve().is_file():
             raise FileNotFoundError(path)
-    if not args.gpu_queue.expanduser().resolve().is_dir():
-        raise FileNotFoundError(args.gpu_queue)
-    from adsl.tools.gpu_render_queue import worker_is_live
-    if not worker_is_live(args.gpu_queue):
-        raise RuntimeError(
-            f"GPU render worker heartbeat is not live: {args.gpu_queue.resolve()}"
-        )
+    gpu_queue = None if args.local_render else args.gpu_queue.expanduser().resolve()
+    if gpu_queue is not None:
+        if not gpu_queue.is_dir():
+            raise FileNotFoundError(gpu_queue)
+        from adsl.tools.gpu_render_queue import worker_is_live
+        if not worker_is_live(gpu_queue):
+            raise RuntimeError(f"GPU render worker heartbeat is not live: {gpu_queue}")
 
     manifest_path = args.manifest.expanduser().resolve()
     manifest = read_json(manifest_path)
@@ -487,7 +498,7 @@ def main() -> int:
     selected_arms = set(args.arm or VALID_ARMS)
     output_root = args.output_root.expanduser().resolve()
     output_root.mkdir(parents=True, exist_ok=True)
-    environment = runtime_environment(output_root, args.gpu_queue)
+    environment = runtime_environment(output_root, gpu_queue)
     frozen_config = {
         "created_at": utc_now(),
         "manifest": str(manifest_path),
@@ -497,11 +508,14 @@ def main() -> int:
         ).strip(),
         "model_config": str(args.model_config.resolve()),
         "max_rounds": args.max_rounds,
-        "render": {"width": 512, "height": 512, "samples": 64, "views": 8},
+        "render": {
+            "backend": "local_cpu" if args.local_render else "gpu_queue",
+            "width": 512, "height": 512, "samples": 64, "views": 8,
+        },
         "llm_seed_available": False,
         "python_hash_seed": 20260909,
-        "planned_cases": [case["case_id"] for case in manifest["cases"]],
-        "planned_arms": list(VALID_ARMS),
+        "planned_cases": [case["case_id"] for case in cases],
+        "planned_arms": sorted(selected_arms),
     }
     config_path = output_root / "batch_config.json"
     if config_path.is_file():
@@ -524,26 +538,62 @@ def main() -> int:
         "resume_existing": args.resume_existing,
     })
 
+    failed_arms = []
     for case in cases:
         order = [arm for arm in case["arm_order"] if arm in selected_arms]
         for arm in order:
-            row = run_arm(
-                case=case, arm=arm, output_root=output_root,
-                args=args, environment=environment,
-            )
+            try:
+                row = run_arm(
+                    case=case, arm=arm, output_root=output_root,
+                    args=args, environment=environment,
+                )
+            except Exception as error:
+                # Keep a single arm exception local to that arm. Preserve any
+                # existing state metadata so resume/debug information is not lost.
+                state_path = output_root / "state" / arm / f"{case['case_id']}.json"
+                previous = read_json(state_path) if state_path.is_file() else {}
+                row = {
+                    **previous,
+                    "case_id": case["case_id"],
+                    "arm": arm,
+                    "status": "STOPPED_ERROR",
+                    "error_type": type(error).__name__,
+                    "error": str(error),
+                    "finished_at": utc_now(),
+                }
+                write_json(state_path, row)
+                append_jsonl(
+                    output_root / "events.jsonl",
+                    {**row, "event": "arm_exception"},
+                )
             if row["status"] != "COMPLETED":
                 pause_status = classify_pause(
                     output_root=output_root, case_id=case["case_id"], arm=arm, row=row
                 )
-                write_json(output_root / "batch_terminal.json", {
-                    "status": pause_status, "stopped_at": utc_now(),
-                    "case_id": case["case_id"], "arm": arm,
-                    "reason": row.get("generation_outcome", row.get("evaluation", {}).get("status")),
+                failed_arms.append({
+                    "case_id": case["case_id"],
+                    "arm": arm,
+                    "status": pause_status,
+                    "reason": row.get("error") or row.get(
+                        "generation_outcome", row.get("evaluation", {}).get("status")
+                    ),
                 })
-                return 1
+                # An arm is terminally failed, but it must not prevent later arms
+                # and cases from running in the same batch.
+                continue
+    failed_case_ids = {row["case_id"] for row in failed_arms}
+    planned_arm_count = sum(
+        len([arm for arm in case["arm_order"] if arm in selected_arms])
+        for case in cases
+    )
     write_json(output_root / "batch_terminal.json", {
-        "status": "COMPLETE", "finished_at": utc_now(),
-        "completed_cases": len(cases), "completed_arms": len(cases) * len(selected_arms),
+        "status": "COMPLETE_WITH_ERRORS" if failed_arms else "COMPLETE",
+        "finished_at": utc_now(),
+        "completed_cases": len(cases) - len(failed_case_ids),
+        "attempted_cases": len(cases),
+        "completed_arms": planned_arm_count - len(failed_arms),
+        "planned_arms": planned_arm_count,
+        "failed_arms": failed_arms,
     })
     return 0
 

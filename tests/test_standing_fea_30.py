@@ -1,5 +1,8 @@
 from pathlib import Path
+import json
+import sys
 
+import experiments.standing_fea_30.run_batch as batch
 from experiments.standing_fea_30.profiles import definition, prompt_is_eligible
 from experiments.standing_fea_30.run_batch import classify_pause, generation_command, terminal_generation
 from experiments.standing_fea_30.summarize import exact_mcnemar, summarize
@@ -18,7 +21,65 @@ def test_only_ours_enables_checkers(tmp_path: Path) -> None:
     baseline = generation_command(arm="adsl", **kwargs)
     ours = generation_command(arm="ours", **kwargs)
     assert "--checker-config" not in baseline
-    assert ours.count("--checker-config") == 2
+    assert ours.count("--checker-config") == 3
+
+
+def test_batch_continues_after_one_arm_exception(tmp_path, monkeypatch):
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps({
+        "cases": [
+            {
+                "case_id": "C01",
+                "prompt": "test object",
+                "category": "chair_stool",
+                "dataset": "synthetic",
+                "caption_source": "test",
+                "object_id": "C01",
+                "fea_config": "fea_chair_stool.json",
+                "arm_order": ["adsl", "ours"],
+            },
+            {
+                "case_id": "C02",
+                "prompt": "test object 2",
+                "category": "chair_stool",
+                "dataset": "synthetic",
+                "caption_source": "test",
+                "object_id": "C02",
+                "fea_config": "fea_chair_stool.json",
+                "arm_order": ["adsl", "ours"],
+            },
+        ]
+    }), encoding="utf-8")
+    calls = []
+
+    def fake_run_arm(**kwargs):
+        calls.append((kwargs["case"]["case_id"], kwargs["arm"]))
+        if len(calls) == 1:
+            raise RuntimeError("synthetic arm failure")
+        return {"status": "COMPLETED"}
+
+    monkeypatch.setattr(batch, "run_arm", fake_run_arm)
+    monkeypatch.setattr(sys, "argv", [
+        "run_batch.py",
+        "--manifest", str(manifest),
+        "--output-root", str(tmp_path / "out"),
+        "--local-render",
+        "--python", sys.executable,
+        "--adsl-run", sys.executable,
+        "--model-config", __file__,
+        "--checker-run", __file__,
+        "--asset-executor", __file__,
+    ])
+
+    assert batch.main() == 0
+    assert calls == [("C01", "adsl"), ("C01", "ours"), ("C02", "adsl"), ("C02", "ours")]
+    terminal = json.loads((tmp_path / "out" / "batch_terminal.json").read_text())
+    assert terminal["status"] == "COMPLETE_WITH_ERRORS"
+    assert terminal["completed_cases"] == 1
+    assert terminal["completed_arms"] == 3
+    assert terminal["failed_arms"][0]["case_id"] == "C01"
+    state = json.loads((tmp_path / "out" / "state/adsl/C01.json").read_text())
+    assert state["status"] == "STOPPED_ERROR"
 
 
 def test_gate_exhaustion_is_terminal(tmp_path: Path) -> None:

@@ -68,6 +68,40 @@ def test_checker_runner_expands_placeholders_and_reads_protocol(tmp_path: Path) 
     assert (run.output_dir / "invocation.json").is_file()
 
 
+def test_checker_runner_missing_output_is_recorded_as_error(tmp_path: Path) -> None:
+    asset = tmp_path / "asset"
+    asset.mkdir()
+    source = tmp_path / "source.py"
+    source.write_text("scene = None\n", encoding="utf-8")
+    glb = asset / "scene.glb"
+    glb.write_bytes(b"glb")
+    script = tmp_path / "silent_checker.py"
+    script.write_text("raise SystemExit(0)\n", encoding="utf-8")
+    execution = ExecutionResult(
+        output_root=asset.parent,
+        glb_path=glb,
+        urdf_path=None,
+        render_paths=(),
+        stdout="",
+        stderr="",
+    )
+    spec = CheckerSpec(
+        name="silent",
+        command=[sys.executable, str(script)],
+    )
+
+    run = run_checker(
+        spec,
+        execution=execution,
+        source_path=source,
+        round_root=tmp_path / "round",
+    )
+
+    assert run.result.status == "ERROR"
+    assert "did not write" in run.result.summary
+    assert (run.output_dir / "result.json").is_file()
+
+
 def test_checker_spec_load_and_cli_registration(tmp_path: Path) -> None:
     path = tmp_path / "checker.json"
     path.write_text(

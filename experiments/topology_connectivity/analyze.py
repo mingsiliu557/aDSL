@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from contextlib import contextmanager
+from datetime import datetime, timezone
 import json
 import math
+import os
 from pathlib import Path
 import re
 from typing import Any, Iterable
@@ -92,20 +95,45 @@ def _volumes(values: Iterable[tuple[int, int]]) -> list[int]:
     return [int(tag) for dim, tag in values if int(dim) == 3]
 
 
-def _fuse(gmsh: Any, tags: list[int]) -> list[int]:
+@contextmanager
+def _operation(part: str, operation: str, operand_count: int):
+    """Persist both boundaries so a killed native call remains identifiable."""
+    path = os.environ.get("ADSL_GEOMETRY_PROGRESS_LOG")
+    started_at = datetime.now(timezone.utc).isoformat()
+    def record(event: str) -> None:
+        if path:
+            with Path(path).open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps({
+                    "event": event, "part": part, "operation": operation,
+                    "operand_count": operand_count, "started_at": started_at,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }) + "\n")
+                handle.flush()
+                os.fsync(handle.fileno())
+    record("start")
+    try:
+        yield
+    except BaseException:
+        record("error")
+        raise
+    else:
+        record("complete")
+
+
+def _fuse(gmsh: Any, tags: list[int], *, part: str = "<unknown>") -> list[int]:
     tags = list(dict.fromkeys(tags))
     if len(tags) < 2:
         return tags
-    output, _ = gmsh.model.occ.fuse(
-        [(3, tags[0])],
-        [(3, tag) for tag in tags[1:]],
-        removeObject=True,
-        removeTool=True,
-    )
+    with _operation(part, "OCC fuse", len(tags)):
+        output, _ = gmsh.model.occ.fuse(
+            [(3, tags[0])], [(3, tag) for tag in tags[1:]],
+            removeObject=True, removeTool=True,
+        )
     return _volumes(output)
 
 
 def _build_node(gmsh: Any, node: dict[str, Any], scale: float) -> list[int]:
+    part = str(node.get("semantic_path", "<unknown>"))
     primitives = [
         primitive
         for primitive in node.get("primitives", [])
@@ -129,31 +157,29 @@ def _build_node(gmsh: Any, node: dict[str, Any], scale: float) -> list[int]:
     if not ordered or not ordered[0]:
         raise TopologyAnalysisError(f"{mode} has no analytic operand")
     if mode == "UNION":
-        return _fuse(gmsh, [tag for group in ordered for tag in group])
-    current = _fuse(gmsh, ordered[0])
+        return _fuse(gmsh, [tag for group in ordered for tag in group], part=part)
+    current = _fuse(gmsh, ordered[0], part=part)
     if len(current) != 1:
         raise TopologyAnalysisError(f"{mode} base produced {len(current)} volumes")
     if mode == "DIFFERENCE":
-        tools = _fuse(gmsh, [tag for group in ordered[1:] for tag in group])
+        tools = _fuse(gmsh, [tag for group in ordered[1:] for tag in group], part=part)
         if not tools:
             return current
-        output, _ = gmsh.model.occ.cut(
-            [(3, current[0])],
-            [(3, tag) for tag in tools],
-            removeObject=True,
-            removeTool=True,
-        )
+        with _operation(part, "OCC cut", 1 + len(tools)):
+            output, _ = gmsh.model.occ.cut(
+                [(3, current[0])], [(3, tag) for tag in tools],
+                removeObject=True, removeTool=True,
+            )
         result = _volumes(output)
     else:
         result = current
         for group in ordered[1:]:
-            other = _fuse(gmsh, group)
-            output, _ = gmsh.model.occ.intersect(
-                [(3, tag) for tag in result],
-                [(3, tag) for tag in other],
-                removeObject=True,
-                removeTool=True,
-            )
+            other = _fuse(gmsh, group, part=part)
+            with _operation(part, "OCC intersect", len(result) + len(other)):
+                output, _ = gmsh.model.occ.intersect(
+                    [(3, tag) for tag in result], [(3, tag) for tag in other],
+                    removeObject=True, removeTool=True,
+                )
             result = _volumes(output)
     if not result:
         raise TopologyAnalysisError(f"{mode} produced no solid volume")
@@ -179,7 +205,7 @@ def _scaled_bounds(node: dict[str, Any], scale: float) -> list[list[float]] | No
 
 
 def _part(gmsh: Any, node: dict[str, Any], scale: float) -> _Part:
-    volumes = _fuse(gmsh, _build_node(gmsh, node, scale))
+    volumes = _fuse(gmsh, _build_node(gmsh, node, scale), part=str(node.get("semantic_path")))
     if not volumes:
         raise TopologyAnalysisError(f"{node.get('semantic_path')} produced no solid volume")
     return _Part(
@@ -229,12 +255,10 @@ def _probe(gmsh: Any, left: _Entity, right: _Entity, tolerance: float) -> dict[s
     if distance[0] <= tolerance:
         copies_left = gmsh.model.occ.copy([(3, left.tag)])
         copies_right = gmsh.model.occ.copy([(3, right.tag)])
-        fused, _ = gmsh.model.occ.fuse(
-            copies_left,
-            copies_right,
-            removeObject=True,
-            removeTool=True,
-        )
+        with _operation(f"{left.entity_id} <-> {right.entity_id}", "OCC fuse", 2):
+            fused, _ = gmsh.model.occ.fuse(
+                copies_left, copies_right, removeObject=True, removeTool=True,
+            )
         connected = len(_volumes(fused)) == 1
         if fused:
             gmsh.model.occ.remove(fused, recursive=True)
@@ -635,6 +659,7 @@ def build_fused_mesh(
         fused = _fuse(
             gmsh,
             [available[entity_id] for entity_id in sorted(selected_entities)],
+            part=" + ".join(sorted(selected_entities)),
         )
         if len(fused) != 1:
             raise TopologyAnalysisError(

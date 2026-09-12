@@ -115,6 +115,23 @@ def test_one_piece_contact_rule(
     assert result["contacts"][0]["contact_kind"] == contact_kind
 
 
+def test_occ_progress_records_start_and_completion(tmp_path, monkeypatch):
+    import json
+    path = tmp_path / "progress.jsonl"
+    monkeypatch.setenv("ADSL_GEOMETRY_PROGRESS_LOG", str(path))
+    result = TOPOLOGY.analyze_manifest(
+        _manifest(_cube("left", (0, 0, 0)), _cube("right", (1, 0, 0))),
+        {"mode": "one_piece"},
+    )
+    assert result["status"] == "PASS"
+    rows = [json.loads(line) for line in path.read_text().splitlines()]
+    assert [r["event"] for r in rows] == ["start", "complete"]
+    assert rows[0]["operation"] == "OCC fuse"
+    assert rows[0]["operand_count"] == 2
+    assert "Root/left" in rows[0]["part"]
+    assert rows[0]["started_at"] == rows[1]["started_at"]
+
+
 def test_load_path_reports_paired_nearest_endpoints() -> None:
     result = TOPOLOGY.analyze_manifest(
         _manifest(
