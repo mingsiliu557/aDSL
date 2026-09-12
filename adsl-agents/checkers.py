@@ -7,6 +7,7 @@ from pathlib import Path
 import signal
 import subprocess
 import sys
+import traceback
 from typing import Iterable, Mapping
 
 from .feedback_schema import canonicalize_result
@@ -78,6 +79,35 @@ def run_checker(
     round_root: Path,
     environment: Mapping[str, str] | None = None,
 ) -> CheckerRun:
+    # Keep setup/startup failures inside the same per-checker boundary as timeouts.
+    # KeyboardInterrupt/SystemExit still propagate; the child is cleaned up below.
+    try:
+        return _run_checker(spec, execution=execution, source_path=source_path,
+                            round_root=round_root, environment=environment)
+    except Exception as error:
+        output_dir = round_root / "checkers" / spec.name
+        result = _error_result(
+            spec, f"Checker setup/execution unavailable ({type(error).__name__})",
+            details={"stage": "setup_or_execution"},
+        )
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            (output_dir / "exception.log").write_text(traceback.format_exc(), encoding="utf-8")
+            write_json(output_dir / "result.json", result.model_dump())
+        except OSError:
+            # Even an unwritable checker output directory must not stop siblings.
+            pass
+        return CheckerRun(spec, result, output_dir, ())
+
+
+def _run_checker(
+    spec: CheckerSpec,
+    *,
+    execution: ExecutionResult,
+    source_path: Path,
+    round_root: Path,
+    environment: Mapping[str, str] | None = None,
+) -> CheckerRun:
     project_root = Path(__file__).resolve().parents[1]
     output_dir = round_root / "checkers" / spec.name
     output_dir.mkdir(parents=True, exist_ok=False)
@@ -105,7 +135,8 @@ def run_checker(
     try:
         command = tuple(token.format_map(values) for token in spec.command)
     except (KeyError, ValueError) as error:
-        result = _error_result(spec, f"Invalid checker command template: {error}")
+        result = _error_result(spec, f"Invalid checker command template ({type(error).__name__})",
+                               details={"stage": "configuration"})
         write_json(output_dir / "result.json", result.model_dump())
         return CheckerRun(spec, result, output_dir, ())
 
@@ -139,14 +170,15 @@ def run_checker(
             process.wait(timeout=spec.timeout_seconds)
         except subprocess.TimeoutExpired:
             _terminate(process)
-            details = {}
+            details = {"stage": "evaluation"}
             code = "CHECKER_TIMEOUT"
             if progress_path.is_file():
                 try:
                     last = json.loads(progress_path.read_text().splitlines()[-1])
                     if last.get("event") == "start" and last.get("operation", "").startswith("OCC "):
                         code = "GEOMETRY_PREPROCESS_TIMEOUT"
-                        details = {key: last[key] for key in ("part", "operation", "operand_count", "started_at") if key in last}
+                        details.update({key: last[key] for key in ("part", "operation", "operand_count", "started_at") if key in last})
+                        details["stage"] = "geometry_preprocess"
                         if details.get("part"):
                             details["part_names"] = [details["part"]]
                 except (ValueError, IndexError, OSError):
@@ -169,10 +201,12 @@ def run_checker(
         result = _error_result(
             spec,
             f"Checker exited with code {process.returncode}; inspect stdout.log and stderr.log",
+            details={"stage": "execution", "return_code": process.returncode},
         )
         write_json(result_path, result.model_dump())
     elif not result_path.is_file():
-        result = _error_result(spec, "Checker did not write output_dir/result.json")
+        result = _error_result(spec, "Checker did not write output_dir/result.json",
+                               details={"stage": "result_loading"})
         write_json(result_path, result.model_dump())
     else:
         try:
@@ -184,7 +218,10 @@ def run_checker(
             result = canonicalize_result(result, required=spec.required)
             write_json(result_path, result.model_dump())
         except Exception as error:
-            result = _error_result(spec, f"Invalid checker result: {type(error).__name__}: {error}")
+            # Validation exceptions can echo the entire submitted report.
+            (output_dir / "exception.log").write_text(traceback.format_exc(), encoding="utf-8")
+            result = _error_result(spec, f"Invalid checker result ({type(error).__name__})",
+                                   code="CHECKER_RESULT_INVALID", details={"stage": "result_parsing"})
             write_json(result_path, result.model_dump())
     return CheckerRun(spec, result, output_dir, command)
 
@@ -197,20 +234,21 @@ def run_checkers(
     round_root: Path,
     environment: Mapping[str, str] | None = None,
 ) -> list[CheckerRun]:
+    specs = list(specs)
     runs: list[CheckerRun] = []
-    for spec in specs:
-        blocked = spec.name == "fea" and any(
-            run.spec.name == "topology" and run.result.status == "ERROR"
-            and any(v.get("code") == "GEOMETRY_PREPROCESS_TIMEOUT" for v in run.result.violations)
-            for run in runs
-        )
-        if blocked:
+    # The sole dependency is fixed, not a general scheduler. Preserve result order.
+    ordered = sorted(specs, key=lambda spec: spec.name != "topology")
+    for spec in ordered:
+        topology = next((run for run in runs if run.spec.name == "topology"), None)
+        if spec.name == "fea" and topology is not None and topology.result.status != "PASS":
             output_dir = round_root / "checkers" / spec.name
             output_dir.mkdir(parents=True, exist_ok=False)
             result = canonicalize_result(CheckerResult(
                 checker=spec.name, status="INDETERMINATE",
-                summary="FEA was not evaluated: shared topology geometry preprocessing timed out",
-                violations=[{"code": "GEOMETRY_PREPROCESS_UNAVAILABLE", "dependency": "topology"}],
+                summary=f"FEA not evaluated: topology status is {topology.result.status}; see dependency report",
+                violations=[{"code": "TOPOLOGY_DEPENDENCY_UNAVAILABLE", "stage": "dependency",
+                             "dependency": "topology", "dependency_status": topology.result.status}],
+                artifacts={"dependency_report": str(topology.output_dir / "result.json")},
             ), required=spec.required)
             write_json(output_dir / "result.json", result.model_dump())
             runs.append(CheckerRun(spec, result, output_dir, ()))
@@ -222,7 +260,8 @@ def run_checkers(
             round_root=round_root,
             **({"environment": environment} if environment is not None else {}),
         ))
-    return runs
+    by_name = {run.spec.name: run for run in runs}
+    return [by_name[spec.name] for spec in specs]
 
 
 def required_checker_failures(runs: Iterable[CheckerRun]) -> list[CheckerRun]:

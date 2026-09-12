@@ -171,6 +171,8 @@ def _tolerance(
 def _finding_map(results: Iterable[CheckerResult]) -> dict[tuple[str, str], CheckerFinding]:
     output: dict[tuple[str, str], CheckerFinding] = {}
     for result in results:
+        if result.status not in {"PASS", "FAIL"}:
+            continue
         for finding in result.findings:
             output[(result.checker, finding.rule_id)] = finding
     return output
@@ -186,9 +188,12 @@ def assess_candidate(
 ) -> CandidateDecision:
     baseline = {result.checker: result for result in baseline_results}
     candidate = {result.checker: result for result in candidate_results}
-    unavailable = sorted(set(baseline) - set(candidate))
+    missing = sorted(set(baseline) - set(candidate))
+    unavailable = sorted(set(missing) | {
+        name for name, result in candidate.items() if result.status not in {"PASS", "FAIL"}
+    })
     regressions: list[str] = []
-    if unavailable:
+    if missing:
         return CandidateDecision(
             accepted=False,
             reason="one or more baseline checkers were not rerun",
@@ -198,8 +203,8 @@ def assess_candidate(
         after = candidate[checker]
         if before.status == "PASS" and after.status != "PASS":
             regressions.append(f"{checker}: PASS -> {after.status}")
-        if after.status == "ERROR":
-            regressions.append(f"{checker}: candidate checker infrastructure error")
+        elif before.status == "FAIL" and after.status not in {"PASS", "FAIL"}:
+            regressions.append(f"{checker}: evaluated failure became unavailable ({after.status})")
     if not appearance_approved:
         regressions.append("appearance/function preservation review did not approve")
 
@@ -209,6 +214,8 @@ def assess_candidate(
     target_improvements: list[str] = []
     for checker, before in baseline.items():
         after = candidate[checker]
+        if before.status not in {"PASS", "FAIL"} or after.status not in {"PASS", "FAIL"}:
+            continue
         targeted_rules = {
             finding.rule_id
             for finding in before.findings
@@ -257,16 +264,19 @@ def assess_candidate(
             reason="candidate introduced a required regression",
             target_improvements=target_improvements,
             regressions=regressions,
+            unavailable_checks=unavailable,
         )
     if not target_improvements:
         return CandidateDecision(
             accepted=False,
             reason="candidate did not produce a measurable target improvement",
+            unavailable_checks=unavailable,
         )
     return CandidateDecision(
         accepted=True,
         reason="candidate improved a target without required regressions",
         target_improvements=target_improvements,
+        unavailable_checks=unavailable,
     )
 
 

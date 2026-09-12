@@ -10,7 +10,6 @@ from typing import Any
 
 from .checkers import (
     CheckerRun,
-    required_checker_errors,
     required_checker_failures,
     run_checkers,
 )
@@ -18,6 +17,7 @@ from .feedback_schema import build_analysis_context, findings_payload
 from .localization import LocalizationReport, localize_findings
 from .models import (
     AnalysisContext,
+    CheckerFinding,
     CodeCriticDecision,
     DebuggerDecision,
     EditKind,
@@ -65,6 +65,13 @@ class WorkflowGateError(RuntimeError):
     pass
 
 
+def _actionable_findings(run: CheckerRun) -> list[CheckerFinding]:
+    return [finding for finding in run.result.findings
+            if run.result.status == "FAIL"
+            and finding.category in {"physical_violation", "geometry_failure"}
+            and finding.repairability in {"geometry", "design_variable"}]
+
+
 def _checker_evidence(
     runs: list[CheckerRun], *, workspace: Path, finding_ids: set[str] | None = None,
 ) -> dict[str, Any]:
@@ -74,7 +81,8 @@ def _checker_evidence(
     for run in runs:
         selected = [
             (index, finding) for index, finding in enumerate(run.result.findings)
-            if run.result.status != "PASS"
+            if run.result.status == "FAIL"
+            and finding.category in {"physical_violation", "geometry_failure", "missing_semantics"}
             and (finding_ids is None or finding.finding_id in finding_ids)
         ]
         if finding_ids is not None and not selected:
@@ -83,10 +91,17 @@ def _checker_evidence(
         summaries.append({
             "checker": run.spec.name, "required": run.spec.required,
             "status": run.result.status,
-            **({"summary": run.result.summary} if finding_ids is None else {}),
+            **({"summary": run.result.summary.split("\n", 1)[0][:240]} if finding_ids is None else {}),
             "finding_ids": [f.finding_id for _, f in selected],
             "result_ref": result_ref,
         })
+        if run.result.status in {"ERROR", "INDETERMINATE"}:
+            violation = next(iter(run.result.violations), {})
+            summaries[-1].update({
+                "stage": str(violation.get("stage", "evaluation"))[:80],
+                "code": str(violation.get("code", run.result.status))[:100],
+                "geometry_repair_allowed": False,
+            })
         for index, finding in selected:
             row = finding.model_dump(exclude={"domain"}, exclude_none=True)
             if finding.metric is None:
@@ -119,7 +134,9 @@ def _engineering_feedback(
     unresolved_ids = {row["finding_id"] for row in evidence["typed_findings"]}
     return {
         **evidence,
-        "required_checker_failures": [r.spec.name for r in required_checker_failures(runs)],
+        "required_checker_failures": [r.spec.name for r in runs if r.spec.required and r.result.status == "FAIL"],
+        "unverified_checks": [r.spec.name for r in runs if r.result.status in {"ERROR", "INDETERMINATE"}],
+        "unavailable_feedback_policy": "Unavailable checks are not evidence of a geometry defect. Do not propose geometry edits for infrastructure errors or missing analysis; repair only the actionable typed findings.",
         "analysis_context": context.model_dump(exclude={"checker_contexts": {"__all__": {"details"}}}),
         "analysis_context_ref": relative(round_root / "analysis_context.json"),
         "localization": [
@@ -590,6 +607,7 @@ class ObjectWorkflow:
         )
         failures: list[dict[str, object]] = list(state.get("failures", []))
         final: tuple[int, ExecutionResult, bool, str] | None = None
+        checker_runs: list[CheckerRun] = []
         start_round = int(state.get("next_round", 1))
         end_round = start_round + request.max_rounds - 1
         executor_timeout = _asset_executor_timeout_seconds()
@@ -804,7 +822,8 @@ class ObjectWorkflow:
                 ],
             }
             checker_history.append(checker_record)
-            checker_errors = required_checker_errors(checker_runs)
+            checker_errors = [run for run in required_checker_failures(checker_runs)
+                              if run.result.status in {"ERROR", "INDETERMINATE"}]
             if checker_errors:
                 error_details = [
                     {
@@ -830,12 +849,12 @@ class ObjectWorkflow:
                 )
 
             # An unavailable checker cannot provide actionable repair guidance. Keep
-            # its ERROR result in the evidence/history, but let the visual/code loop
+            # its unavailable result in the evidence/history, but let the visual/code loop
             # continue and never present an infrastructure failure as a repair target.
             mandatory_failures = [
                 run
                 for run in required_checker_failures(checker_runs)
-                if run.result.status != "ERROR"
+                if _actionable_findings(run)
             ]
             code_decision: CodeCriticDecision | None = None
             appearance_approved = image_decision.approved
@@ -977,11 +996,11 @@ class ObjectWorkflow:
                 final = (
                     round_number,
                     execution,
-                    not bool(checker_errors),
+                    not bool(required_checker_failures(checker_runs)),
                     (
                         "appearance_and_required_checkers_approved"
-                        if not checker_errors
-                        else "appearance_approved_checker_feedback_unavailable"
+                        if not required_checker_failures(checker_runs)
+                        else "appearance_approved_no_actionable_checker_feedback"
                     ),
                 )
                 break
@@ -1021,6 +1040,7 @@ class ObjectWorkflow:
                         ],
                     }
                     checker_history.append(accepted_record)
+                    checker_runs = accepted_runs
                     accepted_failures = required_checker_failures(accepted_runs)
                     if candidate_outcome.appearance_approved and not accepted_failures:
                         final = (
@@ -1031,14 +1051,21 @@ class ObjectWorkflow:
                         )
                         break
                     execution = candidate_outcome.execution
-                    checker_runs = accepted_runs
-                    mandatory_failures = accepted_failures
+                    mandatory_failures = [run for run in accepted_failures if _actionable_findings(run)]
                     appearance_approved = candidate_outcome.appearance_approved
+                    if appearance_approved and not mandatory_failures:
+                        final = (round_number, execution, False,
+                                 "accepted_working_candidate_checks_unverified")
+                        break
                     if round_number < end_round:
                         self._write_checkpoint(
                             workspace, **checkpoint_fields(round_number + 1)
                         )
                         continue
+                elif (not any(row.get("candidate") for row in candidate_outcome.attempts)
+                      or any(row.get("stage") == "repair_budget" for row in candidate_outcome.attempts)):
+                    final = (round_number, execution, False, "no_executable_repair_or_budget_exhausted")
+                    break
                 elif round_number < end_round:
                     self._write_checkpoint(
                         workspace, **checkpoint_fields(round_number + 1)
@@ -1052,7 +1079,8 @@ class ObjectWorkflow:
                         "checker": run.spec.name,
                         "summary": run.result.summary,
                     }
-                    for run in checker_errors
+                    for run in required_checker_failures(checker_runs)
+                    if run.result.status in {"ERROR", "INDETERMINATE"}
                 ],
                 "required_checker_failures": [
                     {
@@ -1075,20 +1103,8 @@ class ObjectWorkflow:
                 self._write_checkpoint(
                     workspace, **checkpoint_fields(round_number + 1)
                 )
-                runtime.usage.update_manifest(
-                    status="failed",
-                    error_type="WorkflowGateError",
-                    error="mandatory publication gate did not pass",
-                    failures=failures,
-                    checker_history=checker_history,
-                    engineering_critic_history=engineering_history,
-                    image_critic_history=image_history,
-                    code_critic_history=code_history,
-                )
-                raise WorkflowGateError(
-                    "Final round was not published because appearance and all "
-                    "required checker gates did not pass"
-                )
+                final = (round_number, execution, False, "round_budget_exhausted_with_unmet_gates")
+                break
 
             repair_payload: dict[str, object] = {
                 "requirement": request.requirement,
@@ -1122,6 +1138,17 @@ class ObjectWorkflow:
             raise RuntimeError("Object refinement ended without a publishable execution")
         selected_round, execution, approved, finalization_reason = final
         final_glb, final_urdf, final_renders = self._publish(workspace, execution)
+        verification = {
+            "required_checkers_passed": bool(request.checker_specs) and not required_checker_failures(checker_runs),
+            "checker_statuses": {run.spec.name: run.result.status for run in checker_runs},
+            "unverified_checks": [run.spec.name for run in checker_runs
+                                  if run.result.status in {"ERROR", "INDETERMINATE"}],
+        }
+        write_json(workspace / "checker_results.json", {
+            **verification,
+            "results": [{"required": run.spec.required, "report_path": str(run.output_dir / "result.json"),
+                         **run.result.model_dump()} for run in checker_runs],
+        })
         joint_states_path = workspace / "scene.joint_states.json"
         render_metadata_path = workspace / "render" / "meta.json"
         runtime.usage.update_manifest(
@@ -1133,6 +1160,7 @@ class ObjectWorkflow:
             approved=approved,
             critic_skipped=finalization_reason == "round_limit_after_execution",
             finalization_reason=finalization_reason,
+            **verification,
             failures=failures,
             image_critic_history=image_history,
             code_critic_history=code_history,
@@ -1167,6 +1195,7 @@ class ObjectWorkflow:
             failures=failures,
             approved=approved,
             finalization_reason=finalization_reason,
+            **verification,
         )
         return ObjectRunResult(
             workspace=workspace,
@@ -1271,7 +1300,7 @@ class ObjectWorkflow:
             return _CandidateOutcome(None, (), False, tuple(attempts))
 
         baseline_findings = [
-            finding for run in baseline_runs for finding in run.result.findings
+            finding for run in baseline_runs for finding in _actionable_findings(run)
         ]
         controller = RepairController(
             workspace=workspace,
@@ -1289,6 +1318,7 @@ class ObjectWorkflow:
         for proposal_index, raw_proposal in enumerate(proposals, 1):
             budget_error = controller.budget_error()
             if budget_error:
+                attempts.append({"accepted": False, "stage": "repair_budget", "reason": budget_error})
                 rejected_proposals.append(
                     {
                         "proposal_id": raw_proposal.proposal_id,
@@ -1443,25 +1473,6 @@ class ObjectWorkflow:
                 write_json(candidate_root / "decision.json", record)
                 controller.record(record)
                 attempts.append(record)
-                continue
-
-            candidate_errors = required_checker_errors(candidate_runs)
-            if candidate_errors:
-                record = {
-                    "round": round_number,
-                    "proposal_id": proposal.proposal_id,
-                    "fingerprint": fingerprint,
-                    "candidate": candidate_relative,
-                    "accepted": False,
-                    "reason": "required checker infrastructure failed for candidate",
-                    "errors": [run.result.summary for run in candidate_errors],
-                }
-                write_json(candidate_root / "decision.json", record)
-                controller.record(record)
-                attempts.append(record)
-                # Reject this candidate, but continue evaluating later proposals.
-                # A checker infrastructure failure is local to the candidate and
-                # must not abort the whole repair round.
                 continue
 
             if (
