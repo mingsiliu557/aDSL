@@ -65,41 +65,67 @@ class WorkflowGateError(RuntimeError):
     pass
 
 
+def _checker_evidence(
+    runs: list[CheckerRun], *, workspace: Path, finding_ids: set[str] | None = None,
+) -> dict[str, Any]:
+    """Critic: all statuses and unresolved findings. Coder: proposal IDs only."""
+    findings = {}
+    summaries = []
+    for run in runs:
+        selected = [
+            (index, finding) for index, finding in enumerate(run.result.findings)
+            if run.result.status != "PASS"
+            and (finding_ids is None or finding.finding_id in finding_ids)
+        ]
+        if finding_ids is not None and not selected:
+            continue
+        result_ref = (run.output_dir / "result.json").resolve().relative_to(workspace.resolve()).as_posix()
+        summaries.append({
+            "checker": run.spec.name, "required": run.spec.required,
+            "status": run.result.status,
+            **({"summary": run.result.summary} if finding_ids is None else {}),
+            "finding_ids": [f.finding_id for _, f in selected],
+            "result_ref": result_ref,
+        })
+        for index, finding in selected:
+            row = finding.model_dump(exclude={"domain"}, exclude_none=True)
+            if finding.metric is None:
+                # Preserve scalar legacy measurements, not entire nested reports.
+                row["key_values"] = {
+                    key: value for key, value in finding.domain.items()
+                    if isinstance(value, (int, float, bool))
+                    or isinstance(value, str) and len(value) <= 200
+                }
+            row["result_ref"] = result_ref
+            row["result_pointer"] = f"/findings/{index}"
+            findings[finding.finding_id] = row
+    return {
+        "checker_summary": summaries,
+        "typed_findings": list(findings.values()),
+        "evidence_access": "Use read_file only when inline evidence is insufficient. Select a specific JSON field with json_pointer (e.g. result_pointer + '/metric' or '/domain'), or a bounded text page with offset/max_chars. Follow next_offset only for relevant evidence, not to load every full report.",
+    }
+
+
 def _engineering_feedback(
     runs: list[CheckerRun], *, context: AnalysisContext,
     localization: LocalizationReport | None, history: list[dict[str, object]],
     round_root: Path, workspace: Path,
 ) -> dict[str, Any]:
-    """Send evidence once; preserve full on-disk reports for read_file."""
+    """Add critic context without duplicating detailed checker reports."""
     def relative(path: Path) -> str:
         return path.resolve().relative_to(workspace.resolve()).as_posix()
 
-    findings = {}
-    summaries = []
-    for run in runs:
-        result_ref = relative(run.output_dir / "result.json")
-        summaries.append({
-            "checker": run.spec.name, "required": run.spec.required,
-            "status": run.result.status, "summary": run.result.summary,
-            "finding_ids": [f.finding_id for f in run.result.findings],
-            "result_ref": result_ref,
-        })
-        for finding in run.result.findings:
-            # Typed metrics, regions, relations and source candidates remain inline.
-            # Legacy-only evidence must not disappear when no typed equivalent exists.
-            typed = finding.metric is not None or finding.region is not None or bool(finding.relations)
-            row = finding.model_dump(exclude={"domain"} if typed else set(), exclude_none=True)
-            row["result_ref"] = result_ref
-            findings[finding.finding_id] = row
+    evidence = _checker_evidence(runs, workspace=workspace)
+    unresolved_ids = {row["finding_id"] for row in evidence["typed_findings"]}
     return {
-        "checker_summary": summaries,
+        **evidence,
         "required_checker_failures": [r.spec.name for r in required_checker_failures(runs)],
-        "typed_findings": list(findings.values()),
         "analysis_context": context.model_dump(exclude={"checker_contexts": {"__all__": {"details"}}}),
         "analysis_context_ref": relative(round_root / "analysis_context.json"),
         "localization": [
             row.model_dump(exclude={"candidates"}, exclude_none=True)
             for row in (localization.findings if localization is not None else [])
+            if row.finding_id in unresolved_ids
         ],
         "localization_ref": relative(round_root / "localization.json") if localization is not None else None,
         "repair_history": [
@@ -110,7 +136,6 @@ def _engineering_feedback(
             for row in history
         ],
         "repair_history_ref": "repair_history.jsonl" if history else None,
-        "evidence_access": "Use read_file on result_ref and report refs for full metrics, assumptions and raw evidence before proposing a repair when the inline evidence is insufficient.",
     }
 
 
@@ -1305,9 +1330,11 @@ class ObjectWorkflow:
                             "candidate source. Preserve everything outside allowed_scopes."
                         ),
                         "repair_proposal": proposal.model_dump(),
-                        "checker_evidence": [
-                            run.result.model_dump() for run in baseline_runs
-                        ],
+                        "checker_evidence": _checker_evidence(
+                            baseline_runs, workspace=workspace,
+                            finding_ids=set(proposal.finding_ids),
+                        ),
+                        "analysis_context_ref": (round_root / "analysis_context.json").relative_to(workspace).as_posix(),
                         "code_critic": (
                             code_decision.model_dump()
                             if code_decision is not None and not code_decision.approved

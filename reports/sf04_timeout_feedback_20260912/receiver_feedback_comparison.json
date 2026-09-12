@@ -1,0 +1,25 @@
+{
+  "case": "SF03 ours round_02",
+  "proposal_id": "round2_high_backrest_grain_overlap_resize",
+  "scope": "feedback text fields only; no images/tools/session history or live API requests",
+  "critic_before_chars": 66362,
+  "critic_after_chars": 17838,
+  "coder_before_chars": 125957,
+  "coder_after_chars": 12060,
+  "coder_reduction_fraction": 0.9042530387354415,
+  "coder_expected_finding_ids": [
+    "topology:ONE_PIECE_DISCONNECTED:1",
+    "topology:ONE_PIECE_DISCONNECTED:2",
+    "topology:ONE_PIECE_DISCONNECTED:3",
+    "topology:ONE_PIECE_DISCONNECTED:4"
+  ],
+  "coder_sent_finding_ids": [
+    "topology:ONE_PIECE_DISCONNECTED:1",
+    "topology:ONE_PIECE_DISCONNECTED:2",
+    "topology:ONE_PIECE_DISCONNECTED:3",
+    "topology:ONE_PIECE_DISCONNECTED:4"
+  ],
+  "coder_sent_checkers": [
+    "topology"
+  ]
+}

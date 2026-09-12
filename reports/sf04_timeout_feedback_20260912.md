@@ -66,6 +66,39 @@ Git 归档另存于 `reports/sf04_timeout_feedback_20260912/`：仅包含修复�
 
 ## 回归命令
 
+### 接收方证据收敛补充（2026-09-12）
+
+补齐候选 Coder 原先通过 `checker_evidence=[run.result.model_dump() ...]` 重发完整 baseline 的遗漏：
+
+| 接收方 | 默认输入 |
+| --- | --- |
+| Engineering Critic | 所有 checker 状态摘要；未通过 finding 的关键指标、源码候选、区域和关联；不直接携带嵌套原始报告 |
+| 候选 Coder | 当前 RepairProposal、相关源码位置，以及该方案 finding_ids 对应的证据；不含无关 checker/finding 或整份历史 |
+| 详细报告 | 保存在原文件；按 json_pointer 选字段，或 offset/max_chars 取文本片段 |
+
+`read_file` 单次最多返回 12000 正文字符（另加少量截断元信息）。小文件仍兼容只传 path 的调用；大文件明确返回 truncated 与 next_offset。JSON 字段读取先在本地解析，只有选中字段的有界文本进入工具输出。Unicode 字符分页和超长单行同样受限，工作区路径约束不变。
+
+例如读取一条 finding 的数值：
+
+```json
+{"path":"rounds/round_02/checkers/topology/result.json","json_pointer":"/findings/0/metric","offset":0,"max_chars":2000}
+```
+
+通过明确的工具参数说明告诉 agent 优先按字段获取所需证据；函数工具参数说明参考 [OpenAI 官方函数调用文档](https://developers.openai.com/api/docs/guides/function-calling)。不是要求模型主动把全部分页读回来，也没有新增会话累计 token 限额或修改恢复协议。
+
+固定 SF03 / Ours / round_02、原 `round2_high_backrest_grain_overlap_resize` 方案离线结果：
+
+- Engineering Critic 反馈字段：66362 → 17838 字符。
+- Coder checker_evidence：125957 → 12060 字符（减少约 90.4%）。
+- Coder 恰好收到方案指定的 4 条 topology finding，未携带 standing/FEA 的无关结果。
+- 仅比较反馈字段，不含图片、共同提示词、工具定义和既有会话历史；未调用 API，不能解释为实测延迟或 token 账单降幅。
+
+证据：`local_experiment/sf04_fuse_diagnostic/receiver_feedback_comparison.json`，小型摘要另存至 `reports/sf04_timeout_feedback_20260912/receiver_feedback_comparison.json` 随代码归档。新增 `tests/test_bounded_checker_inputs.py` 覆盖实际候选请求、关联筛选、字段读取、默认/显式读取上限、中文分页、小文件兼容和路径约束。
+
+本次补充回归：`test_bounded_checker_inputs`、`test_checker_timeout_feedback`、`test_checker_unification`、`test_workflow_checkers`、`test_codex_runner_contract`、`test_service_config`，共 58 passed（9.78 秒）；`git diff --check` 通过。测试阶段未调用真实模型 API、未重新运行几何实验；代码归档随后按用户要求提交至 master。
+
+### 原超时与几何回归
+
 在现有 aDSL 环境、Gmsh Python 路径及 FEA 动态库路径下运行：
 
 ```bash
