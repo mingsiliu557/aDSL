@@ -6,7 +6,7 @@ from typing import Iterable
 
 from pydantic import BaseModel, Field
 
-from .feedback_schema import sha256_file, stable_hash
+from .feedback_schema import sha256_file, stable_hash, localized_mesh_feedback
 from .models import CheckerFinding, CheckerResult, MetricEvidence, RepairPolicy, RepairProposal
 from .source_index import SourceIndex
 
@@ -216,11 +216,11 @@ def assess_candidate(
     target_improvements: list[str] = []
     for checker, before in baseline.items():
         after = candidate[checker]
-        if (before.checker == "fea" and before.status == "INDETERMINATE"
-                and after.status == "PASS" and any(
-                    finding.rule_id == "MESH_INVALID" and finding.finding_id in target_ids
-                    for finding in before.findings)):
-            target_improvements.append(f"{checker}: targeted invalid mesh resolved and physical checks reached PASS")
+        if after.status == "PASS" and any(
+            f.finding_id in target_ids and localized_mesh_feedback(before, f)
+            for f in before.findings
+        ):
+            target_improvements.append(f"{checker}: localized mesh failure reached verified PASS")
         if before.status not in {"PASS", "FAIL"} or after.status not in {"PASS", "FAIL"}:
             continue
         targeted_rules = {

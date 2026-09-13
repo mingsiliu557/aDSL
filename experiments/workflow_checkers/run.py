@@ -21,6 +21,7 @@ from adsl.agents.models import (
     RelationEndpoint,
     RelationEvidence,
 )
+from adsl.agents.feedback_schema import MESH_FEEDBACK_CODES
 
 
 REPO = Path(__file__).resolve().parents[2]
@@ -146,8 +147,6 @@ def enrich_result(
         applicability = "applicable"
         if result.status == "ERROR":
             category, repairability, applicability = "infrastructure_error", "analysis", "unknown"
-        elif checker == "fea" and code == "MESH_INVALID" and result.status == "INDETERMINATE":
-            category, repairability, applicability = "geometry_failure", "geometry", "unknown"
         elif result.status == "INDETERMINATE" or code in {
             "MESH_NOT_CONVERGED",
             "PARTIAL_CLIP_FAILURE",
@@ -273,9 +272,18 @@ def enrich_result(
                     )
                 ]
         elif checker == "fea":
-            if code == "MESH_INVALID" and violation.get("bounds_m") is not None:
+            if code in MESH_FEEDBACK_CODES and violation.get("bounds_m") is not None:
                 region = RegionEvidence(kind="aabb", frame="fea_m", unit="m",
                                         bounds=violation["bounds_m"])
+            if code in MESH_FEEDBACK_CODES and violation.get("part_names"):
+                region = RegionEvidence(kind="parts", frame="authored_scene",
+                                        part_names=violation["part_names"])
+            if code in MESH_FEEDBACK_CODES and violation.get("bounds_source") is not None:
+                region = RegionEvidence(kind="aabb", frame="authored_scene",
+                                        bounds=violation["bounds_source"])
+            if code in MESH_FEEDBACK_CODES:
+                category = "evidence_insufficient"
+                repairability = "geometry" if region is not None else "analysis"
             threshold_map = result.metrics.get("thresholds", {})
             if code == "DISPLACEMENT_GT_1PCT_CHARACTERISTIC_LENGTH":
                 metric = MetricEvidence(
@@ -711,6 +719,15 @@ def fea_result(raw: dict[str, Any], raw_path: Path) -> CheckerResult:
                 "message": "Invalid mesh; no local evidence available. Structural performance unverified.",
             }],
             assumptions=assumptions, artifacts={"raw_result": str(raw_path)},
+        )
+    mesh_failures = [level["mesh_failure"] for level in raw.get("mesh_levels", [])
+                     if level.get("mesh_failure")]
+    if mesh_failures:
+        return CheckerResult(
+            checker="fea", status="INDETERMINATE",
+            summary="Mesh generation failed; geometric cause undetermined; FEA unverified",
+            violations=mesh_failures, assumptions=assumptions,
+            artifacts={"raw_result": str(raw_path)},
         )
     mesh_errors = [
         str(level.get("error", ""))

@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Sequence
 import numpy as np
 from .asset import Asset, concat_shapes
+from .boolean import boolean_union
 from .math_utils import _I, _as_color, _as_vec3
 
 
@@ -147,6 +148,102 @@ class Cylinder(PrimitiveAsset):
     )
 
 
+class RoundedPad(Asset):
+    """Rounded rectangular pad with a non-degenerate limiting profile.
+
+    For radii strictly below half the short side this preserves the original
+    four-cap construction.  At the limiting radius, duplicate cap centers are
+    replaced by a capsule profile.  A radius beyond that limit is invalid.
+    """
+
+    _RADIUS_EPSILON_RELATIVE = 1e-6
+
+    def __init__(
+        self,
+        width: float,
+        depth: float,
+        height: float,
+        center: Sequence[float] = (0.0, 0.0, 0.0),
+        color: Sequence[float] = (1.0, 1.0, 1.0),
+        alpha: float | None = None,
+        *,
+        radius: float | None = None,
+    ):
+        super().__init__(label="RoundedPad")
+        width = float(width)
+        depth = float(depth)
+        height = float(height)
+        if min(width, depth, height) <= 0:
+            raise ValueError("rounded pad dimensions must be > 0")
+
+        center_vec = _as_vec3(center)
+        limit = min(width, depth) * 0.5
+        radius = limit if radius is None else float(radius)
+        scale = max(abs(width), abs(depth), abs(radius), 1e-12)
+        epsilon = self._RADIUS_EPSILON_RELATIVE * scale
+        if radius <= 0:
+            raise ValueError("rounded pad radius must be > 0")
+        if radius > limit + epsilon:
+            raise ValueError(
+                f"rounded pad radius {radius:g} exceeds boundary {limit:g}"
+            )
+
+        if radius < limit - epsilon:
+            straight_height = max(height - 2.0 * radius, height * 0.25)
+            core = Cube((width, depth, straight_height), center_vec, color, alpha)
+            caps = [
+                Sphere(
+                    radius,
+                    center_vec + np.asarray((dx, dy, 0.0)),
+                    color,
+                    alpha,
+                )
+                for dx in (-width * 0.5 + radius, width * 0.5 - radius)
+                for dy in (-depth * 0.5 + radius, depth * 0.5 - radius)
+            ]
+            padded = boolean_union(core, *caps)
+        else:
+            # Snap the near-boundary value to the valid limit and use two
+            # unique end caps along the longer footprint axis.
+            radius = limit
+            straight_height = max(height - 2.0 * radius, height * 0.25)
+            if width <= depth:
+                span = depth - 2.0 * radius
+                core = (
+                    Cube((width, span, straight_height), center_vec, color, alpha)
+                    if span > epsilon
+                    else None
+                )
+                centers = (
+                    [
+                        center_vec + np.asarray((0.0, -span * 0.5, 0.0)),
+                        center_vec + np.asarray((0.0, span * 0.5, 0.0)),
+                    ]
+                    if span > epsilon
+                    else [center_vec]
+                )
+            else:
+                span = width - 2.0 * radius
+                core = (
+                    Cube((span, depth, straight_height), center_vec, color, alpha)
+                    if span > epsilon
+                    else None
+                )
+                centers = (
+                    [
+                        center_vec + np.asarray((-span * 0.5, 0.0, 0.0)),
+                        center_vec + np.asarray((span * 0.5, 0.0, 0.0)),
+                    ]
+                    if span > epsilon
+                    else [center_vec]
+                )
+            caps = [Sphere(radius, point, color, alpha) for point in centers]
+            pieces = ([core] if core is not None else []) + caps
+            padded = boolean_union(*pieces) if len(pieces) > 1 else pieces[0]
+
+        self.form = self.attach_part("rounded_form", padded)
+
+
 class RoundedCube(Asset):
     """Rounded box assembled from primitive faces, edges and corners."""
 
@@ -199,9 +296,10 @@ class RoundedCube(Asset):
 cube = Cube
 sphere = Sphere
 cylinder = Cylinder
+rounded_pad = RoundedPad
 rounded_cube = RoundedCube
 
 __all__ = [
-    "Sphere", "Cube", "Cylinder", "RoundedCube",
-    "sphere", "cube", "cylinder", "rounded_cube",
+    "Sphere", "Cube", "Cylinder", "RoundedPad", "RoundedCube",
+    "sphere", "cube", "cylinder", "rounded_pad", "rounded_cube",
 ]

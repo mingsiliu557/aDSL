@@ -184,7 +184,14 @@ def build_occ_mesh(items: list[Any], scale: float, mesh_size: float, output: Pat
         gmsh.option.setNumber("Mesh.MeshSizeMax", mesh_size)
         gmsh.option.setNumber("Mesh.ElementOrder", 2)
         gmsh.option.setNumber("Mesh.SecondOrderLinear", 1)
-        gmsh.model.mesh.generate(3)
+        with TOPOLOGY._operation("<legacy assembled solid>", "Gmsh mesh.generate", len(final_volumes)):
+            gmsh.option.setNumber("General.Terminal", 1)
+            try:
+                gmsh.model.mesh.generate(3)
+            except (OSError, ImportError):
+                raise
+            except Exception as error:
+                raise TOPOLOGY.MeshGenerationError(str(error).splitlines()[0][:240]) from error
         element_types = list(map(int, gmsh.model.mesh.getElements(3)[0]))
         if element_types != [11]:
             raise RuntimeError(f"expected only Gmsh type 11 C3D10 elements, got {element_types}")
@@ -598,6 +605,13 @@ def analyze_mesh_level(
             )
         nodes, elements = parse_gmsh_inp(Path(mesh["mesh_path"]))
     except Exception as error:
+        if isinstance(error, TOPOLOGY.MeshGenerationError):
+            return {"mesh_level": level, "status": "NOT_MESHABLE",
+                    "mesh_failure": {"code": "MESH_GENERATION_FAILED",
+                                     "stage": "mesh_generation", "message": str(error),
+                                     **({"bounds_source": error.bounds_source,
+                                         "surface_id": error.surface_id}
+                                        if hasattr(error, "bounds_source") else {})}}
         return {"mesh_level": level, "status": "NOT_MESHABLE",
                 "error": f"{type(error).__name__}: {error}"}
     invalid = mesh_invalid_report(nodes, elements, mesh)

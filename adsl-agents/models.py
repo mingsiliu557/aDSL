@@ -190,7 +190,7 @@ class RepairProposal(BaseModel):
 
 class RepairPolicy(BaseModel):
     max_candidates_per_round: int = Field(default=1, ge=1, le=10)
-    max_total_candidates: int = Field(default=10, ge=1, le=50)
+    max_total_candidates: int = Field(default=5, ge=1, le=50)
     time_budget_seconds: float = Field(default=7200.0, gt=0)
     print_orientation_editable: bool = False
     default_relative_tolerance: float = Field(default=0.01, ge=0)
@@ -234,7 +234,7 @@ class ObjectRequest:
     task_id: str
     image_paths: tuple[Path, ...] = ()
     articulation: bool = False
-    max_rounds: int = 10
+    max_rounds: int = 5
     checker_specs: tuple[CheckerSpec, ...] = ()
     check_first: bool = False
     repair_policy: RepairPolicy = field(default_factory=RepairPolicy)

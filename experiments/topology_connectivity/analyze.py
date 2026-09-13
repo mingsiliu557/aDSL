@@ -96,7 +96,7 @@ def _volumes(values: Iterable[tuple[int, int]]) -> list[int]:
 
 
 @contextmanager
-def _operation(part: str, operation: str, operand_count: int):
+def _operation(part: str, operation: str, operand_count: int, **details):
     """Persist both boundaries so a killed native call remains identifiable."""
     path = os.environ.get("ADSL_GEOMETRY_PROGRESS_LOG")
     started_at = datetime.now(timezone.utc).isoformat()
@@ -107,6 +107,7 @@ def _operation(part: str, operation: str, operand_count: int):
                     "event": event, "part": part, "operation": operation,
                     "operand_count": operand_count, "started_at": started_at,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
+                    **details,
                 }) + "\n")
                 handle.flush()
                 os.fsync(handle.fileno())
@@ -670,7 +671,32 @@ def build_fused_mesh(
         gmsh.option.setNumber("Mesh.MeshSizeMax", float(mesh_size))
         gmsh.option.setNumber("Mesh.ElementOrder", 2)
         gmsh.option.setNumber("Mesh.SecondOrderLinear", 1)
-        gmsh.model.mesh.generate(3)
+        # Diagnostics only: retain native surface IDs/regions before a blocking
+        # call; never guess the cause or change meshing/CSG tolerances.
+        surfaces = {}
+        for _, tag in gmsh.model.getEntities(2):
+            bounds = np.asarray(gmsh.model.getBoundingBox(2, tag)).reshape(2, 3)
+            surfaces[str(tag)] = (bounds / scale).tolist()
+        with _operation("<assembled solid>", "Gmsh mesh.generate", len(fused),
+                        surface_bounds_source=surfaces):
+            gmsh.option.setNumber("General.Terminal", 1)
+            gmsh.logger.start()
+            try:
+                gmsh.model.mesh.generate(3)
+            except (OSError, ImportError):
+                raise
+            except Exception as error:
+                failure = MeshGenerationError(str(error).splitlines()[0][:240])
+                messages = "\n".join(gmsh.logger.get()[-50:])
+                matches = re.findall(r"surface (\d+)", str(error))
+                if not matches:
+                    matches = re.findall(r"elements remain invalid in surface (\d+)", messages)
+                if matches and matches[-1] in surfaces:
+                    failure.bounds_source = surfaces[matches[-1]]
+                    failure.surface_id = int(matches[-1])
+                raise failure from error
+            finally:
+                gmsh.logger.stop()
         element_types = list(map(int, gmsh.model.mesh.getElements(3)[0]))
         if element_types != [11]:
             raise TopologyAnalysisError(
@@ -697,6 +723,10 @@ def build_fused_mesh(
         }
     finally:
         gmsh.finalize()
+
+
+class MeshGenerationError(RuntimeError):
+    """Native mesh generation failed; structural performance is unverified."""
 
 
 __all__ = [

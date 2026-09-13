@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 import os
+import re
 from pathlib import Path
 import signal
 import subprocess
@@ -172,9 +173,28 @@ def _run_checker(
             _terminate(process)
             details = {"stage": "evaluation"}
             code = "CHECKER_TIMEOUT"
+            mesh_details = None
             if progress_path.is_file():
                 try:
                     last = json.loads(progress_path.read_text().splitlines()[-1])
+                    if spec.name == "fea" and last.get("event") == "start" and last.get("operation") == "Gmsh mesh.generate":
+                        mesh_details = {"code": "MESH_TIMEOUT", "stage": "mesh_generation",
+                                        "message": "Mesh generation timed out; geometric cause undetermined; FEA unverified"}
+                        # Bounded native output, not a full log in API feedback.
+                        tails = []
+                        for name in ("stdout.log", "stderr.log"):
+                            with (output_dir / name).open("rb") as log:
+                                log.seek(0, 2)
+                                log.seek(max(0, log.tell() - 65536))
+                                tails.append(log.read().decode("utf-8", errors="replace"))
+                        tail = "\n".join(tails)
+                        matches = re.findall(r"(\d+) elements remain invalid in surface (\d+)", tail)
+                        if matches:
+                            count, surface = matches[-1]
+                            mesh_details.update(surface_id=int(surface), invalid_surface_element_count=int(count))
+                            bounds = last.get("surface_bounds_source", {}).get(surface)
+                            if bounds is not None:
+                                mesh_details["bounds_source"] = bounds
                     if last.get("event") == "start" and last.get("operation", "").startswith("OCC "):
                         code = "GEOMETRY_PREPROCESS_TIMEOUT"
                         details.update({key: last[key] for key in ("part", "operation", "operand_count", "started_at") if key in last})
@@ -188,6 +208,12 @@ def _run_checker(
                 code=code, details=details,
                 artifacts={"geometry_progress": str(progress_path)} if progress_path.is_file() else {},
             )
+            if mesh_details is not None:
+                result = canonicalize_result(CheckerResult(
+                    checker="fea", status="INDETERMINATE", summary=mesh_details["message"],
+                    violations=[mesh_details], artifacts={"geometry_progress": str(progress_path),
+                                                          "native_log": str(output_dir / "stdout.log")},
+                ), required=spec.required)
             write_json(output_dir / "result.json", result.model_dump())
             return CheckerRun(spec, result, output_dir, command)
         except BaseException:

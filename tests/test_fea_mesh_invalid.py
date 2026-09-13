@@ -57,28 +57,30 @@ def test_mesh_gate_prevents_solver_and_load_setup(tmp_path, monkeypatch):
     solver.assert_not_called()
 
 
-def test_mesh_feedback_is_actionable_localized_and_bounded(tmp_path):
+def test_mesh_feedback_is_analysis_only_and_bounded(tmp_path):
     r = invalid_result(tmp_path)
     check = CheckerRun(CheckerSpec(name="fea", command=["unused"]), r, tmp_path, ())
     f = r.findings[0]
     assert r.status == "INDETERMINATE"
-    assert f.category == "geometry_failure" and f.repairability == "geometry"
+    assert f.category == "evidence_insufficient" and f.repairability == "geometry"
     assert f.region.frame == "fea_m" and f.region.kind == "aabb"
     assert r.analysis_context.source_to_analysis[0][0] == .5
-    assert _actionable_findings(check) == [f]
+    assert _actionable_findings(check) == []
     f.domain["log"] = "FULL_LOG" * 10000
     f.domain["invalid_element_ids"] = list(range(10000))
-    payload = _checker_evidence([check], workspace=tmp_path, finding_ids={f.finding_id})
+    payload = _checker_evidence([check], workspace=tmp_path)
     assert "FULL_LOG" not in json.dumps(payload)
     assert len(json.dumps(payload)) < 3500
-    assert payload["checker_summary"][0]["geometry_repair_allowed"]
-    assert payload["typed_findings"][0]["key_values"]["invalid_element_count"] == 1
-    assert "unverified" in payload["typed_findings"][0]["message"]
+    assert payload["checker_summary"][0]["geometry_repair_allowed"] is False
+    assert payload["checker_summary"][0]["code"] == "MESH_INVALID"
+    assert payload["typed_findings"] == []
+    assert r.violations[0]["invalid_element_count"] == 1
+    assert _checker_evidence([check], workspace=tmp_path, finding_ids={f.finding_id})["typed_findings"] == []
 
 
 @pytest.mark.parametrize("after_status,improve_topology,expected", [
     ("INDETERMINATE", False, False), ("INDETERMINATE", True, True),
-    ("PASS", False, True), ("FAIL", False, False), ("FAIL", True, False),
+    ("PASS", False, False), ("PASS", True, True), ("FAIL", False, False), ("FAIL", True, False),
 ])
 def test_mesh_candidate_acceptance(tmp_path, after_status, improve_topology, expected):
     before_fea = invalid_result(tmp_path)
@@ -99,7 +101,7 @@ def test_mesh_no_executable_proposal_saves_unverified_model(tmp_path, monkeypatc
     workflow, kwargs, manifest, roles, _ = workflow_fixture(tmp_path, monkeypatch, rows)
     output = asyncio.run(workflow._iterate(**kwargs))
     assert output.glb_path.is_file() and not output.approved
-    assert any(r.startswith("engineering-critic") for r in roles)
+    assert not any(r.startswith("engineering-critic") for r in roles)
     assert manifest["status"] == "completed"
     assert manifest["unverified_checks"] == ["fea"]
     assert not manifest["required_checkers_passed"]

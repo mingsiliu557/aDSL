@@ -69,6 +69,36 @@ def test_output_directory_inside_input_is_rejected_by_path_rule(tmp_path):
     output = input_root / "derived"
     assert input_root.resolve() in output.resolve().parents
 
+def test_mujoco_builder_drops_two_face_numerical_sliver(tmp_path):
+    sliver = trimesh.Trimesh(
+        vertices=np.array(
+            [
+                [0.0, 0.0, 0.0],
+                [1e-12, 0.0, 0.0],
+                [0.0, 0.03, 0.0],
+                [0.0, 0.0, 0.004],
+                [1e-12, 0.03, 0.0],
+                [0.0, 0.0, 0.004],
+            ],
+            dtype=float,
+        ),
+        faces=np.array([[0, 1, 2], [3, 4, 5]], dtype=np.int64),
+        process=False,
+    )
+    valid = trimesh.creation.box(extents=(1.0, 1.0, 1.0))
+    _, proxy = MODULE.build_mujoco_xml(
+        [geometry("sliver", sliver, kind="mesh"), geometry("box", valid, kind="mesh")],
+        tmp_path,
+        ground_z=0.0,
+        density=1000.0,
+        friction=2.0,
+    )
+
+    # split() exposes the two triangles as separate degenerate pieces.
+    assert proxy["dropped_degenerate_mesh_component_count"] >= 2
+    assert proxy["mesh_component_count"] == 1
+
+
 def test_user_topple_rule_is_strictly_greater_than_25_degrees():
     assert MODULE.exceeds_topple_threshold(25.0) is False
     assert MODULE.exceeds_topple_threshold(np.nextafter(25.0, np.inf)) is True

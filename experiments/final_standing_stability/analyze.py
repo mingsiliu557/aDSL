@@ -576,7 +576,10 @@ def build_mujoco_xml(
                 vertices = np.unique(np.asarray(piece.vertices), axis=0)
                 rank_scale = max(float(np.linalg.norm(np.ptp(vertices, axis=0))), 1.0) if len(vertices) else 1.0
                 vertex_rank = int(np.linalg.matrix_rank(vertices - vertices.mean(axis=0), tol=rank_scale * 1e-10)) if len(vertices) else 0
-                if len(vertices) < 4 or vertex_rank < 3:
+                # MuJoCo requires enough topology for a mesh collision body. Tiny
+                # one/two-triangle slivers are numerical Boolean-export noise, not
+                # independent bodies, and otherwise trigger "mesh volume is too small".
+                if len(piece.faces) < 4 or len(vertices) < 4 or vertex_rank < 3:
                     dropped_degenerate_mesh_component_count += 1
                     continue
                 mesh_name = f"mesh_{index}_{piece_index}"
@@ -616,7 +619,7 @@ def build_mujoco_xml(
         "mesh_component_count": mesh_component_count,
         "nonconvex_mesh_proxy_count": mesh_proxy_count,
         "dropped_degenerate_mesh_component_count": dropped_degenerate_mesh_component_count,
-        "mesh_collision_policy": "MuJoCo convex hull per connected volumetric mesh component; zero-volume fragments dropped",
+        "mesh_collision_policy": "MuJoCo convex hull per connected volumetric mesh component; low-topology or zero-volume fragments dropped",
     }
 
 
@@ -947,7 +950,7 @@ def report_markdown(payload: dict[str, Any]) -> str:
             )
             if physics.get("available"):
                 lines.append(
-                    f"- MuJoCo: natural fall (>25°)={physics['settle']['tipped']}, settle max tilt={fmt(physics['settle']['peak_tilt_deg'], 2)}°, settle final tilt={fmt(physics['settle']['final_tilt_deg'], 2)}°, contacts={physics['settle']['contact_count_final']}, min observed F/W={fmt(physics['force_probe']['minimum_observed_force_over_weight'], 2)}, impulse tipped directions={physics['impulse_probe']['tipped_direction_count']}/16, dropped zero-volume mesh fragments={state.get('mujoco_proxy', {}).get('dropped_degenerate_mesh_component_count', 0)}."
+                    f"- MuJoCo: natural fall (>25°)={physics['settle']['tipped']}, settle max tilt={fmt(physics['settle']['peak_tilt_deg'], 2)}°, settle final tilt={fmt(physics['settle']['final_tilt_deg'], 2)}°, contacts={physics['settle']['contact_count_final']}, min observed F/W={fmt(physics['force_probe']['minimum_observed_force_over_weight'], 2)}, impulse tipped directions={physics['impulse_probe']['tipped_direction_count']}/16, dropped degenerate mesh fragments={state.get('mujoco_proxy', {}).get('dropped_degenerate_mesh_component_count', 0)}."
                 )
             elif physics:
                 lines.append(f"- MuJoCo failed: `{physics.get('error')}`.")

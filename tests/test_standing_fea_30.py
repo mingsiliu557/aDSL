@@ -71,7 +71,7 @@ def test_batch_continues_after_one_arm_exception(tmp_path, monkeypatch):
         "--asset-executor", __file__,
     ])
 
-    assert batch.main() == 0
+    assert batch.main() == 1
     assert calls == [("C01", "adsl"), ("C01", "ours"), ("C02", "adsl"), ("C02", "ours")]
     terminal = json.loads((tmp_path / "out" / "batch_terminal.json").read_text())
     assert terminal["status"] == "COMPLETE_WITH_ERRORS"

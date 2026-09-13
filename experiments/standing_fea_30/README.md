@@ -1,14 +1,18 @@
 # 30-object standing + FEA paired experiment
 
-This protocol compares independently generated vanilla aDSL and checker-unified outputs for 30 unique objects: six prompts in each of five instability-prone, load-bearing categories. Both arms use the same repository revision, StepCode model profile, 1024x1024 eight-view render settings, and maximum ten rounds. Only `ours` enables the required topology, standing and FEA checkers plus source repair.
+This protocol compares independently generated vanilla aDSL and checker-unified outputs for 30 unique objects: six prompts in each of five instability-prone, load-bearing categories. Both arms use the same repository revision, StepCode model profile, 1024x1024 eight-view render settings, and maximum five rounds. Only `ours` enables the required topology, standing and FEA checkers plus source repair.
 
-As of 2026-09-12, engineering repair uses one candidate per round, at most ten
+As of 2026-09-12, engineering repair uses one candidate per round, at most five
 candidate attempts overall, with the existing 7200-second repair safety budget.
-The paper specifies a ten-round limit, but not a multi-candidate search budget;
+The paper specifies a ten-round limit; this run uses the user's five-round cap.
+The paper does not specify a multi-candidate search budget;
 one candidate is our sequential-refinement mapping, not a reported paper hyperparameter.
 Keep our StepCode backbone/settings. All checker summaries are presented together;
 only topology non-PASS blocks dependent FEA. Use a new output directory: existing
-four-round frozen batches and completed diagnostic budgets must not be rewritten.
+frozen batches and completed diagnostic budgets must not be rewritten.
+`MESH_INVALID` remains an unverified FEA result and is not a repair target.
+If no other actionable failure remains, save the model with `approved=false`
+and end normally without spending the remaining rounds on mesh repair.
 
 The exact 200 prompt IDs used by the aDSL paper are not public. This is a targeted CAP3D/MARVEL same-source/different-sample comparison, not an exact paper reproduction. Prompt selection is deterministic; model generation is not bitwise reproducible because the API exposes no formal seed.
 

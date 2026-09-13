@@ -13,7 +13,7 @@ from .checkers import (
     required_checker_failures,
     run_checkers,
 )
-from .feedback_schema import build_analysis_context, findings_payload
+from .feedback_schema import build_analysis_context, findings_payload, localized_mesh_feedback
 from .localization import LocalizationReport, localize_findings
 from .models import (
     AnalysisContext,
@@ -67,11 +67,9 @@ class WorkflowGateError(RuntimeError):
 
 def _actionable_findings(run: CheckerRun) -> list[CheckerFinding]:
     return [finding for finding in run.result.findings
-            if (run.result.status == "FAIL" or
-                run.result.status == "INDETERMINATE" and run.result.checker == "fea"
-                and finding.rule_id == "MESH_INVALID")
+            if localized_mesh_feedback(run.result, finding) or (run.result.status == "FAIL"
             and finding.category in {"physical_violation", "geometry_failure"}
-            and finding.repairability in {"geometry", "design_variable"}]
+            and finding.repairability in {"geometry", "design_variable"})]
 
 
 def _checker_evidence(
@@ -83,8 +81,8 @@ def _checker_evidence(
     for run in runs:
         selected = [
             (index, finding) for index, finding in enumerate(run.result.findings)
-            if (run.result.status == "FAIL" or finding in _actionable_findings(run))
-            and finding.category in {"physical_violation", "geometry_failure", "missing_semantics"}
+            if (localized_mesh_feedback(run.result, finding) or (run.result.status == "FAIL"
+            and finding.category in {"physical_violation", "geometry_failure", "missing_semantics"}))
             and (finding_ids is None or finding.finding_id in finding_ids)
         ]
         if finding_ids is not None and not selected:
@@ -138,7 +136,7 @@ def _engineering_feedback(
         **evidence,
         "required_checker_failures": [r.spec.name for r in runs if r.spec.required and r.result.status == "FAIL"],
         "unverified_checks": [r.spec.name for r in runs if r.result.status in {"ERROR", "INDETERMINATE"}],
-        "unavailable_feedback_policy": "Unavailable checks are not proof of a geometry defect. Only typed MESH_INVALID may motivate a bounded local geometry hypothesis; its geometric cause is undetermined and structural performance unverified. Never repair infrastructure errors or missing analysis. Never delete mesh elements or change tolerances, thresholds, checker/solver settings to pass.",
+        "unavailable_feedback_policy": "FEA mesh failures are unverified structural performance, not a strength failure; geometric cause is undetermined. Only mesh findings with geometry_repair_allowed=true and reliable source localization may motivate a local edit within the remaining budget. Other unavailable checks are analysis-only. Do not default to deleting decoration or filling gaps. Never delete mesh elements or change physical assumptions, tolerances, thresholds, checker/mesher/solver settings to pass.",
         "analysis_context": context.model_dump(exclude={"checker_contexts": {"__all__": {"details"}}}),
         "analysis_context_ref": relative(round_root / "analysis_context.json"),
         "localization": [
@@ -850,9 +848,8 @@ class ObjectWorkflow:
                     checker_history=checker_history,
                 )
 
-            # Keep unavailable results in history. Only the typed MESH_INVALID
-            # exception can motivate a local geometry hypothesis; infrastructure
-            # failures remain non-actionable and independent checks continue.
+            # Keep unavailable results (including MESH_INVALID) in history;
+            # independent actionable failures may still motivate repairs.
             mandatory_failures = [
                 run
                 for run in required_checker_failures(checker_runs)
@@ -929,6 +926,17 @@ class ObjectWorkflow:
 
             engineering_decision: EngineeringCriticDecision | None = None
             if mandatory_failures:
+                if source_index is not None:
+                    budget = RepairController(
+                        workspace=workspace, round_root=round_root,
+                        baseline_source=source_path, source_index=source_index,
+                        findings=[f for r in checker_runs for f in _actionable_findings(r)],
+                        checker_specs_sha256=analysis_context.checker_specs_sha256,
+                        policy=request.repair_policy,
+                    ).budget_error()
+                    if budget:
+                        final = (round_number, execution, False, "no_executable_repair_or_budget_exhausted")
+                        break
                 engineering_context = AgentToolContext(
                     workspace=workspace, source_path=source_path
                 )
@@ -1360,6 +1368,7 @@ class ObjectWorkflow:
                         "assignment": (
                             "Apply only this bounded RepairProposal to the assigned "
                             "candidate source. Preserve everything outside allowed_scopes. "
+                            "Do not default to deleting decoration, filling gaps or changing physical conditions. "
                             "Never delete mesh elements or change tolerances, thresholds, "
                             "checker code, mesh generation or solver settings to obtain a pass."
                         ),

@@ -67,18 +67,27 @@ Invalid meshes return `INDETERMINATE / MESH_INVALID`, not physical `FAIL`.
 The detailed report records element IDs/count, local bounds in metres, metric
 meaning and raw mesh path. The existing coordinate transform/source index
 retrieves source candidates; these are possible locations, not proof of cause.
-The short feedback includes count, region, available source candidates and
-report pointers; full IDs/logs stay on disk. Historical reports lacking
+The agent receives short status, stage, reason, relevant counts/locations and report pointers;
+full IDs/logs stay on disk. Historical reports lacking
 per-element Jacobian IDs explicitly label counts as incomplete/lower bounds.
 
-Only this typed unavailable finding can motivate a bounded local geometry
-hypothesis. Infrastructure/dependency failures remain non-actionable. All
-existing candidate budgets, scope checks, visual review and independent
-checkers still apply. Unavailable-to-unavailable is not improvement;
-`MESH_INVALID` reaching a real physical `PASS` can improve that target.
+`MESH_INVALID`, `MESH_GENERATION_FAILED` and mesh-stage `MESH_TIMEOUT` remain
+`INDETERMINATE`: FEA is unverified and the geometric cause is undetermined.
+Only a non-ambiguous existing direct/geometric source candidate with resolved
+source IDs permits a local source repair, within the existing remaining budget.
+No localization means no mesh repair. Infrastructure/dependency errors are still
+analysis-only. Native mesh stage/surface bounds are recorded before generation;
+the parent reads bounded stdout/stderr after timeout, kills/reaps the process,
+and preserves independent checks. A surface region alone is not a causal diagnosis.
+All existing scope checks, visual review and independent checker regression
+guards apply. Unavailable-to-unavailable is not improvement; a targeted, localized
+mesh failure reaching actual FEA `PASS` may count as improvement.
 A newly evaluated physical `FAIL` rejects the candidate and is preserved in
 its report. Other real improvements may retain an unverified working model,
-but unfinished required FEA always means `approved=false`.
+but unfinished required FEA always means `approved=false`. If only unavailable
+checks without reliable localization remain, or the budget is exhausted, end
+normally and save without another repair candidate. Never default to removing
+decoration, filling gaps, changing evaluation conditions, or switching backends.
 
 The adapters emit protocol-v2 `CheckerResult` records while the runner remains
 compatible with protocol-v1 checkers. A v1 result is upgraded conservatively:

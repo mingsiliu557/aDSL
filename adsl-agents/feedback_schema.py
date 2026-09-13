@@ -13,6 +13,19 @@ from .models import (
     RegionEvidence,
 )
 
+MESH_FEEDBACK_CODES = {"MESH_INVALID", "MESH_GENERATION_FAILED", "MESH_TIMEOUT"}
+
+
+def localized_mesh_feedback(result: CheckerResult, finding: CheckerFinding) -> bool:
+    """Analysis failure, not a strength failure; require resolved local evidence."""
+    return (
+        result.checker == "fea" and result.status == "INDETERMINATE"
+        and finding.rule_id in MESH_FEEDBACK_CODES
+        and finding.repairability == "geometry"
+        and any(c.source_ids and not c.ambiguous
+                and c.method in {"direct", "geometric"} for c in finding.source_candidates)
+    )
+
 
 def sha256_file(path: str | Path) -> str:
     digest = hashlib.sha256()
@@ -71,6 +84,12 @@ def canonicalize_result(result: CheckerResult, *, required: bool) -> CheckerResu
                 frame="authored_scene",
                 part_names=[str(value) for value in part_names],
             )
+        if result.checker == "fea" and code in MESH_FEEDBACK_CODES:
+            category = "evidence_insufficient"
+            if violation.get("bounds_source") is not None:
+                region = RegionEvidence(kind="aabb", frame="authored_scene",
+                                        bounds=violation["bounds_source"])
+            repairability = "geometry" if region is not None else "analysis"
         findings.append(
             CheckerFinding(
                 finding_id=f"{result.checker}:{code}:{index}",

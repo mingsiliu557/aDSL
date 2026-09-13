@@ -231,6 +231,7 @@ def run_logged(
     timeout_seconds: float,
 ) -> dict[str, Any]:
     stdout_path.parent.mkdir(parents=True, exist_ok=True)
+    print(f"[{utc_now()}] process start: {command[0]}; logs: {stdout_path}, {stderr_path}", flush=True)
     started = time.monotonic()
     with stdout_path.open("w", encoding="utf-8") as stdout, stderr_path.open(
         "w", encoding="utf-8"
@@ -250,6 +251,8 @@ def run_logged(
             except subprocess.TimeoutExpired:
                 os.killpg(process.pid, signal.SIGKILL)
                 return_code = process.wait()
+    print(f"[{utc_now()}] process end: rc={124 if timed_out else return_code}; "
+          f"elapsed={time.monotonic() - started:.1f}s; stderr={stderr_path}", flush=True)
     return {
         "pid": process.pid,
         "return_code": 124 if timed_out else return_code,
@@ -464,7 +467,7 @@ def main() -> int:
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--case", action="append", default=[])
     parser.add_argument("--arm", action="append", choices=VALID_ARMS, default=[])
-    parser.add_argument("--max-rounds", type=int, default=10)
+    parser.add_argument("--max-rounds", type=int, default=5)
     parser.add_argument("--case-timeout-seconds", type=float, default=21600)
     parser.add_argument("--resume-existing", action="store_true")
     parser.add_argument("--python", type=Path, default=DEFAULT_PYTHON)
@@ -475,8 +478,8 @@ def main() -> int:
     parser.add_argument("--gpu-queue", type=Path, default=DEFAULT_GPU_QUEUE)
     parser.add_argument("--local-render", action="store_true")
     args = parser.parse_args()
-    if args.max_rounds != 10:
-        parser.error("the current experiment requires a ten-round maximum")
+    if args.max_rounds != 5:
+        parser.error("the current experiment requires a five-round maximum")
     for path in (
         args.python, args.adsl_run, args.model_config, args.checker_run,
         args.asset_executor, DEFAULT_TOPOLOGY_SPEC, DEFAULT_STANDING_SPEC,
@@ -542,6 +545,7 @@ def main() -> int:
     for case in cases:
         order = [arm for arm in case["arm_order"] if arm in selected_arms]
         for arm in order:
+            print(f"[{utc_now()}] case={case['case_id']} arm={arm} START", flush=True)
             try:
                 row = run_arm(
                     case=case, arm=arm, output_root=output_root,
@@ -566,6 +570,7 @@ def main() -> int:
                     output_root / "events.jsonl",
                     {**row, "event": "arm_exception"},
                 )
+            print(f"[{utc_now()}] case={case['case_id']} arm={arm} status={row['status']}", flush=True)
             if row["status"] != "COMPLETED":
                 pause_status = classify_pause(
                     output_root=output_root, case_id=case["case_id"], arm=arm, row=row
@@ -595,7 +600,8 @@ def main() -> int:
         "planned_arms": planned_arm_count,
         "failed_arms": failed_arms,
     })
-    return 0
+    print(f"[{utc_now()}] batch finished: {planned_arm_count - len(failed_arms)}/{planned_arm_count} completed", flush=True)
+    return 1 if failed_arms else 0
 
 
 if __name__ == "__main__":
