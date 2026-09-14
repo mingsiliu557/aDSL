@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import time
 import hashlib
+from dataclasses import asdict
 from typing import Any
 
 from .models import CheckerFinding, MetricEvidence, RegionEvidence
@@ -18,15 +19,96 @@ def budget_remaining(workspace: Path, options: dict[str, Any]) -> int:
     return max(0, int(options.get("max_candidates", 2)) - count)
 
 
-def reserve_attempt(workspace: Path, options: dict[str, Any], stage: str) -> bool:
+def reserve_attempt(workspace: Path, options: dict[str, Any], stage: str,
+                    *, attempt_id: str | None = None, parent: str | None = None) -> bool:
     if not options:
         return True
+    ledger = workspace / "edit_attempts.jsonl"
+    if attempt_id and ledger.exists() and any(json.loads(line).get("attempt_id") == attempt_id
+                                              for line in ledger.read_text().splitlines()):
+        return False  # An existing reservation is never permission to call again.
     if not budget_remaining(workspace, options):
         return False
     with (workspace / "edit_attempts.jsonl").open("a") as handle:
-        handle.write(json.dumps({"stage": stage, "started_at": time.time()}) + "\n")
+        handle.write(json.dumps({"stage": stage, "origin": stage, "started_at": time.time(),
+                                 "attempt_id": attempt_id, "parent_version": parent}) + "\n")
         handle.flush()
     return True
+
+
+def file_hash(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def version_record(version_id, source, execution, runs=(), reviews=None):
+    """Bind immutable asset files and their exact measurement/review payloads."""
+    paths = [source]
+    if not source.is_file():
+        raise ValueError("version source is missing")
+    if execution is not None:
+        if not execution.glb_path.is_file() or (execution.urdf_path and not execution.urdf_path.is_file()):
+            raise ValueError("version generated asset is missing")
+        if any(not p.is_file() for p in execution.render_paths):
+            raise ValueError("version render is missing")
+        paths += [execution.glb_path, *execution.render_paths]
+        paths += [execution.glb_path.parent / "meta.json",
+                  execution.glb_path.with_name(f"{execution.glb_path.stem}.joint_states.json")]
+        if execution.urdf_path:
+            paths += [execution.urdf_path, *sorted((execution.urdf_path.parent / "meshes").rglob("*"))]
+        if execution.source_index_path:
+            paths.append(execution.source_index_path)
+    payload = {"id": version_id, "source": str(source),
+               "execution": json.loads(json.dumps(asdict(execution), default=str)) if execution else None,
+               "checkers": [{"spec": r.spec.model_dump(), "result": r.result.model_dump(),
+                             "output_dir": str(r.output_dir), "command": list(r.command)} for r in runs],
+               "reviews": reviews or {"appearance_approved": None, "protection": {"status": "UNCONFIRMED"}},
+               "files": {str(p): file_hash(p) for p in paths if p.is_file()}}
+    payload["record_hash"] = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+    return payload
+
+
+def assert_version(record):
+    payload = {k: v for k, v in record.items() if k != "record_hash"}
+    if hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest() != record["record_hash"]:
+        raise ValueError("version checker/review record changed")
+    for name, expected in record["files"].items():
+        if file_hash(Path(name)) != expected:
+            raise ValueError(f"version asset hash changed: {name}")
+
+
+def version_assets(record):
+    from .utils.execution import ExecutionResult
+    from .checkers import CheckerRun
+    from .models import CheckerSpec, CheckerResult
+    assert_version(record)
+    raw = record["execution"]
+    execution = ExecutionResult(**{k: (tuple(Path(p) for p in v) if k == "render_paths" else
+                                      Path(v) if v is not None and (k.endswith("_path") or k == "output_root") else v)
+                                   for k, v in raw.items()})
+    runs = [CheckerRun(CheckerSpec.model_validate(r["spec"]), CheckerResult.model_validate(r["result"]),
+                       Path(r["output_dir"]), tuple(r["command"])) for r in record["checkers"]]
+    return Path(record["source"]), execution, runs
+
+
+def edit_outcome(output, events, before_hash, after_hash, error=None):
+    evidence = {"tool_events": [asdict(e) for e in events], "before_sha256": before_hash,
+                "after_sha256": after_hash}
+    if error is not None:
+        return {**evidence, "status": "TOOL_ERROR", "reason": str(error)[:300]}
+    if before_hash != after_hash:
+        return {**evidence, "status": "CHANGED", "reason": "candidate source changed; evaluation required"}
+    declaration = output if isinstance(output, dict) else None
+    if isinstance(output, str):
+        try:
+            declaration = json.loads(output)
+        except (ValueError, TypeError):
+            match = re.match(r"^\s*NO_CHANGE\s*:\s*(\S.+)", output, re.S)
+            declaration = {"edit_action": "NO_CHANGE", "reason": match[1]} if match else None
+    if any(e.tool == "apply_patch" for e in events):
+        return {**evidence, "status": "NO_EFFECT", "reason": "patch tool completed but source hash is unchanged"}
+    if isinstance(declaration, dict) and declaration.get("edit_action") == "NO_CHANGE" and str(declaration.get("reason", "")).strip():
+        return {**evidence, "status": "NO_CHANGE", "reason": str(declaration["reason"])[:500]}
+    return {**evidence, "status": "NO_PATCH_UNEXPLAINED", "reason": "no changed source and no explicit NO_CHANGE declaration"}
 
 
 def original_execution(options: dict[str, Any]):

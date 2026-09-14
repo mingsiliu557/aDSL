@@ -16,6 +16,7 @@ class AgentToolContext:
     source_path: Path
     executor_timeout: float = 300.0
     events: list[ToolEvent] = field(default_factory=list)
+    record_noop_patch: bool = False
 
     def __post_init__(self) -> None:
         self.workspace = self.workspace.expanduser().resolve()

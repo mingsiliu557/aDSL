@@ -40,6 +40,54 @@ area-based acceptance. It is **not** reselected by the offline evaluator.
 
 ## Measurement and interpretation
 
+### Isolated edits (fix based on `899408e`)
+
+Only enabled `overhang_experiment` requests use this routing. Initial edits,
+Image/Code Critic gate patches, Engineering Critic proposals and resume all use
+the existing candidate execution/review/acceptance path. An appearance repair
+can be reasonable yet rejected for worsening area; its source, assets, reviews
+and rejection reason are retained. Image Critic and source-grounded visual
+misjudgment correction remain enabled.
+
+`overhang_versions.json` binds `original`, `retained` and each candidate to source,
+GLB/URDF/mesh/render hashes, checker results and review records. Original is a
+fallback, not an automatic appearance/protection pass. Feedback candidates must
+pass `assess_candidate(overhang_optimization=True)`; control candidates use only
+appearance/code review plus protection and never online area selection.
+
+Every edit reserves one ID in the existing `edit_attempts.jsonl` **before** the
+model call. The lower-level repair does not reserve again. No-op, failed code,
+tool error and rejected candidates consume that attempt. A resumed unfinished
+reservation is recorded as `INTERRUPTED`, not replayed or charged again. Shared
+candidate/time budgets remain in force.
+
+The experimental coder may explicitly return
+`{"edit_action":"NO_CHANGE","reason":"..."}`. This is distinguished from
+`NO_PATCH_UNEXPLAINED`, `NO_EFFECT` (successful tool, unchanged hash), and
+`TOOL_ERROR`. None overwrites retained. Normal aDSL still requires its usual
+patch tool event. Completed runs can contain unsuccessful attempts; inspect
+their recorded statuses rather than interpreting completion as repair success.
+
+All exits publish retained source **and its matching** generated files,
+`checker_results.json` and `appearance_protection.json`; both result files carry
+the selected version ID and record hash. Publication verifies copied file hashes
+and reuses the version's measurement without invoking a slicer. Unmeasured assets
+remain `INDETERMINATE / NOT_EVALUATED`. Measurement completion never means all
+physical checks passed.
+
+Mock-only regression command (does not submit experiments):
+
+```bash
+/vepfs_default/chanxueyan/lhp/lms/envs/adsl/bin/python -m pytest -q \
+  tests/test_overhang_candidate_isolation.py tests/test_overhang_local_edit.py \
+  tests/test_checker_fault_isolation.py tests/test_refinement_budget.py
+```
+
+The SF03 fixture uses 6119.80 → 6645.29 mm² solely to reproduce rejection of a
+regressing gate candidate. It does **not** rerun or revalidate the real SF03
+experiment. Real-tool smoke tests stay disabled; no API/Blender/Gmsh/batch work
+is part of this fix.
+
 - `PASS` in the adapter means **measurement completed only**, not absence of
   overhang, no support requirement or printing success. Candidate conclusion is
   separate: improved / unchanged / worsened / unevaluated.

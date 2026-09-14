@@ -6,6 +6,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 import shutil
+import time
 from typing import Any
 
 from .checkers import (
@@ -18,6 +19,8 @@ from .localization import LocalizationReport, localize_findings
 from .models import (
     AnalysisContext,
     CheckerFinding,
+    CheckerResult,
+    CheckerSpec,
     CodeCriticDecision,
     DebuggerDecision,
     EditKind,
@@ -27,10 +30,14 @@ from .models import (
     ObjectPlan,
     ObjectRequest,
     ObjectRunResult,
+    RepairProposal,
+    RepairTarget,
 )
 from .prompts import object_prompt
 from .repair_controller import RepairController
-from .overhang_edit import budget_remaining, reserve_attempt, opportunities, protection_check, original_execution, allowed_edit, compare_measurements
+from .overhang_edit import (budget_remaining, reserve_attempt, opportunities, protection_check,
+                           original_execution, allowed_edit, compare_measurements,
+                           version_record, version_assets, assert_version, file_hash, edit_outcome)
 from .repair_policy import (
     assess_candidate,
     immutable_inputs_match,
@@ -307,7 +314,7 @@ class ObjectWorkflow:
             instructions=object_prompt("coder", articulation=request.articulation),
             tools=PATCH_TOOLS,
         )
-        if not request.check_first:
+        if not request.check_first and not request.overhang_experiment:
             reserve_attempt(workspace, request.overhang_experiment, "initial_patch")
             await runtime.run(
                 agent=coder,
@@ -372,7 +379,7 @@ class ObjectWorkflow:
         if (
             checkpoint.get("stage") == "completed"
             or manifest.get("status") == "completed"
-        ) and self._published_files_exist(workspace):
+        ) and self._published_files_exist(workspace) and not request.overhang_experiment:
             return self._load_completed_result(workspace, manifest)
 
         runtime = self._runtime(request, workspace, mode=mode, resume=True)
@@ -401,7 +408,7 @@ class ObjectWorkflow:
             write_json(checkpoint_path, checkpoint)
 
         stage = str(checkpoint.get("stage") or "refining")
-        if stage == "planned":
+        if stage == "planned" and not request.overhang_experiment:
             if mode == "generate":
                 if not source_path.read_text(encoding="utf-8").strip():
                     context = AgentToolContext(workspace=workspace, source_path=source_path)
@@ -600,6 +607,11 @@ class ObjectWorkflow:
             output_type=EngineeringCriticDecision,
             strict_json_schema=False,
         )
+        if request.overhang_experiment:
+            return await self._iterate_overhang(
+                runtime=runtime, request=request, workspace=workspace, source_path=source_path,
+                mode=mode, plan=plan, repairer=repairer, image_critic=image_critic,
+                code_critic=code_critic, engineering_critic=engineering_critic)
         state = resume_state or {}
         experiment = request.overhang_experiment
         optimize = experiment.get("arm") == "feedback"
@@ -1379,6 +1391,224 @@ class ObjectWorkflow:
                 rows.append(value)
         return rows[-20:]
 
+    async def _iterate_overhang(self, *, runtime, request, workspace, source_path, mode, plan,
+                                repairer, image_critic, code_critic, engineering_critic):
+        """Opt-in edit routing; execution, critics and acceptance remain shared."""
+        options = request.overhang_experiment
+        feedback = options.get("arm") == "feedback"
+        if options.get("arm") not in {"feedback", "control"}:
+            raise ValueError("unknown overhang experiment arm")
+        if (not feedback and request.checker_specs) or any(s.name != "overhang" for s in request.checker_specs):
+            raise ValueError("control has no online checkers; feedback uses overhang only")
+        book_path = workspace / "overhang_versions.json"
+        if not book_path.exists():
+            original_source = workspace / "original_source.py"
+            if not original_source.exists():
+                shutil.copy2(source_path, original_source)
+            original = original_execution(options)
+            original_source_asset = original.glb_path.parent / "source.py"
+            if original_source_asset.exists() and file_hash(original_source_asset) != file_hash(original_source):
+                raise ValueError("initial source does not match original asset source")
+            book = {"original": "original", "retained": "original", "candidate": None,
+                    "checker_specs": [s.model_dump() for s in request.checker_specs],
+                    "attempts": {}, "versions": {"original": version_record("original", original_source, original)}}
+            write_json(book_path, book)
+        reason = "round_budget_exhausted"
+        try:
+            book = read_json(book_path)
+            # Never repeat a model call whose reservation survived an interruption.
+            interrupted = False
+            for attempt_id, attempt in book["attempts"].items():
+                if attempt["status"] in {"EDITING", "MODEL_STARTED"}:
+                    attempt.update(status="INTERRUPTED", accepted=False,
+                                   reason="reserved attempt interrupted; not replayed")
+                    candidate = workspace / attempt["candidate"]
+                    book["versions"].setdefault(attempt_id, version_record(attempt_id, candidate, None))
+                    write_json(candidate.parent / "decision.json", attempt)
+                    interrupted = True
+            write_json(book_path, book)
+            if interrupted or book.get("completed"):
+                reason = "interrupted_attempt_not_replayed" if interrupted else book["stop_reason"]
+            else:
+                for round_number in range(1 + len(book["attempts"]), request.max_rounds + 1):
+                    book = read_json(book_path)
+                    retained = book["versions"][book["retained"]]
+                    current_source, execution, runs = version_assets(retained)
+                    if not budget_remaining(workspace, options):
+                        reason = "edit_budget_exhausted"
+                        break
+                    ledger = workspace / "edit_attempts.jsonl"
+                    if ledger.exists():
+                        reservations = [json.loads(line) for line in ledger.read_text().splitlines()]
+                        if len(reservations) >= request.repair_policy.max_total_candidates or (reservations and
+                                time.time() - reservations[0]["started_at"] >= request.repair_policy.time_budget_seconds):
+                            reason = "repair_budget_exhausted"
+                            break
+                    round_root = workspace / "rounds" / f"round_{round_number:02d}"
+                    round_root.mkdir(parents=True, exist_ok=True)
+                    # Initial measurements are cached in the version, never rerun for publication.
+                    if feedback and not runs:
+                        runs = run_checkers(request.checker_specs, execution=execution,
+                                            source_path=current_source, round_root=round_root)
+                    runs = [CheckerRun(r.spec, r.result.model_copy(update={"findings": opportunities(r.result)}),
+                                       r.output_dir, r.command) for r in runs] if feedback else []
+                    analysis = build_analysis_context(source_path=current_source, geometry_path=execution.glb_path,
+                        source_index_path=execution.source_index_path, checker_runs=runs,
+                        print_orientation_editable=request.repair_policy.print_orientation_editable)
+                    index = load_source_index(execution.source_index_path) if execution.source_index_path else None
+                    if index and runs:
+                        localized, report = localize_findings([f for r in runs for f in r.result.findings], index,
+                                                              checker_contexts=analysis.checker_contexts)
+                        by_id = {f.finding_id: f for f in localized}
+                        runs = [CheckerRun(r.spec, r.result.model_copy(update={"findings": [by_id[f.finding_id]
+                                            for f in r.result.findings]}), r.output_dir, r.command) for r in runs]
+                        write_json(round_root / "localization.json", report.model_dump())
+                    write_json(round_root / "analysis_context.json", analysis.model_dump())
+                    for run in runs:
+                        write_json(run.output_dir / "result.json", run.result.model_dump())
+                    book["versions"][book["retained"]] = version_record(book["retained"], current_source, execution, runs, retained["reviews"])
+                    write_json(book_path, book)
+                    proposal = RepairProposal(proposal_id=f"local_edit_{round_number}", finding_ids=["local_edit"],
+                        hypothesis="Preserve required shape, function and appearance; reduce overhang only where appropriate.",
+                        target=RepairTarget(allowed_scopes=options.get("protection", {}).get("allowed_classes", [])),
+                        action="reshape")
+                    reviews = retained["reviews"]
+                    initial = not book["attempts"] and not request.check_first
+                    if not initial and reviews.get("appearance_approved") is None:
+                        _, reviews = await self._review_candidate_appearance(runtime=runtime, request=request,
+                            workspace=workspace, round_number=round_number, proposal_index=0, proposal=proposal,
+                            baseline_execution=original_execution(options), candidate_execution=execution,
+                            candidate_source=current_source, candidate_root=round_root,
+                            image_critic=image_critic, code_critic=code_critic)
+                        reviews["protection"] = protection_check(Path(options["original_urdf"]), execution.urdf_path, options)
+                    book["versions"][book["retained"]] = version_record(book["retained"], current_source, execution, runs, reviews)
+                    write_json(book_path, book)
+                    payload = None
+                    if initial or not reviews.get("appearance_approved"):
+                        origin = "initial_edit" if initial else "gate_patch"
+                        payload = {"requirement": request.requirement, "plan": plan.model_dump(),
+                                   "assignment": proposal.hypothesis,
+                                   "protection_checklist": options.get("protection"),
+                                   "image_critic": reviews.get("image_critic"), "code_critic": reviews.get("code_critic"),
+                                   "remaining_edit_candidates": budget_remaining(workspace, options)}
+                        if feedback:
+                            payload["checker_evidence"] = _checker_evidence(runs, workspace=workspace)
+                            payload["overhang_measurements"] = [{k: r.result.metrics.get(k) for k in
+                                ("overhang_area_mm2", "nominal_contact_area_mm2", "support_required")} for r in runs]
+                        decision = EngineeringCriticDecision(approved=False, observations=[], repair_proposals=[proposal])
+                    elif not feedback:
+                        reason = "control_appearance_review_complete"
+                        break
+                    elif not runs or any(r.result.status != "PASS" for r in runs):
+                        reason = "overhang_measurement_unavailable"
+                        break
+                    else:
+                        origin = "engineering"
+                        context = AgentToolContext(workspace=workspace, source_path=current_source)
+                        result = await runtime.run(agent=engineering_critic, input=json.dumps({
+                            "requirement": request.requirement, "plan": plan.model_dump(),
+                            "assigned_source": current_source.relative_to(workspace).as_posix(),
+                            "instruction": "Optional local optimization. Preserve shape/function/appearance first. Read the source. Return no proposals with a reason if no safe useful edit exists.",
+                            "checker_evidence": _checker_evidence(runs, workspace=workspace),
+                            "overhang_measurements": [{k: r.result.metrics.get(k) for k in
+                                ("overhang_area_mm2", "nominal_contact_area_mm2", "support_required")} for r in runs],
+                            "protection_checklist": options.get("protection"),
+                            "remaining_edit_candidates": budget_remaining(workspace, options),
+                            "previous_attempts": [{k: a.get(k) for k in ("status", "reason", "overhang_comparison")}
+                                                  for a in book["attempts"].values()]}, ensure_ascii=False),
+                            role=f"engineering-critic:round:{round_number}", stage=f"engineering_critic:{round_number}", context=context)
+                        self._require_tool_event(context, "read_file", "engineering critic")
+                        decision = self._typed_output(result.final_output, EngineeringCriticDecision)
+                        write_json(round_root / "engineering_critique.json", decision.model_dump())
+                    if not decision.repair_proposals:
+                        reason = "no_actionable_proposal"
+                        break
+                    outcome = await self._attempt_engineering_candidates(runtime=runtime, request=request,
+                        workspace=workspace, source_path=current_source, round_root=round_root, round_number=round_number,
+                        plan=plan, repairer=repairer, image_critic=image_critic, code_critic=code_critic,
+                        baseline_execution=execution, baseline_runs=runs, baseline_analysis_context=analysis,
+                        source_index=index, engineering_decision=decision, code_decision=None,
+                        edit_payload=payload, edit_origin=origin)
+                    if not outcome.execution:
+                        reason = str(outcome.attempts[-1].get("status", "candidate_rejected")) if outcome.attempts else "no_candidate"
+                        # Rejected edits remain on disk; no improvement need not force another edit.
+                        if reason in {"NO_CHANGE", "NO_EFFECT", "NO_PATCH_UNEXPLAINED", "TOOL_ERROR"} or not outcome.attempts:
+                            break
+        except Exception as error:
+            reason = "experiment_error"
+            book = read_json(book_path)
+            book["error"] = {"stage": "local_edit", "type": type(error).__name__, "reason": str(error)[:300]}
+            for attempt_id, attempt in book["attempts"].items():
+                if attempt["status"] in {"EDITING", "MODEL_STARTED"}:
+                    attempt.update(status="EVALUATION_ERROR", accepted=False, reason=str(error)[:300])
+                    candidate = workspace / attempt["candidate"]
+                    book["versions"].setdefault(attempt_id, version_record(attempt_id, candidate, None))
+                    write_json(candidate.parent / "decision.json", attempt)
+            write_json(book_path, book)
+        return self._publish_overhang(runtime, workspace, mode, reason)
+
+    def _publish_overhang(self, runtime, workspace, mode, reason):
+        book_path = workspace / "overhang_versions.json"
+        book = read_json(book_path)
+        retained = book["versions"][book["retained"]]
+        source, execution, runs = version_assets(retained)
+        for raw in book.get("checker_specs", []):
+            spec = CheckerSpec.model_validate(raw)
+            if not any(r.spec.name == spec.name for r in runs):
+                directory = workspace / "unverified_checkers" / spec.name
+                result = CheckerResult(checker=spec.name, status="INDETERMINATE",
+                    summary="Retained asset not measured; optimization unverified",
+                    violations=[{"code": "NOT_EVALUATED", "stage": "local_edit"}])
+                write_json(directory / "result.json", result.model_dump())
+                runs.append(CheckerRun(spec, result, directory, ()))
+        retained = version_record(book["retained"], source, execution, runs, retained["reviews"])
+        book["versions"][book["retained"]] = retained
+        shutil.copy2(source, workspace / "source.py")
+        glb, urdf, renders = self._publish(workspace, execution)
+        pairs = [(source, workspace / "source.py"), (execution.glb_path, glb), *zip(execution.render_paths, renders)]
+        if urdf:
+            pairs += [(execution.urdf_path, urdf)]
+            pairs += [(p, workspace / "meshes" / p.relative_to(execution.urdf_path.parent / "meshes"))
+                      for p in (execution.urdf_path.parent / "meshes").rglob("*") if p.is_file()]
+        if execution.source_index_path:
+            pairs.append((execution.source_index_path, workspace / "source_index.json"))
+        for a, b in ((execution.glb_path.parent / "meta.json", workspace / "render/meta.json"),
+                     (execution.glb_path.with_name(f"{execution.glb_path.stem}.joint_states.json"),
+                      workspace / "scene.joint_states.json")):
+            if a.is_file():
+                pairs.append((a, b))
+        if any(file_hash(a) != file_hash(b) for a, b in pairs):
+            raise ValueError("published files do not match retained version")
+        verification = {"required_checkers_passed": False, "overhang_experiment": True,
+            "checker_statuses": {r.spec.name: r.result.status for r in runs},
+            "unverified_checks": [r.spec.name for r in runs if r.result.status in {"ERROR", "INDETERMINATE"}]}
+        write_json(workspace / "checker_results.json", {"version_id": book["retained"],
+            "record_hash": retained["record_hash"], **verification,
+            "results": [{"required": r.spec.required, "report_path": str(r.output_dir / "result.json"),
+                         **r.result.model_dump()} for r in runs]})
+        write_json(workspace / "appearance_protection.json", {"version_id": book["retained"],
+            "record_hash": retained["record_hash"], **retained["reviews"]})
+        approved = bool(retained["reviews"].get("appearance_approved") and
+                        retained["reviews"].get("protection", {}).get("status") == "PASS")
+        book.update(completed=True, stop_reason=reason)
+        write_json(book_path, book)
+        selected_round = int(book["attempts"].get(book["retained"], {}).get("round", 0))
+        fields = dict(status="completed", approved=approved, selected_round=selected_round,
+            selected_version=book["retained"], selected_record_hash=retained["record_hash"], final_reason=reason,
+            finalization_reason=reason, mode=mode,
+            error_type=book.get("error", {}).get("type"), error=book.get("error", {}).get("reason"),
+            source_path=str(workspace / "source.py"), glb_path=str(glb), urdf_path=str(urdf) if urdf else None,
+            render_paths=[str(p) for p in renders],
+            appearance_approved=retained["reviews"].get("appearance_approved"),
+            protection=retained["reviews"].get("protection"), **verification,
+            checker_results=[r.result.model_dump() for r in runs],
+            checker_history=[{"results": [{"required": r.spec.required, **r.result.model_dump()} for r in runs]}],
+            edit_attempts=list(book["attempts"].values()))
+        runtime.usage.update_manifest(**fields)
+        self._write_checkpoint(workspace, stage="completed", **fields)
+        return ObjectRunResult(workspace, workspace / "source.py", glb, urdf, tuple(renders),
+                               selected_round, approved, runtime.usage.totals())
+
     async def _attempt_engineering_candidates(
         self,
         *,
@@ -1398,8 +1628,14 @@ class ObjectWorkflow:
         source_index: SourceIndex | None,
         engineering_decision: EngineeringCriticDecision,
         code_decision: CodeCriticDecision | None,
+        edit_payload: dict[str, Any] | None = None,
+        edit_origin: str = "engineering",
     ) -> _CandidateOutcome:
         attempts: list[dict[str, object]] = []
+        experiment = request.overhang_experiment
+        if experiment and edit_payload is not None and source_index is None:
+            source_index = SourceIndex(source_path=str(source_path), source_sha256=file_hash(source_path),
+                                       index_sha256="", root_feature_id="manual_scope")
         if source_index is None:
             attempts.append(
                 {
@@ -1421,12 +1657,33 @@ class ObjectWorkflow:
             checker_specs_sha256=baseline_analysis_context.checker_specs_sha256,
             policy=request.repair_policy,
         )
+        def record_attempt(record):
+            if experiment and attempt_id is not None:
+                book = read_json(workspace / "overhang_versions.json")
+                info = book["attempts"][attempt_id]
+                record.update(attempt_id=attempt_id, origin=info["origin"],
+                              parent_version=info["parent_version"])
+                record.setdefault("status", "ACCEPTED" if record.get("accepted") else "REJECTED")
+                record["version"] = attempt_id
+                book["attempts"][attempt_id] = {**info, **record}
+                book["versions"][attempt_id] = version_record(
+                    attempt_id, candidate_source, candidate_execution, candidate_runs, reviews)
+                if record.get("accepted"):
+                    assert_version(book["versions"][info["parent_version"]])
+                    book["retained"] = attempt_id
+                write_json(workspace / "overhang_versions.json", book)
+                write_json(candidate_root / "decision.json", record)
+            controller.record(record)
+
         proposals = engineering_decision.repair_proposals[
             : request.repair_policy.max_candidates_per_round
         ]
         rejected_proposals: list[dict[str, object]] = []
         for proposal_index, raw_proposal in enumerate(proposals, 1):
-            budget_error = controller.budget_error()
+            attempt_id = None
+            candidate_execution, candidate_runs, reviews = None, [], {}
+            budget_error = ("edit candidate budget exhausted" if experiment and not budget_remaining(workspace, experiment)
+                            else None if experiment else controller.budget_error())
             if budget_error:
                 attempts.append({"accepted": False, "stage": "repair_budget", "reason": budget_error})
                 rejected_proposals.append(
@@ -1436,7 +1693,8 @@ class ObjectWorkflow:
                     }
                 )
                 break
-            proposal, proposal_errors = controller.normalize_proposal(raw_proposal)
+            proposal, proposal_errors = ((raw_proposal, []) if experiment and edit_payload is not None
+                                         else controller.normalize_proposal(raw_proposal))
             if proposal is None:
                 record = {
                     "round": round_number,
@@ -1447,25 +1705,42 @@ class ObjectWorkflow:
                 }
                 attempts.append(record)
                 rejected_proposals.append(record)
-                controller.record(record)
+                record_attempt(record)
                 continue
 
             candidate_root, candidate_source, fingerprint = controller.prepare_candidate(
                 proposal, proposal_index
             )
             candidate_relative = candidate_source.relative_to(workspace).as_posix()
-            try:
-                if request.overhang_experiment and not budget_remaining(workspace, request.overhang_experiment):
-                    attempts.append({"accepted": False, "stage": "repair_budget", "reason": "edit candidate budget exhausted"})
+            if experiment:
+                versions = read_json(workspace / "overhang_versions.json")
+                parent = versions["retained"]
+                assert_version(versions["versions"][parent])
+                ledger = workspace / "edit_attempts.jsonl"
+                reservations = [json.loads(line) for line in ledger.read_text().splitlines()] if ledger.exists() else []
+                if len(reservations) >= request.repair_policy.max_total_candidates or (reservations and
+                        time.time() - reservations[0]["started_at"] >= request.repair_policy.time_budget_seconds):
+                    attempts.append({"stage": "repair_budget", "reason": "repair budget exhausted", "accepted": False})
                     break
-                await self._repair(
+                attempt_id = f"attempt_{1 + (len(ledger.read_text().splitlines()) if ledger.exists() else 0):04d}"
+                if not reserve_attempt(workspace, experiment, edit_origin, attempt_id=attempt_id, parent=parent):
+                    attempts.append({"stage": "repair_budget", "reason": "reservation denied", "accepted": False})
+                    break
+                versions["candidate"] = attempt_id
+                versions["attempts"][attempt_id] = {"status": "EDITING", "origin": edit_origin,
+                                                    "parent_version": parent, "candidate": candidate_relative}
+                write_json(workspace / "overhang_versions.json", versions)
+            try:
+                patch_result = await self._repair(
                     runtime=runtime,
                     repairer=repairer,
                     workspace=workspace,
                     source_path=candidate_source,
                     role=f"coder:engineering-candidate:{round_number}:{proposal_index}",
-                    stage=f"engineering_candidate_patch:{round_number}:{proposal_index}",
-                    payload={
+                    stage=(f"{edit_origin}:{round_number}:{proposal_index}" if experiment
+                           else f"engineering_candidate_patch:{round_number}:{proposal_index}"),
+                    **({"reserved_attempt_id": attempt_id} if experiment else {}),
+                    payload=edit_payload if edit_payload is not None else {
                         "requirement": request.requirement,
                         "plan": plan.model_dump(),
                         "assignment": (
@@ -1489,6 +1764,13 @@ class ObjectWorkflow:
                         ),
                     },
                 )
+                if experiment and patch_result["status"] != "CHANGED":
+                    record = {"round": round_number, "candidate": candidate_relative,
+                              "accepted": False, **patch_result}
+                    write_json(candidate_root / "decision.json", record)
+                    record_attempt(record)
+                    attempts.append(record)
+                    continue
             except Exception as error:
                 record = {
                     "round": round_number,
@@ -1499,7 +1781,7 @@ class ObjectWorkflow:
                     "reason": f"coder candidate failed: {type(error).__name__}: {error}",
                 }
                 write_json(candidate_root / "decision.json", record)
-                controller.record(record)
+                record_attempt(record)
                 attempts.append(record)
                 continue
 
@@ -1536,7 +1818,7 @@ class ObjectWorkflow:
                     "errors": [*scope_errors, *immutable_errors],
                 }
                 write_json(candidate_root / "decision.json", record)
-                controller.record(record)
+                record_attempt(record)
                 attempts.append(record)
                 continue
 
@@ -1549,8 +1831,15 @@ class ObjectWorkflow:
                     export_urdf=True,
                     timeout=_asset_executor_timeout_seconds(),
                 )
-            except AssetInfrastructureError:
-                raise
+            except AssetInfrastructureError as error:
+                if not experiment:
+                    raise
+                record = {"accepted": False, "candidate": candidate_relative, "status": "EXECUTION_ERROR",
+                          "reason": str(error)[:300]}
+                write_json(candidate_root / "decision.json", record)
+                record_attempt(record)
+                attempts.append(record)
+                continue
             except AssetExecutionError as error:
                 record = {
                     "round": round_number,
@@ -1562,16 +1851,24 @@ class ObjectWorkflow:
                     "scope_validation": scope_validation.model_dump(),
                 }
                 write_json(candidate_root / "decision.json", record)
-                controller.record(record)
+                record_attempt(record)
                 attempts.append(record)
                 continue
 
+            if experiment:
+                versions = read_json(workspace / "overhang_versions.json")
+                versions["versions"][attempt_id] = version_record(attempt_id, candidate_source, candidate_execution)
+                write_json(workspace / "overhang_versions.json", versions)
             candidate_runs = run_checkers(
                 request.checker_specs,
                 execution=candidate_execution,
                 source_path=candidate_source,
                 round_root=candidate_root,
-            )
+            ) if not experiment or experiment.get("arm") == "feedback" else []
+            if experiment:
+                versions = read_json(workspace / "overhang_versions.json")
+                versions["versions"][attempt_id] = version_record(attempt_id, candidate_source, candidate_execution, candidate_runs)
+                write_json(workspace / "overhang_versions.json", versions)
             candidate_context = build_analysis_context(
                 source_path=candidate_source,
                 geometry_path=candidate_execution.glb_path,
@@ -1592,7 +1889,7 @@ class ObjectWorkflow:
                     "reason": "checker specification hash changed during candidate evaluation",
                 }
                 write_json(candidate_root / "decision.json", record)
-                controller.record(record)
+                record_attempt(record)
                 attempts.append(record)
                 continue
 
@@ -1633,88 +1930,24 @@ class ObjectWorkflow:
                 findings_payload(run.result for run in candidate_runs),
             )
 
-            preservation_payload = {
-                "protection_checklist": request.overhang_experiment.get("protection"),
-                "requirement": request.requirement,
-                "round": round_number,
-                "proposal": proposal.model_dump(),
-                "review_mode": "candidate_preservation",
-                "image_order": {
-                    "reference_count": len(request.image_paths),
-                    "baseline_count": len(baseline_execution.render_paths),
-                    "candidate_count": len(candidate_execution.render_paths),
-                },
-                "instruction": (
-                    "Judge whether the candidate preserves the requested appearance and "
-                    "function. Do not infer checker success from images."
-                ),
-            }
-            image_result = await runtime.run(
-                agent=image_critic,
-                input=user_input(
-                    json.dumps(preservation_payload, ensure_ascii=False),
-                    (
-                        *request.image_paths,
-                        *baseline_execution.render_paths,
-                        *candidate_execution.render_paths,
-                    ),
-                ),
-                role=f"image-critic:candidate:{round_number}:{proposal_index}",
-                stage=f"candidate_image_critic:{round_number}:{proposal_index}",
-            )
-            candidate_image_decision = self._typed_output(
-                image_result.final_output, ImageCriticDecision
-            )
-            write_json(
-                candidate_root / "image_critique.json",
-                candidate_image_decision.model_dump(),
-            )
-            candidate_appearance_approved = candidate_image_decision.approved
-            if not candidate_appearance_approved:
-                code_context = AgentToolContext(
-                    workspace=workspace, source_path=candidate_source
-                )
-                candidate_code_result = await runtime.run(
-                    agent=code_critic,
-                    input=user_input(
-                        json.dumps(
-                            {
-                                **preservation_payload,
-                                "assigned_source": candidate_relative,
-                                "image_critic": candidate_image_decision.model_dump(),
-                            },
-                            ensure_ascii=False,
-                        ),
-                        (
-                            *request.image_paths,
-                            *baseline_execution.render_paths,
-                            *candidate_execution.render_paths,
-                        ),
-                    ),
-                    role=f"code-critic:candidate:{round_number}:{proposal_index}",
-                    stage=f"candidate_code_critic:{round_number}:{proposal_index}",
-                    context=code_context,
-                )
-                candidate_code_decision = self._normalize_code_critic_decision(
-                    self._typed_output(candidate_code_result.final_output, CodeCriticDecision),
-                    source_grounded=any(
-                        event.tool == "read_file" for event in code_context.events
-                    ),
-                )
-                write_json(
-                    candidate_root / "code_critique.json",
-                    candidate_code_decision.model_dump(),
-                )
-                candidate_appearance_approved = candidate_code_decision.approved
+            candidate_appearance_approved, reviews = await self._review_candidate_appearance(
+                runtime=runtime, request=request, workspace=workspace, round_number=round_number,
+                proposal_index=proposal_index, proposal=proposal, baseline_execution=baseline_execution,
+                candidate_execution=candidate_execution, candidate_source=candidate_source,
+                candidate_root=candidate_root, image_critic=image_critic, code_critic=code_critic)
 
             protection = (protection_check(Path(request.overhang_experiment["original_urdf"]),
                                            candidate_execution.urdf_path, request.overhang_experiment)
                           if request.overhang_experiment else None)
             if protection is not None:
                 write_json(candidate_root / "protection.json", protection)
+                reviews["protection"] = protection
             comparison = (compare_measurements(baseline_runs[0].result, candidate_runs[0].result)
                           if request.overhang_experiment and baseline_runs and candidate_runs else None)
-            decision = assess_candidate(
+            from .repair_policy import CandidateDecision
+            decision = (CandidateDecision(accepted=bool(candidate_appearance_approved and protection and protection["status"] == "PASS"),
+                        reason="control appearance and protection review; no area selection")
+                        if experiment.get("arm") == "control" else assess_candidate(
                 [run.result for run in baseline_runs],
                 [run.result for run in candidate_runs],
                 target_finding_ids=proposal.finding_ids,
@@ -1722,7 +1955,7 @@ class ObjectWorkflow:
                 policy=request.repair_policy,
                 overhang_optimization=request.overhang_experiment.get("arm") == "feedback",
                 protection=protection,
-            )
+            ))
             record = {
                 "round": round_number,
                 "proposal_id": proposal.proposal_id,
@@ -1738,10 +1971,11 @@ class ObjectWorkflow:
                 **decision.model_dump(),
             }
             write_json(candidate_root / "decision.json", record)
-            controller.record(record)
+            record_attempt(record)
             attempts.append(record)
             if decision.accepted:
-                shutil.copy2(candidate_source, source_path)
+                if not experiment:
+                    shutil.copy2(candidate_source, source_path)
                 return _CandidateOutcome(
                     candidate_execution,
                     tuple(candidate_runs),
@@ -1755,6 +1989,93 @@ class ObjectWorkflow:
         )
         return _CandidateOutcome(None, (), False, tuple(attempts))
 
+    async def _review_candidate_appearance(self, *, runtime, request, workspace, round_number,
+                                          proposal_index, proposal, baseline_execution,
+                                          candidate_execution, candidate_source, candidate_root,
+                                          image_critic, code_critic):
+        candidate_relative = candidate_source.relative_to(workspace).as_posix()
+        candidate_code_decision = None
+        preservation_payload = {
+            "protection_checklist": request.overhang_experiment.get("protection"),
+            "requirement": request.requirement,
+            "round": round_number,
+            "proposal": proposal.model_dump(),
+            "review_mode": "candidate_preservation",
+            "image_order": {
+                "reference_count": len(request.image_paths),
+                "baseline_count": len(baseline_execution.render_paths),
+                "candidate_count": len(candidate_execution.render_paths),
+            },
+            "instruction": (
+                "Judge whether the candidate preserves the requested appearance and "
+                "function. Do not infer checker success from images."
+            ),
+        }
+        image_result = await runtime.run(
+            agent=image_critic,
+            input=user_input(
+                json.dumps(preservation_payload, ensure_ascii=False),
+                (
+                    *request.image_paths,
+                    *baseline_execution.render_paths,
+                    *candidate_execution.render_paths,
+                ),
+            ),
+            role=f"image-critic:candidate:{round_number}:{proposal_index}",
+            stage=f"candidate_image_critic:{round_number}:{proposal_index}",
+        )
+        candidate_image_decision = self._typed_output(
+            image_result.final_output, ImageCriticDecision
+        )
+        write_json(
+            candidate_root / "image_critique.json",
+            candidate_image_decision.model_dump(),
+        )
+        candidate_appearance_approved = candidate_image_decision.approved
+        if not candidate_appearance_approved:
+            code_context = AgentToolContext(
+                workspace=workspace, source_path=candidate_source
+            )
+            candidate_code_result = await runtime.run(
+                agent=code_critic,
+                input=user_input(
+                    json.dumps(
+                        {
+                            **preservation_payload,
+                            "assigned_source": candidate_relative,
+                            "image_critic": candidate_image_decision.model_dump(),
+                        },
+                        ensure_ascii=False,
+                    ),
+                    (
+                        *request.image_paths,
+                        *baseline_execution.render_paths,
+                        *candidate_execution.render_paths,
+                    ),
+                ),
+                role=f"code-critic:candidate:{round_number}:{proposal_index}",
+                stage=f"candidate_code_critic:{round_number}:{proposal_index}",
+                context=code_context,
+            )
+            candidate_code_decision = self._normalize_code_critic_decision(
+                self._typed_output(candidate_code_result.final_output, CodeCriticDecision),
+                source_grounded=any(
+                    event.tool == "read_file" for event in code_context.events
+                ),
+            )
+            write_json(
+                candidate_root / "code_critique.json",
+                candidate_code_decision.model_dump(),
+            )
+            candidate_appearance_approved = candidate_code_decision.approved
+
+
+        return candidate_appearance_approved, {
+            "appearance_approved": candidate_appearance_approved,
+            "image_critic": candidate_image_decision.model_dump(),
+            "code_critic": candidate_code_decision.model_dump() if candidate_code_decision else None,
+        }
+
     async def _repair(
         self,
         *,
@@ -1765,21 +2086,39 @@ class ObjectWorkflow:
         role: str,
         stage: str,
         payload: dict[str, object],
-    ) -> None:
+        reserved_attempt_id: str | None = None,
+    ) -> dict[str, Any] | None:
         config_path = workspace / "runtime_config.json"
         options = read_json(config_path).get("request", {}).get("overhang_experiment", {}) if config_path.exists() else {}
-        if not reserve_attempt(workspace, options, stage):
-            return
-        context = AgentToolContext(workspace=workspace, source_path=source_path)
+        if options and not reserved_attempt_id:
+            raise ValueError("experiment edits require an isolated reserved candidate")
+        if options:
+            versions = read_json(workspace / "overhang_versions.json")
+            attempt = versions["attempts"].get(reserved_attempt_id)
+            if not attempt or attempt["status"] != "EDITING" or (workspace / attempt["candidate"]).resolve() != source_path.resolve():
+                raise ValueError("invalid or already executed experiment reservation")
+            attempt["status"] = "MODEL_STARTED"
+            write_json(workspace / "overhang_versions.json", versions)
+        context = AgentToolContext(workspace=workspace, source_path=source_path, record_noop_patch=bool(options))
         assigned_source = source_path.relative_to(workspace).as_posix()
         payload = {"assigned_source": assigned_source, **payload}
-        await runtime.run(
+        before = file_hash(source_path) if options else None
+        if options:
+            payload["no_change_contract"] = 'If no appropriate edit exists, return {"edit_action":"NO_CHANGE","reason":"..."}. Do not apply a dummy patch.'
+        try:
+            result = await runtime.run(
             agent=repairer,
             input=json.dumps(payload, ensure_ascii=False),
             role=role,
             stage=stage,
             context=context,
-        )
+            )
+        except Exception as error:
+            if not options:
+                raise
+            return edit_outcome(None, context.events, before, file_hash(source_path), error=error)
+        if options:
+            return edit_outcome(result.final_output, context.events, before, file_hash(source_path))
         self._require_tool_event(context, "apply_patch", stage)
 
     @staticmethod

@@ -122,6 +122,8 @@ def apply_patch(
     if occurrences != 1:
         raise ValueError(f"old_text must occur exactly once; found {occurrences}")
     if old_text == new_text:
+        if context.context.record_noop_patch:
+            context.context.record("apply_patch", target)
         return "no change: new_text is identical to old_text"
     target.write_text(content.replace(old_text, new_text, 1), encoding="utf-8")
     context.context.record("apply_patch", target)

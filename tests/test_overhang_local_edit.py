@@ -65,18 +65,11 @@ def test_budget_counts_every_attempt_and_survives_resume(tmp_path):
 
 
 def test_opt_in_success_measurement_reaches_engineering_without_fail(tmp_path, monkeypatch):
-    from test_checker_fault_isolation import workflow_fixture
-    from adsl.agents.checkers import CheckerRun
-    result = measured()
-    row = CheckerRun(CheckerSpec(name="overhang", command=["unused"], required=False), result,
-                     tmp_path / "checkers/overhang", ())
-    workflow, kwargs, manifest, roles, _ = workflow_fixture(tmp_path, monkeypatch, [row])
-    kwargs["request"] = replace(kwargs["request"], overhang_experiment={"arm": "feedback"})
-    monkeypatch.setattr("adsl.agents.service.allowed_edit", lambda *args: True)
-    asyncio.run(workflow._iterate(**kwargs))
-    assert any(r.startswith("engineering-critic") for r in roles)
-    assert manifest["required_checkers_passed"] is False
-    assert row.result.status == "PASS"
+    from test_overhang_candidate_isolation import fixture, run_case
+    f = fixture(tmp_path, monkeypatch, actions=(90,), budget=1)
+    run_case(f)
+    assert any(role.startswith("engineering-critic") for role, _ in f.calls)
+    assert f.manifest["required_checkers_passed"] is False
 
 
 def test_default_does_not_optimize_success(tmp_path, monkeypatch):
@@ -100,23 +93,13 @@ def test_control_cannot_read_offline_measurement(tmp_path):
 
 
 def test_optional_optimization_continues_after_acceptance(tmp_path, monkeypatch):
-    from test_checker_fault_isolation import workflow_fixture
-    from adsl.agents.checkers import CheckerRun
-    from adsl.agents.service import _CandidateOutcome
-    from unittest.mock import AsyncMock
-    row = CheckerRun(CheckerSpec(name="overhang", command=["unused"], required=False), measured(),
-                     tmp_path / "checkers/overhang", ())
-    workflow, kwargs, manifest, roles, execution = workflow_fixture(tmp_path, monkeypatch, [row])
-    kwargs["request"] = replace(kwargs["request"], overhang_experiment={"arm": "feedback", "max_candidates": 2})
-    monkeypatch.setattr("adsl.agents.service.allowed_edit", lambda *args: True)
-    async def attempt(**kw):
-        reserve_attempt(tmp_path, kwargs["request"].overhang_experiment, "candidate")
-        return _CandidateOutcome(execution, (row,), True, ({"candidate": "fake", "accepted": True},))
-    workflow._attempt_engineering_candidates = AsyncMock(side_effect=attempt)
-    asyncio.run(workflow._iterate(**kwargs))
-    assert workflow._attempt_engineering_candidates.await_count == 2
-    assert budget_remaining(tmp_path, kwargs["request"].overhang_experiment) == 0
-    assert manifest["required_checkers_passed"] is False
+    from test_overhang_candidate_isolation import fixture, run_case
+    f = fixture(tmp_path, monkeypatch, actions=(90, 80), budget=2)
+    _, book = run_case(f)
+    assert len(book["attempts"]) == 2
+    assert all(a["accepted"] for a in book["attempts"].values())
+    assert budget_remaining(f.workspace, f.options) == 0
+    assert f.manifest["required_checkers_passed"] is False
 
 
 def test_opportunity_feedback_has_no_face_lists():
