@@ -289,7 +289,7 @@ def test_fea_adapter_distinguishes_missing_runtime_from_bad_geometry(
 
 
 
-def test_overhang_adapter_passes_only_after_real_contact_reduction(
+def test_overhang_adapter_pass_means_measurement_not_improvement(
     tmp_path: Path,
 ) -> None:
     config = {
@@ -320,15 +320,16 @@ def test_overhang_adapter_passes_only_after_real_contact_reduction(
         "nominal_contact": {"area_mm2": 100.0},
     }
     failed = overhang_result(raw, tmp_path / "raw.json", config)
-    assert failed.status == "FAIL"
-    assert failed.violations[0]["supported_regions"][0]["collision"] == "shelf"
+    assert failed.status == "PASS"
+    assert failed.metrics["candidate_conclusion"] == "unevaluated"
+    assert failed.metrics["supported_regions"][0]["collision"] == "shelf"
     raw["nominal_contact"]["area_mm2"] = 98.0
     passed = overhang_result(raw, tmp_path / "raw.json", config)
     assert passed.status == "PASS"
-    assert passed.metrics["contact_area_reduction_fraction"] == 0.02
+    assert passed.metrics["nominal_contact_area_mm2"] == 98.0
 
 
-def test_overhang_adapter_blocks_extent_or_overhang_gaming(tmp_path: Path) -> None:
+def test_overhang_adapter_does_not_conflate_measurement_with_acceptance(tmp_path: Path) -> None:
     config = {
         "optimization": {
             "baseline_nominal_contact_area_mm2": 100.0,
@@ -350,11 +351,9 @@ def test_overhang_adapter_blocks_extent_or_overhang_gaming(tmp_path: Path) -> No
         "nominal_contact": {"area_mm2": 90.0},
     }
     result = overhang_result(raw, tmp_path / "raw.json", config)
-    assert result.status == "FAIL"
-    assert {row["code"] for row in result.violations} == {
-        "GEOMETRIC_OVERHANG_AREA_INCREASED",
-        "PRINT_EXTENT_CHANGED",
-    }
+    assert result.status == "PASS"
+    assert result.metrics["print_extent_mm"][0] == 179.0
+    assert result.metrics["candidate_conclusion"] == "unevaluated"
 
 
 def test_support_adapter_distinguishes_support_from_critical_contact(

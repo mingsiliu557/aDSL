@@ -36,6 +36,7 @@ def _parser() -> argparse.ArgumentParser:
             help="JSON CheckerSpec; repeat to register multiple engineering gates.",
         )
         command.add_argument("--repair-policy-config", type=Path)
+        command.add_argument("--overhang-experiment-config", type=Path)
     edit.add_argument("--source", type=Path, required=True)
     edit.add_argument("--edit-kind", choices=["continue", "extend", "variant"], default="continue")
     edit.add_argument(
@@ -49,6 +50,7 @@ def _parser() -> argparse.ArgumentParser:
     resume.add_argument("--max-rounds", type=int, default=5)
     resume.add_argument("--checker-config", type=Path, action="append", default=[])
     resume.add_argument("--repair-policy-config", type=Path)
+    resume.add_argument("--overhang-experiment-config", type=Path)
     return parser
 
 
@@ -90,6 +92,8 @@ def _resume_request(args: argparse.Namespace) -> ObjectRequest:
         max_rounds=args.max_rounds,
         checker_specs=checker_specs,
         check_first=bool(payload.get("check_first", False)),
+        overhang_experiment=(read_json(args.overhang_experiment_config) if args.overhang_experiment_config
+                             else payload.get("overhang_experiment", {})),
         repair_policy=_load_repair_policy(
             args.repair_policy_config, payload.get("repair_policy")
         ),
@@ -113,6 +117,7 @@ async def _run(args: argparse.Namespace) -> dict[str, object]:
         max_rounds=args.max_rounds,
         checker_specs=_load_checker_specs(args.checker_config),
         check_first=bool(getattr(args, "check_first", False)),
+        overhang_experiment=(read_json(args.overhang_experiment_config) if args.overhang_experiment_config else {}),
         repair_policy=_load_repair_policy(args.repair_policy_config),
     )
     if args.command == "create":

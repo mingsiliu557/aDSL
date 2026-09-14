@@ -9,10 +9,16 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import shutil
+import hashlib
+import time
+import sys
 from typing import Any, Sequence
 
 
 REPO = Path(__file__).resolve().parents[2]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
 DEFAULT_PYTHON = Path("/vepfs_default/chanxueyan/lhp/lms/envs/adsl/bin/python")
 DEFAULT_ADSL_RUN = Path("/vepfs_default/chanxueyan/lhp/lms/envs/adsl/bin/adsl-run")
 DEFAULT_CODEX = Path("/vepfs_default/chanxueyan/lhp/lms/npm-global/bin/codex")
@@ -79,8 +85,6 @@ def optimization_config(case: dict[str, Any], raw: dict[str, Any]) -> dict[str, 
         "baseline_print_extent_mm": [
             float(value) for value in raw["scale"]["print_extent_mm"]
         ],
-        "minimum_contact_area_reduction_fraction": 0.01,
-        "maximum_overhang_area_increase_fraction": 0.0,
         "maximum_print_extent_delta_mm": 0.01,
     }
     return config
@@ -89,7 +93,7 @@ def optimization_config(case: dict[str, Any], raw: dict[str, Any]) -> dict[str, 
 def checker_spec(config_path: Path) -> dict[str, Any]:
     return {
         "name": "overhang",
-        "required": True,
+        "required": False,
         "timeout_seconds": 1200,
         "command": [
             "{python}",
@@ -333,16 +337,177 @@ def repair_case(
     }
 
 
+def paired_phase(args, cases: list[dict[str, Any]]) -> int:
+    """Existing assets only. Measurements never live inside control workspaces."""
+    from experiments.support_requirement_critical_surfaces import analyze as analyzer
+    from adsl.agents.overhang_edit import protection_check
+    root = args.output_root.resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    rows = []
+    for case in cases:
+        cid = case["case_id"]
+        print(f"[{utc_now()}] {args.phase} {cid}: started", flush=True)
+        case_root = root / cid
+        case_root.mkdir(exist_ok=True)
+        original = case_root / "original"
+        row = {"case_id": cid, "phase": args.phase}
+        started = time.monotonic()
+        try:
+            if args.phase == "prepare":
+                if "prompt" not in case:
+                    prompts = json.loads((REPO / case["prompt_manifest"]).read_text())
+                    case = {**case, "prompt": next(c["prompt"] for c in prompts["cases"] if c["case_id"] == cid)}
+                source = (REPO / case["asset_dir"]).resolve()
+                for name in ("source.py", "scene.glb", "scene.urdf"):
+                    if not (source / name).is_file():
+                        raise ValueError(f"missing existing asset: {name}")
+                if original.exists():
+                    raise ValueError("prepared original already exists; use a new output directory")
+                original.mkdir()
+                for name in ("source.py", "scene.glb", "scene.urdf", "source_index.json", "meshes", "render"):
+                    item = source / name
+                    if item.is_dir():
+                        shutil.copytree(item, original / name)
+                    elif item.is_file():
+                        shutil.copy2(item, original / name)
+                if not list((original / "render").glob("*.png")):
+                    raise ValueError("no reference renders; not ready")
+                options = {"protection": case["protection"], "original_urdf": str(original / "scene.urdf"),
+                           "max_candidates": args.max_candidates}
+                protection = protection_check(original / "scene.urdf", original / "scene.urdf", options)
+                if protection["status"] != "PASS":
+                    raise ValueError(f"protection not measurable: {protection}")
+                hashes = {str(p.relative_to(original)): hashlib.sha256(p.read_bytes()).hexdigest()
+                          for p in original.rglob("*") if p.is_file()}
+                write_json(case_root / "prepared.json", {"case": case, "hashes": hashes,
+                    "options": options, "readiness": "assets_ready_measurement_pending"})
+                row["status"] = "ASSETS_READY_MEASUREMENT_PENDING"
+            else:
+                if not (case_root / "prepared.json").is_file():
+                    preparation = case_root / "prepare_status.json"
+                    reason = (json.loads(preparation.read_text()).get("reason", "preparation not ready")
+                              if preparation.is_file() else "preparation not completed; run prepare first")
+                    row.update(status="NOT_READY", reason=reason)
+                    continue
+                prepared = json.loads((case_root / "prepared.json").read_text())
+                case = prepared["case"]
+                for name, expected in prepared["hashes"].items():
+                    if hashlib.sha256((original / name).read_bytes()).hexdigest() != expected:
+                        raise ValueError("original asset changed since preparation")
+                config_path = case_root / "measurement_config.json"
+                if args.phase == "evaluate" and not config_path.is_file():
+                    row.update(status="NOT_READY", reason="baseline calibration did not complete; evaluation does not retry it")
+                    continue
+                if not config_path.exists():
+                    config = case_config(case)
+                    config["case"]["exterior_method"] = "blender_exact_union"
+                    baseline = analyzer.analyze_case(cid, original, case_root / "baseline_measurement",
+                        {"profile": PROFILE, "cases": {cid: config["case"]}},
+                        DEFAULT_SLICER, DEFAULT_PROFILE, 900)
+                    write_json(case_root / "baseline.json", baseline)
+                    if baseline["status"] != "ANALYZED" or not baseline.get("measurement"):
+                        raise ValueError(f"baseline measurement unavailable: {baseline['status']}")
+                    config["case"]["frozen_measurement"] = baseline["measurement"]
+                    repeat = analyzer.analyze_case(cid, original, case_root / "baseline_repeat",
+                        {"profile": PROFILE, "cases": {cid: config["case"]}},
+                        DEFAULT_SLICER, DEFAULT_PROFILE, 900)
+                    write_json(case_root / "baseline_repeat.json", repeat)
+                    if repeat["status"] != "ANALYZED":
+                        raise ValueError(f"baseline repeat unavailable: {repeat['status']}")
+                    config["case"]["repeatability_mm2"] = abs(baseline["overhang"]["area_mm2"] - repeat["overhang"]["area_mm2"])
+                    config["optimization"] = {"maximum_print_extent_delta_mm": 0.01}
+                    write_json(config_path, config)
+                config = json.loads(config_path.read_text())
+                if args.phase == "edit":
+                    if not args.model_config:
+                        raise ValueError("edit requires explicit --model-config (use existing StepCode profile)")
+                    requirement = (case["prompt"] + "\nPreserve key shape, function and appearance first; "
+                        "then reduce geometric overhang through local source edits. Do not delete necessary parts, "
+                        "scale the object or alter print/checker settings. You may stop without improvement.\n" +
+                        json.dumps(case["protection"], ensure_ascii=False))
+                    arms = []
+                    for arm in ("control", "feedback"):
+                        print(f"[{utc_now()}] {cid}/{arm}: edit starting", flush=True)
+                        options = {**prepared["options"], "arm": arm,
+                                   "scale_mm_per_source_unit": config["case"]["frozen_measurement"]["scale_mm_per_source_unit"]}
+                        options_path = case_root / f"{arm}_options.json"
+                        write_json(options_path, options)
+                        policy_path = case_root / "repair_policy.json"
+                        write_json(policy_path, {"max_total_candidates": options["max_candidates"], "max_candidates_per_round": 1})
+                        command = [str(args.adsl_run), "--model-config", str(args.model_config.resolve()), "edit", requirement,
+                            "--source", str(original / "source.py"), "--output", str(case_root / arm),
+                            "--max-rounds", str(options["max_candidates"] + 1),
+                            "--overhang-experiment-config", str(options_path), "--repair-policy-config", str(policy_path)]
+                        for image in sorted((original / "render").glob("*.png"))[:4]:
+                            command.extend(["--image", str(image)])
+                        if arm == "feedback":
+                            spec_path = case_root / "overhang_spec.json"
+                            write_json(spec_path, checker_spec(config_path))
+                            command.extend(["--check-first", "--checker-config", str(spec_path)])
+                        arm_started = time.monotonic()
+                        rc = run_logged(command, environment=runtime_environment(args.codex_binary),
+                            stdout_path=case_root / f"{arm}.stdout.log", stderr_path=case_root / f"{arm}.stderr.log")
+                        arm_timing = {"arm": arm, "returncode": rc, "elapsed_seconds": time.monotonic() - arm_started}
+                        write_json(case_root / f"{arm}_timing.json", arm_timing)
+                        arms.append(arm_timing)
+                    row.update(status="EDIT_FINISHED", arms=arms)
+                else:
+                    baseline = json.loads((case_root / "baseline.json").read_text())
+                    arms = []
+                    for arm in ("control", "feedback"):
+                        workspace = case_root / arm
+                        run_file = workspace / "run.json"
+                        run = json.loads(run_file.read_text()) if run_file.exists() else {}
+                        # Only evaluate selected outputs after the editor has finished.
+                        if run.get("status") != "completed":
+                            arms.append({"arm": arm, "status": "NOT_COMPLETED", "reason": run.get("error")})
+                            continue
+                        final = analyzer.analyze_case(cid, workspace, case_root / f"final_{arm}",
+                            {"profile": config["profile"], "cases": {cid: config["case"]}},
+                            DEFAULT_SLICER, DEFAULT_PROFILE, 900)
+                        write_json(case_root / f"{arm}_measurement.json", final)
+                        area = final.get("overhang", {}).get("area_mm2")
+                        initial_area = baseline["overhang"]["area_mm2"]
+                        protection = protection_check(original / "scene.urdf", workspace / "scene.urdf", {
+                            **prepared["options"], "scale_mm_per_source_unit": config["case"]["frozen_measurement"]["scale_mm_per_source_unit"]})
+                        attempts = workspace / "edit_attempts.jsonl"
+                        arms.append({"arm": arm, "status": final["status"],
+                            "original_overhang_mm2": initial_area, "final_overhang_mm2": area,
+                            "reduction_mm2": initial_area - area if area is not None else None,
+                            "original_support_contact_mm2": baseline["nominal_contact"]["area_mm2"],
+                            "final_support_contact_mm2": final.get("nominal_contact", {}).get("area_mm2"),
+                            "support_required": final.get("slicer_support", {}).get("required"),
+                            "protection": protection, "appearance_approved": run.get("appearance_approved"),
+                            "candidate_count": len(attempts.read_text().splitlines()) if attempts.exists() else 0,
+                            "usage": run.get("usage"), "selected_round": run.get("selected_round"),
+                            "timing_report": str(case_root / f"{arm}_timing.json"),
+                            "stop_reason": run.get("finalization_reason"),
+                            "selection_policy": "original workflow; never reselect using measurement" if arm == "control" else "protected area improvement"})
+                    row.update(status="EVALUATED", arms=arms)
+        except Exception as exc:
+            row.update(status="UNAVAILABLE", reason=f"{type(exc).__name__}: {exc}"[:400])
+        finally:
+            row["elapsed_seconds"] = time.monotonic() - started
+            if args.phase == "prepare":
+                write_json(case_root / "prepare_status.json", row)
+            rows.append(row)
+            print(f"[{utc_now()}] {args.phase} {cid}: {row['status']}", flush=True)
+            write_json(root / f"{args.phase}_results.json", {"cases": rows})
+    print(json.dumps(rows, indent=2, ensure_ascii=False))
+    return int(any(row["status"] in {"UNAVAILABLE", "NOT_READY"} for row in rows))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
-    parser.add_argument("--phase", choices=("baseline", "repair", "all"), default="all")
+    parser.add_argument("--phase", choices=("prepare", "edit", "evaluate", "baseline", "repair", "all"), default="prepare")
+    parser.add_argument("--max-candidates", type=int, default=2)
     parser.add_argument("--case", action="append", default=[])
     parser.add_argument("--python", type=Path, default=DEFAULT_PYTHON)
     parser.add_argument("--adsl-run", type=Path, default=DEFAULT_ADSL_RUN)
     parser.add_argument("--codex-binary", type=Path, default=DEFAULT_CODEX)
-    parser.add_argument("--model-config", type=Path, default=DEFAULT_MODEL_CONFIG)
+    parser.add_argument("--model-config", type=Path)
     parser.add_argument("--checker-run", type=Path, default=DEFAULT_CHECKER_RUN)
     parser.add_argument("--baseline-max-rounds", type=int, default=1)
     parser.add_argument("--repair-max-rounds", type=int, default=3)
@@ -357,6 +522,13 @@ def main() -> int:
     ]
     if selected != {case["case_id"] for case in cases} and selected:
         parser.error("one or more --case values are absent from the manifest")
+    if args.max_candidates < 1:
+        parser.error("--max-candidates must be positive")
+    if args.phase in {"prepare", "edit", "evaluate"}:
+        return paired_phase(args, cases)
+    if args.phase in {"repair", "all"}:
+        parser.error("legacy percentage-gated repair is retired; use prepare/edit/evaluate with paired_assets.json")
+    args.model_config = args.model_config or DEFAULT_MODEL_CONFIG
     if args.baseline_max_rounds < 1 or args.repair_max_rounds < 2:
         parser.error("baseline rounds must be >=1 and repair rounds must be >=2")
 

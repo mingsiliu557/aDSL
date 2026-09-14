@@ -1,0 +1,83 @@
+{
+  "protocol": "Existing assets, protected local edits, two candidates per arm. O01/O02 and O03/O04 each share one dataset object; not six independent dataset objects.",
+  "cases": [
+    {
+      "case_id": "O01",
+      "asset_dir": "local_experiment/overhang_prompt_pilot_20260906/baseline/O01",
+      "prompt_manifest": "local_experiment/overhang_prompt_pilot_20260906/case_manifest.json",
+      "semantic_scale": {"measure": "height", "target_m": 0.1},
+      "protection": {
+        "required_features": ["white hollow cylindrical mug", "curved metallic handle and its opening", "white interior"],
+        "allowed_local_range": "noncritical lower handle transitions only",
+        "allowed_classes": ["CurvedMetalHandle"],
+        "dimensions": "No exact interface dimensions supplied. Opening preservation is visual only, not certified dimensionally.",
+        "surfaces": [{"label": "all original upward-facing surfaces including rim", "collision_regex": ".*", "face": "top"}]
+      }
+    },
+    {
+      "case_id": "O02",
+      "asset_dir": "local_experiment/overhang_prompt_pilot_20260906/baseline/O02",
+      "prompt_manifest": "local_experiment/overhang_prompt_pilot_20260906/case_manifest.json",
+      "semantic_scale": {"measure": "height", "target_m": 0.1},
+      "protection": {
+        "required_features": ["tapered hollow gray mug", "vertical ridges", "rounded rim", "loop handle and opening"],
+        "allowed_local_range": "noncritical lower handle attachments only",
+        "allowed_classes": ["CeramicLoopHandle"],
+        "dimensions": "No exact interface dimensions supplied. Opening preservation is visual only, not certified dimensionally.",
+        "surfaces": [{"label": "all original upward-facing surfaces including rim", "collision_regex": ".*", "face": "top"}]
+      }
+    },
+    {
+      "case_id": "O03",
+      "asset_dir": "local_experiment/overhang_prompt_pilot_20260906/baseline/O03",
+      "prompt_manifest": "local_experiment/overhang_prompt_pilot_20260906/case_manifest.json",
+      "semantic_scale": {"measure": "height", "target_m": 0.9},
+      "protection": {
+        "required_features": ["curved backrest", "flat seat", "open armrests", "four blocky legs", "dark wood grain"],
+        "allowed_local_range": "armrest undersides/transitions only",
+        "allowed_classes": ["OpenArmAssembly"],
+        "dimensions": "Exact matching of specified existing surfaces; no other interface certification.",
+        "surfaces": [{"label": "seat, arm and other original upper surfaces", "collision_regex": ".*", "face": "top"}]
+      }
+    },
+    {
+      "case_id": "O04",
+      "asset_dir": "local_experiment/overhang_prompt_pilot_20260906/baseline/O04",
+      "prompt_manifest": "local_experiment/overhang_prompt_pilot_20260906/case_manifest.json",
+      "semantic_scale": {"measure": "height", "target_m": 0.9},
+      "protection": {
+        "required_features": ["flat rectangular seat", "upright curved backrest", "two horizontal armrests", "four legs", "light polished wood"],
+        "allowed_local_range": "arm rail and support undersides/transitions only",
+        "allowed_classes": ["ArmRail", "ArmSupport"],
+        "dimensions": "Exact matching of specified existing surfaces; no other interface certification.",
+        "surfaces": [{"label": "seat, arm and other original upper surfaces", "collision_regex": ".*", "face": "top"}]
+      }
+    },
+    {
+      "case_id": "SF03",
+      "asset_dir": "local_experiment/topology_standing_fea_12_cpu_20260912T100549Z/workspaces/ours/SF03",
+      "prompt_manifest": "experiments/standing_fea_30/case_manifest.json",
+      "semantic_scale": {"measure": "height", "target_m": 0.9},
+      "protection": {
+        "required_features": ["high backrest", "rectangular seat", "straight legs", "reddish-brown textured wood"],
+        "allowed_local_range": "underseat frame only",
+        "allowed_classes": ["UnderseatFrame"],
+        "dimensions": "Seat/legs/backrest preserved by world-space triangle matching; no new physical claims.",
+        "surfaces": [{"label": "seat, legs and back surfaces", "collision_regex": "/(seat|legs|backrest)/", "face": "all"}]
+      }
+    },
+    {
+      "case_id": "SF05",
+      "asset_dir": "local_experiment/topology_standing_fea_12_cpu_20260912T100549Z/workspaces/ours/SF05",
+      "prompt_manifest": "experiments/standing_fea_30/case_manifest.json",
+      "semantic_scale": {"measure": "height", "target_m": 0.9},
+      "protection": {
+        "required_features": ["swivel metal-frame stool", "padded seat and backrest", "pedestal base", "footrest ring"],
+        "allowed_local_range": "noncritical footrest underside/bracket transitions only",
+        "allowed_classes": ["Footrest"],
+        "dimensions": "Base, column and upholstery preserved by world-space triangle matching; no new physical claims.",
+        "surfaces": [{"label": "base, column, seat and backrest regions from original source index", "source_index_regex": "/(pedestal_base|swivel_post|seat_assembly|backrest_assembly)/", "face": "all"}]
+      }
+    }
+  ]
+}

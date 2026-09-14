@@ -127,11 +127,18 @@ def enrich_result(
             }
         )
     elif checker in {"overhang", "support"}:
+        scale = result.assumptions.get("scale") or {}
+        factor = scale.get("print_scale_factor_mm_per_source_unit")
+        translation = scale.get("print_translation_mm")
+        matrix = None
+        if factor and isinstance(translation, list) and len(translation) == 3:
+            matrix = [[factor, 0, 0, translation[0]], [0, factor, 0, translation[1]],
+                      [0, 0, factor, translation[2]], [0, 0, 0, 1]]
         context = context.model_copy(
             update={
                 "analysis_frame": "print_mm",
                 "analysis_length_unit": "mm",
-                "source_to_analysis": None,
+                "source_to_analysis": matrix,
                 "details": {
                     "assumptions": result.assumptions,
                     "transform_status": "not recorded by current slicer analyzer",
@@ -844,139 +851,44 @@ def fea_result(raw: dict[str, Any], raw_path: Path) -> CheckerResult:
 def overhang_result(
     raw: dict[str, Any], raw_path: Path, config: dict[str, Any]
 ) -> CheckerResult:
+    """PASS means measurement completed, never absence of overhang."""
+    import math
     status = str(raw.get("status", "ANALYSIS_FAILED"))
-    if status in {"SLICER_FAILED", "SLICER_TIMEOUT"}:
-        return CheckerResult(
-            checker="overhang",
-            status="ERROR",
-            summary=f"Support slicer did not complete: {status}",
-            violations=[{"code": status, "message": raw.get("error", status)}],
-            artifacts={"raw_result": str(raw_path)},
-        )
-    if status != "ANALYZED":
-        return CheckerResult(
-            checker="overhang",
-            status="INDETERMINATE",
-            summary=f"Overhang/support analysis is unavailable: {status}",
-            violations=[{"code": status, "message": raw.get("error", status)}],
-            artifacts={"raw_result": str(raw_path)},
-        )
-
-    optimization = config["optimization"]
-    baseline_contact = float(optimization["baseline_nominal_contact_area_mm2"])
-    baseline_overhang = float(optimization["baseline_overhang_area_mm2"])
-    current_contact = float(raw.get("nominal_contact", {}).get("area_mm2", 0.0))
-    current_overhang = float(raw.get("overhang", {}).get("area_mm2", 0.0))
-    contact_reduction = (
-        (baseline_contact - current_contact) / baseline_contact
-        if baseline_contact > 0 else 0.0
-    )
-    overhang_change = (
-        (current_overhang - baseline_overhang) / baseline_overhang
-        if baseline_overhang > 0 else 0.0
-    )
-    target_reduction = float(
-        optimization.get("minimum_contact_area_reduction_fraction", 0.01)
-    )
-    max_overhang_increase = float(
-        optimization.get("maximum_overhang_area_increase_fraction", 0.0)
-    )
-    baseline_extent = [
-        float(value) for value in optimization["baseline_print_extent_mm"]
-    ]
-    current_extent = [
-        float(value) for value in raw.get("scale", {}).get("print_extent_mm", [])
-    ]
-    extent_tolerance = float(
-        optimization.get("maximum_print_extent_delta_mm", 0.01)
-    )
-    extent_deltas = (
-        [abs(current - baseline) for current, baseline in zip(current_extent, baseline_extent)]
-        if len(current_extent) == len(baseline_extent) else []
-    )
-
-    violations: list[dict[str, Any]] = []
-    if contact_reduction + 1e-12 < target_reduction:
-        violations.append({
-            "code": "SUPPORT_CONTACT_AREA_REDUCTION_LT_TARGET",
-            "message": (
-                "Reduce actual slicer-supported model contact area while preserving "
-                "the frozen print extent and slicer profile."
-            ),
-            "baseline_area_mm2": baseline_contact,
-            "current_area_mm2": current_contact,
-            "required_reduction_fraction": target_reduction,
-            "observed_reduction_fraction": contact_reduction,
-            "supported_regions": raw.get("unsupported_region", {}).get("regions", []),
-        })
-    if overhang_change > max_overhang_increase + 1e-12:
-        violations.append({
-            "code": "GEOMETRIC_OVERHANG_AREA_INCREASED",
-            "message": "Do not trade less support contact for more geometric overhang.",
-            "baseline_area_mm2": baseline_overhang,
-            "current_area_mm2": current_overhang,
-            "maximum_increase_fraction": max_overhang_increase,
-            "observed_increase_fraction": overhang_change,
-        })
-    if not extent_deltas or max(extent_deltas) > extent_tolerance:
-        violations.append({
-            "code": "PRINT_EXTENT_CHANGED",
-            "message": "Preserve the frozen print-space AABB to avoid scale or truncation gaming.",
-            "baseline_print_extent_mm": baseline_extent,
-            "current_print_extent_mm": current_extent,
-            "maximum_delta_mm": extent_tolerance,
-        })
-
-    passed = not violations
+    artifacts = {"raw_result": str(raw_path),
+                 "surface_overlay": str(raw_path.parent / "cases/workflow_case/surface_classes.ply")}
+    metrics = {
+        "detection_status": "completed" if status == "ANALYZED" else status,
+        "candidate_conclusion": "unevaluated",
+        "overhang_area_mm2": raw.get("overhang", {}).get("area_mm2"),
+        "nominal_contact_area_mm2": raw.get("nominal_contact", {}).get("area_mm2"),
+        "support_required": raw.get("slicer_support", {}).get("required"),
+        "bridge_path_length_mm": raw.get("bridge", {}).get("path_length_mm"),
+        "print_extent_mm": raw.get("scale", {}).get("print_extent_mm"),
+        "measurement": raw.get("measurement"),
+        "area_uncertainty_mm2": (raw.get("area_uncertainty") or {}).get("bound_mm2"),
+        "overhang_regions": raw.get("overhang", {}).get("regions", []),
+        "supported_regions": raw.get("unsupported_region", {}).get("regions", []),
+    }
+    complete = status == "ANALYZED" and all(
+        isinstance(metrics[key], (float, int)) and not isinstance(metrics[key], bool)
+        and math.isfinite(metrics[key]) and metrics[key] >= 0
+        for key in ("overhang_area_mm2", "nominal_contact_area_mm2")
+    ) and isinstance(metrics["support_required"], bool)
+    if not complete:
+        code = status if status != "ANALYZED" else "MEASUREMENT_FIELDS_MISSING"
+        metrics["detection_status"] = code
+        return CheckerResult(checker="overhang",
+            status="ERROR" if "TIMEOUT" in code or code == "SLICER_FAILED" else "INDETERMINATE",
+            summary=f"Overhang measurement unavailable: {code}; no optimization conclusion",
+            metrics=metrics, violations=[{"code": code, "message": str(raw.get("error", code))[:240]}],
+            artifacts=artifacts)
     return CheckerResult(
-        checker="overhang",
-        status="PASS" if passed else "FAIL",
-        summary=(
-            f"Nominal support contact fell by {contact_reduction:.2%} without "
-            "increasing geometric overhang or changing print extent"
-            if passed else
-            "The fixed support-contact improvement gate was not satisfied"
-        ),
-        metrics={
-            "support_required": bool(raw.get("slicer_support", {}).get("required", False)),
-            "baseline_nominal_contact_area_mm2": baseline_contact,
-            "nominal_contact_area_mm2": current_contact,
-            "contact_area_reduction_fraction": contact_reduction,
-            "baseline_overhang_area_mm2": baseline_overhang,
-            "overhang_area_mm2": current_overhang,
-            "overhang_area_change_fraction": overhang_change,
-            "support_base_path_length_mm": raw.get("slicer_support", {}).get(
-                "base_path_length_mm"
-            ),
-            "support_interface_path_length_mm": raw.get("slicer_support", {}).get(
-                "interface_path_length_mm"
-            ),
-            "bridge_path_length_mm": raw.get("bridge", {}).get("path_length_mm"),
-            "max_single_bridge_span_mm": raw.get("bridge", {}).get(
-                "max_single_extrusion_span_mm"
-            ),
-            "supported_regions": raw.get("unsupported_region", {}).get("regions", []),
-            "print_extent_mm": current_extent,
-        },
-        violations=violations,
-        assumptions={
-            "criterion": (
-                f"nominal support contact reduction >= {target_reduction:.2%}; "
-                f"geometric overhang increase <= {max_overhang_increase:.2%}"
-            ),
-            "scale_control": "print-space AABB preserved within configured tolerance",
-            "slicer_profile": config.get("profile"),
-            "scope": (
-                "PrusaSlicer toolpath/contact burden; not scar, surface roughness, "
-                "thermal distortion, or structural certification"
-            ),
-        },
-        artifacts={
-            "raw_result": str(raw_path),
-            "surface_overlay": str(
-                raw_path.parent / "cases" / "workflow_case" / "surface_classes.ply"
-            ),
-        },
+        checker="overhang", status="PASS",
+        summary="Measurement completed; PASS does not mean no overhang or printable",
+        metrics=metrics, artifacts=artifacts,
+        assumptions={"status_semantics": "measurement_only", "scale": raw.get("scale", {}),
+                     "slicer_profile": config.get("profile"),
+                     "scope": "Geometric overhang and slicer support measured separately; no printing certification"},
     )
 
 

@@ -282,7 +282,7 @@ def test_actual_candidate_path_only_copies_an_accepted_source(tmp_path, monkeypa
     workflow = ObjectWorkflow()
     workflow._repair = AsyncMock()
     output = asyncio.run(workflow._attempt_engineering_candidates(
-        runtime=runtime, request=SimpleNamespace(requirement="chair", repair_policy=RepairPolicy(), checker_specs=(), image_paths=()),
+        runtime=runtime, request=SimpleNamespace(requirement="chair", repair_policy=RepairPolicy(), checker_specs=(), image_paths=(), overhang_experiment={}),
         workspace=tmp_path, source_path=source, round_root=root, round_number=1,
         plan=SimpleNamespace(model_dump=lambda: {}), repairer=None, image_critic=None, code_critic=None,
         baseline_execution=execution, baseline_runs=[run(root, "standing", "FAIL", 40), run(root, "fea", before, 100)],

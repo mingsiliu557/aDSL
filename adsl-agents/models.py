@@ -53,6 +53,7 @@ FindingCategory = Literal[
     "evidence_insufficient",
     "missing_semantics",
     "infrastructure_error",
+    "optimization_opportunity",
 ]
 FindingApplicability = Literal["applicable", "not_applicable", "unknown"]
 FindingRepairability = Literal[
@@ -238,6 +239,8 @@ class ObjectRequest:
     checker_specs: tuple[CheckerSpec, ...] = ()
     check_first: bool = False
     repair_policy: RepairPolicy = field(default_factory=RepairPolicy)
+    # Explicit local-edit experiment only. Empty keeps production behavior.
+    overhang_experiment: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

@@ -30,6 +30,7 @@ from .models import (
 )
 from .prompts import object_prompt
 from .repair_controller import RepairController
+from .overhang_edit import budget_remaining, reserve_attempt, opportunities, protection_check, original_execution, allowed_edit, compare_measurements
 from .repair_policy import (
     assess_candidate,
     immutable_inputs_match,
@@ -67,7 +68,8 @@ class WorkflowGateError(RuntimeError):
 
 def _actionable_findings(run: CheckerRun) -> list[CheckerFinding]:
     return [finding for finding in run.result.findings
-            if localized_mesh_feedback(run.result, finding) or (run.result.status == "FAIL"
+            if (finding.category == "optimization_opportunity" and run.result.status == "PASS")
+            or localized_mesh_feedback(run.result, finding) or (run.result.status == "FAIL"
             and finding.category in {"physical_violation", "geometry_failure"}
             and finding.repairability in {"geometry", "design_variable"})]
 
@@ -81,7 +83,7 @@ def _checker_evidence(
     for run in runs:
         selected = [
             (index, finding) for index, finding in enumerate(run.result.findings)
-            if (localized_mesh_feedback(run.result, finding) or (run.result.status == "FAIL"
+            if (finding.category == "optimization_opportunity" or localized_mesh_feedback(run.result, finding) or (run.result.status == "FAIL"
             and finding.category in {"physical_violation", "geometry_failure", "missing_semantics"}))
             and (finding_ids is None or finding.finding_id in finding_ids)
         ]
@@ -279,6 +281,8 @@ class ObjectWorkflow:
         if not source_input.is_file():
             raise FileNotFoundError(source_input)
         shutil.copy2(source_input, source_path)
+        if request.overhang_experiment:
+            shutil.copy2(source_input, workspace / "original_source.py")
         runtime = self._runtime(
             request,
             workspace,
@@ -304,6 +308,7 @@ class ObjectWorkflow:
             tools=PATCH_TOOLS,
         )
         if not request.check_first:
+            reserve_attempt(workspace, request.overhang_experiment, "initial_patch")
             await runtime.run(
                 agent=coder,
                 input=user_input(
@@ -596,6 +601,26 @@ class ObjectWorkflow:
             strict_json_schema=False,
         )
         state = resume_state or {}
+        experiment = request.overhang_experiment
+        optimize = experiment.get("arm") == "feedback"
+        retained_execution = None
+        retained_runs: list[CheckerRun] = []
+        retained_source = workspace / "retained_source.py"
+        retained_path = workspace / "retained_experiment.json"
+        if experiment and "original_urdf" in experiment:
+            retained_execution = original_execution(experiment)
+            if retained_path.is_file():
+                saved = read_json(retained_path)
+                ex = saved["execution"]
+                retained_execution = ExecutionResult(
+                    Path(ex["output_root"]), Path(ex["glb_path"]), Path(ex["urdf_path"]) if ex["urdf_path"] else None,
+                    tuple(Path(p) for p in ex["render_paths"]), "", "",
+                    Path(ex["source_index_path"]) if ex.get("source_index_path") else None)
+                from .models import CheckerResult, CheckerSpec
+                retained_runs = [CheckerRun(CheckerSpec.model_validate(r["spec"]), CheckerResult.model_validate(r["result"]),
+                                           Path(r["output_dir"]), tuple(r["command"])) for r in saved["runs"]]
+            elif (workspace / "original_source.py").is_file():
+                shutil.copy2(workspace / "original_source.py", retained_source)
         image_history: list[dict[str, object]] = list(state.get("image_history", []))
         code_history: list[dict[str, object]] = list(state.get("code_history", []))
         checker_history: list[dict[str, object]] = list(state.get("checker_history", []))
@@ -607,6 +632,7 @@ class ObjectWorkflow:
         )
         failures: list[dict[str, object]] = list(state.get("failures", []))
         final: tuple[int, ExecutionResult, bool, str] | None = None
+        appearance_approved: bool | None = None
         checker_runs: list[CheckerRun] = []
         start_round = int(state.get("next_round", 1))
         end_round = start_round + request.max_rounds - 1
@@ -639,6 +665,12 @@ class ObjectWorkflow:
                     timeout=executor_timeout,
                 )
             except AssetInfrastructureError as exc:
+                if experiment:
+                    failures.append({"round": round_number, "stage": "execution_infrastructure", "error": str(exc)[:240]})
+                    shutil.copy2(retained_source, source_path)
+                    final = (round_number, retained_execution, False, "experiment_execution_unavailable_best_retained")
+                    checker_runs = retained_runs
+                    break
                 failure = {
                     "round": round_number,
                     "stage": "execution_infrastructure",
@@ -658,6 +690,11 @@ class ObjectWorkflow:
             except AssetExecutionError as exc:
                 failure = {"round": round_number, "stage": "execute", "error": str(exc)}
                 failures.append(failure)
+                if experiment and (not budget_remaining(workspace, experiment) or round_number == end_round):
+                    shutil.copy2(retained_source, source_path)
+                    final = (round_number, retained_execution, False, "candidate_execution_failed_best_retained")
+                    checker_runs = retained_runs
+                    break
                 debug_context = AgentToolContext(workspace=workspace, source_path=source_path)
                 debug_result = await runtime.run(
                     agent=debugger,
@@ -709,7 +746,12 @@ class ObjectWorkflow:
 
             # Preserve the historical last-round fallback only when no engineering
             # gates are configured. Mandatory checkers always inspect the final round.
-            if not request.checker_specs and round_number == end_round:
+            if experiment and not allowed_edit(workspace / "original_source.py", source_path, experiment):
+                shutil.copy2(workspace / "original_source.py", source_path)
+                final = (round_number, original_execution(experiment), False, "manual_source_scope_violation_original_retained")
+                checker_runs = []
+                break
+            if not request.checker_specs and not experiment and round_number == end_round:
                 final = (
                     round_number,
                     execution,
@@ -719,6 +761,7 @@ class ObjectWorkflow:
                 break
 
             image_payload = {
+                "protection_checklist": experiment.get("protection") if experiment else None,
                 "requirement": request.requirement,
                 "planner_checklist": self._critic_checklist(plan),
                 "round": round_number,
@@ -750,6 +793,10 @@ class ObjectWorkflow:
                 source_path=source_path,
                 round_root=round_root,
             )
+            if optimize:
+                checker_runs = [CheckerRun(run.spec, run.result.model_copy(update={
+                    "findings": opportunities(run.result)}), run.output_dir, run.command)
+                    for run in checker_runs]
             analysis_context = build_analysis_context(
                 source_path=source_path,
                 geometry_path=execution.glb_path,
@@ -896,6 +943,13 @@ class ObjectWorkflow:
                 appearance_approved = code_decision.approved
 
             if not request.checker_specs:
+                if experiment:
+                    protection = protection_check(Path(experiment["original_urdf"]), execution.urdf_path, experiment)
+                    write_json(round_root / "protection.json", protection)
+                    if protection["status"] != "PASS":
+                        shutil.copy2(workspace / "original_source.py", source_path)
+                        final = (round_number, original_execution(experiment), False, "protection_not_confirmed_original_retained")
+                        break
                 if appearance_approved:
                     reason = (
                         "image_critic_approved"
@@ -903,6 +957,10 @@ class ObjectWorkflow:
                         else "code_critic_approved"
                     )
                     final = (round_number, execution, True, reason)
+                    break
+                if experiment and not budget_remaining(workspace, experiment):
+                    shutil.copy2(workspace / "original_source.py", source_path)
+                    final = (round_number, original_execution(experiment), False, "edit_budget_exhausted_original_retained")
                     break
                 assert code_decision is not None
                 await self._repair(
@@ -925,7 +983,10 @@ class ObjectWorkflow:
                 continue
 
             engineering_decision: EngineeringCriticDecision | None = None
-            if mandatory_failures:
+            optimization_pending = bool(optimize and appearance_approved and
+                                        any(_actionable_findings(r) for r in checker_runs) and
+                                        budget_remaining(workspace, experiment))
+            if mandatory_failures or optimization_pending:
                 if source_index is not None:
                     budget = RepairController(
                         workspace=workspace, round_root=round_root,
@@ -960,10 +1021,17 @@ class ObjectWorkflow:
                                     request.repair_policy.max_candidates_per_round
                                 ),
                                 "assignment": (
+                                    "Optional overhang optimization, NOT a physical failure. First preserve key shape, function and appearance; then reduce total geometric overhang area. Do not scale the object, delete required parts, change printing settings or geometry conditions. Prefer noncritical undersides/transitions/connections. Return no proposals and explain when no reasonable local edit exists. "
+                                    if optimize else
                                     "Propose bounded source candidates supported by the "
                                     "typed findings and localization. Do not alter checker "
                                     "assumptions or claim a repair passes before regression."
                                 ),
+                                "protection_checklist": experiment.get("protection") if experiment else None,
+                                "remaining_edit_candidates": budget_remaining(workspace, experiment) if experiment else None,
+                                "overhang_measurements": ([{k: r.result.metrics.get(k) for k in (
+                                    "overhang_area_mm2", "nominal_contact_area_mm2", "support_required")}
+                                    for r in checker_runs] if optimize else None),
                             },
                             ensure_ascii=False,
                         ),
@@ -981,7 +1049,7 @@ class ObjectWorkflow:
                         engineering_result.final_output,
                         EngineeringCriticDecision,
                     ),
-                    has_required_failures=True,
+                    has_required_failures=bool(mandatory_failures),
                 )
                 write_json(
                     round_root / "engineering_critique.json",
@@ -1002,7 +1070,7 @@ class ObjectWorkflow:
                     {"round": round_number, **engineering_decision.model_dump()}
                 )
 
-            if appearance_approved and not mandatory_failures:
+            if appearance_approved and not mandatory_failures and not optimization_pending:
                 final = (
                     round_number,
                     execution,
@@ -1013,9 +1081,13 @@ class ObjectWorkflow:
                         else "appearance_approved_no_actionable_checker_feedback"
                     ),
                 )
+                if optimize:
+                    final = (round_number, execution, bool(appearance_approved),
+                             "overhang_measurement_complete_no_pending_edit" if all(r.result.status == "PASS" for r in checker_runs)
+                             else "overhang_measurement_unavailable_no_edit")
                 break
 
-            if mandatory_failures and engineering_decision is not None:
+            if (mandatory_failures or optimization_pending) and engineering_decision is not None:
                 candidate_outcome = await self._attempt_engineering_candidates(
                     runtime=runtime,
                     request=request,
@@ -1051,8 +1123,15 @@ class ObjectWorkflow:
                     }
                     checker_history.append(accepted_record)
                     checker_runs = accepted_runs
+                    if experiment:
+                        retained_execution, retained_runs = candidate_outcome.execution, accepted_runs
+                        shutil.copy2(source_path, retained_source)
+                        from dataclasses import asdict
+                        write_json(retained_path, {"execution": asdict(retained_execution), "runs": [
+                            {"spec": r.spec.model_dump(), "result": r.result.model_dump(),
+                             "output_dir": str(r.output_dir), "command": r.command} for r in retained_runs]})
                     accepted_failures = required_checker_failures(accepted_runs)
-                    if candidate_outcome.appearance_approved and not accepted_failures:
+                    if candidate_outcome.appearance_approved and not accepted_failures and not optimize:
                         final = (
                             round_number,
                             candidate_outcome.execution,
@@ -1063,7 +1142,7 @@ class ObjectWorkflow:
                     execution = candidate_outcome.execution
                     mandatory_failures = [run for run in accepted_failures if _actionable_findings(run)]
                     appearance_approved = candidate_outcome.appearance_approved
-                    if appearance_approved and not mandatory_failures:
+                    if appearance_approved and not mandatory_failures and not optimize:
                         final = (round_number, execution, False,
                                  "accepted_working_candidate_checks_unverified")
                         break
@@ -1081,6 +1160,10 @@ class ObjectWorkflow:
                         workspace, **checkpoint_fields(round_number + 1)
                     )
                     continue
+
+                if optimize:
+                    final = (round_number, execution, appearance_approved, "overhang_edit_budget_or_round_limit_best_retained")
+                    break
 
             gate_details = {
                 "appearance_approved": appearance_approved,
@@ -1125,6 +1208,9 @@ class ObjectWorkflow:
                     "The next round will re-run the original checkers."
                 ),
             }
+            if experiment and not budget_remaining(workspace, experiment):
+                final = (round_number, execution, False, "edit_candidate_budget_exhausted")
+                break
             if code_decision is not None and not code_decision.approved:
                 repair_payload["code_critic"] = code_decision.model_dump()
             if engineering_decision is not None:
@@ -1147,9 +1233,21 @@ class ObjectWorkflow:
         if final is None:
             raise RuntimeError("Object refinement ended without a publishable execution")
         selected_round, execution, approved, finalization_reason = final
+        if experiment:
+            from .models import CheckerResult
+            known = {r.spec.name for r in checker_runs}
+            for spec in request.checker_specs:
+                if spec.name not in known:
+                    result = CheckerResult(checker=spec.name, status="INDETERMINATE",
+                        summary="Retained asset was not measured in this attempt; no optimization conclusion",
+                        violations=[{"code": "NOT_EVALUATED", "stage": "asset_execution"}])
+                    directory = workspace / "unverified_checkers" / spec.name
+                    write_json(directory / "result.json", result.model_dump())
+                    checker_runs.append(CheckerRun(spec, result, directory, ()))
         final_glb, final_urdf, final_renders = self._publish(workspace, execution)
         verification = {
-            "required_checkers_passed": bool(request.checker_specs) and not required_checker_failures(checker_runs),
+            "required_checkers_passed": not bool(experiment) and bool(request.checker_specs) and not required_checker_failures(checker_runs),
+            "overhang_experiment": bool(experiment),
             "checker_statuses": {run.spec.name: run.result.status for run in checker_runs},
             "unverified_checks": [run.spec.name for run in checker_runs
                                   if run.result.status in {"ERROR", "INDETERMINATE"}],
@@ -1170,6 +1268,8 @@ class ObjectWorkflow:
             approved=approved,
             critic_skipped=finalization_reason == "round_limit_after_execution",
             finalization_reason=finalization_reason,
+            appearance_approved=(appearance_approved if not any(word in finalization_reason for word in
+                                 ("execution_unavailable", "execution_failed", "original_retained", "scope_violation")) else None),
             **verification,
             failures=failures,
             image_critic_history=image_history,
@@ -1355,6 +1455,9 @@ class ObjectWorkflow:
             )
             candidate_relative = candidate_source.relative_to(workspace).as_posix()
             try:
+                if request.overhang_experiment and not budget_remaining(workspace, request.overhang_experiment):
+                    attempts.append({"accepted": False, "stage": "repair_budget", "reason": "edit candidate budget exhausted"})
+                    break
                 await self._repair(
                     runtime=runtime,
                     repairer=repairer,
@@ -1373,6 +1476,7 @@ class ObjectWorkflow:
                             "checker code, mesh generation or solver settings to obtain a pass."
                         ),
                         "repair_proposal": proposal.model_dump(),
+                        "protection_checklist": request.overhang_experiment.get("protection"),
                         "checker_evidence": _checker_evidence(
                             baseline_runs, workspace=workspace,
                             finding_ids=set(proposal.finding_ids),
@@ -1411,6 +1515,10 @@ class ObjectWorkflow:
                 scope_errors = [f"candidate source is invalid: {type(error).__name__}: {error}"]
             else:
                 scope_errors = list(scope_validation.violations)
+            if request.overhang_experiment and not allowed_edit(
+                    workspace / "original_source.py", candidate_source, request.overhang_experiment):
+                scope_errors.append("candidate outside manual experiment source scope")
+                scope_validation = None
             immutable_ok, immutable_errors = immutable_inputs_match(
                 baseline_analysis_context.immutable_inputs
             )
@@ -1526,6 +1634,7 @@ class ObjectWorkflow:
             )
 
             preservation_payload = {
+                "protection_checklist": request.overhang_experiment.get("protection"),
                 "requirement": request.requirement,
                 "round": round_number,
                 "proposal": proposal.model_dump(),
@@ -1598,12 +1707,21 @@ class ObjectWorkflow:
                 )
                 candidate_appearance_approved = candidate_code_decision.approved
 
+            protection = (protection_check(Path(request.overhang_experiment["original_urdf"]),
+                                           candidate_execution.urdf_path, request.overhang_experiment)
+                          if request.overhang_experiment else None)
+            if protection is not None:
+                write_json(candidate_root / "protection.json", protection)
+            comparison = (compare_measurements(baseline_runs[0].result, candidate_runs[0].result)
+                          if request.overhang_experiment and baseline_runs and candidate_runs else None)
             decision = assess_candidate(
                 [run.result for run in baseline_runs],
                 [run.result for run in candidate_runs],
                 target_finding_ids=proposal.finding_ids,
                 appearance_approved=candidate_appearance_approved,
                 policy=request.repair_policy,
+                overhang_optimization=request.overhang_experiment.get("arm") == "feedback",
+                protection=protection,
             )
             record = {
                 "round": round_number,
@@ -1615,6 +1733,8 @@ class ObjectWorkflow:
                 "baseline_geometry_sha256": baseline_analysis_context.geometry_sha256,
                 "candidate_geometry_sha256": candidate_context.geometry_sha256,
                 "scope_validation": scope_validation.model_dump(),
+                "protection": protection,
+                "overhang_comparison": comparison,
                 **decision.model_dump(),
             }
             write_json(candidate_root / "decision.json", record)
@@ -1646,6 +1766,10 @@ class ObjectWorkflow:
         stage: str,
         payload: dict[str, object],
     ) -> None:
+        config_path = workspace / "runtime_config.json"
+        options = read_json(config_path).get("request", {}).get("overhang_experiment", {}) if config_path.exists() else {}
+        if not reserve_attempt(workspace, options, stage):
+            return
         context = AgentToolContext(workspace=workspace, source_path=source_path)
         assigned_source = source_path.relative_to(workspace).as_posix()
         payload = {"assigned_source": assigned_source, **payload}
@@ -1727,6 +1851,16 @@ class ObjectWorkflow:
         names = [spec.name for spec in request.checker_specs]
         if len(names) != len(set(names)):
             raise ValueError("checker names must be unique")
+        if request.overhang_experiment:
+            options = request.overhang_experiment
+            if options.get("arm") not in {"control", "feedback"}:
+                raise ValueError("overhang experiment arm must be control or feedback")
+            if names != (["overhang"] if options["arm"] == "feedback" else []):
+                raise ValueError("experiment permits only overhang in feedback arm and no checkers in control arm")
+            if int(options.get("max_candidates", 2)) < 1:
+                raise ValueError("edit budget must be positive")
+            if not options.get("protection", {}).get("surfaces") or not options.get("original_urdf"):
+                raise ValueError("experiment requires explicit measurable protection and original URDF")
         for image_path in request.image_paths:
             if not Path(image_path).expanduser().resolve().is_file():
                 raise FileNotFoundError(image_path)
@@ -1767,6 +1901,7 @@ class ObjectWorkflow:
                 "checker_specs": [spec.model_dump() for spec in request.checker_specs],
                 "check_first": request.check_first,
                 "repair_policy": request.repair_policy.model_dump(),
+                "overhang_experiment": request.overhang_experiment,
             },
         )
 

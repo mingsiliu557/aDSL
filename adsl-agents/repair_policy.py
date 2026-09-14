@@ -185,9 +185,28 @@ def assess_candidate(
     target_finding_ids: Iterable[str],
     appearance_approved: bool,
     policy: RepairPolicy,
+    overhang_optimization: bool = False,
+    protection: dict | None = None,
 ) -> CandidateDecision:
     baseline = {result.checker: result for result in baseline_results}
     candidate = {result.checker: result for result in candidate_results}
+    if overhang_optimization:
+        from .overhang_edit import compare_measurements
+        if set(baseline) != {"overhang"} or set(candidate) != {"overhang"}:
+            return CandidateDecision(accepted=False, reason="overhang-only measurement missing")
+        comparison = compare_measurements(baseline["overhang"], candidate["overhang"])
+        protected = protection is not None and protection.get("status") == "PASS"
+        a, b = baseline["overhang"].metrics, candidate["overhang"].metrics
+        extent_a, extent_b = a.get("print_extent_mm"), b.get("print_extent_mm")
+        extent_ok = (isinstance(extent_a, list) and isinstance(extent_b, list)
+                     and len(extent_a) == len(extent_b) == 3
+                     and all(abs(x-y) <= 0.01 for x, y in zip(extent_a, extent_b)))
+        accepted = appearance_approved and protected and extent_ok and comparison["conclusion"] == "improved"
+        return CandidateDecision(accepted=accepted,
+            reason=("protected geometric area improvement" if accepted else
+                    f"not accepted: area={comparison['conclusion']}, appearance={appearance_approved}, protection={protected}, extent={extent_ok}"),
+            target_improvements=[str(comparison)] if accepted else [],
+            regressions=[] if appearance_approved and protected and extent_ok else ["appearance/protection/extent not approved"])
     missing = sorted(set(baseline) - set(candidate))
     unavailable = sorted(set(missing) | {
         name for name, result in candidate.items() if result.status not in {"PASS", "FAIL"}

@@ -102,6 +102,12 @@ def load_print_meshes(case_dir: Path, case_cfg: dict[str, Any], profile: dict[st
         semantic_scalar,
         float(profile["max_print_extent_mm"]) / float(np.max(raw_bounds[1] - raw_bounds[0])),
     )
+    # Candidates use the initial conversion, never their own AABB normalization.
+    frozen = case_cfg.get("frozen_measurement")
+    if frozen is not None:
+        print_scalar = float(frozen["scale_mm_per_source_unit"])
+        if not math.isfinite(print_scalar) or print_scalar <= 0:
+            raise ValueError("invalid frozen source-to-mm conversion")
     scaled_bounds = raw_bounds * print_scalar
     margin = float(profile["bed_margin_mm"])
     translation = np.array([margin - scaled_bounds[0, 0], margin - scaled_bounds[0, 1], -scaled_bounds[0, 2]])
@@ -130,6 +136,82 @@ def load_print_meshes(case_dir: Path, case_cfg: dict[str, Any], profile: dict[st
 
 def combined_mesh(tagged: list[TaggedMesh]) -> trimesh.Trimesh:
     return trimesh.util.concatenate([row.mesh for row in tagged])
+
+
+def detector_exterior(tagged: list[TaggedMesh], output: Path, timeout: int = 300) -> tuple[list[TaggedMesh], str]:
+    """Union closed shells only on a detector copy; no concatenation fallback."""
+    operands = []
+    for row in tagged:
+        for mesh in row.mesh.split(only_watertight=False, repair=False):
+            if not mesh.is_volume:
+                raise ValueError(f"exterior input is not a closed oriented volume: {row.name}; "
+                                 f"watertight={mesh.is_watertight}, winding={mesh.is_winding_consistent}, volume={mesh.volume:.9g}")
+            operands.append({"vertices": mesh.vertices.tolist(), "faces": mesh.faces.tolist()})
+    input_path, result_path = output / "exterior_input.json", output / "exterior.json"
+    input_path.write_text(json.dumps(operands))
+    command = [sys.executable, str(REPO / "experiments/overhang_feedback/exterior.py"),
+               str(input_path), str(result_path)]
+    with (output / "exterior.log").open("w") as log:
+        # Inherit the checker's process group so its outer timeout kills descendants.
+        process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)
+        try:
+            code = process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
+            raise
+    if code != 0 or not result_path.is_file():
+        raise ValueError("detector exterior union failed; see exterior.log")
+    result = json.loads(result_path.read_text())
+    mesh = trimesh.Trimesh(vertices=result["vertices"], faces=result["faces"], process=True)
+    if not mesh.is_volume or not np.isfinite(mesh.vertices).all() or np.any(mesh.area_faces <= 0):
+        raise ValueError("detector exterior is not a valid closed oriented surface; "
+                         f"watertight={mesh.is_watertight}, winding={mesh.is_winding_consistent}, "
+                         f"zero_area_faces={int(np.count_nonzero(mesh.area_faces <= 0))}, volume={mesh.volume:.9g}")
+    # Component regions remain geometric; do not invent semantic face provenance.
+    rows, offset = [], 0
+    for i, part in enumerate(mesh.split(only_watertight=False, repair=False)):
+        rows.append(TaggedMesh(f"exterior_component_{i}_source_uncertain", part, offset, offset + len(part.faces)))
+        offset += len(part.faces)
+    return rows, str(result["blender_version"])
+
+
+def area_uncertainty(mesh: trimesh.Trimesh, profile: dict[str, Any]) -> dict[str, Any]:
+    """Conservative float32 export-coordinate bound, including classification flips.
+
+    Cross-product area perturbation: .5*(|u|dv+|v|du+du*dv).
+    Faces whose normal or bed classification may flip contribute their full area.
+    This is a numerical bound, not a percentage improvement target.
+    """
+    delta = 8 * np.finfo(np.float32).eps * max(1.0, float(np.abs(mesh.vertices).max()))
+    edge_error = 2 * math.sqrt(3) * delta
+    triangles = np.asarray(mesh.triangles)
+    u, v = triangles[:, 1] - triangles[:, 0], triangles[:, 2] - triangles[:, 0]
+    cross_error = edge_error * (np.linalg.norm(u, axis=1) + np.linalg.norm(v, axis=1)) + edge_error**2
+    areas = np.asarray(mesh.area_faces)
+    normal_error = np.minimum(2.0, 2 * cross_error / np.maximum(2 * areas - cross_error, 1e-300))
+    limit = -math.cos(math.radians(float(profile["overhang_threshold_from_horizontal_deg"])))
+    ambiguous = (np.abs(mesh.face_normals[:, 2] - limit) <= normal_error)
+    ambiguous |= np.abs(mesh.triangles_center[:, 2] - float(profile["layer_height_mm"]) - 1e-8) <= delta
+    return {"bound_mm2": float(cross_error.sum() / 2 + areas[ambiguous].sum()),
+            "coordinate_error_mm": float(delta), "ambiguous_faces": int(ambiguous.sum()),
+            "source": "8 float32 ulps, cross-product perturbation plus full classification-ambiguous face area"}
+
+
+def geometric_regions(mesh: trimesh.Trimesh, mask: np.ndarray) -> list[dict[str, Any]]:
+    selected = np.flatnonzero(mask)
+    adjacency = mesh.face_adjacency
+    adjacency = adjacency[np.all(mask[adjacency], axis=1)]
+    components = trimesh.graph.connected_components(adjacency, nodes=selected, min_len=1)
+    rows = []
+    for ids in components:
+        centers, weights = mesh.triangles_center[ids], mesh.area_faces[ids]
+        rows.append({"area_mm2": float(weights.sum()), "global_face_ids": ids.tolist(),
+                     "centroid_mm": np.average(centers, weights=weights, axis=0).tolist(),
+                     "representative_point_mm": centers[int(np.argmax(weights))].tolist(),
+                     "bounds_mm": [mesh.triangles[ids].min(axis=(0, 1)).tolist(), mesh.triangles[ids].max(axis=(0, 1)).tolist()],
+                     "provenance": "exterior region; source mapping requires localization"})
+    return sorted(rows, key=lambda r: r["area_mm2"], reverse=True)
 
 
 def mesh_quality(tagged: list[TaggedMesh]) -> dict[str, Any]:
@@ -472,6 +554,7 @@ def analyze_mesh(mesh: trimesh.Trimesh, tagged: list[TaggedMesh], case_cfg: dict
     return {
         "overhang": {"face_count": int(np.count_nonzero(overhang)),
                      "area_mm2": float(np.sum(mesh.area_faces[overhang])),
+                     "regions": geometric_regions(mesh, overhang),
                      "threshold_from_horizontal_deg": profile["overhang_threshold_from_horizontal_deg"]},
         "unsupported_region": {"definition": "downward model faces actually carried by slicer support interface",
                                "face_count": int(np.count_nonzero(top_contact)),
@@ -507,6 +590,23 @@ def analyze_case(case_id: str, case_dir: Path, output_root: Path, config: dict[s
     case_cfg = config["cases"][case_id]
     try:
         tagged, scale = load_print_meshes(case_dir, case_cfg, config["profile"])
+        measurement = None
+        if case_cfg.get("exterior_method") == "blender_exact_union":
+            try:
+                tagged, blender_version = detector_exterior(tagged, case_output, int(case_cfg.get("exterior_timeout_seconds", 300)))
+            except subprocess.TimeoutExpired:
+                return {"case_id": case_id, "status": "EXTERIOR_TIMEOUT", "error": "detector-copy union exceeded budget"}
+            except Exception as exc:
+                return {"case_id": case_id, "status": "EXTERIOR_UNVERIFIED", "error": str(exc)[:300]}
+            measurement = {"scale_mm_per_source_unit": scale["print_scale_factor_mm_per_source_unit"],
+                           "orientation": "authored_Z_up", "placement": "min_Z_on_bed_XY_margin",
+                           "profile": config["profile"], "slicer_version": slicer_identity(slicer),
+                           "profile_sha256": sha256_file(profile_path),
+                           "exterior_method": "blender_exact_union", "blender_version": blender_version,
+                           "export": "URDF initial transformed collision shells; no split repair; fixed EXACT union; bmesh EAR_CLIP v1; binary STL"}
+            frozen = case_cfg.get("frozen_measurement")
+            if frozen is not None and frozen != measurement:
+                return {"case_id": case_id, "status": "MEASUREMENT_CONDITIONS_CHANGED", "error": "frozen measurement conditions differ"}
         mesh = combined_mesh(tagged)
         quality = mesh_quality(tagged)
         stl = case_output / "print_mesh.stl"
@@ -518,10 +618,16 @@ def analyze_case(case_id: str, case_dir: Path, output_root: Path, config: dict[s
                     "mesh_quality": quality, "slicer": slicer_run}
         gcode = parse_gcode(gcode_path)
         analysis = analyze_mesh(mesh, tagged, case_cfg, config["profile"], gcode)
+        uncertainty = area_uncertainty(mesh, config["profile"]) if measurement else None
+        if uncertainty is not None:
+            uncertainty["baseline_repeatability_mm2"] = float(case_cfg.get("repeatability_mm2", 0))
+            uncertainty["bound_mm2"] += uncertainty["baseline_repeatability_mm2"]
         masks = analysis.pop("masks")
         export_overlay(mesh, case_output / "surface_classes.ply", masks["overhang"],
                        masks["critical"], masks["contact"])
         return {"case_id": case_id, "status": "ANALYZED", "scale": scale,
+                "measurement": measurement,
+                "area_uncertainty": uncertainty,
                 "mesh_quality": quality, "slicer": slicer_run,
                 "gcode_roles": {"role_lengths_mm": gcode["role_lengths_mm"],
                                 "type_layer_counts": gcode["type_layer_counts"]}, **analysis}
