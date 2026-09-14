@@ -40,6 +40,55 @@ area-based acceptance. It is **not** reselected by the offline evaluator.
 
 ## Measurement and interpretation
 
+### Shared patch-error recovery
+
+The public `apply_patch` tool (both ordinary aDSL and experimental arms) still
+requires exactly one literal match. Zero/multiple matches return short
+`PATCH_MATCH_COUNT` feedback without writing. After the first mismatch, only
+two further patch submissions are allowed in that candidate, including successful
+submissions; re-reading does not reset this allowance. Existing model turn/time/
+token limits and candidate budgets are unchanged. Additional model calls remain
+in the normal usage totals; patch invocations are recorded in the diagnostic ledger.
+
+`patch_diagnostics/*.jsonl` stores call/candidate IDs, exact old/new parameters,
+match count, before/after hashes, outcome and correction allowance. Model feedback
+contains only a short error and report path. A corrected, effective patch proceeds
+to normal execution and acceptance. An unresolved or exhausted patch failure is
+`TOOL_ERROR`, even after earlier changes; it is not an ordinary no-op. Filesystem
+and access errors still raise. Successful patches use a same-directory temporary
+file and atomic replacement, without fuzzy matching. No checker or candidate
+acceptance criterion is changed.
+
+Regression: `python -m pytest -q tests/test_patch_recovery.py`.
+
+### Duplicate review images
+
+Only in `overhang_experiment`, Image Critic and Code Critic now share an image
+list deduplicated by file SHA256. Explicit 1-based `reference_indices`,
+`baseline_indices`, and `candidate_indices` preserve every group's view mapping;
+different candidate images are never dropped. The mapping is saved as
+`image_input_mapping.json` and included in the version's review record. Duplicate
+images do not prove geometric protection; existing acceptance remains required.
+Ordinary aDSL requests keep their original image order and counts.
+
+The saved SF03 initial assets yield 20 → 8 images, with serialized image input
+15,734,567 → 6,296,087 bytes (about 60% less, excluding review text). This was a
+local serialization check, not a new API run or evidence that upstream latency
+is fixed. Regression command: `python -m pytest -q tests/test_overhang_review_images.py`.
+
+### Console-entry import fix
+
+The installed `adsl-run` entry point does not install the repository's
+`experiments` namespace. Protection analysis now falls back to loading its
+existing analyzer by its repository-relative file path, without changing global
+`PYTHONPATH` or installing extra packages. Missing analyzer dependencies remain
+explicit errors/unconfirmed protection, never automatic approval.
+`tests/test_overhang_console_import.py` exercises this in a fresh isolated Python
+process, where `experiments` cannot be imported normally. The SF03 smoke recovery
+also rechecked the already-generated control candidate in this environment:
+protection PASS, saved appearance PASS, no additional model call. Its first edit
+remains charged; the failure and recovery evidence are kept separately.
+
 ### Isolated edits (fix based on `899408e`)
 
 Only enabled `overhang_experiment` requests use this routing. Initial edits,
@@ -226,3 +275,44 @@ It does not model thermal warping, surface scarring, or print certification.
   --metadata-root /jiigan-hp/lms/aDSL/datasets/prompt_sources \
   --output local_experiment/overhang_prompt_pilot_20260906/case_manifest.json
 ```
+# Exterior-area feedback clarification (2026-09-14)
+
+The opt-in feedback arm now tells Engineering Critic that the metric counts
+Boolean-unioned exposed overhang, not duplicate internal faces. A proposal should
+explain which exposed surfaces it expects to reduce and whether it creates new
+undersides; insufficient evidence is a valid reason to propose nothing.
+
+The next critic request includes the attempted action/intention (explicitly not a
+verified geometric effect), actual changed source symbols when available, original
+and candidate total areas, the existing comparison/rejection reason, and remaining
+budget. Full patches and face lists are not included. Current saved records do not
+establish cross-version exterior-region correspondence, so local area deltas are
+explicitly UNCERTAIN; ranking/region IDs and AABB matches are not treated as proof.
+Legacy or failed attempts may have missing summaries/measurements, never fake zeros.
+Image/Code Critic, protection, acceptance, thresholds and retained publication are
+unchanged. No SF03 rerun or real API call was made for this change.
+
+Mock validation: `python -m pytest -q tests/test_overhang_candidate_isolation.py
+tests/test_overhang_local_edit.py` — 40 passed, 3 skipped. The new request-level
+test rejects a worsened candidate, verifies feedback in the next actual runtime
+input, then returns no proposal with one attempt remaining and retains the original.
+
+## Suggested next assets (not launched)
+
+Use the existing `paired_assets.json` protection scopes without enlarging them:
+
+| Asset | Overhang regions to inspect, based on saved source | Allowed edit | Protection / limitation |
+| --- | --- | --- | --- |
+| O01 white mug with metallic handle | Curved grip and horizontal mounting undersides; focus on lower mount/transition | `CurvedMetalHandle`, noncritical lower transitions only | Preserve hollow white body, rim, metallic loop and opening, and original upward-facing surfaces. Opening dimensions are only visually constrained. |
+| O03 dark wooden open-arm chair | Seat underside and long horizontal arm undersides; only arms are in scope | `OpenArmAssembly`, undersides/transitions only | Preserve curved back, flat seat, four legs, open armrest space, wood appearance and original upper surfaces. Do not fill the arm opening or change protected top surfaces. |
+
+Both have saved source/GLB/URDF under
+`local_experiment/overhang_prompt_pilot_20260906/baseline/`.
+These region descriptions are source-based hypotheses, not new measured local
+area attribution. Legacy baseline reports contain no local overhang regions and
+contain multiple un-unioned components (O01: 23; O03: 60); their total areas are
+not a current Boolean-exterior baseline and do not establish current measurement
+readiness. Future execution must use the existing measurement entry, not those old
+numbers for acceptance. SF03's failed experiment remains unchanged; no extra
+attempts are proposed for it. O01/O02 share a dataset object, as do O03/O04, so
+choosing O01 and O03 avoids presenting two variants as independent objects.

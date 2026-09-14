@@ -178,6 +178,51 @@ def test_initial_and_engineering_use_shared_budget(tmp_path, monkeypatch):
     assert len((f.workspace / "edit_attempts.jsonl").read_text().splitlines()) == 2
 
 
+def test_rejected_edit_feedback_reaches_next_critic_and_may_stop(tmp_path, monkeypatch):
+    f = fixture(tmp_path, monkeypatch, actions=(110,), budget=2)
+    runtime = f.kwargs["runtime"]
+    original_run = runtime.run
+    seen = []
+
+    async def run(**kw):
+        if kw["role"].startswith("engineering"):
+            payload = json.loads(kw["input"])
+            seen.append(payload)
+            assert "after Boolean union" in payload["instruction"]
+            assert "internal overlapping faces are excluded" in payload["instruction"]
+            assert "new exposed undersides" in payload["instruction"]
+            if payload["previous_attempts"]:
+                kw["context"].record("read_file", kw["context"].source_path)
+                return SimpleNamespace(final_output=EngineeringCriticDecision(
+                    approved=True, observations=["Insufficient evidence for another safe edit"],
+                    repair_proposals=[]))
+        return await original_run(**kw)
+
+    runtime.run = run
+    result, book = run_case(f)
+    assert len(seen) == 2
+    payload = seen[-1]
+    assert payload["remaining_edit_candidates"] == 1
+    attempt = payload["previous_attempts"][0]
+    assert attempt["status"] == "REJECTED" and "worsened" in attempt["reason"]
+    assert attempt["total_area"] == {"before_mm2": 100, "candidate_mm2": 110, "comparison_valid": True}
+    assert attempt["overhang_comparison"]["reduction_mm2"] == -10
+    assert attempt["modification_summary"]["actual_changed_symbols"] == ["class:Frame"]
+    assert attempt["modification_summary"]["proposed_action"] == "reshape"
+    assert attempt["local_area_change"]["status"] == "UNCERTAIN"
+    assert "old_text" not in json.dumps(attempt) and "global_face_ids" not in json.dumps(attempt)
+    assert book["stop_reason"] == "no_actionable_proposal"
+    assert book["retained"] == "original" and result.glb_path.read_text() == "GLB:0"
+    assert len(book["attempts"]) == 1 and budget_remaining(f.workspace, f.options) == 1
+
+
+def test_saved_incomplete_attempt_feedback_does_not_invent_area():
+    from adsl.agents.overhang_edit import attempt_feedback
+    item = attempt_feedback([{"status": "TOOL_ERROR", "reason": "patch failed"}])[0]
+    assert item["total_area"] is None and item["overhang_comparison"] is None
+    assert item["local_area_change"]["status"] == "UNCERTAIN"
+
+
 def test_exhausted_initial_does_not_call_model(tmp_path, monkeypatch):
     f = fixture(tmp_path, monkeypatch, initial=True, budget=1)
     assert reserve_attempt(f.workspace, f.options, "initial_edit", attempt_id="existing")

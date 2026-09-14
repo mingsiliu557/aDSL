@@ -1,6 +1,13 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import os
+import tempfile
+import time
+import uuid
+import fcntl
+from pathlib import Path
 
 from agents import RunContextWrapper, function_tool
 
@@ -107,6 +114,10 @@ def apply_patch(
 ) -> str:
     """Replace one exact, unique text block in an existing workspace file.
 
+    A match failure returns short JSON without writing. Re-read and correct it;
+    after the first failure at most two further patch submissions are allowed
+    in this candidate. Never use a dummy patch to hide a failure.
+
     Args:
         path: Workspace-relative file path.
         old_text: Exact current text. It must occur exactly once.
@@ -115,19 +126,78 @@ def apply_patch(
     target = context.context.resolve(path)
     if target != context.context.source_path:
         raise ValueError("apply_patch may edit only the assigned source file")
-    content = target.read_text(encoding="utf-8")
     if not old_text:
         raise ValueError("old_text must not be empty")
-    occurrences = content.count(old_text)
-    if occurrences != 1:
-        raise ValueError(f"old_text must occur exactly once; found {occurrences}")
-    if old_text == new_text:
-        if context.context.record_noop_patch:
-            context.context.record("apply_patch", target)
-        return "no change: new_text is identical to old_text"
-    target.write_text(content.replace(old_text, new_text, 1), encoding="utf-8")
-    context.context.record("apply_patch", target)
-    return f"patched {target.relative_to(context.context.workspace).as_posix()}"
+    ctx = context.context
+    relative = target.relative_to(ctx.workspace).as_posix()
+    candidate_id = ctx.patch_scope_id or relative
+    key = hashlib.sha256(f"{relative}:{candidate_id}".encode()).hexdigest()[:24]
+    report = ctx.workspace / "patch_diagnostics" / f"{key}.jsonl"
+    report.parent.mkdir(parents=True, exist_ok=True)
+    with report.open("a+", encoding="utf-8") as ledger:
+        fcntl.flock(ledger.fileno(), fcntl.LOCK_EX)
+        ledger.seek(0)
+        previous = [json.loads(line) for line in ledger if line.strip()]
+        first_failure = next((i for i, row in enumerate(previous) if row.get("code") == "PATCH_MATCH_COUNT"), None)
+        remaining = 2 if first_failure is None else max(0, 2 - (len(previous) - first_failure - 1))
+        blocked = any(row.get("exhausted") for row in previous) or (first_failure is not None and remaining == 0)
+        raw = target.read_bytes()  # Permission/filesystem errors remain real exceptions.
+        content = raw.decode("utf-8")
+        before = hashlib.sha256(raw).hexdigest()
+        occurrences = content.count(old_text)
+        record = {"timestamp": time.time(), "path": relative, "candidate_id": candidate_id,
+            "call_id": getattr(context, "tool_call_id", None) or uuid.uuid4().hex,
+            "old_text": old_text, "new_text": new_text, "match_count": occurrences,
+            "before_sha256": before, "after_sha256": before}
+
+        def save(**fields):
+            row = {**record, **fields}
+            ledger.write(json.dumps(row, ensure_ascii=False) + "\n")
+            ledger.flush()
+            os.fsync(ledger.fileno())
+
+        if blocked or occurrences != 1:
+            exhausted = blocked or (first_failure is not None and remaining <= 1)
+            left = 0 if exhausted else 2 if first_failure is None else remaining - 1
+            code = "PATCH_RETRY_EXHAUSTED" if blocked else "PATCH_MATCH_COUNT"
+            save(ok=False, code=code, exhausted=exhausted, corrections_remaining=left)
+            ctx.record("apply_patch", target, success=False,
+                       code="PATCH_RETRY_EXHAUSTED" if exhausted else code, changed=False)
+            return json.dumps({"ok": False, "code": code, "match_count": occurrences,
+                "source_unchanged": True, "corrections_remaining": left, "retry_exhausted": exhausted,
+                "report_path": report.relative_to(ctx.workspace).as_posix(),
+                "message": "补丁纠正次数已耗尽，请停止。" if exhausted else
+                    "请重新读取目标文件，使用原文中的精确片段重新提交补丁。"}, ensure_ascii=False)
+
+        if old_text == new_text:
+            save(ok=True, code="NO_EFFECT", changed=False)
+            if ctx.record_noop_patch or first_failure is not None:
+                ctx.record("apply_patch", target, code="NO_EFFECT", changed=False)
+            return "no change: new_text is identical to old_text"
+
+        temporary = None
+        try:
+            updated = content.replace(old_text, new_text, 1).encode("utf-8")
+            with tempfile.NamedTemporaryFile(dir=target.parent, prefix=f".{target.name}.patch-", delete=False) as handle:
+                temporary = Path(handle.name)
+                os.fchmod(handle.fileno(), target.stat().st_mode & 0o777)
+                handle.write(updated)
+                handle.flush()
+                os.fsync(handle.fileno())
+            if target.read_bytes() != raw:
+                raise RuntimeError("source changed during patch; no replacement made")
+            os.replace(temporary, target)
+            record["after_sha256"] = hashlib.sha256(updated).hexdigest()
+            save(ok=True, code="PATCH_APPLIED", changed=True)
+        except Exception as error:
+            ctx.record("apply_patch", target, success=False, code="PATCH_WRITE_ERROR", changed=False)
+            save(ok=False, code="PATCH_WRITE_ERROR", error_type=type(error).__name__)
+            raise
+        finally:
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
+        ctx.record("apply_patch", target, code="PATCH_APPLIED", changed=True)
+        return f"patched {relative}"
 
 
 READ_TOOLS = [read_file]

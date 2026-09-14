@@ -37,7 +37,8 @@ from .prompts import object_prompt
 from .repair_controller import RepairController
 from .overhang_edit import (budget_remaining, reserve_attempt, opportunities, protection_check,
                            original_execution, allowed_edit, compare_measurements,
-                           version_record, version_assets, assert_version, file_hash, edit_outcome)
+                           version_record, version_assets, assert_version, file_hash, edit_outcome, review_images,
+                           OVERHANG_OPTIMIZATION_INSTRUCTION, attempt_feedback)
 from .repair_policy import (
     assess_candidate,
     immutable_inputs_match,
@@ -45,6 +46,7 @@ from .repair_policy import (
 )
 from .source_index import SourceIndex, load_source_index
 from .tools import AgentToolContext, PATCH_TOOLS, READ_TOOLS, WRITE_TOOLS
+from .tools.context import patch_failure
 from .utils.config import packaged_profile
 from .utils.execution import (
     AssetExecutionError,
@@ -1508,14 +1510,13 @@ class ObjectWorkflow:
                         result = await runtime.run(agent=engineering_critic, input=json.dumps({
                             "requirement": request.requirement, "plan": plan.model_dump(),
                             "assigned_source": current_source.relative_to(workspace).as_posix(),
-                            "instruction": "Optional local optimization. Preserve shape/function/appearance first. Read the source. Return no proposals with a reason if no safe useful edit exists.",
+                            "instruction": OVERHANG_OPTIMIZATION_INSTRUCTION,
                             "checker_evidence": _checker_evidence(runs, workspace=workspace),
                             "overhang_measurements": [{k: r.result.metrics.get(k) for k in
                                 ("overhang_area_mm2", "nominal_contact_area_mm2", "support_required")} for r in runs],
                             "protection_checklist": options.get("protection"),
                             "remaining_edit_candidates": budget_remaining(workspace, options),
-                            "previous_attempts": [{k: a.get(k) for k in ("status", "reason", "overhang_comparison")}
-                                                  for a in book["attempts"].values()]}, ensure_ascii=False),
+                            "previous_attempts": attempt_feedback(book["attempts"].values())}, ensure_ascii=False),
                             role=f"engineering-critic:round:{round_number}", stage=f"engineering_critic:{round_number}", context=context)
                         self._require_tool_event(context, "read_file", "engineering critic")
                         decision = self._typed_output(result.final_output, EngineeringCriticDecision)
@@ -1659,6 +1660,19 @@ class ObjectWorkflow:
         )
         def record_attempt(record):
             if experiment and attempt_id is not None:
+                record["modification_summary"] = {
+                    "proposed_action": str(proposal.action)[:120],
+                    "proposed_intent_not_verified_effect": proposal.hypothesis[:500],
+                    "actual_changed_symbols": record.get("scope_validation", {}).get("changed_symbols", [])[:8],
+                    "note": "Changed symbols describe source scope, not proof of geometric improvement."
+                }
+                if experiment.get("arm") == "feedback":
+                    record["total_area"] = {
+                        "before_mm2": baseline_runs[0].result.metrics.get("overhang_area_mm2") if baseline_runs else None,
+                        "candidate_mm2": candidate_runs[0].result.metrics.get("overhang_area_mm2") if candidate_runs else None,
+                        "comparison_valid": (record.get("overhang_comparison") or {}).get("conclusion")
+                                            in {"improved", "unchanged", "worsened"},
+                    }
                 book = read_json(workspace / "overhang_versions.json")
                 info = book["attempts"][attempt_id]
                 record.update(attempt_id=attempt_id, origin=info["origin"],
@@ -2011,15 +2025,23 @@ class ObjectWorkflow:
                 "function. Do not infer checker success from images."
             ),
         }
+        images = (*request.image_paths, *baseline_execution.render_paths, *candidate_execution.render_paths)
+        if request.overhang_experiment:
+            images, mapping = review_images(request.image_paths, baseline_execution.render_paths,
+                                            candidate_execution.render_paths)
+            preservation_payload["image_order"] = mapping
+            preservation_payload["instruction"] += (
+                " Image indices are 1-based positions in the attached unique images, not contiguous groups."
+                " Use reference_indices, baseline_indices and candidate_indices to identify every view."
+                " A repeated index means identical image bytes serving multiple roles;"
+                " it does not prove geometry or protected dimensions are unchanged."
+            )
+            write_json(candidate_root / "image_input_mapping.json", mapping)
         image_result = await runtime.run(
             agent=image_critic,
             input=user_input(
                 json.dumps(preservation_payload, ensure_ascii=False),
-                (
-                    *request.image_paths,
-                    *baseline_execution.render_paths,
-                    *candidate_execution.render_paths,
-                ),
+                images,
             ),
             role=f"image-critic:candidate:{round_number}:{proposal_index}",
             stage=f"candidate_image_critic:{round_number}:{proposal_index}",
@@ -2047,11 +2069,7 @@ class ObjectWorkflow:
                         },
                         ensure_ascii=False,
                     ),
-                    (
-                        *request.image_paths,
-                        *baseline_execution.render_paths,
-                        *candidate_execution.render_paths,
-                    ),
+                    images,
                 ),
                 role=f"code-critic:candidate:{round_number}:{proposal_index}",
                 stage=f"candidate_code_critic:{round_number}:{proposal_index}",
@@ -2074,6 +2092,7 @@ class ObjectWorkflow:
             "appearance_approved": candidate_appearance_approved,
             "image_critic": candidate_image_decision.model_dump(),
             "code_critic": candidate_code_decision.model_dump() if candidate_code_decision else None,
+            **({"image_input_mapping": mapping} if request.overhang_experiment else {}),
         }
 
     async def _repair(
@@ -2099,7 +2118,8 @@ class ObjectWorkflow:
                 raise ValueError("invalid or already executed experiment reservation")
             attempt["status"] = "MODEL_STARTED"
             write_json(workspace / "overhang_versions.json", versions)
-        context = AgentToolContext(workspace=workspace, source_path=source_path, record_noop_patch=bool(options))
+        context = AgentToolContext(workspace=workspace, source_path=source_path, record_noop_patch=bool(options),
+                                   patch_scope_id=reserved_attempt_id or stage)
         assigned_source = source_path.relative_to(workspace).as_posix()
         payload = {"assigned_source": assigned_source, **payload}
         before = file_hash(source_path) if options else None
@@ -2176,7 +2196,9 @@ class ObjectWorkflow:
 
     @staticmethod
     def _require_tool_event(context: AgentToolContext, expected: str, actor: str) -> None:
-        if not any(event.tool == expected for event in context.events):
+        if expected == "apply_patch" and patch_failure(context.events):
+            raise RuntimeError(f"{actor}: {patch_failure(context.events)}")
+        if not any(event.tool == expected and event.success for event in context.events):
             raise RuntimeError(f"{actor} did not use required tool {expected}")
 
     @staticmethod

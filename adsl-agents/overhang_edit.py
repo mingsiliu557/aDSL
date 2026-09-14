@@ -8,9 +8,37 @@ import re
 import time
 import hashlib
 from dataclasses import asdict
+from functools import lru_cache
 from typing import Any
 
 from .models import CheckerFinding, MetricEvidence, RegionEvidence
+
+
+OVERHANG_OPTIMIZATION_INSTRUCTION = (
+    "Optional local optimization. Preserve shape/function/appearance first. Read the source. "
+    "The measurement counts exposed overhanging exterior surfaces after Boolean union; "
+    "internal overlapping faces are excluded. Reducing overlap, rearranging rails, or reducing "
+    "primitive count does not imply less overhang area. In each proposal, briefly explain which "
+    "exposed surfaces should shrink or disappear and whether new exposed undersides will be created. "
+    "Distinguish geometric evidence from a hypothesis. If evidence is insufficient, return no "
+    "proposals with a reason; no further edit is required."
+)
+
+
+def attempt_feedback(attempts):
+    """Short existing-record feedback; never infer correspondence from region rank/ID."""
+    return [{
+        "status": a.get("status"), "reason": str(a.get("reason") or "")[:600],
+        "modification_summary": a.get("modification_summary", "Unavailable in this saved attempt."),
+        "overhang_comparison": a.get("overhang_comparison"),
+        "total_area": a.get("total_area"),
+        "local_area_change": {
+            "status": "UNCERTAIN",
+            "reason": "No verified cross-version exterior-region correspondence is recorded; "
+                      "region IDs/ranks and source AABB overlaps are not sufficient attribution."
+        },
+        "candidate_report": a.get("candidate"),
+    } for a in attempts]
 
 
 def budget_remaining(workspace: Path, options: dict[str, Any]) -> int:
@@ -38,6 +66,23 @@ def reserve_attempt(workspace: Path, options: dict[str, Any], stage: str,
 
 def file_hash(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def review_images(reference, baseline, candidate):
+    """Send byte-identical images once, preserving every group/view assignment."""
+    images, by_hash = [], {}
+    mapping = {"index_base": 1, "deduplication": "sha256_of_file_bytes"}
+    for group, paths in (("reference", reference), ("baseline", baseline), ("candidate", candidate)):
+        indices = []
+        for path in paths:
+            digest = file_hash(Path(path))
+            if digest not in by_hash:
+                images.append(path)
+                by_hash[digest] = len(images)
+            indices.append(by_hash[digest])
+        mapping[f"{group}_indices"] = indices
+    mapping["unique_image_count"] = len(images)
+    return tuple(images), mapping
 
 
 def version_record(version_id, source, execution, runs=(), reviews=None):
@@ -91,10 +136,13 @@ def version_assets(record):
 
 
 def edit_outcome(output, events, before_hash, after_hash, error=None):
+    from .tools.context import patch_failure
     evidence = {"tool_events": [asdict(e) for e in events], "before_sha256": before_hash,
                 "after_sha256": after_hash}
     if error is not None:
         return {**evidence, "status": "TOOL_ERROR", "reason": str(error)[:300]}
+    if patch_failure(events):
+        return {**evidence, "status": "TOOL_ERROR", "reason": patch_failure(events)}
     if before_hash != after_hash:
         return {**evidence, "status": "CHANGED", "reason": "candidate source changed; evaluation required"}
     declaration = output if isinstance(output, dict) else None
@@ -166,6 +214,31 @@ def compare_measurements(before: Any, after: Any) -> dict[str, Any]:
             "support_contact_increased": b.get("nominal_contact_area_mm2", 0) > a.get("nominal_contact_area_mm2", 0)}
 
 
+@lru_cache(maxsize=1)
+def _support_analysis():
+    """Console scripts install adsl.agents, not the repository experiments namespace."""
+    try:
+        from experiments.support_requirement_critical_surfaces import analyze
+        return analyze
+    except ModuleNotFoundError as error:
+        if error.name != "experiments":
+            raise  # Do not mask a missing dependency of the analyzer itself.
+    import importlib.util
+    import sys
+    path = Path(__file__).resolve().parents[1] / "experiments/support_requirement_critical_surfaces/analyze.py"
+    spec = importlib.util.spec_from_file_location("_adsl_overhang_support_analysis", path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load overhang protection analyzer: {path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        sys.modules.pop(spec.name, None)
+        raise
+    return module
+
+
 def protection_check(original_urdf: Path | None, candidate_urdf: Path | None,
                      options: dict[str, Any]) -> dict[str, Any]:
     """Compare configured protected triangles in world coordinates, not just AABBs.
@@ -173,7 +246,6 @@ def protection_check(original_urdf: Path | None, candidate_urdf: Path | None,
     Exact part/surface correspondence required. No inferred dimensions or interfaces.
     """
     import numpy as np
-    from experiments.support_requirement_critical_surfaces.analyze import FINAL, face_selector
     rules = options.get("protection", {}).get("surfaces", [])
     if not rules or original_urdf is None or candidate_urdf is None:
         return {"status": "UNCONFIRMED", "reason": "missing measurable protection surfaces or URDF"}
@@ -198,6 +270,8 @@ def protection_check(original_urdf: Path | None, candidate_urdf: Path | None,
         tri = np.array([t[np.lexsort(t.T[::-1])] for t in tri]).reshape(-1, 9)
         return tri[np.lexsort(tri.T[::-1])]
     try:
+        analyzer = _support_analysis()
+        FINAL, face_selector = analyzer.FINAL, analyzer.face_selector
         before, after = meshes(original_urdf), meshes(candidate_urdf)
         errors = []
         if options.get("scale_mm_per_source_unit") is not None:

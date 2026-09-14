@@ -8,6 +8,23 @@ from pathlib import Path
 class ToolEvent:
     tool: str
     path: str
+    success: bool = True
+    code: str | None = None
+    changed: bool | None = None
+
+
+def patch_failure(events: list[ToolEvent]) -> str | None:
+    pending = None
+    for event in events:
+        if event.tool != "apply_patch":
+            continue
+        if event.code == "PATCH_RETRY_EXHAUSTED":
+            return event.code
+        if not event.success:
+            pending = event.code or "PATCH_FAILED"
+        elif event.changed is not False:
+            pending = None
+    return pending
 
 
 @dataclass
@@ -17,6 +34,7 @@ class AgentToolContext:
     executor_timeout: float = 300.0
     events: list[ToolEvent] = field(default_factory=list)
     record_noop_patch: bool = False
+    patch_scope_id: str | None = None
 
     def __post_init__(self) -> None:
         self.workspace = self.workspace.expanduser().resolve()
@@ -33,8 +51,10 @@ class AgentToolContext:
             raise ValueError(f"path escapes workspace: {path}")
         return resolved
 
-    def record(self, tool: str, path: Path) -> None:
-        self.events.append(ToolEvent(tool=tool, path=path.relative_to(self.workspace).as_posix()))
+    def record(self, tool: str, path: Path, *, success: bool = True,
+               code: str | None = None, changed: bool | None = None) -> None:
+        self.events.append(ToolEvent(tool=tool, path=path.relative_to(self.workspace).as_posix(),
+                                     success=success, code=code, changed=changed))
 
 
 __all__ = ["AgentToolContext", "ToolEvent"]
