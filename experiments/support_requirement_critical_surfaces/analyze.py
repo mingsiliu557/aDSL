@@ -138,7 +138,8 @@ def combined_mesh(tagged: list[TaggedMesh]) -> trimesh.Trimesh:
     return trimesh.util.concatenate([row.mesh for row in tagged])
 
 
-def detector_exterior(tagged: list[TaggedMesh], output: Path, timeout: int = 300) -> tuple[list[TaggedMesh], str]:
+def detector_exterior(tagged: list[TaggedMesh], output: Path, timeout: int = 300,
+                      method: str = "manifold_union") -> tuple[list[TaggedMesh], str]:
     """Union closed shells only on a detector copy; no concatenation fallback."""
     operands = []
     for row in tagged:
@@ -149,7 +150,10 @@ def detector_exterior(tagged: list[TaggedMesh], output: Path, timeout: int = 300
             operands.append({"vertices": mesh.vertices.tolist(), "faces": mesh.faces.tolist()})
     input_path, result_path = output / "exterior_input.json", output / "exterior.json"
     input_path.write_text(json.dumps(operands))
-    command = [sys.executable, str(REPO / "experiments/overhang_feedback/exterior.py"),
+    scripts = {"manifold_union": "exterior_manifold.py", "blender_exact_union": "exterior.py"}
+    if method not in scripts:
+        raise ValueError(f"unsupported exterior method: {method}")
+    command = [sys.executable, str(REPO / "experiments/overhang_feedback" / scripts[method]),
                str(input_path), str(result_path)]
     with (output / "exterior.log").open("w") as log:
         # Inherit the checker's process group so its outer timeout kills descendants.
@@ -163,7 +167,8 @@ def detector_exterior(tagged: list[TaggedMesh], output: Path, timeout: int = 300
     if code != 0 or not result_path.is_file():
         raise ValueError("detector exterior union failed; see exterior.log")
     result = json.loads(result_path.read_text())
-    mesh = trimesh.Trimesh(vertices=result["vertices"], faces=result["faces"], process=True)
+    mesh = trimesh.Trimesh(vertices=result["vertices"], faces=result["faces"],
+                           process=(method == "blender_exact_union"))
     if not mesh.is_volume or not np.isfinite(mesh.vertices).all() or np.any(mesh.area_faces <= 0):
         raise ValueError("detector exterior is not a valid closed oriented surface; "
                          f"watertight={mesh.is_watertight}, winding={mesh.is_winding_consistent}, "
@@ -173,7 +178,7 @@ def detector_exterior(tagged: list[TaggedMesh], output: Path, timeout: int = 300
     for i, part in enumerate(mesh.split(only_watertight=False, repair=False)):
         rows.append(TaggedMesh(f"exterior_component_{i}_source_uncertain", part, offset, offset + len(part.faces)))
         offset += len(part.faces)
-    return rows, str(result["blender_version"])
+    return rows, str(result["manifold_version" if method == "manifold_union" else "blender_version"])
 
 
 def area_uncertainty(mesh: trimesh.Trimesh, profile: dict[str, Any]) -> dict[str, Any]:
@@ -591,9 +596,10 @@ def analyze_case(case_id: str, case_dir: Path, output_root: Path, config: dict[s
     try:
         tagged, scale = load_print_meshes(case_dir, case_cfg, config["profile"])
         measurement = None
-        if case_cfg.get("exterior_method") == "blender_exact_union":
+        method = case_cfg.get("exterior_method", "manifold_union")
+        if method in ("blender_exact_union", "manifold_union"):
             try:
-                tagged, blender_version = detector_exterior(tagged, case_output, int(case_cfg.get("exterior_timeout_seconds", 300)))
+                tagged, backend_version = detector_exterior(tagged, case_output, int(case_cfg.get("exterior_timeout_seconds", 300)), method)
             except subprocess.TimeoutExpired:
                 return {"case_id": case_id, "status": "EXTERIOR_TIMEOUT", "error": "detector-copy union exceeded budget"}
             except Exception as exc:
@@ -602,8 +608,11 @@ def analyze_case(case_id: str, case_dir: Path, output_root: Path, config: dict[s
                            "orientation": "authored_Z_up", "placement": "min_Z_on_bed_XY_margin",
                            "profile": config["profile"], "slicer_version": slicer_identity(slicer),
                            "profile_sha256": sha256_file(profile_path),
-                           "exterior_method": "blender_exact_union", "blender_version": blender_version,
+                           "exterior_method": method, "blender_version": backend_version,
                            "export": "URDF initial transformed collision shells; no split repair; fixed EXACT union; bmesh EAR_CLIP v1; binary STL"}
+            if method == "manifold_union":
+                measurement["manifold_version"] = measurement.pop("blender_version")
+                measurement["export"] = "URDF initial transformed collision shells; no split repair; Mesh64 batch union Add; no welding; binary STL"
             frozen = case_cfg.get("frozen_measurement")
             if frozen is not None and frozen != measurement:
                 return {"case_id": case_id, "status": "MEASUREMENT_CONDITIONS_CHANGED", "error": "frozen measurement conditions differ"}

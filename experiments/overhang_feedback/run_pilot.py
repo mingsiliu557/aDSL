@@ -400,7 +400,7 @@ def paired_phase(args, cases: list[dict[str, Any]]) -> int:
                     continue
                 if not config_path.exists():
                     config = case_config(case)
-                    config["case"]["exterior_method"] = "blender_exact_union"
+                    config["case"]["exterior_method"] = "manifold_union"
                     baseline = analyzer.analyze_case(cid, original, case_root / "baseline_measurement",
                         {"profile": PROFILE, "cases": {cid: config["case"]}},
                         DEFAULT_SLICER, DEFAULT_PROFILE, 900)
