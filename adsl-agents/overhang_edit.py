@@ -7,11 +7,86 @@ from pathlib import Path
 import re
 import time
 import hashlib
+import ast
 from dataclasses import asdict
 from functools import lru_cache
 from typing import Any
 
 from .models import CheckerFinding, MetricEvidence, RegionEvidence
+
+
+MODEL_LOCATION_INSTRUCTION = (
+    "Overhang experiment exception to the source-candidate prerequisite: when index candidates "
+    "are absent or ambiguous, you may infer a location from the complete current source, renders, "
+    "region coordinates and protection checklist. Read the assigned source (all pages). "
+    "For model-inferred proposals leave feature_ids and source_ids empty; put existing qualified "
+    "class/function names in target.allowed_scopes (e.g. Frame or Frame.__init__). "
+    "Explain the target, geometric evidence and uncertainty briefly in evidence/hypothesis. "
+    "This is model inference, not tool-confirmed attribution. Reliable indexed targets still use "
+    "the existing IDs. No proposal remains valid when you cannot judge safely. No extra budget "
+    "or wider protection scope is granted."
+)
+
+
+def reliable_location(finding):
+    return any(c.source_ids and not c.ambiguous for c in finding.source_candidates)
+
+
+def inferred_proposal(proposal, source, options, findings):
+    """Validate model-named source locations, not geometry provenance or synthetic IDs."""
+    known = {f.finding_id: f for f in findings}
+    if any(i not in known for i in proposal.finding_ids):
+        return None, ["unknown finding ids"]
+    if any(known[i].repairability not in {"geometry", "design_variable"} for i in proposal.finding_ids):
+        return None, ["finding is not source-editable"]
+    if proposal.target.feature_ids or proposal.target.source_ids:
+        return None, ["model-inferred targets must not claim index IDs"]
+    if not proposal.evidence or proposal.action in {"change_print_orientation", "request_evidence"}:
+        return None, ["inferred edit requires evidence and an executable fixed-orientation action"]
+    nodes = {}
+    def visit(body, prefix=""):
+        for n in body:
+            if isinstance(n, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+                name = prefix + n.name
+                nodes[name] = n
+                visit(n.body, name + ".")
+    visit(ast.parse(source.read_text()).body)
+    scopes = proposal.target.allowed_scopes
+    allowed = options.get("protection", {}).get("allowed_classes", [])
+    if not scopes or any(s not in nodes or s.split('.')[0] not in allowed for s in scopes):
+        return None, ["inferred source location missing or outside configured protected edit scope"]
+    # The existing experiment authorizes classes; qualified methods remain within them.
+    if any(not isinstance(nodes[s.split('.')[0]], ast.ClassDef) for s in scopes):
+        return None, ["top-level function edits are not authorized by the configured class-only protection"]
+    location = {"method": "model_inferred", "tool_confirmed": False,
+                "source_sha256": file_hash(source),
+                "targets": [{"symbol": s, "start_line": nodes[s].lineno,
+                             "end_line": nodes[s].end_lineno} for s in scopes],
+                "evidence": proposal.evidence[:3]}
+    return proposal.model_copy(update={
+        "target": proposal.target.model_copy(update={"allowed_scopes": sorted({s.split('.')[0] for s in scopes})}),
+        "parameter_bounds": {**proposal.parameter_bounds, "_localization": location}}), []
+
+
+def inferred_scope_unchanged(before, after, location):
+    """Mask authorized AST nodes and require the rest of the program to be unchanged."""
+    targets = {t['symbol'] for t in location['targets']}
+    def masked(path):
+        tree = ast.parse(path.read_text())
+        def walk(body, prefix=""):
+            result = []
+            for node in body:
+                if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+                    name = prefix + node.name
+                    if name in targets:
+                        result.append(ast.Pass())
+                        continue
+                    node.body = walk(node.body, name + '.')
+                result.append(node)
+            return result
+        tree.body = walk(tree.body)
+        return ast.dump(tree, include_attributes=False)
+    return masked(before) == masked(after)
 
 
 OVERHANG_OPTIMIZATION_INSTRUCTION = (
@@ -102,6 +177,8 @@ def version_record(version_id, source, execution, runs=(), reviews=None):
             paths += [execution.urdf_path, *sorted((execution.urdf_path.parent / "meshes").rglob("*"))]
         if execution.source_index_path:
             paths.append(execution.source_index_path)
+        if execution.analysis_geometry_path:
+            paths.append(execution.analysis_geometry_path)
     payload = {"id": version_id, "source": str(source),
                "execution": json.loads(json.dumps(asdict(execution), default=str)) if execution else None,
                "checkers": [{"spec": r.spec.model_dump(), "result": r.result.model_dump(),
@@ -164,7 +241,8 @@ def original_execution(options: dict[str, Any]):
     root = Path(options["original_urdf"]).parent
     return ExecutionResult(root, root / "scene.glb", root / "scene.urdf",
                            tuple(sorted((root / "render").glob("*.png"))), "", "",
-                           root / "source_index.json" if (root / "source_index.json").is_file() else None)
+                           root / "source_index.json" if (root / "source_index.json").is_file() else None,
+                           root / "analysis_geometry.json" if (root / "analysis_geometry.json").is_file() else None)
 
 
 def allowed_edit(original: Path, candidate: Path, options: dict[str, Any]) -> bool:

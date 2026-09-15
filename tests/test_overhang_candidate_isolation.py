@@ -82,6 +82,7 @@ def fixture(tmp_path, monkeypatch, *, arm="feedback", actions=(90,), initial=Fal
             kw["context"].record("read_file", kw["context"].source_path)
             out = EngineeringCriticDecision(approved=False, observations=[], repair_proposals=[RepairProposal(
                 proposal_id=f"engineering_{len(calls)}", finding_ids=["overhang:optimization:0"], hypothesis="local change",
+                evidence=["Infer Frame from the source and region; geometric attribution uncertain"],
                 target=RepairTarget(allowed_scopes=["Frame"]), action="reshape")])
         elif role.startswith("code"):
             kw["context"].record("read_file", kw["context"].source_path)
@@ -134,6 +135,32 @@ def test_sf03_gate_regression_keeps_original(tmp_path, monkeypatch):
     assert f.manifest["checker_results"][0]["metrics"]["overhang_area_mm2"] == 6119.80
     assert not result.approved  # fallback is not a fictitious appearance approval
     assert book["versions"]["attempt_0001"]["reviews"]["appearance_approved"]
+
+
+@pytest.mark.parametrize('candidate_status,accepted', [('PASS',True),('FAIL',False),('ERROR',False)])
+def test_planned_mixed_loop_keeps_hard_results_and_rejects_regression(tmp_path,monkeypatch,candidate_status,accepted):
+    from adsl.agents.models import CheckerResult
+    f=fixture(tmp_path,monkeypatch,actions=(90,),budget=1)
+    f.options['mode']='planned_checks'
+    standing=CheckerSpec(name='standing',command=['mock'])
+    req=replace(f.kwargs['request'],checker_specs=(standing,*f.kwargs['request'].checker_specs))
+    f.kwargs['request']=req
+    (f.workspace/'user_input.json').write_text(json.dumps({'overhang_experiment':f.options}))
+    check=service.run_checkers
+    def mixed(specs,**kw):
+        runs=check(specs,**kw)
+        original=kw['execution'].glb_path.read_text()=='GLB:0'
+        result=CheckerResult(checker='standing',status='PASS' if original else candidate_status,summary='mock')
+        return [CheckerRun(standing,result,kw['round_root']/'checkers/standing',()),*runs]
+    monkeypatch.setattr(service,'run_checkers',mixed)
+    result,book=run_case(f)
+    assert (book['retained']=='attempt_0001')==accepted
+    statuses=f.manifest['checker_statuses']
+    assert statuses['standing']=='PASS'
+    assert len(f.manifest['checker_results'])==2
+    attempt=book['attempts']['attempt_0001']
+    assert attempt['total_area']['before_mm2']==100
+    assert attempt['total_area']['candidate_mm2']==90
 
 
 def test_improve_then_worsen_publishes_matching_best(tmp_path, monkeypatch):

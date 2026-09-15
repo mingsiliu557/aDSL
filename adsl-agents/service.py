@@ -38,7 +38,9 @@ from .repair_controller import RepairController
 from .overhang_edit import (budget_remaining, reserve_attempt, opportunities, protection_check,
                            original_execution, allowed_edit, compare_measurements,
                            version_record, version_assets, assert_version, file_hash, edit_outcome, review_images,
-                           OVERHANG_OPTIMIZATION_INSTRUCTION, attempt_feedback)
+                           OVERHANG_OPTIMIZATION_INSTRUCTION, attempt_feedback,
+                           MODEL_LOCATION_INSTRUCTION, reliable_location, inferred_proposal,
+                           inferred_scope_unchanged)
 from .repair_policy import (
     assess_candidate,
     immutable_inputs_match,
@@ -604,7 +606,8 @@ class ObjectWorkflow:
         )
         engineering_critic = runtime.agent(
             name="object-engineering-critic",
-            instructions=object_prompt("engineering_critic", articulation=request.articulation),
+            instructions=object_prompt("engineering_critic", articulation=request.articulation) +
+                ("\n" + MODEL_LOCATION_INSTRUCTION if request.overhang_experiment.get("arm") == "feedback" else ""),
             tools=READ_TOOLS,
             output_type=EngineeringCriticDecision,
             strict_json_schema=False,
@@ -1398,9 +1401,10 @@ class ObjectWorkflow:
         """Opt-in edit routing; execution, critics and acceptance remain shared."""
         options = request.overhang_experiment
         feedback = options.get("arm") == "feedback"
+        planned = options.get("mode") == "planned_checks"
         if options.get("arm") not in {"feedback", "control"}:
             raise ValueError("unknown overhang experiment arm")
-        if (not feedback and request.checker_specs) or any(s.name != "overhang" for s in request.checker_specs):
+        if not planned and ((not feedback and request.checker_specs) or any(s.name != "overhang" for s in request.checker_specs)):
             raise ValueError("control has no online checkers; feedback uses overhang only")
         book_path = workspace / "overhang_versions.json"
         if not book_path.exists():
@@ -1452,7 +1456,7 @@ class ObjectWorkflow:
                     if feedback and not runs:
                         runs = run_checkers(request.checker_specs, execution=execution,
                                             source_path=current_source, round_root=round_root)
-                    runs = [CheckerRun(r.spec, r.result.model_copy(update={"findings": opportunities(r.result)}),
+                    runs = [CheckerRun(r.spec, r.result.model_copy(update={"findings": opportunities(r.result) if r.spec.name == "overhang" else r.result.findings}),
                                        r.output_dir, r.command) for r in runs] if feedback else []
                     analysis = build_analysis_context(source_path=current_source, geometry_path=execution.glb_path,
                         source_index_path=execution.source_index_path, checker_runs=runs,
@@ -1501,22 +1505,33 @@ class ObjectWorkflow:
                     elif not feedback:
                         reason = "control_appearance_review_complete"
                         break
-                    elif not runs or any(r.result.status != "PASS" for r in runs):
+                    elif (not any(_actionable_findings(r) for r in runs) if planned
+                          else not runs or any(r.result.status != "PASS" for r in runs)):
                         reason = "overhang_measurement_unavailable"
                         break
                     else:
                         origin = "engineering"
                         context = AgentToolContext(workspace=workspace, source_path=current_source)
-                        result = await runtime.run(agent=engineering_critic, input=json.dumps({
+                        fallback = any(not reliable_location(f) for r in runs for f in r.result.findings)
+                        result = await runtime.run(agent=engineering_critic, input=user_input(json.dumps({
                             "requirement": request.requirement, "plan": plan.model_dump(),
                             "assigned_source": current_source.relative_to(workspace).as_posix(),
-                            "instruction": OVERHANG_OPTIMIZATION_INSTRUCTION,
+                            "instruction": (("Joint planned checks: preserve appearance and protected geometry first; "
+                                "repair actionable hard physical failures before optional overhang reduction. "
+                                "Never trade a hard regression for less overhang. Unavailable checks are unverified, "
+                                "not physical failures; infrastructure errors are not geometry repair targets. "
+                                "You may decline to propose a change. ") if planned else "") + OVERHANG_OPTIMIZATION_INSTRUCTION,
+                            "localization_mode": "model_inferred" if fallback else "index_assisted",
+                            "localization_instruction": MODEL_LOCATION_INSTRUCTION,
+                            **({"current_complete_source": current_source.read_text(),
+                                "source_sha256": file_hash(current_source)} if fallback else {}),
                             "checker_evidence": _checker_evidence(runs, workspace=workspace),
                             "overhang_measurements": [{k: r.result.metrics.get(k) for k in
                                 ("overhang_area_mm2", "nominal_contact_area_mm2", "support_required")} for r in runs],
                             "protection_checklist": options.get("protection"),
                             "remaining_edit_candidates": budget_remaining(workspace, options),
                             "previous_attempts": attempt_feedback(book["attempts"].values())}, ensure_ascii=False),
+                                execution.render_paths if fallback else ()),
                             role=f"engineering-critic:round:{round_number}", stage=f"engineering_critic:{round_number}", context=context)
                         self._require_tool_event(context, "read_file", "engineering critic")
                         decision = self._typed_output(result.final_output, EngineeringCriticDecision)
@@ -1591,6 +1606,15 @@ class ObjectWorkflow:
             "record_hash": retained["record_hash"], **retained["reviews"]})
         approved = bool(retained["reviews"].get("appearance_approved") and
                         retained["reviews"].get("protection", {}).get("status") == "PASS")
+        config = read_json(workspace / "user_input.json") if (workspace / "user_input.json").exists() else {}
+        if config.get("overhang_experiment", {}).get("mode") == "planned_checks":
+            approved = approved and all(r.result.status == "PASS" for r in runs if r.spec.required)
+            verification["required_checkers_passed"] = approved
+            verification["planned_checks"] = True
+            write_json(workspace / "checker_results.json", {"version_id": book["retained"],
+                "record_hash": retained["record_hash"], **verification,
+                "results": [{"required": r.spec.required, "report_path": str(r.output_dir / "result.json"),
+                             **r.result.model_dump()} for r in runs]})
         book.update(completed=True, stop_reason=reason)
         write_json(book_path, book)
         selected_round = int(book["attempts"].get(book["retained"], {}).get("round", 0))
@@ -1634,7 +1658,7 @@ class ObjectWorkflow:
     ) -> _CandidateOutcome:
         attempts: list[dict[str, object]] = []
         experiment = request.overhang_experiment
-        if experiment and edit_payload is not None and source_index is None:
+        if experiment and (edit_payload is not None or experiment.get("arm") == "feedback") and source_index is None:
             source_index = SourceIndex(source_path=str(source_path), source_sha256=file_hash(source_path),
                                        index_sha256="", root_feature_id="manual_scope")
         if source_index is None:
@@ -1663,13 +1687,19 @@ class ObjectWorkflow:
                 record["modification_summary"] = {
                     "proposed_action": str(proposal.action)[:120],
                     "proposed_intent_not_verified_effect": proposal.hypothesis[:500],
-                    "actual_changed_symbols": record.get("scope_validation", {}).get("changed_symbols", [])[:8],
+                    "actual_changed_symbols": (record.get("scope_validation") or {}).get("changed_symbols", [])[:8],
                     "note": "Changed symbols describe source scope, not proof of geometric improvement."
                 }
                 if experiment.get("arm") == "feedback":
+                    record["localization"] = (proposal.parameter_bounds["_localization"] if infer
+                                              else {"method": "index_assisted" if edit_payload is None else "model_inferred",
+                                                    "tool_confirmed": False})
+                if experiment.get("arm") == "feedback":
+                    before_overhang = next((r.result for r in baseline_runs if r.spec.name == "overhang"), None)
+                    after_overhang = next((r.result for r in candidate_runs if r.spec.name == "overhang"), None)
                     record["total_area"] = {
-                        "before_mm2": baseline_runs[0].result.metrics.get("overhang_area_mm2") if baseline_runs else None,
-                        "candidate_mm2": candidate_runs[0].result.metrics.get("overhang_area_mm2") if candidate_runs else None,
+                        "before_mm2": before_overhang.metrics.get("overhang_area_mm2") if before_overhang else None,
+                        "candidate_mm2": after_overhang.metrics.get("overhang_area_mm2") if after_overhang else None,
                         "comparison_valid": (record.get("overhang_comparison") or {}).get("conclusion")
                                             in {"improved", "unchanged", "worsened"},
                     }
@@ -1707,8 +1737,14 @@ class ObjectWorkflow:
                     }
                 )
                 break
-            proposal, proposal_errors = ((raw_proposal, []) if experiment and edit_payload is not None
-                                         else controller.normalize_proposal(raw_proposal))
+            targeted = [f for f in baseline_findings if f.finding_id in raw_proposal.finding_ids]
+            infer = (experiment.get("arm") == "feedback" and edit_payload is None and
+                     (not targeted or any(not reliable_location(f) for f in targeted)))
+            if infer:
+                proposal, proposal_errors = inferred_proposal(raw_proposal, source_path, experiment, baseline_findings)
+            else:
+                proposal, proposal_errors = ((raw_proposal, []) if experiment and edit_payload is not None
+                                             else controller.normalize_proposal(raw_proposal))
             if proposal is None:
                 record = {
                     "round": round_number,
@@ -1814,6 +1850,10 @@ class ObjectWorkflow:
             if request.overhang_experiment and not allowed_edit(
                     workspace / "original_source.py", candidate_source, request.overhang_experiment):
                 scope_errors.append("candidate outside manual experiment source scope")
+                scope_validation = None
+            location = proposal.parameter_bounds.get("_localization") if infer else None
+            if location and not inferred_scope_unchanged(source_path, candidate_source, location):
+                scope_errors.append("candidate changed code outside inferred source target")
                 scope_validation = None
             immutable_ok, immutable_errors = immutable_inputs_match(
                 baseline_analysis_context.immutable_inputs
@@ -1956,8 +1996,10 @@ class ObjectWorkflow:
             if protection is not None:
                 write_json(candidate_root / "protection.json", protection)
                 reviews["protection"] = protection
-            comparison = (compare_measurements(baseline_runs[0].result, candidate_runs[0].result)
-                          if request.overhang_experiment and baseline_runs and candidate_runs else None)
+            before_overhang = next((r.result for r in baseline_runs if r.spec.name == "overhang"), None)
+            after_overhang = next((r.result for r in candidate_runs if r.spec.name == "overhang"), None)
+            comparison = (compare_measurements(before_overhang, after_overhang)
+                          if experiment and before_overhang and after_overhang else None)
             from .repair_policy import CandidateDecision
             decision = (CandidateDecision(accepted=bool(candidate_appearance_approved and protection and protection["status"] == "PASS"),
                         reason="control appearance and protection review; no area selection")
@@ -1967,7 +2009,8 @@ class ObjectWorkflow:
                 target_finding_ids=proposal.finding_ids,
                 appearance_approved=candidate_appearance_approved,
                 policy=request.repair_policy,
-                overhang_optimization=request.overhang_experiment.get("arm") == "feedback",
+                overhang_optimization=experiment.get("arm") == "feedback" and experiment.get("mode") != "planned_checks",
+                planned_checks=experiment.get("mode") == "planned_checks",
                 protection=protection,
             ))
             record = {
@@ -2216,7 +2259,12 @@ class ObjectWorkflow:
             options = request.overhang_experiment
             if options.get("arm") not in {"control", "feedback"}:
                 raise ValueError("overhang experiment arm must be control or feedback")
-            if names != (["overhang"] if options["arm"] == "feedback" else []):
+            if options.get("mode") == "planned_checks":
+                if options["arm"] != "feedback" or not set(names) <= {"topology", "standing", "overhang", "fea"}:
+                    raise ValueError("planned checks requires feedback and whitelisted tools")
+                if "fea" in names and "topology" not in names:
+                    raise ValueError("planned FEA requires topology prerequisite")
+            elif names != (["overhang"] if options["arm"] == "feedback" else []):
                 raise ValueError("experiment permits only overhang in feedback arm and no checkers in control arm")
             if int(options.get("max_candidates", 2)) < 1:
                 raise ValueError("edit budget must be positive")

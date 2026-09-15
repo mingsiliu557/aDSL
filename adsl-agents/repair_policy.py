@@ -187,9 +187,38 @@ def assess_candidate(
     policy: RepairPolicy,
     overhang_optimization: bool = False,
     protection: dict | None = None,
+    planned_checks: bool = False,
 ) -> CandidateDecision:
     baseline = {result.checker: result for result in baseline_results}
     candidate = {result.checker: result for result in candidate_results}
+    if planned_checks:
+        if overhang_optimization:
+            raise ValueError("planned checks and overhang-only are mutually exclusive")
+        from .overhang_edit import compare_measurements
+        hard_before = [r for k, r in baseline.items() if k != "overhang"]
+        hard_after = [r for k, r in candidate.items() if k != "overhang"]
+        hard = assess_candidate(hard_before, hard_after, target_finding_ids=target_finding_ids,
+                                appearance_approved=appearance_approved, policy=policy)
+        if set(baseline) != set(candidate):
+            return CandidateDecision(accepted=False, reason="selected checker results missing")
+        if not appearance_approved or not protection or protection.get("status") != "PASS":
+            return CandidateDecision(accepted=False, reason="appearance/protection not approved")
+        if hard.regressions:
+            return hard
+        before, after = baseline.get("overhang"), candidate.get("overhang")
+        comparison = compare_measurements(before, after) if before and after else {"conclusion": "unassessed"}
+        if before and before.status == "PASS" and comparison["conclusion"] not in {"improved", "unchanged", "worsened"}:
+            return CandidateDecision(accepted=False, reason="previously measurable overhang is no longer comparable")
+        if before and after and before.status == "PASS":
+            a, b = before.metrics.get("print_extent_mm"), after.metrics.get("print_extent_mm")
+            if (not isinstance(a, list) or not isinstance(b, list) or len(a) != 3 or len(b) != 3
+                    or any(abs(x-y) > .01 for x,y in zip(a,b))):
+                return CandidateDecision(accepted=False, reason="print extent protection not confirmed")
+        improved = hard.accepted or comparison["conclusion"] == "improved"
+        return CandidateDecision(accepted=improved,
+            reason=f"planned checks: hard_improved={hard.accepted}; overhang={comparison['conclusion']}",
+            target_improvements=hard.target_improvements + (["overhang reliable decrease"] if comparison["conclusion"] == "improved" else []),
+            unavailable_checks=hard.unavailable_checks)
     if overhang_optimization:
         from .overhang_edit import compare_measurements
         if set(baseline) != {"overhang"} or set(candidate) != {"overhang"}:

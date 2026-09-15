@@ -34,10 +34,12 @@ class AgentRuntime:
         model_profile: str | Path,
         workspace: str | Path,
         task_id: str,
+        session_database_root: str | Path | None = None,
     ) -> None:
         self.profile = ModelProfile.load(model_profile)
         self.workspace = Path(workspace).expanduser().resolve()
-        self.sessions = SessionManager(self.workspace, task_id)
+        self.sessions = SessionManager(self.workspace, task_id,
+            Path(session_database_root) if session_database_root is not None else None)
         self.usage = UsageRecorder(self.workspace)
         self.model = self.profile.agent_model(workspace=self.workspace)
         self.model_settings = self.profile.model_settings()

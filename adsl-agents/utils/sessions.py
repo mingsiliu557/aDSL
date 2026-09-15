@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 from pathlib import Path
 
 from agents import SQLiteSession
@@ -10,6 +11,7 @@ from agents import SQLiteSession
 class SessionManager:
     workspace: Path
     task_id: str
+    database_root: Path | None = None
 
     def __post_init__(self) -> None:
         workspace = self.workspace.expanduser().resolve()
@@ -17,9 +19,18 @@ class SessionManager:
         object.__setattr__(self, "workspace", workspace)
         if not self.task_id.strip():
             raise ValueError("task_id must not be empty")
+        if self.database_root is not None:
+            root = self.database_root.expanduser().resolve()
+            # Separate workspaces with identical task IDs must not share history.
+            directory = root / hashlib.sha256(str(workspace).encode()).hexdigest()
+            directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+            object.__setattr__(self, "database_root", root)
 
     @property
     def database_path(self) -> Path:
+        if self.database_root is not None:
+            key = hashlib.sha256(str(self.workspace).encode()).hexdigest()
+            return self.database_root / key / "sessions.sqlite3"
         return self.workspace / "sessions.sqlite3"
 
     def for_role(self, role: str) -> SQLiteSession:

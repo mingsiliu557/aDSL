@@ -277,6 +277,34 @@ It does not model thermal warping, surface scarring, or print certification.
 ```
 # Exterior-area feedback clarification (2026-09-14)
 
+### Optional model-inferred localization fallback
+
+Only the overhang feedback experiment overrides Engineering Critic's index-target
+prerequisite. Missing/empty/ambiguous candidates permit inference from complete
+current source, existing renders, measured regions and the unchanged protection
+list. Reliable targets continue through `RepairController.normalize_proposal`.
+Inferred targets use real qualified source names, with empty feature/source IDs;
+AST validation records exact current line ranges and source hash. The existing
+class-only protection configuration authorizes classes and their methods, not
+unconfigured top-level functions. The rest of the AST must remain unchanged for
+a narrower method target. No runtime index or synthetic index IDs are generated.
+
+Attempt records distinguish `model_inferred` from `index_assisted`; model inference
+is never tool-confirmed geometric provenance. Existing source scope checks,
+Image/Code Critic, geometry protection, area acceptance, budget and retained
+publication remain enabled. Control receives no new physical feedback.
+
+Validation: 86 passed, 3 skipped across `test_overhang_model_location.py`,
+`test_overhang_candidate_isolation.py`, `test_overhang_local_edit.py`, and
+`test_checker_fault_isolation.py`. New tests cover missing-index source/image
+requests, real edits, invalid names, restricted methods, protection rejection,
+voluntary stop, and preserving the indexed controller path.
+
+The separate O03 feedback-only run is in
+`local_experiment/O03_model_location_20260914/`, reusing the original/configuration
+from `overhang_O01_O03_20260914T092518Z`, with at most two edits and no control
+rerun. It tests fallback feasibility, not superiority to index-assisted repair.
+
 The opt-in feedback arm now tells Engineering Critic that the metric counts
 Boolean-unioned exposed overhang, not duplicate internal faces. A proposal should
 explain which exposed surfaces it expects to reduce and whether it creates new
