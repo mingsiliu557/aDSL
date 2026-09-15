@@ -71,6 +71,7 @@ def validate_patch_scope(
     *,
     proposal: RepairProposal,
     source_index: SourceIndex,
+    planned_checks: bool = False,
 ) -> ScopeValidation:
     baseline = Path(baseline_source)
     candidate = Path(candidate_source)
@@ -102,14 +103,14 @@ def validate_patch_scope(
     violations: list[str] = []
     if not changed:
         violations.append("candidate did not change the source")
-    if not allowed_classes:
+    if not allowed_classes and not planned_checks:
         violations.append("proposal has no resolved source scope")
     for symbol in changed:
-        if not symbol.startswith("class:"):
+        if not symbol.startswith(("class:", "function:") if planned_checks else ("class:",)):
             violations.append(f"change outside an allowed class: {symbol}")
             continue
         class_name = symbol.split(":", 1)[1]
-        if class_name not in allowed_classes:
+        if class_name not in allowed_classes and (allowed_classes or not planned_checks):
             violations.append(f"changed unapproved class: {class_name}")
     return ScopeValidation(
         valid=not violations,
@@ -192,6 +193,7 @@ def assess_candidate(
     baseline = {result.checker: result for result in baseline_results}
     candidate = {result.checker: result for result in candidate_results}
     if planned_checks:
+        target_finding_ids = tuple(target_finding_ids)
         if overhang_optimization:
             raise ValueError("planned checks and overhang-only are mutually exclusive")
         from .overhang_edit import compare_measurements
@@ -205,15 +207,21 @@ def assess_candidate(
             return CandidateDecision(accepted=False, reason="appearance/protection not approved")
         if hard.regressions:
             return hard
+        # Joint topology reports final solid component counts in metrics, while
+        # individual disconnection findings describe pairs (not count metrics).
+        # Compare only verified counts under the same one_piece policy.
+        tb, ta = baseline.get('topology'), candidate.get('topology')
+        if (tb and ta and tb.status == ta.status == 'FAIL'
+                and tb.metrics.get('mode') == ta.metrics.get('mode') == 'one_piece'
+                and any(f.finding_id in set(target_finding_ids) for f in tb.findings)):
+            old, new = tb.metrics.get('component_count'), ta.metrics.get('component_count')
+            if type(old) is int and type(new) is int and 1 < new < old:
+                hard = hard.model_copy(update={'accepted':True, 'target_improvements':
+                    hard.target_improvements + [f'topology: final solid components {old} -> {new}; still FAIL']})
         before, after = baseline.get("overhang"), candidate.get("overhang")
         comparison = compare_measurements(before, after) if before and after else {"conclusion": "unassessed"}
         if before and before.status == "PASS" and comparison["conclusion"] not in {"improved", "unchanged", "worsened"}:
             return CandidateDecision(accepted=False, reason="previously measurable overhang is no longer comparable")
-        if before and after and before.status == "PASS":
-            a, b = before.metrics.get("print_extent_mm"), after.metrics.get("print_extent_mm")
-            if (not isinstance(a, list) or not isinstance(b, list) or len(a) != 3 or len(b) != 3
-                    or any(abs(x-y) > .01 for x,y in zip(a,b))):
-                return CandidateDecision(accepted=False, reason="print extent protection not confirmed")
         improved = hard.accepted or comparison["conclusion"] == "improved"
         return CandidateDecision(accepted=improved,
             reason=f"planned checks: hard_improved={hard.accepted}; overhang={comparison['conclusion']}",

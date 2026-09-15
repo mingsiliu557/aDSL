@@ -14,43 +14,35 @@ import shutil
 from adsl.agents import service
 from adsl.agents.checkers import run_checker, CheckerRun
 from adsl.agents.models import ObjectRequest, CheckerSpec, CheckerResult, RepairPolicy
-from adsl.agents.overhang_edit import original_execution, protection_check
+from adsl.agents.overhang_edit import original_execution, protection_check, experiment_protection
 from experiments.planned_checks import run
 from experiments.planned_checks.token_budget import BudgetModel
 
 API = run.REPO/'adsl-agents/configs/llm/cliproxy-gpt-5.6-sol.yaml'
 LEDGER = run.REPO/'local_experiment/planned_checks_new_api'
 
-# Manually scoped to the original aDSL SF03, not the earlier ours UnderseatFrame.
-SF03_PROTECTION = {
-    'required_features':['high backrest','rectangular seat','four straight legs','reddish brown wood grain'],
-    'allowed_classes':['ChairLegs'],
-    'allowed_local_range':'leg-to-seat connections and local leg structure only; retain four legs and grain details',
-    'dimensions':'Keep original overall bounds and exact existing seat/back surfaces; other dimensions not certified.',
-    'surfaces':[{'label':'original seat and high backrest',
-        'source_index_regex':'/(seat|high_backrest)$','face':'all'}]}
-
-# Manually bounded component scopes, not agent-generated whole-model permission.
-# Original upward surfaces and bounds are fixed; appearance review protects the
-# remaining visible features. This does not certify all functional dimensions.
-LOCAL_SCOPES={
-    'SF01':('PedestalBase','pedestal underside and transitions; keep circular foot, column and upholstery'),
-    'SF05':('FootrestAssembly','footrest underside and attachments; keep swivel mechanism, seat, back and footrest opening'),
-    'SF07':('FlaredRoundBaseAndTransition','base underside/transitions; keep tabletop and pedestal silhouette'),
-    'SF11':('SlantedSide','side-panel lower transitions/connections; keep slanted sides, drawers, pulls and top'),
-    'SF13':('BookshelfFrame','frame connections and undersides; keep every shelf, compartment and side panel'),
-    'SF20':('Scrollwork','scrollwork lower transitions/connections; keep ornament silhouette, openings and lantern'),
-    'SF21':('MainStand','stand connections/transitions; keep shade, twisted ornament and three-leg base'),
-    'SF27':('Castor','castor attachment transitions only; retain every wheel, cabinet, grille, wood grain and knots')}
+def reuse_calibration(spec, result, calibration_root, round_root):
+    """Publish cached evidence inside the agent workspace, without remeasurement."""
+    source = calibration_root/'checkers'/spec.name
+    dest = round_root/'checkers'/spec.name
+    shutil.copytree(source, dest, dirs_exist_ok=True)
+    def relocate(value):
+        if isinstance(value, str) and value.startswith(str(source.resolve())+'/'):
+            return str(dest.resolve())+value[len(str(source.resolve())):]
+        if isinstance(value, dict):return {k:relocate(v) for k,v in value.items()}
+        if isinstance(value, list):return [relocate(v) for v in value]
+        return value
+    local_result = CheckerResult.model_validate(relocate(result.model_dump()))
+    run.write_json(dest/'result.json',local_result.model_dump())
+    run.write_json(dest/'cache_reuse.json',{'origin':str(source),'remeasured':False})
+    return CheckerRun(spec,local_result,dest,())
 
 def protection_for(cid):
-    if cid=='SF03':return SF03_PROTECTION
-    if cid not in LOCAL_SCOPES:return None
-    symbol,scope=LOCAL_SCOPES[cid]
-    return {'allowed_classes':[symbol],'allowed_local_range':scope,
-        'required_features':[scope,'all required original components, openings, textures and visible proportions'],
-        'dimensions':'Exact original upward surfaces and bounds only; other dimensions not certified.',
-        'surfaces':[{'label':'all original upward-facing surfaces','collision_regex':'.*','face':'top'}]}
+    return {'required_features':['preserve prompt-required components, interfaces, function and recognizable appearance',
+            'retain wood grain, knots, wheels, grille and compartments where present; do not delete parts to pass'],
+        'explicit_constraints':[],
+        'policy_notes':'Joint mode: no inherited class whitelist, exact surface-triangle or global AABB default. Explicit task constraints still apply.',
+        'dimensions':'Preserve dimensions/interfaces explicitly required by the task; no additional exact-dimension certification.'}
 
 
 def restore_geometry_evidence(folder):
@@ -87,12 +79,14 @@ def worker(root,cid,resume=False):
     folder=root/cid
     state=run.read(folder/'state.json')
     if state['status']=='INPUT_UNAVAILABLE':return
+    if resume and state.get('protection') and ('allowed_classes' in state['protection'] or state['protection'].get('surfaces')):
+        raise ValueError('legacy explicit protection requires reviewed migration; use a new experiment configuration')
     marker=folder/'edit_worker_started.json'
     if marker.exists() and not resume:raise ValueError('case already attempted; no automatic replay')
     started=run.read(marker)['started_at'] if resume else time.time()
-    deadline=run.read(marker)['deadline'] if resume else min(started+1800,run.read(root/'batch.json')['deadline'])
+    deadline=run.read(root/'batch.json')['deadline']
     if deadline<=time.time():raise ValueError('original case deadline exhausted')
-    if not resume:run.write_json(marker,{'started_at':started,'deadline':deadline,'max_rounds':4,'max_candidates':2})
+    if not resume:run.write_json(marker,{'started_at':started,'deadline':deadline,'max_rounds':4,'max_candidates':None})
     restore_geometry_evidence(folder)
     # Restoration writes the new evidence hash. Do not overwrite it with the
     # pre-restoration snapshot when adding the manual protection scope.
@@ -101,7 +95,7 @@ def worker(root,cid,resume=False):
     run.write_json(folder/'state.json',state)
     original=folder/'original'
     options={'mode':'planned_checks','arm':'feedback','original_urdf':str(original/'scene.urdf'),
-        'max_candidates':2,'protection':state['protection']}
+        'max_candidates':None,'protection':state['protection'],'protection_policy':'explicit_task_constraints'}
     # Freeze print conditions before planning; failed calibration is not zero area.
     reg=run.read(folder/'registry.json')
     spec=CheckerSpec.model_validate(reg['overhang_fixed_print']['spec'])
@@ -127,7 +121,7 @@ def worker(root,cid,resume=False):
     if not state['protection']:
         run.write_json(folder/'edit_status.json',{'status':'EDIT_NOT_READY','retained':'original',
             'reason':'no reviewed protection scope for original aDSL asset'});return
-    protection=protection_check(original/'scene.urdf',original/'scene.urdf',options)
+    protection=experiment_protection(original/'scene.urdf',original/'scene.urdf',options,exact_check=protection_check)
     run.write_json(folder/'protection_preflight.json',protection)
     if protection['status']!='PASS':
         run.write_json(folder/'edit_status.json',{'status':'EDIT_NOT_READY','retained':'original','reason':protection});return
@@ -142,6 +136,14 @@ def worker(root,cid,resume=False):
     def bounded_checkers(selected,**kwargs):
         results=[]
         for item in sorted(selected,key=lambda s:s.name!='topology'):
+            # Calibration already measured this exact original under the frozen
+            # print conditions. Reuse it for the first repair assessment only.
+            if (item.name=='overhang' and run.sha(kwargs['source_path'])==run.sha(original/'source.py')
+                    and run.sha(kwargs['execution'].glb_path)==run.sha(original/'scene.glb')
+                    and kwargs['execution'].urdf_path
+                    and run.sha(kwargs['execution'].urdf_path)==run.sha(original/'scene.urdf')):
+                results.append(reuse_calibration(item,calibration_result,folder/'calibration',kwargs['round_root']))
+                continue
             topology=next((r for r in results if r.spec.name=='topology'),None)
             reason=('TOPOLOGY_DEPENDENCY_UNAVAILABLE' if item.name=='fea' and topology and topology.result.status!='PASS'
                 else 'BUDGET_NOT_EXECUTED' if time.time()+item.timeout_seconds+5>deadline else None)
@@ -157,15 +159,28 @@ def worker(root,cid,resume=False):
     request=ObjectRequest(requirement=state['case']['prompt']+'\nPreserve key shape and appearance. Repair actionable hard checker issues first; then reduce exposed overhang where safe. May stop without improvement.',
         workspace=workspace,task_id=cid,image_paths=tuple(sorted((original/'render').glob('*.png'))),
         max_rounds=4,check_first=True,checker_specs=specs,
-        repair_policy=RepairPolicy(max_total_candidates=2,time_budget_seconds=max(1,deadline-time.time())),
+        repair_policy=RepairPolicy(max_total_candidates=None,time_budget_seconds=max(1,deadline-time.time())),
         overhang_experiment=options)
     try:
         if resume:
             from adsl.agents.overhang_edit import version_record
             book=run.read(workspace/'overhang_versions.json')
             ledger_recovery = book.get('error',{}).get('reason') == 'TOKEN_USAGE_UNRESOLVED: do not replay unknown requests'
-            if book['attempts']:raise ValueError('reviewed recovery requires no edit attempts')
-            if ledger_recovery:
+            api_recovery = (workspace/'api_resume_authorized.json').exists() and book.get('error',{}).get('type') in {'APIStatusError','APIConnectionError','APITimeoutError'}
+            source_read_recovery = ((workspace/'source_read_resume_authorized.json').exists()
+                and book.get('error',{}).get('reason')=='engineering critic did not use required tool read_file')
+            if book['attempts'] and not (api_recovery or source_read_recovery):raise ValueError('reviewed recovery requires no edit attempts')
+            if api_recovery or source_read_recovery:
+                recovery=workspace/('source_read_resume_applied.json' if source_read_recovery else 'api_resume_applied.json')
+                if recovery.exists():raise ValueError('reviewed API recovery already applied')
+                if any(a.get('status') in {'EDITING','MODEL_STARTED'} for a in book['attempts'].values()):
+                    raise ValueError('unfinished candidate requires separate review; do not replay')
+                run.write_json(recovery,{'previous_book':book,'deadline':deadline,
+                    'attempts_preserved':len(book['attempts']),'max_rounds_unchanged':request.max_rounds})
+                next_round=workspace/'rounds'/f"round_{1+len(book['attempts']):02d}"
+                if next_round.exists():next_round.rename(workspace/('source_read_interrupted_round' if source_read_recovery else 'api_interrupted_round'))
+                for key in ('error','completed','stop_reason'):book.pop(key,None)
+            elif ledger_recovery:
                 recovery=workspace/'interrupted_usage_recovery.json'
                 if recovery.exists():raise ValueError('usage recovery already performed')
                 budget=BudgetModel(None,LEDGER,request_bound=304768,evidence={'review':'interrupted SF03 request'})
@@ -228,8 +243,7 @@ def batch(root,ids,resume=False):
             run.write_json(folder/'edit_status.json',{'status':'INPUT_UNAVAILABLE'});continue
         if (folder/'edit_worker_started.json').exists() and not resume:
             run.write_json(folder/'edit_status.json',{'status':'INTERRUPTED_NOT_REPLAYED','retained':'original'});continue
-        remaining=min(1800,run.read(root/'batch.json')['deadline']-time.time())
-        if resume:remaining=min(remaining,run.read(folder/'edit_worker_started.json')['deadline']-time.time())
+        remaining=run.read(root/'batch.json')['deadline']-time.time()
         if remaining<=0:
             run.write_json(folder/'edit_status.json',{'status':'BUDGET_NOT_EXECUTED','retained':'original'});continue
         print('starting',cid,flush=True)

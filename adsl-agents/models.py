@@ -191,7 +191,7 @@ class RepairProposal(BaseModel):
 
 class RepairPolicy(BaseModel):
     max_candidates_per_round: int = Field(default=1, ge=1, le=10)
-    max_total_candidates: int = Field(default=5, ge=1, le=50)
+    max_total_candidates: int | None = Field(default=5, ge=1, le=50)
     time_budget_seconds: float = Field(default=7200.0, gt=0)
     print_orientation_editable: bool = False
     default_relative_tolerance: float = Field(default=0.01, ge=0)
@@ -226,6 +226,10 @@ class EngineeringCriticDecision(BaseModel):
     checker_interpretation: list[str] = Field(default_factory=list)
     repair_proposals: list[RepairProposal] = Field(default_factory=list)
     unresolved_findings: list[str] = Field(default_factory=list)
+
+
+class PlannedEngineeringCriticDecision(EngineeringCriticDecision):
+    stop_category: Literal['no_change_needed', 'insufficient_localization', 'scope_limited', 'no_reasonable_plan'] | None = None
 
 
 @dataclass(frozen=True)

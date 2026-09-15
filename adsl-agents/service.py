@@ -8,6 +8,7 @@ from pathlib import Path
 import shutil
 import time
 from typing import Any
+from pydantic import ValidationError
 
 from .checkers import (
     CheckerRun,
@@ -26,6 +27,7 @@ from .models import (
     EditKind,
     EditPlan,
     EngineeringCriticDecision,
+    PlannedEngineeringCriticDecision,
     ImageCriticDecision,
     ObjectPlan,
     ObjectRequest,
@@ -40,7 +42,8 @@ from .overhang_edit import (budget_remaining, reserve_attempt, opportunities, pr
                            version_record, version_assets, assert_version, file_hash, edit_outcome, review_images,
                            OVERHANG_OPTIMIZATION_INSTRUCTION, attempt_feedback,
                            MODEL_LOCATION_INSTRUCTION, reliable_location, inferred_proposal,
-                           inferred_scope_unchanged)
+                           inferred_scope_unchanged, PLANNED_LOCATION_INSTRUCTION,
+                           experiment_protection)
 from .repair_policy import (
     assess_candidate,
     immutable_inputs_match,
@@ -75,6 +78,19 @@ _CONTEXT_POLICY = {
 
 class WorkflowGateError(RuntimeError):
     pass
+
+
+def _load_joint_source_index(path: Path | None, output: Path):
+    if path is None:
+        return None
+    try:
+        return load_source_index(path)
+    except (ValidationError, FileNotFoundError) as error:
+        write_json(output/'source_index_unavailable.json', {
+            'status':'UNAVAILABLE', 'path':str(path), 'error_type':type(error).__name__,
+            'reason':'Index missing or invalid; source-based inference remains available.',
+            'tool_confirmed':False})
+        return None
 
 
 def _actionable_findings(run: CheckerRun) -> list[CheckerFinding]:
@@ -607,9 +623,11 @@ class ObjectWorkflow:
         engineering_critic = runtime.agent(
             name="object-engineering-critic",
             instructions=object_prompt("engineering_critic", articulation=request.articulation) +
-                ("\n" + MODEL_LOCATION_INSTRUCTION if request.overhang_experiment.get("arm") == "feedback" else ""),
+                ("\n" + (PLANNED_LOCATION_INSTRUCTION if request.overhang_experiment.get('mode') == 'planned_checks'
+                          else MODEL_LOCATION_INSTRUCTION) if request.overhang_experiment.get("arm") == "feedback" else ""),
             tools=READ_TOOLS,
-            output_type=EngineeringCriticDecision,
+            output_type=(PlannedEngineeringCriticDecision if request.overhang_experiment.get('mode') == 'planned_checks'
+                         else EngineeringCriticDecision),
             strict_json_schema=False,
         )
         if request.overhang_experiment:
@@ -760,6 +778,13 @@ class ObjectWorkflow:
                     workspace, **checkpoint_fields(round_number + 1)
                 )
                 continue
+
+            # Opt-in prompt experiment initializes its frozen checker plan from
+            # this run's first executable model, before any appearance approval.
+            initialize = getattr(self, '_initialize_generated_checks', None)
+            if mode == 'generate' and not experiment and initialize is not None:
+                return await initialize(runtime=runtime, request=request, workspace=workspace,
+                    source_path=source_path, execution=execution, round_number=round_number, plan=plan)
 
             # Preserve the historical last-round fallback only when no engineering
             # gates are configured. Mandatory checkers always inspect the final round.
@@ -1436,7 +1461,7 @@ class ObjectWorkflow:
             if interrupted or book.get("completed"):
                 reason = "interrupted_attempt_not_replayed" if interrupted else book["stop_reason"]
             else:
-                for round_number in range(1 + len(book["attempts"]), request.max_rounds + 1):
+                for round_number in range(int(options.get('initial_round',1)) + len(book["attempts"]), request.max_rounds + 1):
                     book = read_json(book_path)
                     retained = book["versions"][book["retained"]]
                     current_source, execution, runs = version_assets(retained)
@@ -1446,7 +1471,7 @@ class ObjectWorkflow:
                     ledger = workspace / "edit_attempts.jsonl"
                     if ledger.exists():
                         reservations = [json.loads(line) for line in ledger.read_text().splitlines()]
-                        if len(reservations) >= request.repair_policy.max_total_candidates or (reservations and
+                        if (request.repair_policy.max_total_candidates is not None and len(reservations) >= request.repair_policy.max_total_candidates) or (reservations and
                                 time.time() - reservations[0]["started_at"] >= request.repair_policy.time_budget_seconds):
                             reason = "repair_budget_exhausted"
                             break
@@ -1461,7 +1486,8 @@ class ObjectWorkflow:
                     analysis = build_analysis_context(source_path=current_source, geometry_path=execution.glb_path,
                         source_index_path=execution.source_index_path, checker_runs=runs,
                         print_orientation_editable=request.repair_policy.print_orientation_editable)
-                    index = load_source_index(execution.source_index_path) if execution.source_index_path else None
+                    index = (_load_joint_source_index(execution.source_index_path, round_root) if planned
+                             else load_source_index(execution.source_index_path) if execution.source_index_path else None)
                     if index and runs:
                         localized, report = localize_findings([f for r in runs for f in r.result.findings], index,
                                                               checker_contexts=analysis.checker_contexts)
@@ -1478,6 +1504,11 @@ class ObjectWorkflow:
                         hypothesis="Preserve required shape, function and appearance; reduce overhang only where appropriate.",
                         target=RepairTarget(allowed_scopes=options.get("protection", {}).get("allowed_classes", [])),
                         action="reshape")
+                    if planned:
+                        # Gate repairs are evaluated against the same actual
+                        # physical findings sent to Coder, not a placeholder ID.
+                        proposal = proposal.model_copy(update={'finding_ids':
+                            [f.finding_id for r in runs for f in _actionable_findings(r)] or ['local_edit']})
                     reviews = retained["reviews"]
                     initial = not book["attempts"] and not request.check_first
                     if not initial and reviews.get("appearance_approved") is None:
@@ -1486,7 +1517,8 @@ class ObjectWorkflow:
                             baseline_execution=original_execution(options), candidate_execution=execution,
                             candidate_source=current_source, candidate_root=round_root,
                             image_critic=image_critic, code_critic=code_critic)
-                        reviews["protection"] = protection_check(Path(options["original_urdf"]), execution.urdf_path, options)
+                        reviews["protection"] = experiment_protection(Path(options["original_urdf"]), execution.urdf_path,
+                            options, exact_check=protection_check)
                     book["versions"][book["retained"]] = version_record(book["retained"], current_source, execution, runs, reviews)
                     write_json(book_path, book)
                     payload = None
@@ -1512,7 +1544,7 @@ class ObjectWorkflow:
                     else:
                         origin = "engineering"
                         context = AgentToolContext(workspace=workspace, source_path=current_source)
-                        fallback = any(not reliable_location(f) for r in runs for f in r.result.findings)
+                        fallback = index is None or any(not reliable_location(f) for r in runs for f in r.result.findings)
                         result = await runtime.run(agent=engineering_critic, input=user_input(json.dumps({
                             "requirement": request.requirement, "plan": plan.model_dump(),
                             "assigned_source": current_source.relative_to(workspace).as_posix(),
@@ -1522,20 +1554,49 @@ class ObjectWorkflow:
                                 "not physical failures; infrastructure errors are not geometry repair targets. "
                                 "You may decline to propose a change. ") if planned else "") + OVERHANG_OPTIMIZATION_INSTRUCTION,
                             "localization_mode": "model_inferred" if fallback else "index_assisted",
-                            "localization_instruction": MODEL_LOCATION_INSTRUCTION,
+                            "localization_instruction": PLANNED_LOCATION_INSTRUCTION if planned else MODEL_LOCATION_INSTRUCTION,
                             **({"current_complete_source": current_source.read_text(),
-                                "source_sha256": file_hash(current_source)} if fallback else {}),
+                                "source_sha256": file_hash(current_source)} if fallback or planned else {}),
                             "checker_evidence": _checker_evidence(runs, workspace=workspace),
                             "overhang_measurements": [{k: r.result.metrics.get(k) for k in
                                 ("overhang_area_mm2", "nominal_contact_area_mm2", "support_required")} for r in runs],
                             "protection_checklist": options.get("protection"),
                             "remaining_edit_candidates": budget_remaining(workspace, options),
                             "previous_attempts": attempt_feedback(book["attempts"].values())}, ensure_ascii=False),
-                                execution.render_paths if fallback else ()),
+                                execution.render_paths if fallback or planned else ()),
                             role=f"engineering-critic:round:{round_number}", stage=f"engineering_critic:{round_number}", context=context)
-                        self._require_tool_event(context, "read_file", "engineering critic")
+                        if not planned:
+                            self._require_tool_event(context, "read_file", "engineering critic")
+                        # Joint mode supplied the complete current source above;
+                        # reading it again through a tool is not a correctness gate.
                         decision = self._typed_output(result.final_output, EngineeringCriticDecision)
                         write_json(round_root / "engineering_critique.json", decision.model_dump())
+                        if planned and not decision.repair_proposals:
+                            category = getattr(decision, 'stop_category', None)
+                            book = read_json(book_path)
+                            book['stop_category'] = category or 'unspecified'
+                            retry = (category in {'insufficient_localization', 'scope_limited'}
+                                     and any(_actionable_findings(r) for r in runs)
+                                     and not book.get('supplemental_planning_used'))
+                            if retry:book['supplemental_planning_used'] = True
+                            write_json(book_path, book)
+                            if retry:
+                                context = AgentToolContext(workspace=workspace, source_path=current_source)
+                                result = await runtime.run(agent=engineering_critic, input=user_input(json.dumps({
+                                    'requirement':request.requirement, 'instruction':PLANNED_LOCATION_INSTRUCTION,
+                                    'assignment':'One supplemental source read and replan only. Related assembly code and helpers are allowed; no class whitelist or bridge_parent prerequisite. May still stop.',
+                                    'assigned_source':current_source.relative_to(workspace).as_posix(),
+                                    'current_complete_source':current_source.read_text(),
+                                    'previous_decision':decision.model_dump(),
+                                    'checker_evidence':_checker_evidence(runs,workspace=workspace),
+                                    'protection_checklist':options.get('protection'),
+                                    'remaining_edit_candidates':budget_remaining(workspace,options)},ensure_ascii=False),execution.render_paths),
+                                    role=f'engineering-critic:supplement:{round_number}',stage=f'engineering_supplement:{round_number}',context=context)
+                                # Full current source is also supplied inline here.
+                                decision=self._typed_output(result.final_output,EngineeringCriticDecision)
+                                write_json(round_root/'engineering_supplement.json',decision.model_dump())
+                                book=read_json(book_path);book['stop_category']=getattr(decision,'stop_category',None) or 'unspecified'
+                                write_json(book_path,book)
                     if not decision.repair_proposals:
                         reason = "no_actionable_proposal"
                         break
@@ -1738,10 +1799,12 @@ class ObjectWorkflow:
                 )
                 break
             targeted = [f for f in baseline_findings if f.finding_id in raw_proposal.finding_ids]
+            planned = experiment.get('mode') == 'planned_checks'
             infer = (experiment.get("arm") == "feedback" and edit_payload is None and
-                     (not targeted or any(not reliable_location(f) for f in targeted)))
+                     (planned or not targeted or any(not reliable_location(f) for f in targeted)))
             if infer:
-                proposal, proposal_errors = inferred_proposal(raw_proposal, source_path, experiment, baseline_findings)
+                proposal, proposal_errors = (inferred_proposal(raw_proposal, source_path, experiment, baseline_findings, source_index=source_index)
+                                             if planned else inferred_proposal(raw_proposal, source_path, experiment, baseline_findings))
             else:
                 proposal, proposal_errors = ((raw_proposal, []) if experiment and edit_payload is not None
                                              else controller.normalize_proposal(raw_proposal))
@@ -1768,7 +1831,7 @@ class ObjectWorkflow:
                 assert_version(versions["versions"][parent])
                 ledger = workspace / "edit_attempts.jsonl"
                 reservations = [json.loads(line) for line in ledger.read_text().splitlines()] if ledger.exists() else []
-                if len(reservations) >= request.repair_policy.max_total_candidates or (reservations and
+                if (request.repair_policy.max_total_candidates is not None and len(reservations) >= request.repair_policy.max_total_candidates) or (reservations and
                         time.time() - reservations[0]["started_at"] >= request.repair_policy.time_budget_seconds):
                     attempts.append({"stage": "repair_budget", "reason": "repair budget exhausted", "accepted": False})
                     break
@@ -1781,6 +1844,8 @@ class ObjectWorkflow:
                                                     "parent_version": parent, "candidate": candidate_relative}
                 write_json(workspace / "overhang_versions.json", versions)
             try:
+                if planned and edit_payload is not None:
+                    edit_payload = {**edit_payload, 'assignment':PLANNED_LOCATION_INSTRUCTION + '\n' + str(edit_payload.get('assignment',''))}
                 patch_result = await self._repair(
                     runtime=runtime,
                     repairer=repairer,
@@ -1793,7 +1858,7 @@ class ObjectWorkflow:
                     payload=edit_payload if edit_payload is not None else {
                         "requirement": request.requirement,
                         "plan": plan.model_dump(),
-                        "assignment": (
+                        "assignment": (PLANNED_LOCATION_INSTRUCTION + "\n" if planned else "") + (
                             "Apply only this bounded RepairProposal to the assigned "
                             "candidate source. Preserve everything outside allowed_scopes. "
                             "Do not default to deleting decoration, filling gaps or changing physical conditions. "
@@ -1841,13 +1906,14 @@ class ObjectWorkflow:
                     candidate_source,
                     proposal=proposal,
                     source_index=source_index,
+                    planned_checks=planned,
                 )
             except (SyntaxError, ValueError) as error:
                 scope_validation = None
                 scope_errors = [f"candidate source is invalid: {type(error).__name__}: {error}"]
             else:
                 scope_errors = list(scope_validation.violations)
-            if request.overhang_experiment and not allowed_edit(
+            if request.overhang_experiment and not planned and not allowed_edit(
                     workspace / "original_source.py", candidate_source, request.overhang_experiment):
                 scope_errors.append("candidate outside manual experiment source scope")
                 scope_validation = None
@@ -1947,11 +2013,14 @@ class ObjectWorkflow:
                 attempts.append(record)
                 continue
 
+            candidate_index = None
             if (
                 candidate_execution.source_index_path is not None
                 and candidate_execution.source_index_path.is_file()
             ):
-                candidate_index = load_source_index(candidate_execution.source_index_path)
+                candidate_index = (_load_joint_source_index(candidate_execution.source_index_path,candidate_root)
+                                   if planned else load_source_index(candidate_execution.source_index_path))
+            if candidate_index is not None:
                 localized, report = localize_findings(
                     [
                         finding
@@ -1990,8 +2059,8 @@ class ObjectWorkflow:
                 candidate_execution=candidate_execution, candidate_source=candidate_source,
                 candidate_root=candidate_root, image_critic=image_critic, code_critic=code_critic)
 
-            protection = (protection_check(Path(request.overhang_experiment["original_urdf"]),
-                                           candidate_execution.urdf_path, request.overhang_experiment)
+            protection = (experiment_protection(Path(request.overhang_experiment["original_urdf"]),
+                                           candidate_execution.urdf_path, request.overhang_experiment, exact_check=protection_check)
                           if request.overhang_experiment else None)
             if protection is not None:
                 write_json(candidate_root / "protection.json", protection)
@@ -2260,15 +2329,17 @@ class ObjectWorkflow:
             if options.get("arm") not in {"control", "feedback"}:
                 raise ValueError("overhang experiment arm must be control or feedback")
             if options.get("mode") == "planned_checks":
+                if options.get('protection_policy') != 'explicit_task_constraints':
+                    raise ValueError('joint mode must explicitly configure task constraints; do not silently remove legacy protection')
                 if options["arm"] != "feedback" or not set(names) <= {"topology", "standing", "overhang", "fea"}:
                     raise ValueError("planned checks requires feedback and whitelisted tools")
                 if "fea" in names and "topology" not in names:
                     raise ValueError("planned FEA requires topology prerequisite")
             elif names != (["overhang"] if options["arm"] == "feedback" else []):
                 raise ValueError("experiment permits only overhang in feedback arm and no checkers in control arm")
-            if int(options.get("max_candidates", 2)) < 1:
+            if not (options.get('mode') == 'planned_checks' and options.get('max_candidates', 2) is None) and int(options.get("max_candidates", 2)) < 1:
                 raise ValueError("edit budget must be positive")
-            if not options.get("protection", {}).get("surfaces") or not options.get("original_urdf"):
+            if (not options.get("protection", {}).get("surfaces") and options.get('mode') != 'planned_checks') or not options.get("original_urdf"):
                 raise ValueError("experiment requires explicit measurable protection and original URDF")
         for image_path in request.image_paths:
             if not Path(image_path).expanduser().resolve().is_file():

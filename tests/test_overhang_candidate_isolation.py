@@ -142,6 +142,7 @@ def test_planned_mixed_loop_keeps_hard_results_and_rejects_regression(tmp_path,m
     from adsl.agents.models import CheckerResult
     f=fixture(tmp_path,monkeypatch,actions=(90,),budget=1)
     f.options['mode']='planned_checks'
+    f.options['protection_policy']='explicit_task_constraints'
     standing=CheckerSpec(name='standing',command=['mock'])
     req=replace(f.kwargs['request'],checker_specs=(standing,*f.kwargs['request'].checker_specs))
     f.kwargs['request']=req

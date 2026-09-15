@@ -27,19 +27,41 @@ MODEL_LOCATION_INSTRUCTION = (
     "or wider protection scope is granted."
 )
 
+PLANNED_LOCATION_INSTRUCTION = (
+    "Joint checker repair: source_index is localization evidence, not edit permission. "
+    "Read the complete current source and use renders and checker evidence to select the "
+    "smallest relevant existing classes, assembly code or helper functions in target.allowed_scopes. "
+    "Each allowed_scopes entry must be ONLY an exact source symbol, e.g. ChairLegs.__init__; "
+    "put explanatory text and local restrictions in evidence, not after the symbol. "
+    "Explain each target's relationship to the issue in hypothesis/evidence. Missing or ambiguous "
+    "index candidates do not prohibit a proposal. Leave source_ids/feature_ids empty for inferred "
+    "locations; never fabricate IDs. No bridge_parent is required. Do not change checker code, "
+    "analysis conditions, thresholds, configuration, imports or unrelated source. Preserve explicit "
+    "task dimensions, interfaces, function and appearance, but do not assume a class whitelist, "
+    "exact triangles or unchanged overall bounds unless explicitly configured. You may stop without "
+    "a proposal; set stop_category to no_change_needed, insufficient_localization, scope_limited, "
+    "or no_reasonable_plan and explain. Modification never implies acceptance."
+)
+
 
 def reliable_location(finding):
     return any(c.source_ids and not c.ambiguous for c in finding.source_candidates)
 
 
-def inferred_proposal(proposal, source, options, findings):
+def inferred_proposal(proposal, source, options, findings, source_index=None):
     """Validate model-named source locations, not geometry provenance or synthetic IDs."""
     known = {f.finding_id: f for f in findings}
     if any(i not in known for i in proposal.finding_ids):
         return None, ["unknown finding ids"]
     if any(known[i].repairability not in {"geometry", "design_variable"} for i in proposal.finding_ids):
         return None, ["finding is not source-editable"]
-    if proposal.target.feature_ids or proposal.target.source_ids:
+    planned = options.get('mode') == 'planned_checks'
+    if planned and (proposal.target.feature_ids or proposal.target.source_ids):
+        source_ids = {n.source_id for n in source_index.source_nodes} if source_index else set()
+        feature_ids = {f.feature_id for f in source_index.features} if source_index else set()
+        if not set(proposal.target.source_ids) <= source_ids or not set(proposal.target.feature_ids) <= feature_ids:
+            return None, ['unverified index IDs; use real source symbols without fabricated IDs']
+    elif proposal.target.feature_ids or proposal.target.source_ids:
         return None, ["model-inferred targets must not claim index IDs"]
     if not proposal.evidence or proposal.action in {"change_print_orientation", "request_evidence"}:
         return None, ["inferred edit requires evidence and an executable fixed-orientation action"]
@@ -52,20 +74,51 @@ def inferred_proposal(proposal, source, options, findings):
                 visit(n.body, name + ".")
     visit(ast.parse(source.read_text()).body)
     scopes = proposal.target.allowed_scopes
+    scope_notes = []
+    if planned:
+        normalized = []
+        for entry in scopes:
+            symbol, separator, note = entry.partition(':')
+            if separator and symbol.strip() in nodes and note.strip():
+                normalized.append(symbol.strip())
+                scope_notes.append(entry)
+            else:
+                normalized.append(entry)
+        scopes = normalized
     allowed = options.get("protection", {}).get("allowed_classes", [])
-    if not scopes or any(s not in nodes or s.split('.')[0] not in allowed for s in scopes):
-        return None, ["inferred source location missing or outside configured protected edit scope"]
+    if not scopes or any(s not in nodes or (not planned and s.split('.')[0] not in allowed) for s in scopes):
+        return None, (["missing or unknown exact source symbols: " + repr(scopes)] if planned
+                      else ["inferred source location missing or outside configured protected edit scope"])
     # The existing experiment authorizes classes; qualified methods remain within them.
-    if any(not isinstance(nodes[s.split('.')[0]], ast.ClassDef) for s in scopes):
+    if not planned and any(not isinstance(nodes[s.split('.')[0]], ast.ClassDef) for s in scopes):
         return None, ["top-level function edits are not authorized by the configured class-only protection"]
     location = {"method": "model_inferred", "tool_confirmed": False,
                 "source_sha256": file_hash(source),
                 "targets": [{"symbol": s, "start_line": nodes[s].lineno,
                              "end_line": nodes[s].end_lineno} for s in scopes],
-                "evidence": proposal.evidence[:3]}
+                "evidence": proposal.evidence[:3], "scope_notes": scope_notes}
     return proposal.model_copy(update={
         "target": proposal.target.model_copy(update={"allowed_scopes": sorted({s.split('.')[0] for s in scopes})}),
+        "evidence": proposal.evidence + ["Preserve local restriction: " + note for note in scope_notes],
         "parameter_bounds": {**proposal.parameter_bounds, "_localization": location}}), []
+
+
+def experiment_protection(original, candidate, options, *, exact_check):
+    if options.get('mode') != 'planned_checks':
+        return exact_check(original, candidate, options)
+    if options.get('protection_policy') != 'explicit_task_constraints':
+        return {'status':'UNCONFIRMED','reason':'joint mode requires explicit protection policy; legacy constraints not silently removed'}
+    protection = options.get('protection', {})
+    if protection.get('explicit_constraints'):
+        return {'status':'UNCONFIRMED','reason':'explicit constraints require an executable evaluator; not silently ignored'}
+    if protection.get('surfaces') or protection.get('preserve_bounds'):
+        checked = dict(options)
+        if not protection.get('preserve_bounds'):
+            checked.pop('scale_mm_per_source_unit', None)
+        return exact_check(original, candidate, checked)
+    return {'status':'PASS','policy':'explicit_task_constraints',
+            'scope':'no numerical/surface constraints configured; appearance/function still require critics',
+            'exact_dimensions_certified':False}
 
 
 def inferred_scope_unchanged(before, after, location):
@@ -116,7 +169,9 @@ def attempt_feedback(attempts):
     } for a in attempts]
 
 
-def budget_remaining(workspace: Path, options: dict[str, Any]) -> int:
+def budget_remaining(workspace: Path, options: dict[str, Any]) -> int | str:
+    if options.get('mode') == 'planned_checks' and options.get('max_candidates', 2) is None:
+        return 'round_limited'  # No independent edit cap; outer rounds/time/API budgets still apply.
     path = workspace / "edit_attempts.jsonl"
     count = len(path.read_text().splitlines()) if path.exists() else 0
     return max(0, int(options.get("max_candidates", 2)) - count)

@@ -103,6 +103,25 @@ def test_soft_improvement_and_no_effect():
     assert not decide([overhang(20)],[overhang(19)]).accepted
 
 
+def test_joint_targeted_topology_partial_progress_and_regression_guard():
+    from adsl.agents.models import CheckerFinding
+    finding=CheckerFinding(finding_id='topology:gap',rule_id='ONE_PIECE_DISCONNECTED',
+        category='geometry_failure',repairability='geometry')
+    before=CheckerResult(checker='topology',status='FAIL',summary='disconnected',findings=[finding],
+        metrics={'mode':'one_piece','component_count':20})
+    after=before.model_copy(update={'metrics':{'mode':'one_piece','component_count':5}})
+    standing=CheckerResult(checker='standing',status='PASS',summary='stable')
+    def check(targets=('topology:gap',),appearance=True,stand=standing):
+        return assess_candidate([before,standing,overhang(20)],[after,stand,overhang(30)],
+            target_finding_ids=targets,appearance_approved=appearance,policy=RepairPolicy(),
+            protection={'status':'PASS'},planned_checks=True)
+    assert check().accepted
+    assert 'still FAIL' in check().target_improvements[-1]
+    assert not check(targets=('local_edit',)).accepted
+    assert not check(appearance=False).accepted
+    assert not check(stand=standing.model_copy(update={'status':'INDETERMINATE'})).accepted
+
+
 @pytest.mark.parametrize('after_status',['FAIL','INDETERMINATE','ERROR'])
 def test_soft_cannot_hide_hard_regression(after_status):
     a=CheckerResult(checker='standing',status='PASS',summary='baseline')
@@ -432,7 +451,8 @@ def test_worker_does_not_overwrite_restored_input_hashes(tmp_path,monkeypatch):
     async def planner(*args):
         state=edit.run.read(folder/'state.json')
         assert state['input_hashes']==edit.run.hashes(original)
-        assert state['protection']['allowed_classes']==['PedestalBase']
+        assert 'allowed_classes' not in state['protection']
+        assert 'policy_notes' in state['protection']
         raise ReachedPlanner()
     monkeypatch.setattr(edit,'restore_geometry_evidence',restore)
     monkeypatch.setattr(edit.run,'plan_case_bounded',planner)

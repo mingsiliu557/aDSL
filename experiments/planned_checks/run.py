@@ -80,8 +80,9 @@ def prepare(root, input_arm='ours'):
     root.mkdir(parents=True, exist_ok=True)
     marker = root/'batch.json'
     # Refuse a silently misdirected output root.
-    if not root.is_relative_to(Path('/jiigan-hp/lms/aDSL/experiment')):
-        raise ValueError('outputs must be on /jiigan-hp/lms/aDSL/experiment')
+    if not any(root.resolve().is_relative_to(base.resolve()) for base in
+               (Path('/jiigan-hp/lms/aDSL/experiment'), REPO/'local_experiment')):
+        raise ValueError('outputs must be in the experiment data root or project local_experiment')
     manifest = read(REPO/'experiments/standing_fea_30/case_manifest.json')
     cases = {c['case_id']:c for c in manifest['cases']}
     protected = {c['case_id']:c['protection'] for c in read(REPO/'experiments/overhang_feedback/paired_assets.json')['cases']}

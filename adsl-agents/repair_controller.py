@@ -66,7 +66,7 @@ class RepairController:
         return sum(1 for line in self.history_path.read_text(encoding="utf-8").splitlines() if line.strip())
 
     def budget_error(self) -> str | None:
-        if self._history_count() >= self.policy.max_total_candidates:
+        if self.policy.max_total_candidates is not None and self._history_count() >= self.policy.max_total_candidates:
             return "maximum total candidate budget reached"
         if time.time() - self.started_at >= self.policy.time_budget_seconds:
             return "repair time budget reached"
