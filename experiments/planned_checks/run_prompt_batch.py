@@ -3,6 +3,7 @@ import argparse
 import asyncio
 import csv
 import json
+import math
 from dataclasses import replace
 import os
 from pathlib import Path
@@ -18,6 +19,7 @@ from experiments.planned_checks import run
 from experiments.planned_checks.run_edit_smoke import BudgetWorkflow, API, protection_for, reuse_calibration, stop_tree
 from adsl.agents.checkers import run_checker, CheckerRun
 from adsl.agents.models import CheckerResult
+from adsl.agents.utils.runner import _json_value
 
 
 def request_for(case, workspace):
@@ -55,32 +57,43 @@ class PromptWorkflow(BudgetWorkflow):
                                 round_root=workspace/'calibration').result
         run.write_json(workspace/'calibration_result.json',calibration.model_dump())
         measurement=calibration.metrics.get('measurement')
-        if calibration.status!='PASS' or not measurement:
-            raise RuntimeError('INITIAL_MEASUREMENT_UNAVAILABLE: own generated assets preserved')
         profile=registry['overhang_fixed_print']
-        profile['configuration']['case']['frozen_measurement']=measurement
-        run.write_json(Path(profile['config_path']),profile['configuration'])
-        profile['config_sha256']=run.sha(Path(profile['config_path']))
-        run.write_json(workspace/'registry.json',registry)
+        scale=measurement.get('scale_mm_per_source_unit') if isinstance(measurement,dict) else None
+        calibrated=(calibration.status=='PASS' and type(scale) in (int,float)
+                    and math.isfinite(scale) and scale>0)
+        if not calibrated and calibration.status=='PASS':
+            calibration=calibration.model_copy(update={'status':'INDETERMINATE',
+                'summary':'MEASUREMENT_CONDITIONS_UNAVAILABLE: initial scale missing or invalid'})
+            run.write_json(workspace/'calibration_result.json',calibration.model_dump())
+        if calibrated:
+            profile['configuration']['case']['frozen_measurement']=measurement
+            run.write_json(Path(profile['config_path']),profile['configuration'])
+            profile['config_sha256']=run.sha(Path(profile['config_path']))
+            run.write_json(workspace/'registry.json',registry)
+        else:
+            run.write_json(workspace/'print_measurement_unavailable.json',{
+                'status':'INDETERMINATE','reason':calibration.summary,
+                'effect':'No comparable overhang optimization in this run; independent checks and visual review continue.'})
         await run.plan_case_bounded(workspace.parent,request.task_id,API)
         plan_path=workspace/'tool_plan.resolved.json'
         if not plan_path.exists():raise RuntimeError('PLAN_UNAVAILABLE: own generated assets preserved')
         resolved=run.read(plan_path);run.verify_plan(resolved)
         specs=tuple(CheckerSpec.model_validate(t['spec']) for t in resolved['tools'] if t['selected'])
-        if not specs:raise RuntimeError('NO_EXECUTABLE_CHECK_PLAN: own generated assets preserved')
-        if any(s.name=='fea' for s in specs) and not any(s.name=='topology' for s in specs):
-            specs=tuple(s for s in specs if s.name!='fea')
-            run.write_json(workspace/'fea_dependency_unavailable.json',{'status':'INDETERMINATE','reason':'topology plan unavailable'})
-        options['scale_mm_per_source_unit']=measurement['scale_mm_per_source_unit']
+        options['unverified_plan_tools']=[
+            {'name':t['name'],'status':t['status'],'reason':t.get('reason',''),
+             'required':bool(t.get('required') or t['name'] in ('topology','overhang'))}
+            for t in resolved['tools'] if t.get('status') in ('PLAN_INVALID','NEEDS_SPEC')]
+        if calibrated:options['scale_mm_per_source_unit']=measurement['scale_mm_per_source_unit']
         joint=replace(request,checker_specs=specs,overhang_experiment=options,check_first=True,
             repair_policy=RepairPolicy(max_total_candidates=None,time_budget_seconds=max(1,self.deadline-time.time())))
-        config=run.read(workspace/'runtime_config.json');config['overhang_experiment']=options
+        config=run.read(workspace/'runtime_config.json')
+        config['request']=_json_value(joint)
         run.write_json(workspace/'runtime_config.json',config)
         run.write_json(workspace/'generation_check_handoff.json',{'mode':'generate','initial_round':round_number,
             'max_rounds':request.max_rounds,'source_sha256':run.sha(source_path),'source_origin':'own_prompt',
             'appearance_approval_required_before_checks':False})
         original_runner=service.run_checkers
-        def measured(selected,**kw):
+        def measured(selected,*,require_topology=False,**kw):
             results=[]
             for item in sorted(selected,key=lambda x:x.name!='topology'):
                 topology=next((r for r in results if r.spec.name=='topology'),None)
@@ -89,8 +102,18 @@ class PromptWorkflow(BudgetWorkflow):
                     dest=kw['round_root']/'checkers'/item.name
                     result=CheckerResult(checker=item.name,status='INDETERMINATE',summary=reason,violations=[{'code':reason}])
                     run.write_json(dest/'result.json',result.model_dump());results.append(CheckerRun(item,result,dest,()))
-                elif item.name=='overhang' and run.sha(kw['source_path'])==run.sha(original/'source.py') and run.sha(kw['execution'].glb_path)==run.sha(original/'scene.glb'):
+                elif (item.name=='overhang' and run.sha(kw['source_path'])==run.sha(original/'source.py')
+                      and run.sha(kw['execution'].glb_path)==run.sha(original/'scene.glb')
+                      and kw['execution'].urdf_path and run.sha(kw['execution'].urdf_path)==run.sha(original/'scene.urdf')):
                     results.append(reuse_calibration(item,calibration,workspace/'calibration',kw['round_root']))
+                elif item.name=='overhang' and not calibrated:
+                    dest=kw['round_root']/'checkers'/item.name
+                    result=CheckerResult(checker=item.name,status='INDETERMINATE',
+                        summary='MEASUREMENT_CONDITIONS_UNAVAILABLE: no frozen initial print measurement; candidate overhang not evaluated',
+                        metrics={'overhang_area_mm2':None,'nominal_contact_area_mm2':None,'candidate_conclusion':'unevaluated'},
+                        violations=[{'code':'MEASUREMENT_CONDITIONS_UNAVAILABLE','stage':'measurement_configuration'}],
+                        artifacts={'initial_failure':str(workspace/'calibration_result.json')})
+                    run.write_json(dest/'result.json',result.model_dump());results.append(CheckerRun(item,result,dest,()))
                 else:results.append(run_checker(item,**kw))
             return results
         service.run_checkers=measured
@@ -114,14 +137,20 @@ def worker(root,cid,arm):
         workflow=PromptWorkflow(API,case=case,deadline=run.read(root/'batch.json')['deadline'])
         result=asyncio.run(workflow.generate(request))
         book=run.read(workspace/'overhang_versions.json') if (workspace/'overhang_versions.json').exists() else {}
-        state={'status':'FLOW_ERROR' if book.get('error') else 'COMPLETED','approved':result.approved,
+        error=book.get('error')
+        state={'status':failure_status(error['type']) if error else 'COMPLETED','approved':result.approved,
                'retained':book.get('retained','published'),'error':book.get('error'), 'source':str(result.source_path)}
     except Exception as error:
-        state={'status':'ERROR','error_type':type(error).__name__,'reason':str(error)[:400],
+        state={'status':failure_status(type(error).__name__),'error_type':type(error).__name__,'reason':str(error)[:400],
                'assets_preserved':True}
     state.update(case_id=cid,arm=arm,workspace=str(workspace),seconds=time.time()-start,input_origin='independent_prompt')
     run.write_json(status_path,state)
     print(state,flush=True)
+
+
+def failure_status(error_type):
+    return ('FLOW_ERROR' if error_type in {'TypeError','AttributeError','KeyError',
+            'AssertionError','ValueError','WorkflowGateError'} else 'ERROR')
 
 
 def batch(root,ids):
@@ -172,15 +201,18 @@ def summarize(root):
         if status.exists():
             value=run.read(status);row['ours_seconds']=value.get('seconds');row['ours_error']=value.get('error',value.get('reason'))
         checks=[]
+        plan=run.read(workspace/'tool_plan.resolved.json') if (workspace/'tool_plan.resolved.json').exists() else {}
         if (workspace/'overhang_versions.json').exists():
             book=run.read(workspace/'overhang_versions.json');v=book['versions'][book['retained']]
             checks=[c['result'] for c in v.get('checkers',[])]
             row['ours_retained']=book['retained'];row['ours_attempts']=len(book['attempts'])
             row['ours_appearance']=v.get('reviews',{}).get('appearance_approved')
         for name in ('topology','standing','fea','overhang'):
+            tool=next((t for t in plan.get('tools',[]) if t.get('name')==name),{})
             result=next((c for c in checks if c['checker']==name),{})
-            row[f'ours_{name}_status']=result.get('status','NOT_EVALUATED')
-            row[f'ours_{name}_reason']=result.get('summary')
+            row[f'ours_{name}_plan_status']=tool.get('status','NOT_PLANNED')
+            row[f'ours_{name}_status']=result.get('status',tool.get('status') if not tool.get('selected',True) else 'NOT_EVALUATED')
+            row[f'ours_{name}_reason']=result.get('summary',tool.get('reason'))
             metrics=result.get('metrics',{})
             row[f'ours_{name}_metrics_json']=json.dumps(metrics,ensure_ascii=False)
             for key in ('component_count','overhang_area_mm2','nominal_contact_area_mm2','support_required',

@@ -57,7 +57,7 @@ def fixture(tmp_path, monkeypatch, *, arm="feedback", actions=(90,), initial=Fal
         value = int(src.read_text().split("value = ")[1].splitlines()[0])
         return assets(root, value)
 
-    def check(specs, *, execution, source_path, round_root):
+    def check(specs, *, execution, source_path, round_root, **kwargs):
         assert arm == "feedback", "control must never evaluate overhang online"
         value = int(execution.glb_path.read_text().split(":")[1])
         measures.append(value)

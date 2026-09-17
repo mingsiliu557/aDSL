@@ -122,6 +122,19 @@ def test_joint_targeted_topology_partial_progress_and_regression_guard():
     assert not check(stand=standing.model_copy(update={'status':'INDETERMINATE'})).accepted
 
 
+@pytest.mark.parametrize('targets',[['topology:gap'],['overhang:optimization:0']])
+def test_overhang_cannot_offset_increased_disconnected_components(targets):
+    from adsl.agents.models import CheckerFinding
+    finding=CheckerFinding(finding_id='topology:gap',rule_id='ONE_PIECE_DISCONNECTED',
+        category='geometry_failure',repairability='geometry')
+    before=CheckerResult(checker='topology',status='FAIL',summary='disconnected',findings=[finding],
+        metrics={'mode':'one_piece','component_count':2})
+    after=before.model_copy(update={'metrics':{'mode':'one_piece','component_count':5}})
+    decision=assess_candidate([before,overhang(100)],[after,overhang(80)],target_finding_ids=targets,
+        appearance_approved=True,policy=RepairPolicy(),planned_checks=True,protection={'status':'PASS'})
+    assert not decision.accepted and '2 -> 5' in decision.regressions[0]
+
+
 @pytest.mark.parametrize('after_status',['FAIL','INDETERMINATE','ERROR'])
 def test_soft_cannot_hide_hard_regression(after_status):
     a=CheckerResult(checker='standing',status='PASS',summary='baseline')

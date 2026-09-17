@@ -118,6 +118,10 @@ def worker(root,cid,resume=False):
     if not (folder/'tool_plan.resolved.json').exists():
         run.write_json(folder/'edit_status.json',{'status':'PLAN_UNAVAILABLE','retained':'original'});return
     plan=run.read(folder/'tool_plan.resolved.json');run.verify_plan(plan)
+    options['unverified_plan_tools']=[
+        {'name':t['name'],'status':t['status'],'reason':t.get('reason',''),
+         'required':bool(t.get('required') or t['name'] in ('topology','overhang'))}
+        for t in plan['tools'] if t.get('status') in ('PLAN_INVALID','NEEDS_SPEC')]
     if not state['protection']:
         run.write_json(folder/'edit_status.json',{'status':'EDIT_NOT_READY','retained':'original',
             'reason':'no reviewed protection scope for original aDSL asset'});return
@@ -126,14 +130,11 @@ def worker(root,cid,resume=False):
     if protection['status']!='PASS':
         run.write_json(folder/'edit_status.json',{'status':'EDIT_NOT_READY','retained':'original','reason':protection});return
     specs=tuple(CheckerSpec.model_validate(t['spec']) for t in plan['tools'] if t['selected'])
-    if 'fea' in [s.name for s in specs] and 'topology' not in [s.name for s in specs]:
-        # Keep the plan's dependency failure in evidence, do not run unsupported FEA.
-        run.write_json(folder/'edit_status.json',{'status':'DEPENDENCY_UNRESOLVED','retained':'original'});return
     workspace=run.REPO/'local_experiment'/root.name/cid/'ours'
     workspace.parent.mkdir(parents=True,exist_ok=True)
     # A fixed per-case admission check plus parent hard timeout, never reset per round.
     original_runner=service.run_checkers
-    def bounded_checkers(selected,**kwargs):
+    def bounded_checkers(selected,*,require_topology=False,**kwargs):
         results=[]
         for item in sorted(selected,key=lambda s:s.name!='topology'):
             # Calibration already measured this exact original under the frozen
@@ -145,7 +146,7 @@ def worker(root,cid,resume=False):
                 results.append(reuse_calibration(item,calibration_result,folder/'calibration',kwargs['round_root']))
                 continue
             topology=next((r for r in results if r.spec.name=='topology'),None)
-            reason=('TOPOLOGY_DEPENDENCY_UNAVAILABLE' if item.name=='fea' and topology and topology.result.status!='PASS'
+            reason=('TOPOLOGY_DEPENDENCY_UNAVAILABLE' if item.name=='fea' and (topology is None or topology.result.status!='PASS')
                 else 'BUDGET_NOT_EXECUTED' if time.time()+item.timeout_seconds+5>deadline else None)
             if reason:
                 dest=kwargs['round_root']/'checkers'/item.name

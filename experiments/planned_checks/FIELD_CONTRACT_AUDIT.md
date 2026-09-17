@@ -58,6 +58,71 @@ No per-case 30-minute or total-candidate cap; single-checker limits, four rounds
 eight-hour batch deadline and shared 100-million-token ledger remain in effect.
 Outputs include generation_results.csv, comparison_12.csv and COMPARISON_12.md
 (the latter filenames are historical naming; rows follow the selected case list).
-Historical missing metrics remain unavailable, not zero. Initial measurement
-failure is still a known limitation: initial assets are preserved and the case
-ends without claiming validation; independent cases can continue.
+Historical missing metrics remain unavailable, not zero.
+
+### 2026-09-15 prompt-handoff corrections
+
+- An initial overhang failure no longer aborts the case. Independent checks and
+  visual/engineering review continue. Without a valid frozen initial print scale,
+  candidate overhang remains INDETERMINATE / MEASUREMENT_CONDITIONS_UNAVAILABLE;
+  do not relabel the new candidate with the initial model's geometric failure.
+- Final approval receives the active joint-mode flag directly from the executing
+  loop; the pre-generation user_input.json is not authoritative for dynamic checks.
+  Required FEA FAIL/ERROR/INDETERMINATE/missing forbids approved=true.
+- 94 targeted mocked tests pass, including the two complete dynamic-handoff paths.
+  This does not constitute successful real physics validation.
+- The stopped prompt8_ours_20260915 SF03 approved=true flag is invalid: its actual
+  required FEA result was FAIL. Preserve old evidence; exclude that flag from success
+  claims. New outputs are separate and use the corrected publication rule.
+
+### 2026-09-15 candidate return-contract correction (batch stopped)
+
+- In `prompt8_fixed_20260915`, SF01's Coder applied patches successfully, but
+  all four candidates were rejected before execution with `TypeError: 'NoneType'
+  object is not subscriptable`. These are workflow failures, not ineffective
+  physical repairs. The original asset remains retained.
+- Root cause: the prompt handoff wrote top-level `overhang_experiment`, whereas
+  `_repair()` reads `request.overhang_experiment`. The empty nested options selected
+  ordinary repair semantics (return None), then the candidate caller accessed
+  `patch_result['status']`. Correct only the writer to the existing nested contract;
+  do not change ordinary repair behavior, checker logic or candidate acceptance.
+- The regression now runs the actual handoff and real `_repair()` with a mock
+  model for CHANGED, NO_CHANGE and TOOL_ERROR, with valid/invalid calibration.
+  It checks reservation transition, source hashes and preservation of the parent.
+  Six relevant test files: 98 passed (34 direct + 64 adjacent), no API or geometry.
+- Per user request, stopped this batch and its owned worker during SF27. Files,
+  independent API service and GPU keeper are preserved. SF03 separately recorded
+  upstream HTTP 500 / TLS handshake EOF; this fix does not resolve that API error.
+  No automatic restart or budget reset was performed.
+
+### 2026-09-15 independent-tool and joint-gate corrections
+
+- Keep selected FEA in the checker list when topology is unavailable. Return
+  INDETERMINATE / TOPOLOGY_DEPENDENCY_UNAVAILABLE without solving; standing,
+  overhang and visual review remain independent. The shared executor's explicit
+  `require_topology` flag is enabled only for joint mode; ordinary FEA-only calls
+  are unchanged.
+- Preserve invalid/NEEDS_SPEC tool-plan entries in `unverified_plan_tools` and
+  final unverified lists. Missing required plan entries forbid joint approval.
+  CSV summaries distinguish plan status from execution status. An all-invalid
+  plan may still preserve/review the generated asset without claiming success.
+- Reject a verified one_piece component-count increase even when both topology
+  results remain FAIL and overhang improves; this check does not depend on the
+  proposal targeting topology. Existing partial improvement and unknown-state
+  handling remain in effect.
+- Persist the complete effective joint request under runtime_config.request,
+  including checker specs, check_first, repair policy and experiment options.
+  Joint CLI resume cannot increase the saved round ceiling via its default.
+  This is configuration recovery, not an automatic replay or new resume runner;
+  stopped historical workspaces and token reservations are unchanged.
+- Unexpected candidate programming exceptions (TypeError/AttributeError/KeyError/
+  AssertionError) propagate to the existing workflow error boundary. Save a local
+  traceback and candidate FLOW_ERROR; publish retained and stop the batch instead
+  of spending every round on the same bug. Known tool/API errors remain distinct;
+  a single-case API failure does not automatically pause independent cases.
+- Validation: 166 passed across ten existing lightweight test files. New tests
+  exercise real handoff, real repair/acceptance/publication with mocked model,
+  assets and checkers; missing/all-invalid plans; regression rejection; restored
+  request/round ceiling; and mocked batch stop/continue. No real API, Blender,
+  FEA or batch was run. Old compact-feedback mock now supplies the real request
+  field `overhang_experiment` instead of failing before its assertion.

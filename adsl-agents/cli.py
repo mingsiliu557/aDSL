@@ -75,6 +75,9 @@ def _resume_request(args: argparse.Namespace) -> ObjectRequest:
     if not config_path.is_file():
         raise FileNotFoundError(config_path)
     payload = read_json(config_path).get("request", {})
+    max_rounds = args.max_rounds
+    if payload.get('overhang_experiment', {}).get('mode') == 'planned_checks':
+        max_rounds = min(max_rounds, int(payload.get('max_rounds', max_rounds)))
     checker_specs = (
         _load_checker_specs(args.checker_config)
         if args.checker_config
@@ -89,7 +92,7 @@ def _resume_request(args: argparse.Namespace) -> ObjectRequest:
         task_id=args.task_id or str(payload.get("task_id", "")),
         image_paths=tuple(Path(value) for value in payload.get("image_paths", [])),
         articulation=bool(payload.get("articulation", False)),
-        max_rounds=args.max_rounds,
+        max_rounds=max_rounds,
         checker_specs=checker_specs,
         check_first=bool(payload.get("check_first", False)),
         overhang_experiment=(read_json(args.overhang_experiment_config) if args.overhang_experiment_config

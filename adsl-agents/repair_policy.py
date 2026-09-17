@@ -212,10 +212,14 @@ def assess_candidate(
         # Compare only verified counts under the same one_piece policy.
         tb, ta = baseline.get('topology'), candidate.get('topology')
         if (tb and ta and tb.status == ta.status == 'FAIL'
-                and tb.metrics.get('mode') == ta.metrics.get('mode') == 'one_piece'
-                and any(f.finding_id in set(target_finding_ids) for f in tb.findings)):
+                and tb.metrics.get('mode') == ta.metrics.get('mode') == 'one_piece'):
             old, new = tb.metrics.get('component_count'), ta.metrics.get('component_count')
-            if type(old) is int and type(new) is int and 1 < new < old:
+            if type(old) is int and type(new) is int and new > old >= 2:
+                return CandidateDecision(accepted=False, reason='topology connectivity regressed',
+                    regressions=[f'topology: final solid components {old} -> {new}'],
+                    unavailable_checks=hard.unavailable_checks)
+            if (type(old) is int and type(new) is int and 1 < new < old
+                    and any(f.finding_id in set(target_finding_ids) for f in tb.findings)):
                 hard = hard.model_copy(update={'accepted':True, 'target_improvements':
                     hard.target_improvements + [f'topology: final solid components {old} -> {new}; still FAIL']})
         before, after = baseline.get("overhang"), candidate.get("overhang")

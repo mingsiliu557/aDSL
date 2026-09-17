@@ -1,29 +1,59 @@
 # aDSL 工作记忆
 
-更新时间：2026-08-30（UTC）
+更新时间：2026-09-17（UTC）
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
+
+## 当前代码与实验快照（2026-09-17）
+
+- 当前工作分支为 master。本次同步在 d66319c 之上提交联合 checker 的后续修复，
+  包括有效 request 传递、独立 checker 与 FEA 依赖隔离、拓扑退步保护、恢复轮次上限、
+  未验证工具记录和程序错误停止；不改几何内核、物理阈值或旧过悬专项规则。
+- 推送前相关轻量回归为 166 passed；测试不调用真实 API、Blender 或 FEA。
+- `local_experiment/prompt8_joint_20260915T072057Z` 已完成 8/8，正常退出。
+  本轮 Ours 从 prompt 独立生成，历史 aDSL 不重生成；案例为
+  SF01、SF03、SF05、SF07、SF11、SF13、SF21、SF27，不包含 SF20。
+- 同案例 aDSL/Ours：topology 为 5/8、6/8，standing 均 8/8，FEA 和三项联合
+  通过均为 0/8。SF11 的 approved=true 不代表 FEA 通过：其 FEA 是 NEEDS_SPEC。
+- Ours 过悬前后可比较 5/8：最终面积减少 0 例、不变 3 例、增加 2 例；另 3 例未验证。
+  SF11、SF27 因拓扑改善接受了过悬增加，这是联合模式硬约束优先的取舍。
+- 本轮使用已有新 API 配置与共享一亿 token 上限；不在记忆文件记录密钥。
+  实验模型、日志、压缩包留在本地，不随代码推送。
+- 下方带日期的实验及进程信息是历史快照；当前状态以上述摘要为准。
+
+## 当前超时、SF04 与反馈精简修复
+
+- 最终离线评估已复用 `adsl-agents/checkers.py` 和修复循环的 checker specs；topology 沿用 900 秒，其他 checker 保留各自原配置，不再逐个继承 case 的 6 小时上限。导出与生成超时未改。
+- Checker 父进程使用独立进程组 TERM → KILL 和有界回收，stdout/stderr 直接落文件，避免清理后又无限等待管道。OCC 布尔操作即时记录部件、操作数、开始/完成事件。
+- 有明确未完成 OCC 操作的超时记录 `ERROR / GEOMETRY_PREPROCESS_TIMEOUT`，不是“模型断开”；依赖其几何预处理的 FEA 记录 `INDETERMINATE / GEOMETRY_PREPROCESS_UNAVAILABLE`，standing 与后续样本继续。
+- SF04 底框没有发现重复实体或零尺寸输入。23 实体混合合并很慢；仅对该底框验证“方块 → 圆柱 → 球”的分阶段 UNION，原语和参数不变。不能将此原因等同 SF01 重复 cap，也不能扩展为全局 CSG 规则。
+- 局部候选、限时诊断、前后 STL 与形状验证在 `local_experiment/sf04_fuse_diagnostic/`。原始 SF04 workspace 未覆盖，未宣称整把椅子已通过 topology/standing/FEA。
+- 接收方证据分工已收敛：Engineering Critic 默认接收所有 checker 状态和未通过 finding 的关键指标/定位/关联；候选 Coder 只接收当前 RepairProposal.finding_ids 关联证据与源码位置，不再发送全部 baseline model_dump。完整报告留文件，read_file 支持 json_pointer 按字段选取，以及 offset/max_chars 分页（每次最多 12000 正文字符），不自动整份读取。
+- SF03 round_02 离线复核：工程反馈从上一版 66362 字符降至 17838；候选 Coder 证据从 125957 降至 12060（约 90.4%），只含该方案关联的 4 条 topology finding。不是实测 API 提速或 token 降幅；历史会话和多次读取仍可能累积上下文，没有新增全局 token 调度/清理系统。
+- 本轮不改模型、图片数量、critic、轮数、会话恢复策略、公共缩放或 MuJoCo 参数；未调用 StepCode、未启动或重启批量实验。HTTP 400 的上游具体原因仍未证实。
+- 验证和边界说明见 `reports/sf04_timeout_feedback_20260912.md`。
 
 ## 当前分支与目标
 
 - 仓库：/vepfs_default/chanxueyan/lhp/lms/aDSL
-- 当前分支：api-native-development
-- 原始公开代码基线：e1742e3
-- 当前目标：在不引入 Codex Exec transport 的前提下，用本机 Stepcode OpenAI-compatible API 运行原 Agent 流程；保持原 aDSL/Eevee 设计，并审计公开代码、Agent 缺陷和生成物质量。
-- master 保留此前 Codex CLI + Stepcode 双后端适配历史；当前分支不使用 Codex Exec。
-- 本轮论文导向审计状态为 ANALYZED，不是 VERIFIED，也不是完整论文复现。
+- 当前分支：master；历史 1337660 是最终实体连通性修复提交，不是当前 HEAD。
+- 原始公开代码基线：e1742e3。
+- 当前目标：汇总已结束的 8 例 prompt-to-3D 联合 checker 实验，与历史 aDSL 比较；未验证不计 PASS，也不冒充物理不达标。
+- 当前批次使用已有新 API 的 gpt-5.6-sol；StepCode 与 Codex CLI transport 仍保留，但不是这批实际模型后端。
+- 本轮是 same-source/different-sample targeted subset，不是论文隐藏 200 prompts 的精确复现，也不是工程安全认证。
 - 不向远程 push，除非用户明确要求。
 
 ## 本机路径与存储规则
 
 - Python 环境：/vepfs_default/chanxueyan/lhp/lms/envs/adsl
-- 当前小 case：仓库内 temp/；仅本地 Git exclude，不提交。
+- 当前活跃 workspace/SQLite：仓库内 local_experiment/，避免共享盘 SQLite I/O/SIGBUS 问题；仅本地使用，不提交。
 - 审计 case 根：temp/audit_20260830/
 - 旧 temp 清理前清单：reports/adsl_audit_20260830/prior_temp_inventory.json
 - 保留旧证据：temp/prior_evidence/
 - GPU 手册：gpu_server_operation_manual.md；仅本地 exclude，禁止提交。
-- /jiigan-hp 未作为当前依赖。数据盘恢复后必须先用 findmnt -T 和写测试确认真实 mount/FSTYPE，再考虑移动；不要因为目录可 cd 就判断健康。
-- 当前工作全部可用 CPU 完成，未申请 GPU。若以后确需 GPU，严格按 gpu_server_operation_manual.md 从 tmux 内用 volc ml_devinstance launch 申请，不使用 Slurm。
+- /jiigan-hp 已恢复并用于不可变大文件归档、GPU render queue 与 keeper 日志；使用前仍必须以 findmnt -T 验证目标为 /jiigan-hp 且 FSTYPE 匹配 hpvs_fs*，不能只凭可 cd 判断健康。
+- 当前旧 12-case CPU 批次按用户要求暂停，未恢复。2026-09-12 06:57 UTC 重新提交单 A800 请求：tmux `adsl_gpu_keeper_20260912T065718Z`，日志目录 `/jiigan-hp/lms/aDSL/experiment/gpu_keeper/20260912T065718Z/`；已确认 `Worker pending`，无 allocation timeout，分配后前台运行现有 queue-aware keeper（ttrv PyTorch）。现有 mosalloc 双卡会话未操作。
+- 新提交入口将 pending 同时写入 tmux 与 launch.log，正常/可捕获退出写 LAUNCH.exit_code、LAUNCH_FINISHED，并为该窗口启用 remain-on-exit；不自动重提不明状态的申请。旧 `20260911T091815Z` 请求已消失，日志止于 9 月 11 日 17:43:47 UTC，退出原因无记录。GPU 仍通过 tmux 内的 volc ml_devinstance launch 申请，不使用 Slurm。
 
 ## 用户级依赖规则
 
@@ -715,7 +745,7 @@ Toys4K 最小下载：
 - StepCode 1.2.79 最小 Responses 请求验证 `temperature=0` 可用并返回 `OK`，代理随后
   由 trap 关闭。完整仓库回归 109/109 通过。
 - 批处理启动前强制校验 GPU worker heartbeat；每次显式 resume 使用新日志文件，避免
-  覆盖历史；额度、GPU、checker 和其他错误分开标记并停批。活跃 SQLite/workspace
+  覆盖历史；额度、GPU、基础配置等全局错误仍单独标记并可停批；单个 arm 的 checker/generation 错误记录到 batch_terminal.json 后继续下一个 arm/case。活跃 SQLite/workspace
   留在项目盘，完成后才将不可变大证据归档数据盘。
 
 
@@ -747,3 +777,165 @@ Toys4K 最小下载：
   `/tmp/adsl_topology_sf01_*` 与 `/tmp/adsl_topology_connected_*`，不作为长期归档。
 - 按 `AGENTS.md` 控制范围：本轮不实现 adaptive registry、依赖调度器、新状态机、
   30-case/5-case 实验或其他非必要重构。
+
+## 2026-09-11：最终实体连通性语义与 12-case CPU 配对实验
+
+- topology 最小修复已合入 master/origin/master，提交为 1337660。one_piece
+  现在以最终装配中的 OCC 实体分量为准：不会只因一个语义部件内部包含多个实体就失败，
+  因为这些实体可能经其他部件连通；同时也不会把同一语义部件中的断开实体错误折叠为
+  一个图节点。
+- load_path 作为 FEA 前置检查，逐项确认每个必需载荷都成功匹配并连接到有效支撑；
+  网格保留完整承载分量，不再只取最短路径。仍保留 OCC 与双端源码定位；未支持或证据
+  不足的情况明确返回 INDETERMINATE，没有扩展通用支撑推断、连接契约或调度系统。
+- 12-case 子集为 SF01 SF03 SF05 SF06 SF07 SF11 SF13 SF16 SF20 SF21 SF25 SF27，
+  包含4把椅子、2张桌子、2个书架、2盏落地灯和2个塔式音箱。vanilla aDSL 不接收
+  checker feedback；Ours 同时使用 required topology + standing + category-specific
+  FEA feedback；两臂最终都用相同三个 checker 评价。
+- GPU 等待不能阻塞实验，因此新增 --local-render 最小开关及
+  experiments/topology_standing_fea_12/run_cpu.sh、submit_cpu.sh。它只移除
+  ADSL_GPU_RENDER_QUEUE，Agent/checker/StepCode 流程保持不变；渲染为本地 CPU
+  BLENDER_EEVEE、512×512、64 samples、8 views。
+- 当前有效 CPU run：
+  /vepfs_default/chanxueyan/lhp/lms/aDSL/local_experiment/topology_standing_fea_12_cpu_20260911T091921Z/；
+  tmux 为 adsl_tsf12_cpu_20260911T091921Z。活跃 SQLite 和小文件留在代码盘，完成后
+  再考虑将不可变大证据归档至数据盘。
+- 09:41 UTC 状态快照：SF01/adsl 已完成，SF01/ours 正在第2轮，其他 case 未开始。
+  baseline SF01 的 topology/standing/FEA 均 PASS：5个语义部件构成1个最终实体分量，
+  MuJoCo peak/final tilt 为3.543°/3.408°，FEA 最大位移3.774 mm、位移/特征长度
+  0.419%、名义屈服安全系数18.332、首个正屈曲因子243.237。
+- Ours SF01 第一轮生成了非法 0. seventeen Python 语法，Debugger 已自动修正；
+  第2轮8张 CPU Eevee 图于09:41 UTC全部生成。这再次说明缺少生成源码 AST/compile
+  preflight 会浪费一轮，但本次不扩大范围修复。
+- 第一次 CPU 提交
+  local_experiment/topology_standing_fea_12_cpu_20260911T091759Z/ 因封装脚本误写
+  不存在的 cases.json 而在生成前安全退出；已改为真实的 case_manifest.json。
+  该失败目录仅作审计，不计入实验结果。
+- 单 A800 keeper 请求由 experiments/gpu_render_queue/submit_keeper.sh 提交，tmux 为
+  adsl_gpu_keeper_20260911T091815Z，记录目录为
+  /jiigan-hp/lms/aDSL/experiment/gpu_keeper/20260911T091815Z/。该入口直接调用
+  volc ml_devinstance launch，明确不设 allocation timeout；无卡时持续 pending，
+  分配后前台运行 queue-aware keeper。keeper 在 render queue 空闲时用 ttrv PyTorch
+  占卡，出现 pending/running render job 时释放 burn 进程，队列空闲后重新启动。
+  只有用户手动停止 tmux 才终止本次占卡请求。
+- 本轮新增脚本均通过 bash -n/py_compile；topology、checker unification 与
+  standing/FEA runner 的针对性回归为 21 passed, 1 skipped。
+## 2026-09-11：checker 无反馈与批处理容错
+
+- `adsl-agents/service.py` 不再因 required checker `ERROR`（进程失败、超时、缺少
+  `result.json` 或结果无效）直接终止 ObjectWorkflow。该结果仍写入 checker history，
+  作为 `checker_feedback_unavailable` 审计记录，不交给 Engineering Critic 伪造几何反馈；
+  外观通过时可完成为 `approved=false` 的明确未验证执行。候选中的 checker ERROR 只拒绝
+  当前候选并继续尝试后续候选。
+- `experiments/standing_fea_30/run_batch.py` 将每个 arm 的非完成状态和未捕获异常写入
+  state/events，继续后续 arm 和 case，最终用 `COMPLETE_WITH_ERRORS` 汇总；全局预检错误
+  仍然中止。CPU/GPU wrapper 都会继续运行 summarizer。
+- SF01 Ours 的 MuJoCo 错误不是整件太小：整件包围盒约 `1.06×1.06×1.575`，而
+  `mesh_0_1988` 是两三角形、体积约 `2.09e-17` 的孤立浮点残片。生成源码
+  `RoundedPad` 将较短边的半径设为 `min(width, depth)/2`，使四个 cap 中出现重合球；
+  Blender Boolean UNION 后产生大量碎片（原始 mesh split 2361 个组件）。临时去重 cap
+  中心的对照导出降为 10 个组件且无小碎片，支持“重复 Boolean 输入导致残片”的判断。
+- MuJoCo checker 目前只增加少于 4 个三角面的低拓扑碎片过滤，保留原有秩判断；对真实
+  SF01 重新检查为 `available=true`、`PASS`，98 个可用 mesh component、2263 个低拓扑
+  碎片被丢弃。随后将已验证的 `RoundedPad` 半径分支正式放入 `adsl.core` 公共实现：
+  严格小于边界时保留四 cap，尺度相关 epsilon 内切换两端 capsule，超出 epsilon 才
+  抛出 `ValueError`；当前 SF01 源码改用该公共 helper，历史 round 快照保持不变。
+
+## 2026-09-12：无效 FEA 网格反馈与 SF03 收尾
+
+- FEA 在进入 CalculiX 前拦截零/负体积和非正/非有限 Jacobian，返回
+  `INDETERMINATE / MESH_INVALID`，不是结构强度 FAIL。复用 minSJ；低正质量
+  不直接判无效。未修改 OCC、容差、缩放、网格生成参数或模型。
+- MESH_INVALID 是不可用状态中可提出局部几何假设的有限例外：提供数量、局部
+  坐标、已有源码定位和报告指针，明确成因未确定、强度未验证；基础设施故障
+  不作几何目标。禁止通过删单元、放宽阈值或修改 checker/求解设置过关。
+- 未验证到未验证不算改善；其他有效检查改善可以保留未验证工作候选。
+  目标网格修复后真实 PASS 可算改善，新发现真实物理 FAIL 则拒绝并保留报告。
+- SF03 原候选已补完真实 stepcode 视觉验收，工作候选 accepted=true，最终
+  topology=PASS、standing=PASS、FEA=INDETERMINATE/MESH_INVALID、approved=false。
+  原 1 round / 1 candidate 已用完，不重置预算；本次没调用 Coder 或重跑 FEA。
+  保存细网格确认退化元素 10463、10464、10471；历史 minSJ 缺逐元素 IDs，数量
+  明确标为已确认下界。几何成因没有继续深挖，不能声称网格已修好。
+- 报告：`reports/fea_mesh_invalid_sf03_completion_20260912.md`。结果：
+  `local_experiment/checker_diagnostic_20260912T0637Z/SF03_outcome.json`。
+  13 个新增轻量回归，相关测试合计 91 passed。SF04 与旧 12-case 未恢复。
+
+## 2026-09-12：十轮单候选与 SF03 新验证
+
+- 用户要求保留我们的 Coding Agent / stepcode，不改 Gemini。新建运行默认上限
+  10 轮，工程修复每轮 1 候选、全程 10 候选；7200 秒安全预算保持。CLI resume
+  仍沿用已有“额外轮数”语义，不自动重置历史候选预算。
+- 正式新批次配置、prompt manifest 元数据同步为 10 轮、1024×1024/8 views。
+  历史四轮批次不可直接混用新冻结配置；历史 workspace/protocol 未改写。
+- 多 checker 仍统一汇总给 Engineering Critic，仅 topology 非 PASS 阻断依赖的
+  FEA；独立 standing 继续。每轮一个方案可以覆盖兼容的多个问题，不引入调度框架。
+- 新单例 `local_experiment/sf03_mesh_repair_10round_20260912/` 从 SF03 当前工作
+  源码开始，显式新授权预算，不重新 prompt-to-3D 生成。模型保持
+  gpt-5.6-sol / temperature=0；CPU Eevee 1024×1024，保留旧结果。
+- 论文给出十轮上限，但没有多候选超参数；单候选是顺序修订对应，不能声称
+  Gemini 等全部实验条件复现。相关小测试 72 passed；详见该目录 EXPERIMENT.md。
+- 用户随后要求停止 SF03、保留证据待统一规划。新实验到第 2 轮：第 1 候选
+  下横梁深度 0.13→0.15 仍 3 个坏单元，视觉 PASS、正式拒绝；第 2 候选后立柱
+  深度 0.14→0.12 仍 4 个坏单元，topology/standing PASS，候选视觉请求中被人工
+  停止，验收未完成。进程组 1126357 已 TERM 退出（143），未删除文件，未恢复
+  旧批次。`STOPPED.json` 和 `run.json` 标记 stopped_by_user；工作源码未改动、
+  approved=false、FEA=INDETERMINATE/MESH_INVALID。不自动继续，不宣称网格已解决。
+
+### 2026-09-12 新批次：五轮上限，暂停网格无效修复
+
+- 用户要求新任务最多 5 轮，工程修复每轮 1 候选、总候选上限 5；保留既有超时。
+- 暂停 294c683 中 MESH_INVALID 的几何修复入口，保留 CalculiX 前网格有效性检测、
+  原始详细报告与 FEA=INDETERMINATE/MESH_INVALID。给 agent 仅简短未验证摘要。
+- 只剩网格无效等不可用检查时提前正常保存并结束，approved=false，不凑满五轮。
+  其他有效 checker 可继续修复；已有通过项回归保护和拓扑到 FEA 的依赖不变。
+- 本次使用既有 12 case CPU 提交脚本、StepCode，两组 vanilla/ours；使用新目录，
+  不恢复已暂停批次和 SF03 诊断预算。只确认启动，按用户要求不持续监督。
+- 已提交：tmux `adsl_tsf12_cpu_20260912T085057Z`，输出
+  `local_experiment/topology_standing_fea_12_cpu_20260912T085057Z/`；102 项相关测试通过。
+  提交记录见该目录 EXPERIMENT.md；提交不代表已完成生成或物理验证。
+- 启动确认发现上述新批次 KeyboardInterrupt，tmux 已退出；配置已落盘但不在运行。
+  原因未确认，保留文件、不自动重试。不得把本次提交报告为持续运行中。
+- 用户随后明确授权重新提交：新 tmux `adsl_tsf12_cpu_20260912T085927Z`，目录
+  `local_experiment/topology_standing_fea_12_cpu_20260912T085927Z/`。
+  启动检查 pane_dead=0、批次 PID 1154361、SF01/adsl PID 1154363，StepCode health=ok。
+  已设置新实验窗口 remain-on-exit，保留退出现场；旧会话不动。只确认启动，不持续监督。
+
+### 2026-09-12 批次代理与可见日志修复
+
+- 085927Z 批次于 09:22 结束：COMPLETE_WITH_ERRORS，24 个 arm 均发生连接错误，
+  完整完成 0。SF01 在 09:17 前曾多次 API 成功；代理消失的直接触发者未证实。
+- CPU submitter 不再预先反复 start/stop proxy。整批 runner 独占锁，拒绝接管
+  现有存活代理；只在开始启动一次、退出清理一次，并核对 PID 避免误关替代代理。
+  这是合作式保护，不能阻止手动 stop 或未更新旧脚本直接关闭全局代理。
+- CPU tmux 使用 pipefail + tee：控制台输出同时保存到 batch.log；逐 case/arm
+  和子进程开始结束记录立即显示，详细子任务输出仍在对应 stdout/stderr 文件。
+- COMPLETE_WITH_ERRORS 返回非零，外层保留失败标记，不再写 SUCCESS。
+- 29 项相关测试通过；未修改 checker、模型或代理本体，也未自动扩大实验。
+- 用户要求预检成功才提交。真实小请求：healthz=ok，但 Responses 上游 HTTP 503；
+  预检代理已清理。因此未再次提交批次，需要 API 恢复后再做预检。
+- 后续排查：本地代理对上游 HTTP 状态透传，网络错误合成为 502，故之前 503 来自上游。
+  未改配置复测：本地路径 HTTP 200/5.31 秒、直连上游 HTTP 200/2 秒；暂时恢复，
+  上游内部原因未确定。没有以重试成功冒充永久修复。
+- 预检成功后已按用户授权提交 `adsl_tsf12_cpu_20260912T100549Z`，目录
+  `local_experiment/topology_standing_fea_12_cpu_20260912T100549Z/`；pane_dead=0，
+  SF01/adsl 已启动，控制台/文件双路进度输出。代理只在正式批次开始/结束操作。
+- 2026-09-14 planned-checks 恢复：SF05 规划遇到 StepCode HTTP 502，上次批次
+  停在规划阶段，未执行 checker；不是物理不达标。现将 API/模型输出/请求超时
+  隔离到单例，保留有效部分计划，其他独立案例继续；编程和冻结资产错误仍停止。
+  StepCode 未知用量保留 RESERVED，不计为零，也不阻断另一案例；新 API 严格
+  预算规则不变。恢复不重试 SF05，不重置原 8 小时截止时间或单例预算。
+  本轮仍是 plan + baseline only，混合编辑未接通；97 项相关测试通过。
+  后续 agent 循环上限按用户约定设为 4 轮，不增加每例 2 次编辑预算；本轮不改。
+- 2026-09-15：按用户要求停止 `prompt8_fixed_20260915`，仅终止本批调度及
+  SF27 worker，保留资产、独立代理和 GPU keeper。SF01 四轮补丁后的 TypeError
+  源于 handoff 写顶层 overhang_experiment，而 _repair 读 request 下该字段，
+  误走普通流程返回 None。最小修复统一写入嵌套字段；98 项相关模拟测试通过，
+  新增真实 handoff → _repair 的 CHANGED/NO_CHANGE/TOOL_ERROR 覆盖。
+  此前候选未完成验收，不能作为修复无效的物理证据。SF03 另有上游 500/TLS EOF，
+  与此 bug 不同；未声称已修复 API。实验未重启、预算未重置、代码尚未推送。
+- 2026-09-15 后续审查修复：选中的 FEA 不再因 topology 缺失被删除，改为依赖
+  阻塞/INDETERMINATE，独立工具继续；计划无效/NEEDS_SPEC 保留在最终记录，
+  必需项目未验证不报联合通过。one_piece 分量数增加不能被过悬下降抵消。
+  handoff 完整保存有效 request，恢复不默认增加原 4 轮上限。程序 TypeError 等
+  保存诊断并上报 FLOW_ERROR 停批，不再重复消耗轮次；单例 API 错误仍隔离。
+  166 项轻量测试通过，包括完整 mock 修复闭环与 retained 发布一致性。
+  未修改几何内核/阈值，未启动实验或调用 API，历史失败记录未改，尚未推送。

@@ -120,7 +120,7 @@ def test_candidate_coder_receives_compact_feedback(tmp_path, monkeypatch):
     runtime = SimpleNamespace(run=AsyncMock(side_effect=RuntimeError('stop after capturing API input')))
     workflow = ObjectWorkflow()
     asyncio.run(workflow._attempt_engineering_candidates(
-        runtime=runtime, request=SimpleNamespace(requirement='chair', repair_policy=SimpleNamespace(max_candidates_per_round=1)),
+        runtime=runtime, request=SimpleNamespace(requirement='chair', overhang_experiment={}, repair_policy=SimpleNamespace(max_candidates_per_round=1)),
         workspace=tmp_path, source_path=source, round_root=root, round_number=1,
         plan=SimpleNamespace(model_dump=lambda: {}), repairer=None, image_critic=None, code_critic=None,
         baseline_execution=None, baseline_runs=[run, other_run],

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import shutil
 import time
+import traceback
 from typing import Any
 from pydantic import ValidationError
 
@@ -1442,6 +1443,7 @@ class ObjectWorkflow:
                 raise ValueError("initial source does not match original asset source")
             book = {"original": "original", "retained": "original", "candidate": None,
                     "checker_specs": [s.model_dump() for s in request.checker_specs],
+                    "unverified_plan_tools": options.get('unverified_plan_tools', []) if planned else [],
                     "attempts": {}, "versions": {"original": version_record("original", original_source, original)}}
             write_json(book_path, book)
         reason = "round_budget_exhausted"
@@ -1480,7 +1482,8 @@ class ObjectWorkflow:
                     # Initial measurements are cached in the version, never rerun for publication.
                     if feedback and not runs:
                         runs = run_checkers(request.checker_specs, execution=execution,
-                                            source_path=current_source, round_root=round_root)
+                                            source_path=current_source, round_root=round_root,
+                                            **({'require_topology':True} if planned else {}))
                     runs = [CheckerRun(r.spec, r.result.model_copy(update={"findings": opportunities(r.result) if r.spec.name == "overhang" else r.result.findings}),
                                        r.output_dir, r.command) for r in runs] if feedback else []
                     analysis = build_analysis_context(source_path=current_source, geometry_path=execution.glb_path,
@@ -1622,9 +1625,9 @@ class ObjectWorkflow:
                     book["versions"].setdefault(attempt_id, version_record(attempt_id, candidate, None))
                     write_json(candidate.parent / "decision.json", attempt)
             write_json(book_path, book)
-        return self._publish_overhang(runtime, workspace, mode, reason)
+        return self._publish_overhang(runtime, workspace, mode, reason, planned_checks=planned)
 
-    def _publish_overhang(self, runtime, workspace, mode, reason):
+    def _publish_overhang(self, runtime, workspace, mode, reason, *, planned_checks=False):
         book_path = workspace / "overhang_versions.json"
         book = read_json(book_path)
         retained = book["versions"][book["retained"]]
@@ -1667,9 +1670,12 @@ class ObjectWorkflow:
             "record_hash": retained["record_hash"], **retained["reviews"]})
         approved = bool(retained["reviews"].get("appearance_approved") and
                         retained["reviews"].get("protection", {}).get("status") == "PASS")
-        config = read_json(workspace / "user_input.json") if (workspace / "user_input.json").exists() else {}
-        if config.get("overhang_experiment", {}).get("mode") == "planned_checks":
+        if planned_checks:
             approved = approved and all(r.result.status == "PASS" for r in runs if r.spec.required)
+            pending = book.get('unverified_plan_tools', [])
+            approved = approved and not any(t.get('required') for t in pending)
+            verification['unverified_plan_tools'] = pending
+            verification['unverified_checks'] = sorted(set(verification['unverified_checks']) | {t['name'] for t in pending})
             verification["required_checkers_passed"] = approved
             verification["planned_checks"] = True
             write_json(workspace / "checker_results.json", {"version_id": book["retained"],
@@ -1879,6 +1885,8 @@ class ObjectWorkflow:
                         ),
                     },
                 )
+                if planned and not isinstance(patch_result, dict):
+                    raise TypeError('joint candidate repair must return an edit outcome, not None')
                 if experiment and patch_result["status"] != "CHANGED":
                     record = {"round": round_number, "candidate": candidate_relative,
                               "accepted": False, **patch_result}
@@ -1895,9 +1903,16 @@ class ObjectWorkflow:
                     "accepted": False,
                     "reason": f"coder candidate failed: {type(error).__name__}: {error}",
                 }
+                if planned:
+                    report = candidate_root / 'exception.log'
+                    report.write_text(traceback.format_exc())
+                    record.update(status='FLOW_ERROR', error_type=type(error).__name__,
+                                  report_path=str(report))
                 write_json(candidate_root / "decision.json", record)
                 record_attempt(record)
                 attempts.append(record)
+                if planned:
+                    raise
                 continue
 
             try:
@@ -1984,6 +1999,7 @@ class ObjectWorkflow:
                 execution=candidate_execution,
                 source_path=candidate_source,
                 round_root=candidate_root,
+                **({'require_topology':True} if planned else {}),
             ) if not experiment or experiment.get("arm") == "feedback" else []
             if experiment:
                 versions = read_json(workspace / "overhang_versions.json")
@@ -2248,6 +2264,8 @@ class ObjectWorkflow:
         except Exception as error:
             if not options:
                 raise
+            if options.get('mode') == 'planned_checks' and isinstance(error, (TypeError, AttributeError, KeyError, AssertionError)):
+                raise
             return edit_outcome(None, context.events, before, file_hash(source_path), error=error)
         if options:
             return edit_outcome(result.final_output, context.events, before, file_hash(source_path))
@@ -2333,8 +2351,7 @@ class ObjectWorkflow:
                     raise ValueError('joint mode must explicitly configure task constraints; do not silently remove legacy protection')
                 if options["arm"] != "feedback" or not set(names) <= {"topology", "standing", "overhang", "fea"}:
                     raise ValueError("planned checks requires feedback and whitelisted tools")
-                if "fea" in names and "topology" not in names:
-                    raise ValueError("planned FEA requires topology prerequisite")
+                # Missing topology blocks FEA execution, not independent checks.
             elif names != (["overhang"] if options["arm"] == "feedback" else []):
                 raise ValueError("experiment permits only overhang in feedback arm and no checkers in control arm")
             if not (options.get('mode') == 'planned_checks' and options.get('max_candidates', 2) is None) and int(options.get("max_candidates", 2)) < 1:

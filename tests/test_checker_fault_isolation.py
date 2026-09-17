@@ -90,6 +90,26 @@ def test_topology_dependency_is_order_independent(tmp_path, monkeypatch, status)
         assert rows[0].result.artifacts["dependency_report"].endswith("topology/result.json")
 
 
+@pytest.mark.parametrize('require_topology',[True,False])
+def test_absent_topology_blocks_only_joint_fea(tmp_path,monkeypatch,require_topology):
+    import adsl.agents.checkers as checkers
+    called=[]
+    def fake(spec,**kwargs):
+        called.append(spec.name)
+        return run(tmp_path,spec.name,'PASS')
+    monkeypatch.setattr(checkers,'run_checker',fake)
+    rows=run_checkers([CheckerSpec(name=n,command=['unused']) for n in ('fea','standing')],
+        execution=None,source_path=tmp_path/'source.py',round_root=tmp_path,
+        require_topology=require_topology)
+    assert rows[1].result.status=='PASS'
+    if require_topology:
+        assert called==['standing']
+        assert rows[0].result.status=='INDETERMINATE'
+        assert rows[0].result.violations[0]['dependency_status']=='NOT_AVAILABLE'
+    else:
+        assert called==['fea','standing'] and rows[0].result.status=='PASS'
+
+
 @pytest.mark.parametrize("before,after", [("ERROR", "ERROR"), ("INDETERMINATE", "INDETERMINATE"),
                                          ("ERROR", "INDETERMINATE"), ("INDETERMINATE", "ERROR")])
 def test_partial_improvement_can_be_accepted_with_unavailable_check(before, after):

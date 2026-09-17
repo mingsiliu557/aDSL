@@ -259,6 +259,7 @@ def run_checkers(
     source_path: Path,
     round_root: Path,
     environment: Mapping[str, str] | None = None,
+    require_topology: bool = False,
 ) -> list[CheckerRun]:
     specs = list(specs)
     runs: list[CheckerRun] = []
@@ -266,15 +267,17 @@ def run_checkers(
     ordered = sorted(specs, key=lambda spec: spec.name != "topology")
     for spec in ordered:
         topology = next((run for run in runs if run.spec.name == "topology"), None)
-        if spec.name == "fea" and topology is not None and topology.result.status != "PASS":
+        if spec.name == "fea" and ((topology is not None and topology.result.status != "PASS")
+                                   or (require_topology and topology is None)):
+            dependency_status = topology.result.status if topology else 'NOT_AVAILABLE'
             output_dir = round_root / "checkers" / spec.name
             output_dir.mkdir(parents=True, exist_ok=False)
             result = canonicalize_result(CheckerResult(
                 checker=spec.name, status="INDETERMINATE",
-                summary=f"FEA not evaluated: topology status is {topology.result.status}; see dependency report",
+                summary=f"FEA not evaluated: topology status is {dependency_status}",
                 violations=[{"code": "TOPOLOGY_DEPENDENCY_UNAVAILABLE", "stage": "dependency",
-                             "dependency": "topology", "dependency_status": topology.result.status}],
-                artifacts={"dependency_report": str(topology.output_dir / "result.json")},
+                             "dependency": "topology", "dependency_status": dependency_status}],
+                artifacts={"dependency_report": str(topology.output_dir / "result.json")} if topology else {},
             ), required=spec.required)
             write_json(output_dir / "result.json", result.model_dump())
             runs.append(CheckerRun(spec, result, output_dir, ()))
