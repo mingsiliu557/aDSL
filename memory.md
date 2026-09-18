@@ -1,10 +1,22 @@
 # aDSL 工作记忆
 
-更新时间：2026-09-17（UTC）
+更新时间：2026-09-18（UTC）
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
 
-## 当前代码与实验快照（2026-09-17）
+## 当前代码与实验快照（2026-09-18）
+
+- 本轮基于 master `841afc4`，最小修复空源码 resume 的完整 fixed_assembly
+  配置传递，规划/导出前拒绝打印件保留名 scene/exploded；77 项测试通过、6 项
+  真实几何变体跳过。本摘要随本轮修复提交；实验大文件与无关修改不纳入提交。
+- StepCode 三件式顶板+重复支脚已完成：`local_experiment/fixed_assembly_three_parts_20260918`。
+  初次生成 1 次、修补 0/2 次，29,738 tokens；接口验收与 Image Critic 通过，
+  retained=original，代理已关闭。未验证真实修补能力，不运行四个物理 checker。
+- **后验导出一致性失败**：三 STL 均闭合单实体、零退化面、与独立 GLB 一致，
+  但两支脚在总装 GLB 的榫头导入斜面各差约 2.8586 mm³（容差 0.8281 mm³）。
+  已保存 `saved_export_verification.json`；发布哈希匹配，并非选错 retained。
+  当前总装重新求值 CSG，具体 Boolean/三角化根因未定；未扩大生产修复或重跑。
+  不将流程 approved=true 当成完整一致性通过。见 `reports/fixed_assembly_three_parts_20260918.md`。
 
 - 固定装配 v1 已在 `6824a14` 上实现，随本次代码提交同步。公共 `FixedAssembly` /
   `InterfaceFrame` / `TabSlot` 成对生成真实榫槽；显式打印件，冻结毫米换算、配合余量

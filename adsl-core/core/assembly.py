@@ -23,6 +23,13 @@ def _identifier(value: str) -> str:
     return value
 
 
+def _print_part_identifier(value: str) -> str:
+    value = _identifier(value)
+    if value in {'scene', 'exploded'}:
+        raise ValueError(f"Print-part ID {value!r} is reserved for assembly export filenames (scene.glb/exploded.glb)")
+    return value
+
+
 @dataclass(frozen=True)
 class InterfaceFrame:
     """Local stop-plane centre; +Z enters slot, +X spans tab width.
@@ -97,7 +104,7 @@ class FixedAssembly:
     No graph closure, multi-mate solving, articulation or automatic segmentation.
     """
     def __init__(self, *, root_id: str, mm_per_unit: float, root_frame: InterfaceFrame | None = None):
-        self.root_id = _identifier(root_id)
+        self.root_id = _print_part_identifier(root_id)
         self.mm_per_unit = float(mm_per_unit)
         if not math.isfinite(self.mm_per_unit) or self.mm_per_unit <= 0:
             raise ValueError("mm_per_unit must be positive and fixed")
@@ -107,7 +114,7 @@ class FixedAssembly:
         self._input_bodies = []  # Keep identity references alive for overlap detection.
 
     def add_part(self, part_id: str, body: Asset, *, components: tuple[str, ...]):
-        _identifier(part_id)
+        _print_part_identifier(part_id)
         if part_id in self.parts or not isinstance(body, Asset):
             raise ValueError("duplicate print-part ID or non-Asset body")
         if not components or len(set(components)) != len(components):
@@ -155,6 +162,8 @@ class FixedAssembly:
             tab_solid=tab, slot_cutter=cutter))
 
     def validate(self):
+        for part_id in self.parts:
+            _print_part_identifier(part_id)
         if not self.parts or set(self.parts) != set(self.transforms):
             raise ValueError("all print parts must be placed in one rooted tree")
         if len(self.connections) != len(self.parts) - 1:

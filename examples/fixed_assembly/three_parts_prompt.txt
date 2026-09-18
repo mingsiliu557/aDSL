@@ -1,0 +1,31 @@
+Generate a simple three-piece miniature stand as an uncalibrated geometry demonstration:
+one horizontal top plate and two identical, separate rectangular support legs.
+The complete assembled size must be 80 mm along X, 32 mm along Y and 52 mm along Z.
+Use 1 scene unit = 1 mm, +Z up. The top plate is exactly 80 x 32 x 12 mm;
+its underside is at Z=40 and its top at Z=52. Each visible leg body is exactly
+16 x 20 x 40 mm, extending from Z=0 to Z=40 in the assembled pose. Leg body
+centres are at X=-24 and X=+24, respectively, with Y=0. No decoration or fasteners.
+
+Use explicit print-part IDs top_plate, leg_left, leg_right, with top_plate as root.
+Both legs MUST use the same reusable Asset component class and identical local
+geometry: instantiate it twice (or use independent copies of one prototype).
+Do not bake their left/right world positions into two different class definitions.
+Place the two local instances through the paired-interface assembly helper.
+
+Each leg owns one upward-inserting rectangular tab; the top plate receives two
+separate underside slots at X=-24 and X=+24, Y=0, Z=40. Create two distinct
+interface IDs and two distinct slot-port names on the top plate. Reuse ONE
+TabSlot parameter object and ONE shared parameter_name for both connections.
+Use the fixed +0.2 mm SINGLE-SIDED positive slot allowance. Choose remaining
+identical tab dimensions, insertion depth, slot depth and shallow lead-in yourself,
+leaving a substantial leg shoulder and material around and above both slots.
+Build mounting material but let assembly.connect generate both tabs and both slots.
+This forms a receiver-first tree with one root and two children, not a closed loop.
+
+Write one complete program using the documented fixed assembly API. Finish with
+global assembly and scene = assembly.scene(). Preserve dimensions, repeated-leg
+symmetry, shared interface parameters and separate print pieces during repairs.
+No articulation, bolts, glue, other interface types or physical checker calls.
+Do not claim positive-clearance mating proves locking, real attachment, load
+capacity or successful printing. The goal is paired interface geometry and
+consistent separate STL/assembled/exploded output only.

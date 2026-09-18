@@ -103,6 +103,64 @@ def test_geometry_timeout_uses_existing_process_group_cleanup(tmp_path,monkeypat
     assert (tmp_path/'out/geometry.stdout.log').read_text()=='stage:slot'
 
 
+@pytest.mark.parametrize('fit_offset', [.35, -.1])
+def test_empty_source_resume_preserves_complete_initial_coder_payload(tmp_path,monkeypatch,fit_offset):
+    from adsl.agents.cli import _resume_request
+    from adsl.agents.utils.runner import _json_value
+    config = dict(mm_per_unit=2., final_size_mm=[120.,40.,124.], fit_offset_mm=fit_offset)
+    frozen = json.loads(json.dumps(config))
+    plan = FixedAssemblyPlan.model_validate({**plan_data(), **config})
+    calls = []
+    request = ObjectRequest('make T',tmp_path/'case','test',max_rounds=3,fixed_assembly=config)
+    class Runtime:
+        usage = SimpleNamespace(update_manifest=lambda **kw:None)
+        def agent(self,**kw): return kw
+        async def run(self,**kw):
+            if kw['role']=='planner': return SimpleNamespace(final_output=plan)
+            calls.append(json.loads(kw['input']))
+            ctx=kw['context'];ctx.source_path.write_text('mock complete program')
+            ctx.record('write_file',ctx.source_path)
+            return SimpleNamespace(final_output='done')
+    w=ObjectWorkflow.__new__(ObjectWorkflow)
+    monkeypatch.setattr(w,'_runtime',lambda *a,**kw:Runtime())
+    async def stop(**kw):
+        assert kw['request'].fixed_assembly==frozen
+        return 'ready'
+    monkeypatch.setattr(w,'_iterate',stop)
+    assert asyncio.run(w.generate(request))=='ready'
+    workspace=request.workspace
+    # Recreate the real interruption point: plan saved, initial source empty.
+    (workspace/'source.py').write_text(' \n')
+    (workspace/'checkpoint.json').write_text(json.dumps({'mode':'generate','stage':'planned'}))
+    saved=_json_value(request)  # Same serializer as AgentRuntime.write_runtime_config.
+    (workspace/'runtime_config.json').write_text(json.dumps({'request':saved}))
+    resumed=_resume_request(SimpleNamespace(output=workspace,requirement=None,task_id=None,
+        max_rounds=3,checker_config=[],repair_policy_config=None,overhang_experiment_config=None,
+        fixed_assembly_config=None))
+    assert asyncio.run(w.resume(resumed))=='ready'
+    assert len(calls)==2 and calls[0]==calls[1]
+    assert calls[1]['fixed_assembly']==frozen==config
+    assert calls[1]['fixed_assembly']['fit_offset_mm']==fit_offset
+
+
+@pytest.mark.parametrize('name',['scene','exploded'])
+def test_reserved_print_part_names_fail_before_export(name):
+    from adsl.agents.models import PrintPartPlan
+    message='reserved for assembly export filenames'
+    with pytest.raises(ValueError,match=message):
+        PrintPartPlan(id=name,components=['semantic_component'])
+    with pytest.raises(ValueError,match=message):
+        FixedAssembly(root_id=name,mm_per_unit=1)
+    a=build()
+    with pytest.raises(ValueError,match=message):
+        a.add_part(name,Cube(1),components=['extra'])
+    assert name not in a.parts
+    # export_assembly calls validate() before writing anything. Catch even an
+    # externally mutated mapping without introducing a different export scheme.
+    a.parts[name]=a.parts['bar']
+    with pytest.raises(ValueError,match=message):a.validate()
+
+
 @pytest.mark.parametrize('bad',['unknown','duplicate','self','cycle','ownership'])
 def test_plan_errors(bad):
     d=plan_data()

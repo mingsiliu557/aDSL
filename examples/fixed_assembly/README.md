@@ -20,6 +20,8 @@ placement only; cycles, duplicate ports and multiple locating mates are errors.
 
 An explicit print part may contain many semantic children. Never select a subtree
 twice or select both ancestor and descendant. Copies are independent instances.
+Print-part IDs `scene` and `exploded` are rejected because they would overwrite
+the whole-assembly GLBs; this is checked in planning and again before export.
 Only the helper adds tab/slot material; bodies supply mounting material.
 
 ```bash
@@ -32,6 +34,9 @@ ADSL_TEST_FIXED_REAL=1 /vepfs_default/chanxueyan/lhp/lms/envs/adsl/bin/python -m
 # One new API run: capture both terminal and log; use a new output directory.
 set -o pipefail
 bash examples/fixed_assembly/run_smoke.sh local_experiment/fixed_assembly_smoke_NEW 2>&1 | tee local_experiment/fixed_assembly_smoke_NEW.log
+
+# Alternative single case: one top plate + two copies of the same leg.
+bash examples/fixed_assembly/run_smoke.sh local_experiment/fixed_assembly_three_NEW examples/fixed_assembly/three_parts_config.json examples/fixed_assembly/three_parts_prompt.txt fixed_assembly_three_parts
 ```
 
 The script uses the existing StepCode `gpt-5.6-sol` profile and CPU Cycles. It

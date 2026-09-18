@@ -12,6 +12,8 @@ fit_intent). Receiver is already placed, tab is a new child. No cycles, multiple
 placement mates or unknown IDs. Copy mm_per_unit and final_size_mm from the frozen
 request, not from a guessed bounding box. Keep natural-language relations.
 Use the request's fixed fit_offset_mm; repairs must not change it to pass geometry.
+Print-part IDs MUST NOT be `scene` or `exploded`: these names are reserved for
+whole-assembly export files. Choose names such as `top_plate` or `leg_left`.
 
 Coder API (all imported by `from adsl.core import *`):
 

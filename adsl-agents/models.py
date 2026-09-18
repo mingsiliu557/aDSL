@@ -25,6 +25,12 @@ class PrintPartPlan(BaseModel):
     id: str = Field(pattern=r'^[A-Za-z][A-Za-z0-9_]*$')
     components: list[str] = Field(min_length=1)
 
+    @model_validator(mode='after')
+    def valid_print_part_name(self):
+        from adsl.core.assembly import _print_part_identifier
+        _print_part_identifier(self.id)
+        return self
+
 
 class FixedConnectionPlan(BaseModel):
     id: str = Field(pattern=r'^[A-Za-z][A-Za-z0-9_]*$')

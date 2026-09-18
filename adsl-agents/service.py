@@ -450,6 +450,7 @@ class ObjectWorkflow:
                                 "requirement": request.requirement,
                                 "articulation_required": request.articulation,
                                 "plan": plan.model_dump(),
+                                **({'fixed_assembly':request.fixed_assembly} if request.fixed_assembly else {}),
                                 "assignment": "Write source.py with the complete initial implementation.",
                             }, ensure_ascii=False),
                             request.image_paths,
