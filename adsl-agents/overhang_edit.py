@@ -215,9 +215,9 @@ def review_images(reference, baseline, candidate):
     return tuple(images), mapping
 
 
-def version_record(version_id, source, execution, runs=(), reviews=None):
+def version_record(version_id, source, execution, runs=(), reviews=None, extra_files=()):
     """Bind immutable asset files and their exact measurement/review payloads."""
-    paths = [source]
+    paths = [source, *extra_files]
     if not source.is_file():
         raise ValueError("version source is missing")
     if execution is not None:

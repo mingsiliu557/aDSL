@@ -6,6 +6,16 @@
 
 ## 当前代码与实验快照（2026-09-17）
 
+- 固定装配 v1 已在 `6824a14` 上实现，随本次代码提交同步。公共 `FixedAssembly` /
+  `InterfaceFrame` / `TabSlot` 成对生成真实榫槽；显式打印件，冻结毫米换算、配合余量
+  和最终尺寸。CLI 为 `--fixed-assembly-config`，不借用联合 checker/过悬模式。
+- 固定装配四个物理 checker 均关闭，仅验证接口几何，保留 Image/Code Critic。
+  79 项相关测试已通过（含 6 个真实布尔/导出变体）；正间隙不是插接保持力证明。
+  本次 StepCode 单例在 `local_experiment/fixed_assembly_v1_20260917/stepcode_smoke`，
+  tmux `adsl_fixed_assembly_v1_20260917` 已正常退出；初次生成即通过接口几何与 Image
+  Critic，0/2 次修补，4 次模型请求、29,599 token。本次代理已关闭；有两个 STL、
+  装配 GLB、8 张装配图与 2 张拆解图，哈希一致性已核对。
+  证据以 `reports/fixed_assembly_v1.md` 为准；此次未实际验证 agent 修补效果或实物固定。
 - 当前工作分支为 master。本次同步在 d66319c 之上提交联合 checker 的后续修复，
   包括有效 request 传递、独立 checker 与 FEA 依赖隔离、拓扑退步保护、恢复轮次上限、
   未验证工具记录和程序错误停止；不改几何内核、物理阈值或旧过悬专项规则。

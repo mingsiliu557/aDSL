@@ -17,15 +17,18 @@ ROLE_PROMPTS = {
 }
 
 
-def object_prompt(role: str, *, articulation: bool) -> str:
+def object_prompt(role: str, *, articulation: bool, fixed_assembly: bool = False) -> str:
     try:
         filename = ROLE_PROMPTS[role]
     except KeyError as exc:
         raise ValueError(f"Unknown object prompt role: {role}") from exc
-    return render_prompt_resource(
+    prompt = render_prompt_resource(
         PROMPT_ROOT / filename,
         articulation=articulation,
     )
+    if fixed_assembly:
+        prompt += '\n' + (PROMPT_ROOT / 'fixed_assembly.md').read_text(encoding='utf-8')
+    return prompt
 
 
 __all__ = ["object_prompt"]

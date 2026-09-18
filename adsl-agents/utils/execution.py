@@ -74,6 +74,7 @@ def execute_asset_source(
     export_urdf: bool = True,
     timeout: float = 300.0,
     working_directory: str | Path | None = None,
+    fixed_assembly: dict | None = None,
 ) -> ExecutionResult:
     """Execute one generated aDSL program in an isolated child process."""
 
@@ -95,7 +96,11 @@ def execute_asset_source(
         "--output",
         str(output),
     ]
-    if render:
+    if fixed_assembly:
+        config_path = output / 'fixed_assembly_config.json'
+        config_path.write_text(json.dumps(fixed_assembly, indent=2))
+        command.extend(['--fixed-assembly-config', str(config_path)])
+    if render and not fixed_assembly:
         command.extend(
             [
                 "--render",
@@ -105,7 +110,7 @@ def execute_asset_source(
                 str(render_elevation),
             ]
         )
-    if export_urdf:
+    if export_urdf and not fixed_assembly:
         command.append("--urdf")
     process = subprocess.Popen(
         command,
@@ -116,7 +121,18 @@ def execute_asset_source(
         start_new_session=True,
     )
     try:
-        stdout, stderr = process.communicate(timeout=timeout)
+        stdout, stderr = process.communicate(timeout=120.0 if fixed_assembly else timeout)
+    except subprocess.TimeoutExpired as error:
+        _stop_process_group(process)
+        if fixed_assembly:
+            def as_text(value):
+                return value.decode(errors='replace') if isinstance(value, bytes) else (value or '')
+            (output/'geometry.stdout.log').write_text(as_text(error.output))
+            (output/'geometry.stderr.log').write_text(as_text(error.stderr))
+            (output/'geometry_timeout.json').write_text(json.dumps({'status':'ERROR',
+                'code':'ASSEMBLY_GEOMETRY_TIMEOUT', 'timeout_seconds':120,
+                'stage_report':'assembly/assembly_manifest.json'}))
+        raise
     except BaseException:
         _stop_process_group(process)
         raise
@@ -126,6 +142,9 @@ def execute_asset_source(
         stdout,
         stderr,
     )
+    if fixed_assembly:
+        (output/'geometry.stdout.log').write_text(stdout)
+        (output/'geometry.stderr.log').write_text(stderr)
     if completed.returncode != 0:
         error_type = (
             AssetInfrastructureError
@@ -139,6 +158,24 @@ def execute_asset_source(
             f"Generated source exited with code {completed.returncode}.\n"
             f"STDOUT:\n{completed.stdout}\nSTDERR:\n{completed.stderr}"
         )
+    if fixed_assembly:
+        if render:
+            render_command = [sys.executable, str(Path(__file__).with_name('asset_executor.py')),
+                '--source', str(source), '--output', str(output), '--render-only', '--render',
+                '--render-view-count', str(render_view_count), '--render-elevation', str(render_elevation)]
+            render_process = subprocess.Popen(render_command, cwd=workdir, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE, text=True, start_new_session=True)
+            try:
+                render_stdout, render_stderr = render_process.communicate(timeout=timeout)
+            except BaseException:
+                _stop_process_group(render_process)
+                raise
+            (output/'render.stdout.log').write_text(render_stdout)
+            (output/'render.stderr.log').write_text(render_stderr)
+            if render_process.returncode:
+                raise AssetExecutionError(f'Assembly rendering failed; see {output}/render.stderr.log')
+            stdout += render_stdout
+            stderr += render_stderr
     manifest_path = output / "execution.json"
     if not manifest_path.is_file():
         raise AssetExecutionError("Generated source did not write execution.json")

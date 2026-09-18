@@ -31,6 +31,8 @@ from .models import (
     PlannedEngineeringCriticDecision,
     ImageCriticDecision,
     ObjectPlan,
+    FixedAssemblyPlan,
+    FixedAssemblyConfig,
     ObjectRequest,
     ObjectRunResult,
     RepairProposal,
@@ -262,7 +264,7 @@ class ObjectWorkflow:
         context = AgentToolContext(workspace=workspace, source_path=source_path)
         coder = runtime.agent(
             name="object-coder",
-            instructions=object_prompt("coder", articulation=request.articulation),
+            instructions=object_prompt("coder", articulation=request.articulation, fixed_assembly=bool(request.fixed_assembly)),
             tools=WRITE_TOOLS,
         )
         await runtime.run(
@@ -273,6 +275,7 @@ class ObjectWorkflow:
                         "requirement": request.requirement,
                         "articulation_required": request.articulation,
                         "plan": plan.model_dump(),
+                        **({'fixed_assembly':request.fixed_assembly} if request.fixed_assembly else {}),
                         "assignment": "Write source.py with the complete initial implementation.",
                     },
                     ensure_ascii=False,
@@ -302,6 +305,8 @@ class ObjectWorkflow:
         edit_kind: EditKind = "continue",
     ) -> ObjectRunResult:
         self._validate_request(request)
+        if request.fixed_assembly:
+            raise ValueError('fixed assembly v1 supports create/resume; arbitrary existing-asset edit is not supported')
         workspace = self._prepare_workspace(request.workspace)
         self._persist_user_input(workspace, request)
         source_path = workspace / "source.py"
@@ -400,13 +405,13 @@ class ObjectWorkflow:
         if (
             checkpoint.get("stage") == "completed"
             or manifest.get("status") == "completed"
-        ) and self._published_files_exist(workspace) and not request.overhang_experiment:
+        ) and self._published_files_exist(workspace) and not request.overhang_experiment and not request.fixed_assembly:
             return self._load_completed_result(workspace, manifest)
 
         runtime = self._runtime(request, workspace, mode=mode, resume=True)
         runtime.usage.update_manifest(status="running", resumed=True)
         if plan_path.is_file():
-            plan_type = ObjectPlan if mode == "generate" else EditPlan
+            plan_type = (FixedAssemblyPlan if request.fixed_assembly else ObjectPlan) if mode == "generate" else EditPlan
             plan = plan_type.model_validate(read_json(plan_path))
         elif mode == "generate":
             plan = await self._plan_generation(runtime, request)
@@ -435,7 +440,7 @@ class ObjectWorkflow:
                     context = AgentToolContext(workspace=workspace, source_path=source_path)
                     coder = runtime.agent(
                         name="object-coder",
-                        instructions=object_prompt("coder", articulation=request.articulation),
+                        instructions=object_prompt("coder", articulation=request.articulation, fixed_assembly=bool(request.fixed_assembly)),
                         tools=WRITE_TOOLS,
                     )
                     await runtime.run(
@@ -516,8 +521,9 @@ class ObjectWorkflow:
                 "render": True,
                 "render_view_count": 8,
                 "render_elevation": 15.0,
-                "export_urdf": True,
+                "export_urdf": not bool(request.fixed_assembly),
                 "timeout": executor_timeout,
+                **({'assembly_geometry_timeout':120, 'physical_checkers':'disabled'} if request.fixed_assembly else {}),
                 **_render_execution_config(),
             },
             context_policy=_CONTEXT_POLICY,
@@ -541,16 +547,21 @@ class ObjectWorkflow:
     ) -> ObjectPlan:
         planner = runtime.agent(
             name="object-planner",
-            instructions=object_prompt("planner", articulation=request.articulation),
-            output_type=ObjectPlan,
+            instructions=object_prompt("planner", articulation=request.articulation, fixed_assembly=bool(request.fixed_assembly)),
+            output_type=FixedAssemblyPlan if request.fixed_assembly else ObjectPlan,
         )
         result = await runtime.run(
             agent=planner,
-            input=user_input(request.requirement, request.image_paths),
+            input=user_input(json.dumps({'requirement':request.requirement, 'fixed_assembly':request.fixed_assembly})
+                             if request.fixed_assembly else request.requirement, request.image_paths),
             role="planner",
             stage="plan",
         )
-        return self._typed_output(result.final_output, ObjectPlan)
+        plan = self._typed_output(result.final_output, FixedAssemblyPlan if request.fixed_assembly else ObjectPlan)
+        if request.fixed_assembly and (plan.mm_per_unit != request.fixed_assembly['mm_per_unit']
+                                       or plan.final_size_mm != request.fixed_assembly['final_size_mm']):
+            raise ValueError('assembly plan changed frozen scale or final dimensions')
+        return plan
 
     async def _plan_edit(
         self,
@@ -597,6 +608,10 @@ class ObjectWorkflow:
         plan: ObjectPlan | EditPlan,
         resume_state: dict[str, Any] | None = None,
     ) -> ObjectRunResult:
+        if request.fixed_assembly:
+            from .fixed_assembly import iterate_fixed_assembly
+            return await iterate_fixed_assembly(self, runtime=runtime, request=request, workspace=workspace,
+                source_path=source_path, plan=plan)
         rounds_root = workspace / "rounds"
         rounds_root.mkdir(exist_ok=resume_state is not None)
         repairer = runtime.agent(
@@ -2234,6 +2249,7 @@ class ObjectWorkflow:
         stage: str,
         payload: dict[str, object],
         reserved_attempt_id: str | None = None,
+        allow_no_change: bool = False,
     ) -> dict[str, Any] | None:
         config_path = workspace / "runtime_config.json"
         options = read_json(config_path).get("request", {}).get("overhang_experiment", {}) if config_path.exists() else {}
@@ -2246,12 +2262,13 @@ class ObjectWorkflow:
                 raise ValueError("invalid or already executed experiment reservation")
             attempt["status"] = "MODEL_STARTED"
             write_json(workspace / "overhang_versions.json", versions)
-        context = AgentToolContext(workspace=workspace, source_path=source_path, record_noop_patch=bool(options),
+        isolated = bool(options) or allow_no_change
+        context = AgentToolContext(workspace=workspace, source_path=source_path, record_noop_patch=isolated,
                                    patch_scope_id=reserved_attempt_id or stage)
         assigned_source = source_path.relative_to(workspace).as_posix()
         payload = {"assigned_source": assigned_source, **payload}
-        before = file_hash(source_path) if options else None
-        if options:
+        before = file_hash(source_path) if isolated else None
+        if isolated:
             payload["no_change_contract"] = 'If no appropriate edit exists, return {"edit_action":"NO_CHANGE","reason":"..."}. Do not apply a dummy patch.'
         try:
             result = await runtime.run(
@@ -2262,12 +2279,12 @@ class ObjectWorkflow:
             context=context,
             )
         except Exception as error:
-            if not options:
+            if not isolated:
                 raise
             if options.get('mode') == 'planned_checks' and isinstance(error, (TypeError, AttributeError, KeyError, AssertionError)):
                 raise
             return edit_outcome(None, context.events, before, file_hash(source_path), error=error)
-        if options:
+        if isolated:
             return edit_outcome(result.final_output, context.events, before, file_hash(source_path))
         self._require_tool_event(context, "apply_patch", stage)
 
@@ -2339,6 +2356,10 @@ class ObjectWorkflow:
             raise ValueError("task_id must not be empty")
         if request.max_rounds < 1:
             raise ValueError("max_rounds must be at least 1")
+        if request.fixed_assembly:
+            FixedAssemblyConfig.model_validate(request.fixed_assembly)
+            if request.articulation or request.overhang_experiment:
+                raise ValueError('fixed assembly cannot reuse articulation or overhang/planned-checks modes')
         names = [spec.name for spec in request.checker_specs]
         if len(names) != len(set(names)):
             raise ValueError("checker names must be unique")

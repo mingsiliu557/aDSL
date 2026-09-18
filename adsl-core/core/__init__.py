@@ -56,6 +56,7 @@ from .asset import (
 )
 from .appearance import get_link_rgba, set_link_color
 from .axis import as_vec3, axis_index, parse_axis, unsigned_axis_name
+from .assembly import FixedAssembly, InterfaceFrame, TabSlot
 
 
 def export_glb(*args, **kwargs):  # pragma: no cover
@@ -86,6 +87,7 @@ def export_urdf(*args, **kwargs):  # pragma: no cover
     return _export_urdf(*args, **kwargs)
 
 __all__ = [
+    "FixedAssembly", "InterfaceFrame", "TabSlot",
     "Asset",
     "Joint",
     "concat_shapes",

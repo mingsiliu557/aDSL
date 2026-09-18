@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from .utils.usage import UsageTotals
 
@@ -19,6 +19,70 @@ class ObjectPlan(BaseModel):
     components: list[ObjectComponent]
     relations: list[str]
     critic_checklist: list[str]
+
+
+class PrintPartPlan(BaseModel):
+    id: str = Field(pattern=r'^[A-Za-z][A-Za-z0-9_]*$')
+    components: list[str] = Field(min_length=1)
+
+
+class FixedConnectionPlan(BaseModel):
+    id: str = Field(pattern=r'^[A-Za-z][A-Za-z0-9_]*$')
+    tab_part: str
+    slot_part: str
+    tab_port: str
+    slot_port: str
+    parameter_name: str
+    interface_type: Literal['tab_slot']
+    insertion_direction: str
+    fit_intent: str
+
+
+class FixedAssemblyPlan(ObjectPlan):
+    print_parts: list[PrintPartPlan]
+    connections: list[FixedConnectionPlan]
+    root_part: str
+    mm_per_unit: float = Field(gt=0)
+    final_size_mm: list[float] = Field(min_length=3, max_length=3)
+
+    @model_validator(mode='after')
+    def valid_assembly(self):
+        import math
+        ids = [p.id for p in self.print_parts]
+        if len(ids) != len(set(ids)) or self.root_part not in ids:
+            raise ValueError('unique print-part IDs and an existing root are required')
+        members = [c for p in self.print_parts for c in p.components]
+        components = [c.name for c in self.components]
+        if len(members) != len(set(members)) or sorted(members) != sorted(components):
+            raise ValueError('print-part membership must partition all semantic components')
+        placed, links, ports = {self.root_part}, set(), set()
+        for c in self.connections:
+            if c.id in links or c.tab_part == c.slot_part or {c.tab_part,c.slot_part} - set(ids):
+                raise ValueError('duplicate connection, self connection or unknown print part')
+            if c.slot_part not in placed or c.tab_part in placed:
+                raise ValueError('unsupported placement: connections must be an ordered rooted tree, receiver before tab child')
+            if (c.slot_part,c.slot_port) in ports:
+                raise ValueError('receiver port already occupied')
+            ports.add((c.slot_part,c.slot_port))
+            links.add(c.id)
+            placed.add(c.tab_part)
+        if placed != set(ids) or not all(math.isfinite(v) and v > 0 for v in [self.mm_per_unit,*self.final_size_mm]):
+            raise ValueError('all print parts must be placed; fixed scale and size must be finite and positive')
+        return self
+
+
+class FixedAssemblyConfig(BaseModel):
+    # The request, not the generated program, freezes scale and required size.
+    mm_per_unit: float = Field(gt=0, allow_inf_nan=False)
+    fit_offset_mm: float = Field(allow_inf_nan=False)
+    final_size_mm: list[float] = Field(min_length=3, max_length=3)
+
+    @model_validator(mode='after')
+    def valid_size(self):
+        import math
+        if not all(math.isfinite(v) and v > 0 for v in self.final_size_mm):
+            raise ValueError('final_size_mm must contain three finite positive dimensions')
+        return self
 
 
 class EditPlan(BaseModel):
@@ -245,6 +309,7 @@ class ObjectRequest:
     repair_policy: RepairPolicy = field(default_factory=RepairPolicy)
     # Explicit local-edit experiment only. Empty keeps production behavior.
     overhang_experiment: dict[str, Any] = field(default_factory=dict)
+    fixed_assembly: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

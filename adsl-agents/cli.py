@@ -37,6 +37,7 @@ def _parser() -> argparse.ArgumentParser:
         )
         command.add_argument("--repair-policy-config", type=Path)
         command.add_argument("--overhang-experiment-config", type=Path)
+        command.add_argument('--fixed-assembly-config', type=Path)
     edit.add_argument("--source", type=Path, required=True)
     edit.add_argument("--edit-kind", choices=["continue", "extend", "variant"], default="continue")
     edit.add_argument(
@@ -51,6 +52,7 @@ def _parser() -> argparse.ArgumentParser:
     resume.add_argument("--checker-config", type=Path, action="append", default=[])
     resume.add_argument("--repair-policy-config", type=Path)
     resume.add_argument("--overhang-experiment-config", type=Path)
+    resume.add_argument('--fixed-assembly-config', type=Path)
     return parser
 
 
@@ -92,6 +94,8 @@ def _resume_request(args: argparse.Namespace) -> ObjectRequest:
         task_id=args.task_id or str(payload.get("task_id", "")),
         image_paths=tuple(Path(value) for value in payload.get("image_paths", [])),
         articulation=bool(payload.get("articulation", False)),
+        fixed_assembly=(read_json(args.fixed_assembly_config) if getattr(args,'fixed_assembly_config',None)
+                        else payload.get('fixed_assembly',{})),
         max_rounds=max_rounds,
         checker_specs=checker_specs,
         check_first=bool(payload.get("check_first", False)),
@@ -117,6 +121,7 @@ async def _run(args: argparse.Namespace) -> dict[str, object]:
         task_id=args.task_id or uuid4().hex,
         image_paths=tuple(args.image),
         articulation=args.articulation,
+        fixed_assembly=(read_json(args.fixed_assembly_config) if args.fixed_assembly_config else {}),
         max_rounds=args.max_rounds,
         checker_specs=_load_checker_specs(args.checker_config),
         check_first=bool(getattr(args, "check_first", False)),
