@@ -19,12 +19,13 @@ from ..assembly import FixedAssembly
 from .export_glb import export_glb
 
 
-def mesh_solid(mesh):
+def mesh_solid(mesh, face_ids=None):
     import manifold3d as mf
     if not np.isfinite(mesh.vertices).all() or np.any(mesh.area_faces <= 0) or not mesh.is_volume:
         raise ValueError("mesh is not a finite closed oriented volume, or has zero-area faces")
     solid = mf.Manifold(mf.Mesh64(np.array(mesh.vertices, dtype=np.float64, order='C', copy=True),
-                                 np.array(mesh.faces, dtype=np.uint64, order='C', copy=True)))
+                                 np.array(mesh.faces, dtype=np.uint64, order='C', copy=True),
+                                 face_id=face_ids))
     if solid.status() != mf.Error.NoError:
         raise ValueError(f"Manifold input rejected: {solid.status()}")
     return solid
@@ -39,32 +40,154 @@ def solid_mesh(solid):
     return trimesh.Trimesh(np.asarray(raw.vert_properties)[:, :3], np.asarray(raw.tri_verts), process=False)
 
 
-def evaluated(shape, path, mm_per_unit):
+def evaluated(shape, path, mm_per_unit, *, keep_materials=False):
     """Use actual post-Boolean Blender vertices, before GLTF's Y-up conversion."""
     import bpy
     import manifold3d as mf
     import trimesh
     export_glb(shape, path)
     shells, welded = [], 0
+    materials, face_materials = [], []
     for obj in bpy.context.scene.objects:
         if obj.type != 'MESH':
             continue
         obj.data.calc_loop_triangles()
+        vertex_count, triangle_count = len(obj.data.vertices), len(obj.data.loop_triangles)
+        if not vertex_count or not triangle_count:
+            raise ValueError(
+                f"empty evaluated mesh {obj.name!r}: "
+                f"vertices={vertex_count}, loop_triangles={triangle_count}"
+            )
         vertices = np.asarray([tuple(obj.matrix_world @ v.co) for v in obj.data.vertices]) * mm_per_unit
         faces = np.asarray([tuple(t.vertices) for t in obj.data.loop_triangles], dtype=np.int64)
         # Only exact duplicates within this object, never proximity welding.
         unique, inverse = np.unique(vertices, axis=0, return_inverse=True)
         welded += len(vertices) - len(unique)
         mesh = trimesh.Trimesh(unique, inverse[faces], process=False)
-        for shell in mesh.split(only_watertight=False, repair=False):
-            shells.append(mesh_solid(shell))
+        if keep_materials:
+            offset = len(materials)
+            # factory_settings in the next evaluation invalidates bpy references.
+            # Keep plain material values, not Blender datablocks or guessed colors.
+            for material in obj.data.materials:
+                bsdf = material.node_tree.nodes.get('Principled BSDF') if material.use_nodes else None
+                if bsdf is None:
+                    raise ValueError('fixed assembly requires the existing Principled material representation')
+                materials.append(dict(name=material.name,
+                    base_color=list(bsdf.inputs['Base Color'].default_value),
+                    alpha=float(bsdf.inputs['Alpha'].default_value),
+                    metallic=float(bsdf.inputs['Metallic'].default_value),
+                    roughness=float(bsdf.inputs['Roughness'].default_value),
+                    blend_method=material.blend_method, use_backface_culling=material.use_backface_culling))
+            ids = np.arange(len(face_materials), len(face_materials)+len(faces), dtype=np.uint64)
+            face_materials.extend(offset+obj.data.polygons[t.polygon_index].material_index
+                                  for t in obj.data.loop_triangles)
+            # Explicit face subsets preserve provenance that mesh.split discards.
+            for indices in trimesh.graph.connected_components(mesh.face_adjacency, nodes=np.arange(len(faces))):
+                shell = mesh.submesh([indices], append=True, repair=False)
+                shells.append(mesh_solid(shell, ids[indices]))
+        else:
+            for shell in mesh.split(only_watertight=False, repair=False):
+                shells.append(mesh_solid(shell))
     if not shells:
         raise ValueError('empty evaluated part')
     merged = mf.Manifold.batch_boolean(shells, mf.OpType.Add)
     mesh = solid_mesh(merged)
     mesh_solid(mesh)
+    if keep_materials:
+        origins = np.asarray(merged.to_mesh64().face_id, dtype=np.int64)
+        mesh.face_attributes['material'] = np.asarray(face_materials)[origins]
+        if np.any(mesh.face_attributes['material'] >= len(materials)):
+            raise ValueError('missing source material for exported face')
+        mesh.metadata['materials'] = materials
     return mesh, merged, {'input_shells': len(shells), 'exact_duplicate_vertices_merged': welded,
                           'proximity_welding': False}
+
+
+def _write_mesh_glb(meshes, transforms, path, mm_per_unit):
+    """Only instantiate already-evaluated local meshes; never evaluate Asset CSG."""
+    import bpy
+    import mathutils
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    for name, mesh in meshes.items():
+        data = bpy.data.meshes.new(name)
+        data.from_pydata((mesh.vertices/mm_per_unit).tolist(), [], mesh.faces.tolist())
+        for spec in mesh.metadata['materials']:
+            material = bpy.data.materials.new(spec['name'])
+            material.use_nodes = True
+            bsdf = material.node_tree.nodes.get('Principled BSDF')
+            for key, field in [('Base Color','base_color'), ('Alpha','alpha'),
+                               ('Metallic','metallic'), ('Roughness','roughness')]:
+                bsdf.inputs[key].default_value = spec[field]
+            material.blend_method = spec['blend_method']
+            material.use_backface_culling = spec['use_backface_culling']
+            data.materials.append(material)
+        for polygon, index in zip(data.polygons, mesh.face_attributes['material'], strict=True):
+            polygon.material_index = int(index)
+        parent = bpy.data.objects.new(name, None)
+        parent['adsl_print_part_id'] = name
+        bpy.context.collection.objects.link(parent)
+        parent.matrix_world = mathutils.Matrix(np.asarray(transforms[name]).tolist())
+        obj = bpy.data.objects.new(name+'_mesh', data)
+        bpy.context.collection.objects.link(obj)
+        obj.parent = parent
+        obj.matrix_parent_inverse.identity()
+    bpy.ops.export_scene.gltf(filepath=str(path), export_format='GLB', export_yup=True,
+        export_apply=False, export_extras=True, export_draco_mesh_compression_enable=False)
+
+
+def _verify_written_exports(output, manifest, solids):
+    """Read actual files, group material primitives by explicit part ID, undo poses."""
+    import trimesh
+    z_up = np.array([[1,0,0,0], [0,0,-1,0], [0,1,0,0], [0,0,0,1.]])
+    unit = manifest['mm_per_unit']
+    parts = {p['id']:p for p in manifest['parts']}
+    checks = manifest['export_consistency'] = []
+    files = [(p['stl'], {name: np.asarray(p['print_transform_mm'])}, False) for name,p in parts.items()]
+    files += [(p['glb'], {name: np.eye(4)}, True) for name,p in parts.items()]
+    for filename, field in [('scene.glb','assembly_transform'), ('exploded.glb','exploded_transform')]:
+        transforms = {name:np.array(p[field], dtype=float) for name,p in parts.items()}
+        for transform in transforms.values():
+            transform[:3,3] *= unit
+        files.append((filename, transforms, True))
+    for filename, transforms, glb in files:
+        try:
+            grouped = {name:[] for name in transforms}
+            if glb:
+                scene = trimesh.load(output/filename, force='scene', process=False)
+                for node in scene.graph.nodes_geometry:
+                    cursor, owners = node, []
+                    while cursor is not None:
+                        if cursor in grouped:
+                            owners.append(cursor)
+                        cursor = scene.graph.transforms.parents.get(cursor)
+                    if len(owners) != 1:
+                        raise ValueError(f'geometry node {node!r} has no unique print-part ID')
+                    transform, geometry = scene.graph[node]
+                    mesh = scene.geometry[geometry].copy()
+                    mesh.apply_transform(z_up @ transform)
+                    mesh.apply_scale(unit)
+                    grouped[owners[0]].append(mesh)
+            else:
+                grouped[next(iter(grouped))].append(trimesh.load(output/filename, process=False))
+            for name, pieces in grouped.items():
+                if not pieces:
+                    raise ValueError(f'no saved geometry for {name}')
+                mesh = trimesh.util.concatenate(pieces)
+                mesh.apply_transform(np.linalg.inv(transforms[name]))
+                # Exact duplicate vertices arise at STL/material seams, not repair.
+                vertices, inverse = np.unique(mesh.vertices, axis=0, return_inverse=True)
+                actual = mesh_solid(trimesh.Trimesh(vertices, inverse[mesh.faces], process=False))
+                reference = solids[name]
+                difference = abs((actual-reference).volume()) + abs((reference-actual).volume())
+                passed = difference <= manifest['numeric_tolerance']['volume_mm3']
+                checks.append(dict(file=filename, part_id=name, status='PASS' if passed else 'FAIL',
+                                   symmetric_difference_mm3=difference))
+                if not passed:
+                    manifest['failures'].append(dict(code='EXPORTED_FILE_GEOMETRY_MISMATCH',
+                        file=filename, part_id=name, symmetric_difference_mm3=difference))
+        except (ValueError, RuntimeError, OSError, KeyError) as error:
+            checks.append(dict(file=filename, status='FAIL', reason=str(error)[:300]))
+            manifest['failures'].append(dict(code='EXPORTED_FILE_INVALID', file=filename, reason=str(error)[:300]))
 
 
 def _write(path, value):
@@ -108,7 +231,7 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
         manifest['stage'] = f'part:{name}'
         _write(target, manifest)
         try:
-            mesh, solid, diagnostics = evaluated(part, output/f'{name}.glb', assembly.mm_per_unit)
+            mesh, solid, diagnostics = evaluated(part, output/f'{name}.glb', assembly.mm_per_unit, keep_materials=True)
             _, body, _ = evaluated(assembly.bodies[name], output/f'{name}.body.glb', assembly.mm_per_unit)
             meshes[name], solids[name], bodies[name] = mesh, solid, body
             components = len(mesh.split(only_watertight=False, repair=False))
@@ -195,11 +318,19 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
     extent = np.max(bounds[:, 3:], axis=0) - np.min(bounds[:, :3], axis=0)
     require(np.all(np.abs(extent - np.asarray(expected['final_size_mm'])) <= length_tol*4),
             'FINAL_SIZE_MISMATCH', actual_mm=extent.tolist(), expected_mm=expected['final_size_mm'])
-    # The exact same evaluated CSG is exported for assembly views, retaining the
-    # original per-face materials. STL has the unioned exterior of those meshes;
-    # do not invent replacement colours or globally fuse separate print parts.
-    export_glb(assembly.scene(), output/'scene.glb')
-    export_glb(assembly.scene(exploded_mm=float(np.max(extent))*1.25), output/'exploded.glb')
+    # One canonical local exterior per part, scoped to this export/candidate.
+    # Only rigid placement differs between standalone, assembly and exploded GLB.
+    manifest['stage'] = 'write_and_verify_final_meshes'
+    _write(target, manifest)
+    exploded = {name:np.array(matrix, copy=True) for name,matrix in assembly.transforms.items()}
+    for i, part in enumerate(manifest['parts']):
+        name = part['id']
+        exploded[name][0,3] += i*float(np.max(extent))*1.25/assembly.mm_per_unit
+        part['exploded_transform'] = exploded[name].tolist()
+        _write_mesh_glb({name:meshes[name]}, {name:np.eye(4)}, output/part['glb'], assembly.mm_per_unit)
+    _write_mesh_glb(meshes, assembly.transforms, output/'scene.glb', assembly.mm_per_unit)
+    _write_mesh_glb(meshes, exploded, output/'exploded.glb', assembly.mm_per_unit)
+    _verify_written_exports(output, manifest, solids)
     manifest.update(status='PASS' if not manifest['failures'] else 'FAIL', stage='complete',
                     elapsed_seconds=time.monotonic()-start, assembled_size_mm=extent.tolist())
     manifest['files_sha256'] = {p.name:hashlib.sha256(p.read_bytes()).hexdigest()

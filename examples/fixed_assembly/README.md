@@ -37,7 +37,18 @@ bash examples/fixed_assembly/run_smoke.sh local_experiment/fixed_assembly_smoke_
 
 # Alternative single case: one top plate + two copies of the same leg.
 bash examples/fixed_assembly/run_smoke.sh local_experiment/fixed_assembly_three_NEW examples/fixed_assembly/three_parts_config.json examples/fixed_assembly/three_parts_prompt.txt fixed_assembly_three_parts
+
+# Optional tmux: task finishes back at an interactive prompt; log + pane output.
+bash experiments/tmux_session.sh adsl_fixed_NEW "$PWD" bash -o pipefail -c \
+  'bash examples/fixed_assembly/run_smoke.sh local_experiment/fixed_assembly_smoke_NEW 2>&1 | tee local_experiment/fixed_assembly_smoke_NEW.log'
+tmux attach -t adsl_fixed_NEW
 ```
+
+Use a fresh session/output name. The session stays interactive after success,
+failure or Ctrl-C and prints the actual task exit code; a live pane alone is not
+proof that the experiment is still running. Ctrl-b d only detaches. The wrapper
+does not load root startup scripts; source `/vepfs_default/chanxueyan/lhp/lms/.bashrc`
+explicitly if needed for later manual commands. The worker already loads it.
 
 The script uses the existing StepCode `gpt-5.6-sol` profile and CPU Cycles. It
 starts a proxy only if no listener exists and stops only the proxy it owns.
@@ -61,7 +72,14 @@ Existing SDK retries/time limits remain; no additional retries or edit budget.
 Blender evaluates union/difference. Manifold unions shells only within an individual
 print piece, without hole filling or proximity welding. Exact duplicate vertices
 within the same mesh are merged and counted. No global union joins print pieces.
-GLB retains the original evaluated CSG/materials; STL has those meshes' merged exterior.
+Each part's evaluated, within-part-unioned local mesh is reused for STL and all
+three GLB views (standalone, assembled, exploded). Material assignment follows
+Manifold's original face IDs; assembly/display placement never reruns CSG.
+All final files are read back, grouped by explicit print-part ID, converted to
+millimetres/local coordinates and compared with the same validated mesh using
+the existing symmetric-volume tolerance. A mismatch makes geometry validation
+FAIL; a successful Image Critic cannot override it. STL uses millimetres; GLB
+retains the existing source-unit convention and glTF Y-up conversion.
 Geometry validation uses a documented float32-derived numerical bound, separate
 from the physical fit allowance. Every part must be a single closed oriented solid.
 

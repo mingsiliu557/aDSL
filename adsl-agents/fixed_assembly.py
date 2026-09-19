@@ -92,6 +92,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             candidate_root = root
         execution, reviews = None, {'appearance_approved':None}
         report = {'status':'ERROR', 'failures':[]}
+        report_path = candidate_root/'asset'/'assembly'/'assembly_manifest.json'
         try:
             execution = execute_asset_source(current, candidate_root/'asset', render=True,
                 export_urdf=False, timeout=_asset_executor_timeout_seconds(), fixed_assembly=config)
@@ -104,17 +105,33 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             accepted = approved and report['status'] == 'PASS'
             reason = 'interface_geometry_and_appearance_passed' if accepted else 'interface_or_appearance_rejected'
         except (AssetExecutionError, subprocess.TimeoutExpired) as error:
-            write_json(candidate_root/'execution_error.json', {'type':type(error).__name__, 'error':str(error)})
-            report_path = candidate_root/'asset'/'assembly'/'assembly_manifest.json'
+            diagnostic = {'type':type(error).__name__, 'error':str(error)}
             if report_path.exists():
-                report = read_json(report_path)
-            report['status'] = 'ERROR'
-            report['failures'].append({'code':'EXECUTION_UNAVAILABLE', 'reason':str(error).strip().splitlines()[-1][:240],
-                'report_path':str(candidate_root/'execution_error.json')})
+                try:
+                    saved_report = read_json(report_path)
+                    if not isinstance(saved_report, dict) or not isinstance(saved_report.get('failures'), list):
+                        raise ValueError('assembly manifest must contain a failures list')
+                    report = saved_report
+                    diagnostic['assembly_report_path'] = str(report_path)
+                except (OSError, ValueError) as report_error:
+                    diagnostic['assembly_report_error'] = str(report_error)[:240]
+            # Execution may fail before producing any manifest. Give the next
+            # Coder a real diagnostic file, never a speculative export path.
+            report_path = candidate_root/'execution_error.json'
+            write_json(report_path, diagnostic)
+            # A valid geometric rejection is not an unavailable measurement.
+            # Keep its part/interface findings even if no render was produced.
+            if report.get('status') != 'FAIL':
+                report['status'] = 'ERROR'
+                error_lines = str(error).strip().splitlines()
+                report['failures'].append({'code':'EXECUTION_UNAVAILABLE',
+                    'reason':error_lines[-1][:240] if error_lines else type(error).__name__,
+                    'report_path':str(report_path)})
             accepted, reason = False, 'execution_failed'
         except Exception as error:
             # Unexpected/API review failure: save evidence and stop, no blind rerun.
-            write_json(candidate_root/'flow_error.json', {'type':type(error).__name__, 'error':str(error)})
+            report_path = candidate_root/'flow_error.json'
+            write_json(report_path, {'type':type(error).__name__, 'error':str(error)})
             accepted, reason = False, 'FLOW_ERROR'
         reviews.update(geometry=report, accepted=accepted, reason=reason)
         extra = sorted((candidate_root/'asset'/'assembly').rglob('*'))
@@ -126,7 +143,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         if accepted:
             book['retained'] = version_id
         feedback = {'geometry_status':report['status'], 'failures':report.get('failures',[])[:6],
-            'report_path':str(candidate_root/'asset'/'assembly'/'assembly_manifest.json'),
+            'report_path':str(report_path),
             'image_critic':reviews.get('image_critic'), 'code_critic':reviews.get('code_critic')}
         book.update(feedback=feedback, next_round=number+1)
         write_json(book_path, book)
