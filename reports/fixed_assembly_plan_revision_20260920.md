@@ -77,3 +77,32 @@ git diff --check
 Coder将该条长度72改为51mm，第二轮Image通过，retained为attempt_0001。
 24项落盘一致性检查及发布哈希核对通过；这验证了生成—审核—修补链路，
 不证明真实重新分组修补能力或可制造性。实验资产／API日志留在本地，不纳入代码提交。
+
+## 后续最小补充：任务底线与修补预算说明
+
+基线 `edc0dd5fb27f7fb4ec930f2329744afaf8b68def`。只补两处，不接入 topology 或其他物理工具：
+
+- `FixedAssemblyConfig.require_multiple_parts` 默认 false；当前 prompt-to-3D 实验新输入
+  显式冻结为 true。导出器检查实际至少2打印件、1连接，否则记录
+  `MULTIPART_ASSEMBLY_REQUIRED` 及实际数量。继续尝试展示，并走原失败反馈／候选保留流程，
+  不因 Image 通过而批准。只计声明数量，不检查网格连通或接口配合；通用
+  `FixedAssembly.validate()` 未改，单件零连接仍合法。分组／清单差异仍不构成硬失败。
+- 修补输入改用 `current_repair_authorized=true` 与
+  `remaining_repairs_after_this_attempt`，正文明确本次已预留，0仅表示之后无修补机会。
+  数值仍是 `max_rounds - number`；计费、轮次、预留和恢复逻辑未变。
+
+已有冻结输入及历史结果不迁移；未配置该字段的旧任务保持原行为。其他明确要求分件的
+调用方也应在任务配置中显式设 true，不靠解析自然语言推断约束。
+
+新增6个任务底线参数化／流程用例，并将原5轮预算用例补成末轮成功／失败两种组合。
+包括通用单件不变、任务单件被拒、2件与5件均可通过声明底线、Image不能绕过任务失败、
+末轮仍可修补并发布，以及旧冻结配置不被改写。
+
+```bash
+/vepfs_default/chanxueyan/lhp/lms/envs/adsl/bin/python -m pytest -q tests/test_fixed_assembly_plan_revision.py tests/test_fixed_assembly_visual_only.py tests/test_fixed_assembly_prompt.py tests/test_generation_review_contract.py tests/test_fixed_assembly.py
+# 99 passed, 6 skipped (4.24s)
+git diff --check
+```
+
+没有真实 API／Blender 实验，也未重跑 SF13。实现文件为 models.py、fixed_assembly.py、
+export_assembly.py、fixed_assembly 专用提示及实验 run.py；相应测试／README 同步更新。

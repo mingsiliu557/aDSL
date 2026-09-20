@@ -11,7 +11,8 @@ from experiments.fixed_assembly_prompt import run as prompt
 
 
 CONFIG = {'mm_per_unit': 1., 'fit_offset_mm': .2,
-          'final_size_mm': [120., 120., 120.], 'validation_mode': 'visual_only'}
+          'final_size_mm': [120., 120., 120.], 'validation_mode': 'visual_only',
+          'require_multiple_parts': True}
 
 
 def frozen_input():
@@ -74,6 +75,7 @@ def test_prepare_preserves_old_frozen_mode(tmp_path):
     # experiment must use a new directory, not rewrite frozen inputs or hashes.
     inputs = frozen_input()
     inputs['fixed_assembly'].pop('validation_mode')
+    inputs['fixed_assembly'].pop('require_multiple_parts')
     path = write_json(tmp_path/'SF07/input.json', inputs)
     marker = write_json(tmp_path/'batch.json', {'input_sha256': {'SF07': prompt.file_hash(path)}})
     before = (path.read_bytes(), marker.read_bytes())

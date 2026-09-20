@@ -6,6 +6,15 @@
 
 ## 当前固定装配边界（2026-09-20）
 
+- 基于edc0dd5补齐两处任务边界（代码、测试及说明随本次提交归档）：
+  可选require_multiple_parts默认false，prompt-to-3D新输入显式true；实际少于2打印件或
+  1连接时记MULTIPART_ASSEMBLY_REQUIRED，不因Image通过而批准，仍保留诊断和原候选流程。
+  不改通用FixedAssembly单件用法、不恢复初始清单相等检查、不新增几何或四checker。
+  Coder改收current_repair_authorized=true及remaining_repairs_after_this_attempt，
+  明确0为本次之后无机会，当前仍可修补；原预算／轮次算法不变。
+  99项轻量测试通过、6真实几何项跳过；无API或SF13重跑。旧冻结输入不自动补该字段。
+  详见reports/fixed_assembly_plan_revision_20260920.md补充节；topology接入留待下一步。
+
 - 分组解锁后的新SF13 text-to-3D单例已结束：
   `local_experiment/fixed_assembly_prompt_regroup_SF13_20260920T160523Z`。
   基线498dba8+本轮修复，代码哈希已记录。

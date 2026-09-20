@@ -14,6 +14,10 @@ request, not from a guessed bounding box. Keep natural-language relations.
 Use the request's fixed fit_offset_mm; repairs must not change it to pass geometry.
 Print-part IDs MUST NOT be `scene` or `exploded`: these names are reserved for
 whole-assembly export files. Choose names such as `top_plate` or `leg_left`.
+When fixed_assembly.require_multiple_parts is true, the actual result must retain
+at least two print parts and one connector. Counts and grouping may change; do not
+collapse everything into one piece or remove all interfaces to finish this task.
+This is a task requirement, not an extra geometric check or a general single-part ban.
 
 Coder API (all imported by `from adsl.core import *`):
 

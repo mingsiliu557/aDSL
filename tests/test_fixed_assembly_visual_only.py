@@ -96,16 +96,34 @@ def test_visual_export_only_evaluates_final_parts_not_bodies_or_interface_checks
 
 def test_mode_is_explicit_and_old_default_unchanged():
     assert FixedAssemblyConfig.model_validate(CONFIG).validation_mode=='geometry'
+    assert not FixedAssemblyConfig.model_validate(CONFIG).require_multiple_parts
+    assert FixedAssemblyConfig.model_validate({**CONFIG,'require_multiple_parts':True}).require_multiple_parts
+    with pytest.raises(ValueError): FixedAssemblyConfig.model_validate({**CONFIG,'require_multiple_parts':'false'})
     assert FixedAssemblyConfig.model_validate({**CONFIG,'validation_mode':'visual_only'}).validation_mode=='visual_only'
     with pytest.raises(ValueError): FixedAssemblyConfig.model_validate({**CONFIG,'validation_mode':'ignore_everything'})
 
 
-def test_five_round_budget_allows_four_repairs_and_preserves_original(tmp_path,monkeypatch):
-    state=mock_flow(tmp_path,monkeypatch,[('NOT_EVALUATED',False)]*5)
+@pytest.mark.parametrize('last_pass', [False,True])
+def test_five_round_budget_allows_four_repairs_including_last_attempt(tmp_path,monkeypatch,last_pass):
+    state=mock_flow(tmp_path,monkeypatch,[('NOT_EVALUATED',False)]*4+[('NOT_EVALUATED',last_pass)])
     state=(state[0],replace(state[1],checker_specs=(),max_rounds=5,
         fixed_assembly={**CONFIG,'validation_mode':'visual_only'}),*state[2:])
+    execute=flow.execute_asset_source
+    def display(*a,**kw):
+        result=execute(*a,**kw)
+        path=result.output_root/'assembly/assembly_manifest.json'
+        row=json.loads(path.read_text())
+        row.update(export_status='PASS',diagnostic={'display_available':True})
+        path.write_text(json.dumps(row))
+        return result
+    monkeypatch.setattr(flow,'execute_asset_source',display)
     result,book=run_flow(state)
     assert len(state[-1])==4 and book['max_rounds']==5
-    assert book['working']=='attempt_0004' and book['retained']=='original'
-    assert not result.approved and book['stop_reason']=='round_budget_exhausted'
-    assert [call['payload']['remaining_repairs'] for call in state[-1]]==[3,2,1,0]
+    assert book['working']=='attempt_0004'
+    assert book['retained']==('attempt_0004' if last_pass else 'original')
+    assert result.approved is last_pass
+    assert book['stop_reason']==('visual_code_and_export_passed' if last_pass else 'round_budget_exhausted')
+    assert [call['payload']['remaining_repairs_after_this_attempt'] for call in state[-1]]==[3,2,1,0]
+    assert all(call['payload']['current_repair_authorized'] for call in state[-1])
+    assert all('remaining_repairs' not in call['payload'] for call in state[-1])
+    assert 'count excludes the current attempt' in state[-1][-1]['payload']['assignment']

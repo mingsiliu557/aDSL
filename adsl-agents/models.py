@@ -80,6 +80,8 @@ class FixedAssemblyPlan(ObjectPlan):
 class FixedAssemblyConfig(BaseModel):
     # The request, not the generated program, freezes scale and required size.
     validation_mode: Literal['geometry', 'visual_only'] = 'geometry'
+    require_multiple_parts: bool = Field(default=False, strict=True,
+        description='Task requires at least two print parts and one connector; not a geometry check.')
     mm_per_unit: float = Field(gt=0, allow_inf_nan=False)
     fit_offset_mm: float = Field(allow_inf_nan=False)
     final_size_mm: list[float] = Field(min_length=3, max_length=3)

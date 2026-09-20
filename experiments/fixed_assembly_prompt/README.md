@@ -54,6 +54,11 @@ For a NEW output directory, `run.py::prepare()` explicitly freezes
 The Planner/Coder requirement also states that assembly geometry is not evaluated.
 `launch.sh` uses this entry, so the commands below now select visual-only mode for
 new experiments. The public configuration default remains `geometry`.
+New inputs also freeze `require_multiple_parts=true`: this task needs at least
+two actual print parts and one connector, even if the initial grouping is revised.
+This is a declaration-count requirement, not a geometry/connectivity check. The
+general configuration defaults to false, and single-part FixedAssembly use remains
+legal. Existing frozen inputs are not rewritten; use a new directory to enable it.
 Existing directories are NOT migrated: `prepare()` preserves their inputs/hashes,
 and a missing mode there still means `geometry`. Use a new directory for this phase;
 do not resume an old geometry batch assuming its validation mode changed.
@@ -80,6 +85,9 @@ forced edits. The limit is frozen in each case's `source_repair_limit`, used by
 the task requirement, ObjectRequest and result/log output. Existing batches keep
 their saved budget (historical cases used two rounds/one repair), even if launched
 with a different `--max-rounds`; use a new directory to change the budget.
+Repair requests mark the current attempt as already authorized and report
+`remaining_repairs_after_this_attempt`; zero means this is the last permitted
+attempt, not that the current repair is forbidden. Budget accounting is unchanged.
 The ordinary aDSL defaults and saved-source verification entry are unchanged.
 Existing code execution, 120 s execution timeout, 300 s rendering timeout,
 Image/Code Critic, export consistency and retained publication remain.

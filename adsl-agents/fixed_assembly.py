@@ -50,6 +50,7 @@ def _assembly_context(source, report, *, version_role):
             'connections':report.get('connections'),
         } if current else None,
         'plan_changes':report.get('plan_changes') if current else None,
+        'task_constraints':report.get('task_constraints') if current else None,
     }
 
 
@@ -123,8 +124,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     'fixed_assembly':request.fixed_assembly, 'feedback':feedback,
                     'assembly_context':_assembly_context(parent, working['reviews'].get('geometry'),
                                                          version_role='repair_starting_version'),
-                    'remaining_repairs':book['max_rounds']-number,
-                    'assignment':'Read the assigned source and repair the smallest relevant body/interface/assembly code. Do not edit configuration or checker files.'})
+                    'current_repair_authorized':True,
+                    'remaining_repairs_after_this_attempt':book['max_rounds']-number,
+                    'assignment':'This repair is already budget-reserved and may proceed even when remaining_repairs_after_this_attempt is 0; that count excludes the current attempt. Read the assigned source and repair the smallest relevant body/interface/assembly code. Do not edit configuration or checker files.'})
             write_json(candidate_root/'edit_outcome.json', outcome)
             if outcome['status'] != 'CHANGED':
                 book['versions'][version_id] = version_record(version_id, current, None,

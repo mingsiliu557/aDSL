@@ -327,6 +327,12 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
     def require(condition, code, **location):
         if not condition:
             manifest['failures'].append(dict(code=code, **location))
+    if expected.get('require_multiple_parts', False):
+        manifest['task_constraints'] = {'require_multiple_parts':True}
+        require(len(assembly.parts) >= 2 and len(assembly.connections) >= 1,
+                'MULTIPART_ASSEMBLY_REQUIRED', part_count=len(assembly.parts),
+                connection_count=len(assembly.connections),
+                reason='This task requires at least two print parts and one connector; grouping may change.')
     require(assembly.mm_per_unit == expected['mm_per_unit'], 'SCALE_CHANGED')
     # Frozen input contract, not a geometric test of the generated fit.
     for connection in assembly.connections if visual_only else ():

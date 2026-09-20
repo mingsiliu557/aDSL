@@ -49,7 +49,7 @@ def prepare(root, max_rounds=5):
                 f' and at most {max_rounds-1} source repairs. Stop early on approval or explicit no change;'
                 ' do not force edits to exhaust the budget.'),
             'fixed_assembly':{'mm_per_unit':1., 'fit_offset_mm':.2, 'final_size_mm':SIZES[cid],
-                              'validation_mode':'visual_only'},
+                              'validation_mode':'visual_only', 'require_multiple_parts':True},
             'provenance':{'manifest':str(MANIFEST), 'manifest_sha256':file_hash(MANIFEST),
                 'field':f'cases[case_id={cid}].prompt', 'dataset':case['dataset'],
                 'object_id':case['object_id'], 'caption_source':case['caption_source'],

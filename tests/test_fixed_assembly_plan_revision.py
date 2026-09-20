@@ -82,6 +82,53 @@ def test_grouping_revision_is_trace_not_hard_failure(tmp_path, fake_export, spli
         assert delta['codes'] == [] and not any(delta['parts'].values())
 
 
+@pytest.mark.parametrize('required, count', [(None,1),(False,1),(True,1),(True,2),(True,5)])
+def test_multiple_parts_is_only_an_explicit_task_floor(tmp_path, fake_export, required, count):
+    if required is not None:
+        fake_export['require_multiple_parts'] = required
+    if count == 1:
+        a = FixedAssembly(root_id='seat', mm_per_unit=1)
+        a.add_part('seat', Cube(5), components=('Seat','Legs'))
+    else:
+        a = chair(split=count == 5)
+    a.validate()  # A single print part remains legal in the general API.
+    report = exporter.export_assembly(a, tmp_path, source_sha256='source', expected=fake_export)
+    rejected = required is True and count == 1
+    assert report['export_status'] == ('FAIL' if rejected else 'PASS')
+    assert report['status'] == 'NOT_EVALUATED'
+    assert all(f['code'] == 'MULTIPART_ASSEMBLY_REQUIRED' for f in report['failures'])
+    if rejected:
+        failure, = report['failures']
+        assert failure['part_count'] == 1 and failure['connection_count'] == 0
+    assert len(report['part_declarations']) == count
+    if count != 2:
+        assert report['plan_changes']['status'] == 'CHANGED'  # Still a diff, not the rejection reason.
+
+
+def test_image_approval_cannot_bypass_explicit_multipart_task(tmp_path, monkeypatch, fake_export):
+    state, calls = real_review_state(tmp_path, monkeypatch, [('NOT_EVALUATED',True)])
+    state = (state[0], replace(state[1], max_rounds=1,
+        fixed_assembly={**state[1].fixed_assembly,'require_multiple_parts':True}), *state[2:])
+    execute = flow.execute_asset_source
+    def merged_candidate(source, *args, **kwargs):
+        result = execute(source, *args, **kwargs)
+        a = FixedAssembly(root_id='crossbar', mm_per_unit=1)
+        a.add_part('crossbar', Cube(5), components=('crossbar','stem'))
+        exporter.export_assembly(a, result.output_root/'assembly', source_sha256=flow.file_hash(source),
+                                 expected=kwargs['fixed_assembly'])
+        return result
+    monkeypatch.setattr(flow, 'execute_asset_source', merged_candidate)
+    result, book = run_flow(state)
+    assert not result.approved and book['retained'] == 'original' and book['qualified'] is None
+    assert len(calls) == 1 and calls[0]['stage'] == 'image_critic:1'  # No extra Code/Planner call.
+    payload, _ = unpack(calls[0])
+    assert payload['assembly_context']['task_constraints'] == {'require_multiple_parts':True}
+    assert (tmp_path/'source.py').read_text() == (tmp_path/'scene.glb').read_text() == 'original'
+    final = json.loads((tmp_path/'assembly_result.json').read_text())
+    assert final['visual_code_approved'] is True and final['approved'] is False
+    assert final['reviews']['geometry']['failures'][0]['code'] == 'MULTIPART_ASSEMBLY_REQUIRED'
+
+
 def test_changed_declarations_and_failed_part_still_record_actual_structure(tmp_path, fake_export, monkeypatch):
     fake_export['assembly_plan']['print_parts'][0]['components'] = ['OldSeatName']
     fake_export['assembly_plan']['connections'][0]['slot_port'] = 'old_slot'
