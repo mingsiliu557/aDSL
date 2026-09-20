@@ -22,6 +22,37 @@ from .utils.execution import execute_asset_source, AssetExecutionError, Executio
 from .utils.io import read_json, write_json
 
 
+def _assembly_context(source, report, *, version_role):
+    """Use only this source's declarations, never the previous mesh as fact."""
+    source_hash = file_hash(source)
+    current = bool(report and report.get('source_sha256') == source_hash)
+    return {
+        'initial_plan_role':'reference_proposal_not_immutable_implementation',
+        'instruction':(
+            'The initial print-part/connection lists, including checklist items that merely repeat them, '
+            'are a reference proposal, not an immutable implementation. Original task requirements remain '
+            'binding. Default to the existing grouping. When feedback or source '
+            'evidence shows a problem, minimally revise print-part boundaries, add_part/connect, frames '
+            'and related construction; explain the changed locations and why. Semantic containers need '
+            'not be print pieces; independent repeated pieces need their own instances and connections. '
+            'Judge the original task, appearance and actual assembly, not exact equality to the initial list. '
+            'Do not remove required components or connection requirements, change the root, frozen units, '
+            'fit allowance, dimensions, budget or checker/configuration, or bypass existing legality checks. '
+            'Declarations are source metadata, not proof of shape completeness or manufacture.'),
+        'version_role':version_role, 'source_sha256':source_hash,
+        'manifest_status':'CURRENT_SOURCE' if current else 'UNAVAILABLE_OR_SOURCE_MISMATCH',
+        'current_assembly':{
+            'root_id':report.get('root_id'),
+            'parts':report.get('part_declarations', [
+                {k:p[k] for k in ('id','components','assembly_transform') if k in p}
+                for p in report.get('parts', [])]),
+            # Old manifests may lack connection metadata. Do not fill it from plan.
+            'connections':report.get('connections'),
+        } if current else None,
+        'plan_changes':report.get('plan_changes') if current else None,
+    }
+
+
 async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, source_path, plan):
     from .service import _asset_executor_timeout_seconds
     config = {**request.fixed_assembly, 'assembly_plan':plan.model_dump()}
@@ -90,6 +121,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 reserved_attempt_id=version_id, allow_no_change=True,
                 payload={'requirement':request.requirement, 'plan':plan.model_dump(),
                     'fixed_assembly':request.fixed_assembly, 'feedback':feedback,
+                    'assembly_context':_assembly_context(parent, working['reviews'].get('geometry'),
+                                                         version_role='repair_starting_version'),
                     'remaining_repairs':book['max_rounds']-number,
                     'assignment':'Read the assigned source and repair the smallest relevant body/interface/assembly code. Do not edit configuration or checker files.'})
             write_json(candidate_root/'edit_outcome.json', outcome)
@@ -148,6 +181,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             write_json(report_path, {'type':type(error).__name__, 'error':str(error)})
             accepted, reason = False, 'FLOW_ERROR'
         if reason != 'FLOW_ERROR':
+            assembly_context = _assembly_context(current, report, version_role='current_candidate')
             display = report.get('diagnostic', {})
             # Availability is a controller safeguard, never evidence that the
             # semantic parts or intended shape survived CSG. Read old manifests too.
@@ -163,7 +197,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     runtime=runtime, request=request, plan=plan, execution=execution,
                     round_number=number, max_rounds=book['max_rounds'], round_root=candidate_root,
                     image_critic=image_critic, image_history=image_history,
-                    code_critic_corrections=corrections, render_issue=render_issue)
+                    code_critic_corrections=corrections, render_issue=render_issue,
+                    assembly_context=assembly_context)
                 approved = image_decision.approved if image_decision else None
                 code_decision = None
                 # Same order as ordinary aDSL: Code reviews a rejected Image
@@ -174,7 +209,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                         workspace=workspace, source_path=current, round_number=number,
                         max_rounds=book['max_rounds'], round_root=candidate_root,
                         code_critic=code_critic, image_decision=image_decision,
-                        code_history=code_history, render_issue=render_issue)
+                        code_history=code_history, render_issue=render_issue,
+                        assembly_context=assembly_context)
                     approved = code_decision.approved
                     corrections = code_decision.image_critic_corrections
                 if not display_available:
@@ -183,7 +219,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     'image_critic':image_decision.model_dump() if image_decision else None,
                     'code_critic':code_decision.model_dump() if code_decision else None,
                     'image_review_status':'COMPLETED' if image_decision else 'SKIPPED',
-                    'review_mode':'generation', 'render_issue':render_issue}
+                    'review_mode':'generation', 'render_issue':render_issue,
+                    'assembly_context':assembly_context}
                 gate_passed = (report.get('export_status') == 'PASS' and report['status']=='NOT_EVALUATED'
                                if visual_only else report['status'] == 'PASS')
                 accepted = bool(approved and gate_passed)

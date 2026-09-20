@@ -40,12 +40,25 @@ bash experiments/fixed_assembly_prompt/verify_visual_stepcode.sh \
 ```
 
 Use a fresh output. The script stops only a stepcode proxy it started. It does not
-use CLIProxy or launch other cases. Below documents the earlier prompt-to-3D run.
+use CLIProxy or launch other cases.
 
 For the subsequently requested five-round run, add `--max-rounds 5` with a NEW
 output directory. This means initial review plus at most four edits/reviews, not
 five forced edits. Approval or explicit no change may finish earlier. Default is
 still two rounds. This option does not change geometry mode, acceptance or models.
+
+## Prompt-to-3D entry: explicit visual-only configuration
+
+For a NEW output directory, `run.py::prepare()` explicitly freezes
+`fixed_assembly.validation_mode="visual_only"` in every case's `input.json`.
+The Planner/Coder requirement also states that assembly geometry is not evaluated.
+`launch.sh` uses this entry, so the commands below now select visual-only mode for
+new experiments. The public configuration default remains `geometry`.
+Existing directories are NOT migrated: `prepare()` preserves their inputs/hashes,
+and a missing mode there still means `geometry`. Use a new directory for this phase;
+do not resume an old geometry batch assuming its validation mode changed.
+Historical geometry results remain geometry results. No run is started by preparing
+this code change.
 
 This is **not** `fixed_assembly_existing` (the preserved asset-conversion study).
 It calls native `ObjectWorkflow.generate()` with an empty source file and fresh
@@ -60,10 +73,18 @@ SF03 90×80×180 mm, SF13 100×32×200 mm; 1 mm/source unit and +0.2 mm single-s
 clearance. No print grouping or interface position is prescribed. At least two
 print parts and the existing tree/TabSlot API are required.
 
-Each case: one initial full program, at most one source repair (`max_rounds=2`).
-Existing code execution, 120 s geometry timeout, 300 s rendering timeout, image/code
-review, geometry gates and retained publication are unchanged. No articulation or
-four physical checkers. Production files are not modified by this experiment.
+New cases default to `--max-rounds 5`: one initial full program/review and at most
+four isolated source repairs with re-execution/review. The option accepts 1–5;
+approval or explicit no change still stops early. This is a maximum, not five
+forced edits. The limit is frozen in each case's `source_repair_limit`, used by
+the task requirement, ObjectRequest and result/log output. Existing batches keep
+their saved budget (historical cases used two rounds/one repair), even if launched
+with a different `--max-rounds`; use a new directory to change the budget.
+The ordinary aDSL defaults and saved-source verification entry are unchanged.
+Existing code execution, 120 s execution timeout, 300 s rendering timeout,
+Image/Code Critic, export consistency and retained publication remain.
+Assembly geometry gates are disabled by the explicit visual-only configuration;
+no articulation or four physical checkers. Production defaults are not modified.
 
 Run **only SF07 first**, inspect its actual model-input audit and generated assembly
 API use, then continue the other two only if no common implementation error:
@@ -74,12 +95,12 @@ bash experiments/cliproxy_session.sh adsl_cliproxy
 mkdir -p local_experiment/fixed_assembly_prompt_NEW
 bash experiments/tmux_session.sh adsl_assembly_prompt_first "$PWD" \
   bash -o pipefail -c 'bash experiments/fixed_assembly_prompt/launch.sh \
-    --root local_experiment/fixed_assembly_prompt_NEW --cases SF07 \
+    --root local_experiment/fixed_assembly_prompt_NEW --cases SF07 --max-rounds 5 \
     2>&1 | tee local_experiment/fixed_assembly_prompt_NEW/first.log'
 
 bash experiments/tmux_session.sh adsl_assembly_prompt_rest "$PWD" \
   bash -o pipefail -c 'bash experiments/fixed_assembly_prompt/launch.sh \
-    --root local_experiment/fixed_assembly_prompt_NEW --cases SF03 SF13 \
+    --root local_experiment/fixed_assembly_prompt_NEW --cases SF03 SF13 --max-rounds 5 \
     2>&1 | tee local_experiment/fixed_assembly_prompt_NEW/rest.log'
 ```
 

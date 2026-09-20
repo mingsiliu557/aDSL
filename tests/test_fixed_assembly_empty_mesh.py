@@ -48,7 +48,8 @@ def test_empty_object_rejected_before_welding_or_adjacency(tmp_path, monkeypatch
 def test_empty_object_uses_existing_part_geometry_failure(tmp_path, monkeypatch):
     _scene(monkeypatch, [], [])
     assembly = SimpleNamespace(validate=lambda: None, mm_per_unit=1., root_id='part',
-        parts={'part': None})
+        parts={'part': None}, components={'part': ('part',)},
+        transforms={'part': np.eye(4)}, connections=[])
     report = exporter.export_assembly(assembly, tmp_path, source_sha256='fixture',
                                       expected={'mm_per_unit': 1.})
     assert report['status'] == 'FAIL'

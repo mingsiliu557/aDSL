@@ -6,6 +6,61 @@
 
 ## 当前固定装配边界（2026-09-20）
 
+- 分组解锁后的新SF13 text-to-3D单例已结束：
+  `local_experiment/fixed_assembly_prompt_regroup_SF13_20260920T160523Z`。
+  基线498dba8+本轮修复，代码哈希已记录。
+  StepCode gpt-5.6-sol，5轮上限/最多4次修补，visual_only，四checker关闭；
+  原始五层书架文本、空源码、无旧模型或旧图，100×32×200mm、1mm/unit、+0.2mm单侧余量。
+  实际2轮/1次修补、454.38秒、10次API/105488tokens，无API或流程错误，输入审计通过。
+  初稿即为框架+5块独立层板（6打印件/5接口）；Image发现柜顶突起，Code定位装饰木纹条过长，
+  Coder仅将长度72改为51mm，第二轮Image通过，保留attempt_0001。24项导出一致性通过，
+  发布源码/manifest/审核哈希一致；目视顶部突起消失。没有实际触发重新分组，不能声称该分支已实测。
+  日志为该目录run.log；StepCode自启代理已自动关闭，CLIProxy未动；不称几何或制造通过。
+  随后按用户要求关闭6个已结束的本项目adsl实验tmux，保留adsl_cliproxy_20260919、
+  mosalloc、rec、s1、s2；没有删除实验文件。下文旧tmux名称仅作运行记录，不表示仍存在。
+
+- 基于498dba8完成初始分组／连接清单解锁：仅将PART_MEMBERSHIP_CHANGED和
+  CONNECTION_PLAN_CHANGED改为manifest.plan_changes差异，补visual_only实际连接元数据。
+  Image/Code及后续Coder按源码哈希接收当前分组／连接，初始plan只作参考且不改写；
+  root、尺度、余量、树形放置、端口及共享参数规则仍保留，未改网格／验收／预算流程。
+  新增15个轻量用例；推送前相关回归177 passed、6项真实几何测试跳过（5.49秒）。
+  实现阶段无API或四checker；后续独立SF13冒烟见上。代码、测试和报告纳入本次提交，
+  详见reports/fixed_assembly_plan_revision_20260920.md。
+
+- 新SF13五层书架prompt-to-3D已结束：
+  `local_experiment/fixed_assembly_prompt_visual5_SF13_20260920T082800Z`，tmux同名为
+  `adsl_prompt_visual5_SF13_20260920T082800Z`。StepCode、visual_only、5轮/最多4次修补，
+  冻结100×32×200mm及+0.2mm余量，空源码、无旧资产图；没有启动其他case或四checker。
+  实际3轮/2修补，720.35秒、18次API均返回、151104tokens。第1轮Image/Code拒绝黑色木纹条；
+  第2轮Coder误删CarcassFrame声明，NameError无图；Code诊断后第3轮恢复类边界并重新渲染。
+  最终Code纠正Image对残留暗线的拒绝，保留attempt_0002；8项导出一致性及发布哈希核对通过。
+  目视黑色长线减少、五层/侧板仍在；仍有底部暗线，未证明仅是渲染原因。
+  层板组把5块相隔层板当作一个打印件且只有最底层一个接口，拆分图可见该局限；不称制造通过。
+  几何NOT_EVALUATED/四checker未执行。StepCode自启代理已停、CLIProxy未动，tmux rc0可交互。
+  无人工修改模型、无生产逻辑临时修改，原稿和失败候选全保留；详情见本批REPORT.md。
+
+- 用户允许增加迭代轮次：新prompt-to-3D实验入口默认`--max-rounds 5`（可设1–5），
+  一次初稿审核+最多4次修补复查；通过/明确不修改仍可提前结束，不强迫凑满轮数。
+  提示、ObjectRequest及日志/结果共用input.json冻结的source_repair_limit；
+  已有目录不扩充预算，SF07旧结果不重跑。未改普通aDSL默认或公共审核裁决，未启动新实验。
+  57项相关轻量测试通过（4.20秒），CLI帮助确认新选项；轮次配置随本次提交归档。
+
+- 已按用户要求跑一个全新SF07 prompt-to-3D：
+  `local_experiment/fixed_assembly_prompt_visual_20260920T080100Z/SF07`。
+  基线498dba8+显式visual_only入口，StepCode gpt-5.6-sol；空源码、无旧资产图，实际输入审计通过。
+  Planner自主3件/2接口；1次初生、0/1次修补，227.34秒、6次API均返回、47188tokens。
+  Image拒绝棱面/哑光外观，Code以当前原语/材质API限制纠正后批准original，未验证真实修补分支。
+  已目视总装1/3/5/8图及2拆分图：未见明显缺件/断柱，但棱面与光泽不足仍在，不称外观完美。
+  3STL、总装/拆分GLB和8+2图保存；12项导出一致性通过，源/发布/manifest哈希一致。
+  几何NOT_EVALUATED、四checker未执行；本任务StepCode已关闭，原CLIProxy未动，tmux rc0可交互。
+  详见该目录上一级REPORT.md；未跑其他例。后续候选SF13（可数层板）/SF09（桌腿及条板），未启动。
+
+- 补齐prompt-to-3D实验入口的模式配置：`experiments/fixed_assembly_prompt/run.py::prepare`
+  对新目录显式冻结`validation_mode=visual_only`，制造要求同步说明几何未检查。
+  公共默认仍geometry，旧目录input/hash不改；旧命令必须换新输出目录才进入本阶段模式。
+  保留Image/Code、connector及导出一致性，四checker关闭；44项轻量测试通过，未启动实验。
+  此入口配置补充随本次提交归档；此前审核对齐已推送master `498dba8`。
+
 - 本次按用户要求收敛为原aDSL生成审核+connector，开发起点为master
   `1299bb707931c1f1c436eb0947acc552e8b72d5c`。普通生成和固定装配共用Image/Code审核函数，
   传入需求、plan/checklist、当前图、轮次和历史；不再走candidate_preservation或把失败初稿图

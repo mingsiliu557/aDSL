@@ -11,7 +11,7 @@ from experiments.fixed_assembly_prompt import run as prompt
 
 
 CONFIG = {'mm_per_unit': 1., 'fit_offset_mm': .2,
-          'final_size_mm': [120., 120., 120.]}
+          'final_size_mm': [120., 120., 120.], 'validation_mode': 'visual_only'}
 
 
 def frozen_input():
@@ -36,7 +36,8 @@ def stage_records(work, inputs, *, normalized=False):
             'status': 'COMPLETED', 'total_tokens': 17})
 
 
-def test_prepare_uses_original_prompt_only_and_freezes_dimensions(tmp_path, monkeypatch):
+@pytest.mark.parametrize('max_rounds', [None, 2, 5])
+def test_prepare_uses_original_prompt_only_and_freezes_dimensions(tmp_path, monkeypatch, max_rounds):
     manifest = tmp_path/'manifest.json'
     cases = [{'case_id': cid, 'prompt': f'original task {cid}', 'dataset': 'fixture',
               'object_id': cid, 'caption_source': 'captions.json',
@@ -47,14 +48,18 @@ def test_prepare_uses_original_prompt_only_and_freezes_dimensions(tmp_path, monk
     monkeypatch.setattr(prompt, 'MANIFEST', manifest)
     monkeypatch.setattr(prompt.subprocess, 'check_output', lambda *a, **kw: 'fixture-commit\n')
     root = tmp_path/'batch'
-    prompt.prepare(root)
+    prompt.prepare(root, **({} if max_rounds is None else {'max_rounds':max_rounds}))
+    expected_rounds = 5 if max_rounds is None else max_rounds
     for case in cases:
         cid = case['case_id']
         inputs = read_json(root/cid/'input.json')
         assert inputs['original_task'] == {'prompt': case['prompt'], 'image_paths': []}
-        assert inputs['manufacturing_requirements'] == prompt.MANUFACTURING
+        assert inputs['manufacturing_requirements'].startswith(prompt.MANUFACTURING)
+        assert f'at most {expected_rounds} evaluation rounds' in inputs['manufacturing_requirements']
+        assert f'at most {expected_rounds-1} source repairs' in inputs['manufacturing_requirements']
         assert inputs['fixed_assembly'] == dict(CONFIG, final_size_mm=prompt.SIZES[cid])
-        assert inputs['initial_generation_limit'] == inputs['source_repair_limit'] == 1
+        assert inputs['initial_generation_limit'] == 1
+        assert inputs['source_repair_limit'] == expected_rounds-1
         assert 'ARCHIVED_' not in json.dumps(inputs)
     batch = read_json(root/'batch.json')
     assert batch['case_order'] == list(prompt.IDS)
@@ -62,6 +67,26 @@ def test_prepare_uses_original_prompt_only_and_freezes_dimensions(tmp_path, monk
     assert batch['cross_experiment_token_accounting'] is False
     assert not list(root.rglob('source.py'))
     assert not list(root.rglob('*.png'))
+
+
+def test_prepare_preserves_old_frozen_mode(tmp_path):
+    # Existing directories retain their original geometry default; a new visual
+    # experiment must use a new directory, not rewrite frozen inputs or hashes.
+    inputs = frozen_input()
+    inputs['fixed_assembly'].pop('validation_mode')
+    path = write_json(tmp_path/'SF07/input.json', inputs)
+    marker = write_json(tmp_path/'batch.json', {'input_sha256': {'SF07': prompt.file_hash(path)}})
+    before = (path.read_bytes(), marker.read_bytes())
+    prompt.prepare(tmp_path)
+    assert (path.read_bytes(), marker.read_bytes()) == before
+
+
+@pytest.mark.parametrize('max_rounds', [0, 6])
+def test_prepare_rejects_invalid_round_budget(tmp_path, max_rounds):
+    root = tmp_path/'new_batch'
+    with pytest.raises(ValueError, match='max_rounds'):
+        prompt.prepare(root, max_rounds=max_rounds)
+    assert not root.exists()
 
 
 @pytest.mark.parametrize('normalized', [False, True])
@@ -142,8 +167,11 @@ def test_request_log_records_large_actual_usage_and_failed_call_separately(tmp_p
     assert not list(tmp_path.rglob('*ledger*'))
 
 
-def test_native_generation_keeps_completed_usage_after_tool_failure(tmp_path, monkeypatch):
+@pytest.mark.parametrize('repair_limit', [None, 0, 4])
+def test_native_generation_keeps_completed_usage_after_tool_failure(tmp_path, monkeypatch, repair_limit):
     inputs = frozen_input()
+    if repair_limit is not None:
+        inputs['source_repair_limit'] = repair_limit
     input_path = write_json(tmp_path/'SF07/input.json', inputs)
     write_json(tmp_path/'batch.json', {'input_sha256': {'SF07': prompt.file_hash(input_path)}})
     requests = []
@@ -167,7 +195,9 @@ def test_native_generation_keeps_completed_usage_after_tool_failure(tmp_path, mo
         'input_verified': True, 'assembly_api_verified': True})
     result = asyncio.run(prompt.run_case(tmp_path, 'SF07'))
     request, = requests
-    assert request.max_rounds == 2
+    assert request.max_rounds == (2 if repair_limit is None else repair_limit+1)
+    assert result['max_rounds'] == request.max_rounds
+    assert result['source_repair_limit'] == request.max_rounds-1
     assert request.image_paths == request.checker_specs == ()
     assert request.articulation is False and request.fixed_assembly == CONFIG
     assert request.requirement == ('[ORIGINAL TASK]\n' + inputs['original_task']['prompt'] +
@@ -181,7 +211,7 @@ def test_native_generation_keeps_completed_usage_after_tool_failure(tmp_path, mo
 
 @pytest.mark.parametrize('gate', ['absent', 'paused', 'input_unverified', 'assembly_unverified'])
 def test_main_never_starts_later_cases_without_sf07_gate(tmp_path, monkeypatch, gate):
-    monkeypatch.setattr(prompt, 'prepare', lambda root: None)
+    monkeypatch.setattr(prompt, 'prepare', lambda root, **kw: None)
     run_case = AsyncMock(return_value={'pause_batch': False})
     monkeypatch.setattr(prompt, 'run_case', run_case)
     if gate != 'absent':
@@ -195,7 +225,7 @@ def test_main_never_starts_later_cases_without_sf07_gate(tmp_path, monkeypatch, 
 
 
 def test_main_runs_later_cases_after_sf07_audit_passes(tmp_path, monkeypatch):
-    monkeypatch.setattr(prompt, 'prepare', lambda root: None)
+    monkeypatch.setattr(prompt, 'prepare', lambda root, **kw: None)
     write_json(tmp_path/'SF07/result.json', {'pause_batch': False})
     write_json(tmp_path/'SF07/input_audit.json', {
         'input_verified': True, 'assembly_api_verified': True})
@@ -206,7 +236,7 @@ def test_main_runs_later_cases_after_sf07_audit_passes(tmp_path, monkeypatch):
 
 
 def test_main_records_pause_when_first_case_fails(tmp_path, monkeypatch):
-    monkeypatch.setattr(prompt, 'prepare', lambda root: None)
+    monkeypatch.setattr(prompt, 'prepare', lambda root, **kw: None)
     run_case = AsyncMock(return_value={'pause_batch': True})
     monkeypatch.setattr(prompt, 'run_case', run_case)
     assert asyncio.run(prompt.main(tmp_path, ['SF07'])) == 2
@@ -266,7 +296,7 @@ def saved_geometry_pause(root):
 def test_saved_sf07_geometry_pause_can_continue_without_replay_or_result_overwrite(tmp_path, monkeypatch):
     folder = saved_geometry_pause(tmp_path)
     original = (folder/'result.json').read_bytes()
-    monkeypatch.setattr(prompt, 'prepare', lambda root: None)
+    monkeypatch.setattr(prompt, 'prepare', lambda root, **kw: None)
     run_case = AsyncMock(return_value={'pause_batch': False, 'approved': False})
     monkeypatch.setattr(prompt, 'run_case', run_case)
     assert asyncio.run(prompt.main(tmp_path, ['SF03', 'SF13'])) == 0
@@ -297,7 +327,7 @@ def test_saved_pause_cannot_bypass_shared_error_or_missing_evidence(tmp_path, mo
         write_json(folder/'input_audit.json', {'input_verified': False, 'assembly_api_verified': True})
     else:
         (folder/'generate/rounds/round_01/assembly_manifest.json').unlink()
-    monkeypatch.setattr(prompt, 'prepare', lambda root: None)
+    monkeypatch.setattr(prompt, 'prepare', lambda root, **kw: None)
     run_case = AsyncMock()
     monkeypatch.setattr(prompt, 'run_case', run_case)
     with pytest.raises(ValueError, match='SF07'):

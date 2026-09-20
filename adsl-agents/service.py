@@ -2099,7 +2099,8 @@ class ObjectWorkflow:
 
     async def _review_generation_image(self, *, runtime, request, plan, execution,
                                        round_number, max_rounds, round_root, image_critic,
-                                       image_history, code_critic_corrections, render_issue=None):
+                                       image_history, code_critic_corrections, render_issue=None,
+                                       assembly_context=None):
         """Ordinary aDSL generation review; no baseline/preservation judgement."""
         renders = execution.render_paths if execution else ()
         if request.fixed_assembly and not renders:
@@ -2114,6 +2115,8 @@ class ObjectWorkflow:
         }
         if request.overhang_experiment:
             payload['protection_checklist'] = request.overhang_experiment.get('protection')
+        if request.fixed_assembly and assembly_context is not None:
+            payload['assembly_context'] = assembly_context
         if render_issue:
             payload['render_issue'] = render_issue  # Negative availability evidence only.
         result = await runtime.run(agent=image_critic,
@@ -2127,7 +2130,7 @@ class ObjectWorkflow:
     async def _review_generation_code(self, *, runtime, request, plan, execution,
                                       workspace, source_path, round_number, max_rounds,
                                       round_root, code_critic, image_decision, code_history,
-                                      render_issue=None):
+                                      render_issue=None, assembly_context=None):
         """Code review of the same generated object and current Image judgement."""
         context = AgentToolContext(workspace=workspace, source_path=source_path)
         payload = {
@@ -2139,6 +2142,8 @@ class ObjectWorkflow:
         }
         if request.fixed_assembly:
             payload['fixed_assembly'] = request.fixed_assembly
+            if assembly_context is not None:
+                payload['assembly_context'] = assembly_context
         if render_issue:
             payload['render_issue'] = render_issue
         renders = execution.render_paths if execution else ()

@@ -48,9 +48,17 @@ and embedded root. Derive incoming requirements from that list, not another plan
 The exporter writes STL coordinates in mm, whole-assembly and exploded GLBs, and
 an assembly_manifest. The exploded view is not the assembled target shape.
 
-During repair, change relevant bodies AND assembly/helpers in the SAME isolated
-candidate as needed, but preserve frozen IDs, component ownership, scale and
-requested final dimensions. Do not change checker/config files. Image/Code Critic
+During repair, the initial print_parts and connections are a reference proposal,
+not immutable requirements. Keep the existing grouping by default; only revise it
+when feedback or source evidence justifies a minimal change. A semantic class or
+container need not be a continuous print piece: select its independent children
+as separate print instances when needed, preserving their semantic hierarchy and
+required visible components. Repeated pieces may reuse a class, but each separate
+print piece needs its own instance and connection. Explain the changed locations
+and reasons; do not rewrite the initial plan.json. Change relevant bodies AND
+assembly/helpers in the SAME isolated candidate if necessary. Preserve the root,
+frozen scale, fit allowance, requested dimensions and budget. Do not delete required
+parts, cancel connection requirements or change checker/config files. Image/Code Critic
 still judge appearance; their approval cannot override failed interface geometry
 when validation_mode is geometry. When the frozen request sets validation_mode to
 visual_only, assembly geometry/connectivity checks are NOT RUN. Generate the same

@@ -283,6 +283,18 @@ def _diagnostic_view(assembly, output, meshes, manifest):
     return diagnostic
 
 
+def _plan_delta(initial, actual):
+    """Small declaration diff, not an approval or a geometry check."""
+    before = {row['id']:row for row in initial}
+    after = {row['id']:row for row in actual}
+    return {
+        'added':[after[key] for key in sorted(after.keys()-before.keys())],
+        'removed':[before[key] for key in sorted(before.keys()-after.keys())],
+        'changed':[{'id':key, 'initial':before[key], 'actual':after[key]}
+                   for key in sorted(before.keys() & after.keys()) if before[key] != after[key]],
+    }
+
+
 def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str, expected: dict):
     """Export all evidence even when geometric checks reject the candidate."""
     visual_only = expected.get('validation_mode', 'geometry') == 'visual_only'
@@ -293,6 +305,14 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
     output.mkdir(parents=True, exist_ok=True)
     manifest = dict(source_sha256=source_sha256, mm_per_unit=assembly.mm_per_unit,
         stl_vertex_unit='mm', root_id=assembly.root_id, parts=[], interfaces=[], failures=[],
+        # Actual declarations survive a failed mesh export too. They do not
+        # certify the selected bodies or duplicate the mesh validity results.
+        part_declarations=[dict(id=name, components=list(assembly.components[name]),
+                                assembly_transform=assembly.transforms[name].tolist())
+                           for name in assembly.parts],
+        connections=[{key:connection[key] for key in
+            ('id','tab_part','slot_part','tab_port','slot_port','parameter_name',
+             'parameters','tab_frame','slot_frame')} for connection in assembly.connections],
         status='RUNNING', verification_scope='interface_geometry_only',
         unverified=['insertion_path', 'press_fit_retention', 'load_bearing', 'printability'],
         physical_checkers={name: 'NOT_EXECUTED' for name in ('topology', 'standing', 'overhang', 'fea')},
@@ -315,13 +335,21 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
     plan = expected.get('assembly_plan')
     if plan:
         require(assembly.root_id == plan['root_part'], 'ROOT_CHANGED')
-        actual_parts = {k: sorted(v) for k, v in assembly.components.items()}
-        require(actual_parts == {p['id']: sorted(p['components']) for p in plan['print_parts']}, 'PART_MEMBERSHIP_CHANGED')
+        actual_parts = [dict(id=k, components=sorted(v)) for k,v in assembly.components.items()]
+        planned_parts = [dict(id=p['id'], components=sorted(p['components'])) for p in plan['print_parts']]
         actual_links = [{k:c[k] for k in ('id','tab_part','slot_part','tab_port','slot_port','parameter_name')}
                         for c in assembly.connections]
         planned_links = [{k:c[k] for k in ('id','tab_part','slot_part','tab_port','slot_port','parameter_name')}
                          for c in plan['connections']]
-        require(actual_links == planned_links, 'CONNECTION_PLAN_CHANGED')
+        parts_delta = _plan_delta(planned_parts, actual_parts)
+        links_delta = _plan_delta(planned_links, actual_links)
+        order_changed = [c['id'] for c in actual_links] != [c['id'] for c in planned_links]
+        codes = (['PART_MEMBERSHIP_CHANGED'] if any(parts_delta.values()) else [])
+        if any(links_delta.values()) or order_changed:
+            codes.append('CONNECTION_PLAN_CHANGED')
+        manifest['plan_changes'] = dict(status='CHANGED' if codes else 'UNCHANGED', codes=codes,
+            parts=parts_delta, connections=links_delta, connection_order_changed=order_changed)
+        manifest['initial_plan_sha256'] = hashlib.sha256(json.dumps(plan, sort_keys=True).encode()).hexdigest()
     meshes, solids, bodies = {}, {}, {}
     # Float32 Blender coordinates: a fixed representation-error bound, not fit.
     for name, part in assembly.parts.items():
