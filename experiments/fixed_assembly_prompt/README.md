@@ -1,5 +1,39 @@
 # Fixed assembly: original prompt → new program
 
+## 2026-09-20: single saved-source visual loop validation
+
+`fixed_assembly.validation_mode="visual_only"` explicitly skips closed-volume,
+connectivity, mating-volume, interference and size measurement. The default
+`geometry` mode is unchanged. Paired TabSlot Boolean construction and frame
+placement still execute. Display/export reuse the final per-part triangle meshes;
+no Manifold union/validation is performed in visual mode. Serialization consistency
+is compared under the existing float32 coordinate bound (triangle sets, independent
+of face/vertex order); this checks exported files, not physical geometry validity.
+
+Every iteration attempts rendering. A renderable failure still reaches Image and
+Code Critic. Missing/omitted geometry is identified, blocks complete appearance
+approval, and remains repairable. No render skips only Image Critic. Repair uses
+the last working candidate; retained approval requires complete visual/code review
+and consistent exports. `geometry_validation=NOT_EVALUATED` even on visual success.
+The original geometry-validation mode and four-checker implementations are retained.
+
+One existing failed SF03 source, no Planner, at most one edit, stepcode only:
+
+```sh
+bash experiments/fixed_assembly_prompt/verify_visual_stepcode.sh \
+  --saved-case local_experiment/fixed_assembly_prompt_20260919T074507Z/SF03 \
+  --source local_experiment/fixed_assembly_prompt_20260919T074507Z/SF03/generate/rounds/round_02/candidates/01_assembly_or_appearance/source.py \
+  --output local_experiment/fixed_assembly_visual_NEW/SF03
+```
+
+Use a fresh output. The script stops only a stepcode proxy it started. It does not
+use CLIProxy or launch other cases. Below documents the earlier prompt-to-3D run.
+
+For the subsequently requested five-round run, add `--max-rounds 5` with a NEW
+output directory. This means initial review plus at most four edits/reviews, not
+five forced edits. Approval or explicit no change may finish earlier. Default is
+still two rounds. This option does not change geometry mode, acceptance or models.
+
 This is **not** `fixed_assembly_existing` (the preserved asset-conversion study).
 It calls native `ObjectWorkflow.generate()` with an empty source file and fresh
 sessions. SF07, SF03, SF13 use exact prompts from `standing_fea_30/case_manifest.json`.

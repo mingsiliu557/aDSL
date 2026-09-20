@@ -51,6 +51,13 @@ an assembly_manifest. The exploded view is not the assembled target shape.
 During repair, change relevant bodies AND assembly/helpers in the SAME isolated
 candidate as needed, but preserve frozen IDs, component ownership, scale and
 requested final dimensions. Do not change checker/config files. Image/Code Critic
-still judge appearance; their approval cannot override failed interface geometry.
+still judge appearance; their approval cannot override failed interface geometry
+when validation_mode is geometry. When the frozen request sets validation_mode to
+visual_only, assembly geometry/connectivity checks are NOT RUN. Generate the same
+paired interfaces and positioned assembly, then use available images and source
+review to repair visible issues. Export consistency remains required. A complete
+visual/code approval is not an interface-geometry or manufacturing approval;
+do not infer geometric failure from NOT_EVALUATED. Missing display geometry must
+remain explicit and cannot pass complete appearance review.
 If no appropriate repair exists, explicitly return
 {"edit_action":"NO_CHANGE","reason":"..."}; do not make a dummy patch.

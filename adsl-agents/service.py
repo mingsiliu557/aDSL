@@ -2150,7 +2150,7 @@ class ObjectWorkflow:
     async def _review_candidate_appearance(self, *, runtime, request, workspace, round_number,
                                           proposal_index, proposal, baseline_execution,
                                           candidate_execution, candidate_source, candidate_root,
-                                          image_critic, code_critic):
+                                          image_critic, code_critic, diagnostic_context=None):
         candidate_relative = candidate_source.relative_to(workspace).as_posix()
         candidate_code_decision = None
         preservation_payload = {
@@ -2161,15 +2161,32 @@ class ObjectWorkflow:
             "review_mode": "candidate_preservation",
             "image_order": {
                 "reference_count": len(request.image_paths),
-                "baseline_count": len(baseline_execution.render_paths),
-                "candidate_count": len(candidate_execution.render_paths),
+                "baseline_count": len(baseline_execution.render_paths) if baseline_execution else 0,
+                "candidate_count": len(candidate_execution.render_paths) if candidate_execution else 0,
             },
             "instruction": (
                 "Judge whether the candidate preserves the requested appearance and "
                 "function. Do not infer checker success from images."
             ),
         }
-        images = (*request.image_paths, *baseline_execution.render_paths, *candidate_execution.render_paths)
+        baseline_images = baseline_execution.render_paths if baseline_execution else ()
+        candidate_images = candidate_execution.render_paths if candidate_execution else ()
+        images = (*request.image_paths, *baseline_images, *candidate_images)
+        if diagnostic_context is not None:
+            preservation_payload['assembly_diagnostic'] = diagnostic_context
+            preservation_payload['instruction'] += (
+                ' This is a candidate, not a certified assembly. Identify visible problems for the Coder.'
+                ' Missing/invalid parts or unavailable images cannot establish full appearance approval.'
+                ' Read the assigned current source and error report for code-grounded repair advice;'
+                ' do not invent a geometric cause or change checker settings.'
+            )
+            if diagnostic_context.get('validation_mode') == 'visual_only':
+                preservation_payload['instruction'] += (
+                    ' This run evaluates ONLY visual assembly and source correctness.'
+                    ' Geometry/connectivity/interference checks are disabled, NOT failed.'
+                    ' NOT_EVALUATED must not trigger speculative mesh repair.'
+                    ' Judge whether the parts visibly form the requested object using the connector API.'
+                )
         if request.overhang_experiment:
             images, mapping = review_images(request.image_paths, baseline_execution.render_paths,
                                             candidate_execution.render_paths)
@@ -2181,24 +2198,24 @@ class ObjectWorkflow:
                 " it does not prove geometry or protected dimensions are unchanged."
             )
             write_json(candidate_root / "image_input_mapping.json", mapping)
-        image_result = await runtime.run(
-            agent=image_critic,
-            input=user_input(
-                json.dumps(preservation_payload, ensure_ascii=False),
-                images,
-            ),
-            role=f"image-critic:candidate:{round_number}:{proposal_index}",
-            stage=f"candidate_image_critic:{round_number}:{proposal_index}",
-        )
-        candidate_image_decision = self._typed_output(
-            image_result.final_output, ImageCriticDecision
-        )
+        image_payload = None
+        if diagnostic_context is None or candidate_images:
+            image_result = await runtime.run(
+                agent=image_critic,
+                input=user_input(json.dumps(preservation_payload, ensure_ascii=False), images),
+                role=f"image-critic:candidate:{round_number}:{proposal_index}",
+                stage=f"candidate_image_critic:{round_number}:{proposal_index}",
+            )
+            candidate_image_decision = self._typed_output(image_result.final_output, ImageCriticDecision)
+            image_payload = candidate_image_decision.model_dump()
         write_json(
             candidate_root / "image_critique.json",
-            candidate_image_decision.model_dump(),
+            image_payload or {'status':'SKIPPED', 'approved':None,
+                             'reason':'No current candidate render; source-only Code Critic still runs'},
         )
-        candidate_appearance_approved = candidate_image_decision.approved
-        if not candidate_appearance_approved:
+        candidate_appearance_approved = image_payload['approved'] if image_payload else None
+        if (not candidate_appearance_approved or
+                diagnostic_context is not None and diagnostic_context.get('geometry_status') != 'PASS'):
             code_context = AgentToolContext(
                 workspace=workspace, source_path=candidate_source
             )
@@ -2209,11 +2226,11 @@ class ObjectWorkflow:
                         {
                             **preservation_payload,
                             "assigned_source": candidate_relative,
-                            "image_critic": candidate_image_decision.model_dump(),
+                            "image_critic": image_payload,
                         },
                         ensure_ascii=False,
                     ),
-                    images,
+                    images if candidate_images or diagnostic_context is None else (),
                 ),
                 role=f"code-critic:candidate:{round_number}:{proposal_index}",
                 stage=f"candidate_code_critic:{round_number}:{proposal_index}",
@@ -2231,11 +2248,15 @@ class ObjectWorkflow:
             )
             candidate_appearance_approved = candidate_code_decision.approved
 
+        if diagnostic_context is not None and (not candidate_images or not diagnostic_context.get('complete', False)):
+            candidate_appearance_approved = None
 
         return candidate_appearance_approved, {
             "appearance_approved": candidate_appearance_approved,
-            "image_critic": candidate_image_decision.model_dump(),
+            "image_critic": image_payload,
             "code_critic": candidate_code_decision.model_dump() if candidate_code_decision else None,
+            **({'diagnostic_context':diagnostic_context,
+                'image_review_status':'COMPLETED' if image_payload else 'SKIPPED'} if diagnostic_context is not None else {}),
             **({"image_input_mapping": mapping} if request.overhang_experiment else {}),
         }
 

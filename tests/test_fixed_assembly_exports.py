@@ -100,6 +100,7 @@ def test_export_mismatch_blocks_approval_even_when_image_critic_passes(tmp_path,
         report = json.loads(path.read_text())
         report.update(status='FAIL', failures=[dict(code='EXPORTED_FILE_GEOMETRY_MISMATCH',
                                                    part_id='part', file='scene.glb')])
+        report['diagnostic'] = {'complete':True}  # Whole object is visible; saved geometry is mismatched.
         path.write_text(json.dumps(report))
         return result
     monkeypatch.setattr(flow, 'execute_asset_source', rejected_export)

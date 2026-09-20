@@ -1,10 +1,182 @@
 # aDSL 工作记忆
 
-更新时间：2026-09-18（UTC）
+更新时间：2026-09-20（UTC）
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
 
-## 当前代码与实验快照（2026-09-18）
+## 当前固定装配边界（2026-09-20）
+
+- 用户追加要求将同一SF03单例上限改为5轮，已通过单例入口 `--max-rounds 5` 启动：
+  `local_experiment/fixed_assembly_visual5_20260920T043431Z/SF03`，tmux
+  `adsl_assembly_visual5_20260920T043431Z`。第1轮检查原候选+最多4次修补；不强制凑轮数，
+  判通过/主动停止仍可提前结束，不改Code/Image Critic裁决。仅stepcode，几何及四checker关闭。
+  实测已结束：实际只评审第1轮，0次修补，920.56秒、41016tokens；Image拒绝缺损靠背，
+  Code以源码存在双立柱和打印件shown记录推翻拒绝，提前批准原稿；几何仍未检查。
+  源码未变，不能称修补成功或外观合格；代理已自动停止。详情见新目录result.json。
+  本次定向回归18 passed；入口默认仍2轮，原实验保留。任务自启代理结束自停。
+
+- 本轮开发基线为 `fcfdeda7fe78e73969ec206389396bdc1e77c0ec`；视觉模式、诊断循环、
+  stepcode单例入口及相关测试随本次Git提交归档，实验资产/API日志不上传。
+- 已只读对照官方sig-pku/aDSL及初始提交4d9c1bb：两份Critic核心提示未改，官方也允许Code
+  推翻Image并立即结束。当前固定装配复用candidate_preservation，缺少原版plan/checklist、
+  max_rounds和历史字段，首轮8图重复成16图；新增complete/shown仅表示可显示，不保证
+  子结构语义完整，Code在实测中误用此证据。上述裁决及输入调整仅讨论，尚未实施。
+- 用户最新要求优先于之前的几何 gate 方案：先实现原 aDSL + connector + Image/Code Critic，
+  通过 `fixed_assembly.validation_mode=visual_only` 关闭闭合、连通、接口体积、穿透及尺寸测量。
+  原 `geometry` 模式保留为默认；四个物理 checker 不启用。构造参数合法性与导出一致性仍保留。
+- 每个打印件只执行一次实际 CSG，展示模式不做 Manifold 合并或实体判定；同一三角网格复用给
+  STL、局部GLB、总装/拆分GLB。导出比较沿用 float32 长度容差，检查三角形序列化一致性，
+  不用闭合体差集阻断视觉流程。视觉通过不表示接口或制造通过，几何记 NOT_EVALUATED。
+- 有可用网格就尝试渲染，缺失/空/非有限网格明确记遗漏；残缺展示不能通过完整外观审核。
+  无图只跳过 Image Critic，Code Critic 仍读源码；修补沿 working 候选推进，retained 独立保存。
+  不人工修改生成源码，不新增预算。源代码错误/导出失败记录供 Coder 修复，不伪造几何结论。
+- 定向测试 110 passed / 6 skipped；跳过项为显式开启的旧真实几何实验，没有跑历史批次。
+- 唯一新实测：`local_experiment/fixed_assembly_visual_20260920T034602Z/SF03`，从历史失败候选副本
+  出发，不调用 Planner/初始生成，最多一次修补。仅 stepcode gpt-5.6-sol，实验自启代理结束自停。
+  原稿位于 `local_experiment/fixed_assembly_prompt_20260919T074507Z/SF03/generate/rounds/round_02/candidates/01_assembly_or_appearance/source.py`。
+  实测已结束：157.60 秒、3次stepcode调用/34249tokens、0次生成/0次修补；6件导出、
+  8总装+2拆分图、24项文件一致性通过。自启代理已关闭，tmux回到可交互bash。
+  Image Critic拒绝单侧缺损靠背，Code Critic仅据源码含双立柱将它纠正为通过，因而没有
+  进入Coder修补；流程记录approved=true仅限visual_code_only，不代表独立确认外观正确。
+  多视图仍可见靠背缺损。本轮未改冲突裁决，不追加API/预算；详见
+  `reports/fixed_assembly_visual_loop_20260920.md`。启动命令见实验README。
+
+## 历史代码与实验快照（2026-09-19）
+
+- 当前边界：人工只修agent工作流/执行错误处理，不手工改生成source.py，不替agent补几何；
+  只有运行内Coder可按既定预算修改模型并重新验收。用户要求持续监督，异常允许暂停修复继续。
+- 074507Z新批SF07、SF03已结束且未通过；SF07修补遇空网格IndexError，SF03座面修好、
+  靠背仍无效。两例原稿/候选源码哈希均核对未人工改动，最终保留original，不追加预算。
+  SF13在Planner阶段挂起原PID2258453，export_assembly.evaluated补6行空数据ValueError检查，
+  沿既有PART_GEOMETRY_INVALID返回，不删除空对象或变更几何。85通过/6跳过；07:59:34 UTC
+  SIGCONT恢复同一进程，代理与调用未重启。暂停计入原API观察耗时，详见本批MONITORING.md。
+- 074507Z三例现已全部结束：SF13修补后5层板有效、主体仍无效，所有候选均拒绝、
+  retained=original/approved=false。没有总装图片，视觉/代码审核未达到执行阶段；不报外观PASS。
+  共19次API均返回、197251tokens；没有新的流程异常。SF13耗时433.75秒含人工暂停。
+  发布与版本源码哈希均匹配；tmux任务rc0且bash可交互。当前没有运行case，不擅自补跑。
+
+- 用户要求沿固定装配全流程审查并修复后启动新实验。已检查输入、生成、导出、审核、
+  修补、retained与批次隔离；不是全仓库重构。`fixed_assembly.py`修复缺manifest时反馈
+  指向不存在文件的问题，改指真实execution_error.json；保留已完成几何FAIL，不改写成ERROR。
+  损坏manifest/空异常信息有界处理，非预期FLOW_ERROR仍停止，未审核外观不当PASS。
+  最终相关测试76 passed/6 skipped（4.88秒），新增test_fixed_assembly_recovery.py；不放宽验收。
+- SF07单次改序对照2.47秒：按插入顺序UNION仍丢失z24–59.88材料，虽一块闭合也不是正确。
+  该export_glb改动已撤回，原solver/排序/容差不变；不继续内核排查。证据与本轮修复详见
+  `local_experiment/diagnostics/sf07_operand_order_check_20260919/REPORT.md`。
+- 新实验目录`local_experiment/fixed_assembly_prompt_20260919T074507Z`已启动：
+  同prompt与冻结参数，SF07→SF03→SF13，各一次初生+最多一次修补，四checker关闭，
+  CLIProxy独立tmux。实验tmux为`adsl_assembly_prompt_20260919T074507Z`，提交确认时
+  runner PID2257523、SF07实际Planner请求001 RUNNING；SF03/SF13按门禁后续串行。
+  新一轮由用户授权，旧源码、结果、预算保留；后续状态以first.log/rest.log及result为准。
+
+- SF07一次限时局部定位已结束：`local_experiment/diagnostics/sf07_local_csg_20260919/REPORT.md`。
+  原TaperedStem、原导出路径，120秒预算内实际3.31秒，0API/0checker/0修补、源码未改。
+  第10次UNION加入op_18时已有z=43.88–60.12段消失，体积下降3277.47mm³；最终GLB
+  写入前已形成z=44.12–59.88缺口。未切solver/排序做对照，不宣称内核根因已证明，不再深挖。
+- 仅修改`experiments/fixed_assembly_prompt/run.py`的批次错误分类：明确的无效候选网格
+  不再视为全批共同故障，仍拒绝候选；导出不一致、缺文件/ID、未知读取/API/流程错误仍停。
+  37项相关mock与代理生命周期测试通过。旧SF07原result与预算不改，通过保存证据复核，
+  另存`SF07/continuation_gate.json`解开旧暂停；历史`paused.json`只表示当时的暂停。
+- SF03→SF13续跑已经正常结束，旧目录`local_experiment/fixed_assembly_prompt_20260919T063437Z`。
+  SF03约219.74秒、66779tokens，SF13约262.60秒、69078tokens，各6次API全部成功，
+  各一次初生+一次修补；最终仍有局部无效网格，approved=false/retained=original。
+  两例无API/工具/流程错误；因无总装渲染未运行视觉审核，不算外观通过。批次隔离生效，
+  个例失败没有阻断后续。旧SF07此次续跑未重跑；四checker始终关闭，独立CLIProxy保留。
+
+- 用户明确确认删除旧展示资料：`presentation.md`和`presentation_assets/`已删除，
+  不备份、不自动恢复；后续按新结果重新制作报告。local_experiment、experiments及源码未删除。
+  本次未操作历史资产ZIP，但结束核对时根目录两份ZIP已不存在，不假定仍有该备份。
+  下文涉及旧presentation路径的条目仅为历史记录，不代表文件仍存在。
+
+- 按用户要求整理实验记录：两组有效研究记录保留原路径，旧502启动及已结束API探针
+  原样移入`local_experiment/diagnostics/`，目录索引见`local_experiment/README.md`。
+  删除30个项目内`__pycache__`及1个`.pytest_cache`，表观约2.01MiB，可自动再生；
+  不删资产/候选/请求/会话证据，不动数据盘、展示ZIP、未提交代码或代理，不做git clean。
+- 旧prompt实验SF07约235秒，10次API全部返回、95,869tokens，初生一次、
+  修补一次，最终approved=false、retained=original，保留未通过的初稿及匹配渲染/结果。
+  初稿pedestal两个连通分量且导出回读无效；修补候选PART_GEOMETRY_INVALID，未接受。
+  当时启动器把EXPORTED_*统一视为共性错误而暂停；分类修复后的SF03/SF13续跑已结束，见上。
+
+- 用户明确重新启动后，新 prompt-to-3D 实验已提交至
+  `local_experiment/fixed_assembly_prompt_20260919T063437Z`，tmux
+  `adsl_assembly_prompt_20260919T063437Z`，初始PID2238093。SF07先运行，实际输入和
+  装配API审计通过且无共性错误后，脚本串行继续SF03、SF13；不是旧资产改造。
+  沿用原case_manifest中的原始任务prompt，不提供旧源码或旧生成图；出处为原数据集任务，
+  不据此额外声称官方逐例生成过这三个模型。独立CLIProxy保持运行；无额外重试/预算。
+  每例一次初生、最多一次修补，固定尺度/余量/超时，四checker关闭。提交时SF07 Planner
+  请求RUNNING；最终状态以各case/result.json及first.log/rest.log为准，旧502结果完整保留。
+
+- 当前代理使用规则已按用户再次确认改为：**先独立tmux启动CLIProxy，再在另一个tmux使用API**。
+  新入口`bash experiments/cliproxy_session.sh adsl_cliproxy_20260919`；当前代理PID2218166，
+  `127.0.0.1:8317`监听。代理会话仅跟随日志，Ctrl-C只退出日志，不自动停服务。
+  fixed_assembly_prompt/existing的launcher不再自动start/stop或注册退出清理；代理未运行就
+  明确退出提示先启动。正常/失败均保留代理；仅用户明确要求时手动cliproxy_stop。
+- API已在另一tmux `adsl_api_check_20260919` 实测：gpt-5.6-sol调用read_file后返回OK，
+  2请求、1222tokens、6.84秒，结果已整理至`local_experiment/diagnostics/cliproxy_check_20260919/result.json`。
+  6项离线生命周期测试通过，检验代理未启动/runner成功/失败均不隐式启停代理。
+  上一SF07的502是上游server_is_overloaded，代理当时已成功完成Planner请求，实验退出后
+  才被旧trap关闭；分离生命周期修复了自动关代理问题，不保证上游不再偶发过载。
+  API修复验证本身未重跑生成；随后用户明确授权的新运行见上，原失败证据保留。
+
+- 用户纠正当前路线为固定装配 **prompt-to-3D**，不是已有资产改造。新增
+  `experiments/fixed_assembly_prompt`直接调用原生generate；原始SF07/SF03/SF13 prompt来自
+  standing_fea_30/case_manifest，按历史runner无--image，因此不用旧源码/旧生成图。
+  原任务与统一制造要求分开保存；1单位=1mm、余量+0.2mm，冻结目标桌120×120×120、
+  椅90×80×180、书架100×32×200mm，agent自主分件。一次初生+最多一次修补，四checker关闭。
+- 旧启动记录（现为`local_experiment/diagnostics/fixed_assembly_prompt_20260919T051309Z`）：20项mock通过。
+  SF07 Planner成功（2件1接口），首次Coder API返回HTTP502/server_is_overloaded，无源码生成。
+  实际Planner/Coder输入审计通过（源码起点空、0图片、无旧源码），程序API/几何尚未验证。
+  SF03/SF13未启动；不追加预算，不自动重试。2请求，已知5859tokens；失败请求usage未知。
+  代理已关闭，tmux adsl_assembly_prompt_first_20260919退出码2但保留bash。
+  原改造结果单独保留，不计入此次新生成统计；生产fixed_assembly/checker逻辑未改。
+
+- 用户确认旧 `local_experiment/` 是主动删除的；不恢复、不追索旧目录或账本。
+  当前取消跨实验累计 token 记账及一亿 token 累计阻断，不再承接旧累计额度。
+  单次实验 usage 统计、已有历史结果与证据保留；单候选预算、API/模型及超时配置不变。
+- 原版已有资产固定装配转换（非重新生成）：新目录
+  `local_experiment/fixed_assembly_existing_20260919`，固定SF07→SF03→SF13，归档adsl组，
+  原源码均当前执行/8视图成功。40mm/源码单位、单侧0.2mm间隙、原尺寸冻结。
+  仅新增实验编辑适配器，复用原Planner/Coder、Image/Code Critic与固定装配循环，
+  每例一次初始改造+至多一次修补，四物理checker关闭。相关32测试通过/6跳过，
+  新适配器13模拟测试通过。未修改普通edit或checker框架。
+- 实际结果：SF07两件桌子，初稿误传dict，1次修补为TabSlot对象后接口/外观及8项
+  文件一致性通过，保留attempt_0001；SF03六件椅子修补后4腿网格无效、靠背6分量，
+  保留原椅子；SF13初稿同样dict错误，修补读不存在manifest触发TOOL_ERROR，保留原书架。
+  全部原资产及发布哈希核对通过。原运行粗分类与后验分类分别保留result/post_run_audit。
+  SF13是流程缺陷：fixed_assembly.py反馈无条件给出未生成的manifest路径。只补本实验分类，
+  未修生产反馈/工具、未追加调用；后续先解决缺失报告引用，不增加本例预算。
+- 本轮CLIProxy实际25请求、284,452tokens（SF13中断修补也计入）。历史运行曾因旧local_experiment/
+  原API账本缺失，按此前memory最后9,512,660累计charge承接，明细缺失明确标记。
+  当时账本 `local_experiment/fixed_assembly_existing_20260919/budget/cliproxy_token_budget.json`，
+  累计9,797,112/100,000,000；新增请求无未结项。这是历史记录，不再作为当前累计阻断依据。代理已关闭；tmux
+  `adsl_assembly_existing_20260919`已退出任务且保留bash。报告在本轮目录REPORT.md，
+  含原图/总装/拆分图、失败分类和成本CSV。未验证实物固定；本轮改动未提交/推送。
+- 注意：旧reports/与原local_experiment/目前缺失/被删除，以下历史路径仅是历史记录，
+  不应当作当前仍存在的证据。保留用户删除，不恢复或追索旧目录。
+
+- 固定装配导出一致性已在 `95edef0` 上最小修复：只改 export_assembly 的生产逻辑，
+  同一打印件的最终局部网格/面材质复用于 STL 和独立/总装/拆分 GLB，展示不重做 CSG。
+  最终落盘文件回读、统一坐标及单位，沿用原对称体积差容差；不一致进入原 FAIL gate。
+  没有更改 attach_part、connect、余量、四 checker 或候选机制，也无跨候选网格缓存。
+- 原三件源码重导出 12 项差全0，原两件回归最大差约0.000022 mm³，均通过；正常
+  +0.2mm间隙保留。错移一脚1mm被现有接口/干涉规则拒绝（44.71465mm³），不加gap工具。
+  36项相关测试通过、6项历史真实几何变体跳过。原资产/历史失败保留，新证据见
+  `reports/fixed_assembly_mesh_reuse_20260919.md`，本轮代码尚未提交/推送。
+- 用户追加允许 CLIProxy 单例：`local_experiment/fixed_assembly_mesh_reuse_20260919/cliproxy_smoke`。
+  初稿误用connect(id=...)；1/2次修补改两处位置参数后通过，retained=attempt_0001。
+  这是调用错误恢复，不是几何修复证明。8次请求、65,359tokens；共用原一亿token台账，
+  累计9,512,660、无未结请求。代理已关闭，tmux任务退出码0且交互Bash保留。
+
+- 基于 `95edef0` 修正 tmux 启动层：`experiments/tmux_session.sh` 先创建交互
+  Bash，任务在前台子 shell 执行；完成/失败/Ctrl-C 后保留提示符，记录真实退出码。
+  不再把 remain-on-exit 留下的 dead pane 当成交互终端。新实验统一使用此入口，
+  原日志/pipefail 保留；GPU control 的 wait/status 区分任务结束和 shell 仍存在。
+  隔离 tmux 实测 7 passed（正常/失败、Ctrl-C、任务内 exit、参数引用、tee、会话重名）；
+  测试 server 均已清理，相关 7 个 shell 脚本语法检查通过。
+- 单卡手动入口 `bash experiments/gpu_render_queue/allocate_shell.sh SESSION`：
+  分配后进入 `bash -i`，不启动 keeper/实验。远端 shell 退出仍释放卡，登录节点
+  shell 保留；不要将登录节点提示符误认为仍持有 GPU。未实际申请卡或改动现有会话。
+  keeper 及其提交逻辑未改；本轮代码尚未提交/推送。
 
 - 本轮基于 master `841afc4`，最小修复空源码 resume 的完整 fixed_assembly
   配置传递，规划/导出前拒绝打印件保留名 scene/exploded；77 项测试通过、6 项
@@ -12,10 +184,10 @@
 - StepCode 三件式顶板+重复支脚已完成：`local_experiment/fixed_assembly_three_parts_20260918`。
   初次生成 1 次、修补 0/2 次，29,738 tokens；接口验收与 Image Critic 通过，
   retained=original，代理已关闭。未验证真实修补能力，不运行四个物理 checker。
-- **后验导出一致性失败**：三 STL 均闭合单实体、零退化面、与独立 GLB 一致，
+- **9月18日历史后验导出一致性失败**：三 STL 均闭合单实体、零退化面、与独立 GLB 一致，
   但两支脚在总装 GLB 的榫头导入斜面各差约 2.8586 mm³（容差 0.8281 mm³）。
   已保存 `saved_export_verification.json`；发布哈希匹配，并非选错 retained。
-  当前总装重新求值 CSG，具体 Boolean/三角化根因未定；未扩大生产修复或重跑。
+  当时总装重新求值 CSG，具体 Boolean/三角化根因未定；历史文件不改写，新修复见上。
   不将流程 approved=true 当成完整一致性通过。见 `reports/fixed_assembly_three_parts_20260918.md`。
 
 - 固定装配 v1 已在 `6824a14` 上实现，随本次代码提交同步。公共 `FixedAssembly` /

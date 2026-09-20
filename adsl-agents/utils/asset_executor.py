@@ -7,6 +7,7 @@ from pathlib import Path
 import runpy
 import hashlib
 import shutil
+import traceback
 from typing import Sequence
 
 # Blender must initialize before trimesh-backed modules on Windows.
@@ -64,13 +65,33 @@ def main(argv: Sequence[str] | None = None) -> int:
         manifest = json.loads((output/'execution.json').read_text())
         render_video(output_dir=output/'render', glb_path=Path(manifest['glb_path']),
             elevations=(args.render_elevation,), num_camera_per_layer=args.render_view_count)
-        render_video(output_dir=output/'assembly'/'exploded_render', glb_path=output/'assembly'/'exploded.glb',
-            elevations=(-30.0,30.0), num_camera_per_layer=1)
+        if (output/'assembly'/'exploded.glb').is_file():
+            render_video(output_dir=output/'assembly'/'exploded_render', glb_path=output/'assembly'/'exploded.glb',
+                elevations=(-30.0,30.0), num_camera_per_layer=1)
+        diagnostic = manifest.get('assembly_diagnostic', {})
+        if diagnostic.get('diagnostic_only'):
+            from PIL import Image, ImageDraw
+            import textwrap
+            label = ('DIAGNOSTIC ONLY - NOT ASSEMBLY APPROVAL. '
+                     f"Invalid parts: {', '.join(diagnostic.get('invalid_parts', [])) or 'none recorded'}. "
+                     f"Missing parts: {', '.join(diagnostic.get('missing_parts', [])) or 'none recorded'}. "
+                     f"Omitted mesh nodes: {len(diagnostic.get('omitted_mesh_nodes', []))}.")
+            lines = textwrap.wrap(label.encode('ascii', 'backslashreplace').decode(), 65)
+            for path in (output/'render').glob('*.png'):
+                with Image.open(path) as raw:
+                    picture = raw.convert('RGB')
+                marked = Image.new('RGB', (picture.width, picture.height+16*len(lines)+8), 'white')
+                marked.paste(picture, (0,16*len(lines)+8))
+                draw = ImageDraw.Draw(marked)
+                for i, line in enumerate(lines):
+                    draw.text((4,4+16*i), line, fill='darkred')
+                marked.save(path)
         return 0
     namespace = runpy.run_path(str(source), run_name="__adsl_generated__")
     scene = namespace.get("scene")
     if not isinstance(scene, Asset):
         raise TypeError("Generated source must assign an adsl Asset to `scene`")
+    diagnostic = {}
     if args.fixed_assembly_config:
         from adsl.core import FixedAssembly
         from adsl.core.serialize import asset_to_dict
@@ -82,13 +103,28 @@ def main(argv: Sequence[str] | None = None) -> int:
             return json.dumps(asset_to_dict(value), sort_keys=True, default=lambda v:v.tolist())
         if scene_signature(scene) != scene_signature(assembly.scene()):
             raise ValueError('scene must equal assembly.scene(); unselected material or post-assembly transform is not permitted')
-        report = export_assembly(assembly, output/'assembly',
-            source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
-            expected=json.loads(args.fixed_assembly_config.read_text()))
-        if not (output/'assembly'/'scene.glb').is_file():
-            raise ValueError('assembly export could not produce a scene; see assembly_manifest.json')
+        try:
+            report = export_assembly(assembly, output/'assembly',
+                source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
+                expected=json.loads(args.fixed_assembly_config.read_text()))
+        except Exception as error:
+            from adsl.agents.utils.io import write_json
+            target = output/'assembly'/'assembly_manifest.json'
+            report = json.loads(target.read_text()) if target.is_file() else {'failures':[]}
+            report['status'] = 'ERROR'
+            report['failures'].append({'code':'ASSEMBLY_EXECUTION_ERROR',
+                'stage':report.get('stage'), 'reason':f'{type(error).__name__}: {error}'[:300]})
+            write_json(target, report)
+            traceback.print_exc()
+        diagnostic = dict(report.get('diagnostic', {}))
+        diagnostic.update(diagnostic_only=report['status'] != 'PASS')
+        scene_path = output/'assembly'/'scene.glb'
+        if not scene_path.is_file():
+            scene_path = output/'assembly'/(diagnostic.get('glb') or 'diagnostic_scene.glb')
+        if not scene_path.is_file():
+            raise ValueError('No renderable candidate geometry; Code Critic can read source and assembly_manifest.json')
         (output/'render').mkdir(exist_ok=True)
-        shutil.copy2(output/'assembly'/'scene.glb', output/'render'/'scene.glb')
+        shutil.copy2(scene_path, output/'render'/'scene.glb')
     source_index_path = output / "source_index.json"
     source_index_path.parent.mkdir(parents=True, exist_ok=True)
     analysis_geometry_path = output / "analysis_geometry.json"
@@ -163,6 +199,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         "source_index_path": str(source_index_path) if source_index_path else None,
         "analysis_geometry_path": str(analysis_geometry_path) if analysis_geometry_path else None,
     }
+    if args.fixed_assembly_config:
+        manifest['assembly_diagnostic'] = diagnostic
     (output / "execution.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False),
         encoding="utf-8",
