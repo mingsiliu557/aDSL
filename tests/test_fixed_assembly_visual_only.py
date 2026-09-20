@@ -25,7 +25,8 @@ def test_visual_mode_critics_and_approval_scope(tmp_path,monkeypatch,complete,ex
         response.final_output.required_changes=[]
         return response
     rt.run=clean_review
-    monkeypatch.setattr(w,'_review_candidate_appearance',ObjectWorkflow._review_candidate_appearance.__get__(w))
+    monkeypatch.setattr(w,'_review_generation_image',ObjectWorkflow._review_generation_image.__get__(w))
+    monkeypatch.setattr(w,'_review_generation_code',ObjectWorkflow._review_generation_code.__get__(w))
     execute=flow.execute_asset_source
     def run(*a,**kw):
         assert kw['render'] and kw['fixed_assembly']['validation_mode']=='visual_only'
@@ -38,8 +39,8 @@ def test_visual_mode_critics_and_approval_scope(tmp_path,monkeypatch,complete,ex
     monkeypatch.setattr(flow,'execute_asset_source',run)
     result,book=run_flow(state)
     assert result.approved is accepted
-    assert len(calls)==2  # Both actual critic request constructors.
-    assert 'NOT_EVALUATED must not trigger' in json.dumps(calls[0]['input'])
+    assert len(calls)==1  # Image approval must not trigger Code because geometry is unmeasured.
+    assert 'assembly_diagnostic' not in json.dumps(calls[0]['input'])
     report=json.loads((tmp_path/'assembly_result.json').read_text())
     assert report['geometry_validation']=='NOT_EVALUATED'
     assert report['interface_and_appearance_approved'] is None
@@ -87,7 +88,8 @@ def test_visual_export_only_evaluates_final_parts_not_bodies_or_interface_checks
         expected={**CONFIG,'validation_mode':'visual_only'})
     assert evaluated==['bar.glb','stem.glb']
     assert result['status']=='NOT_EVALUATED' and result['export_status']=='PASS'
-    assert result['diagnostic']['complete']
+    assert result['diagnostic']['display_available']
+    assert result['diagnostic']['semantic_completeness']=='NOT_EVALUATED'
     assert result['backend']['within_part_union']=='NOT_EXECUTED'
     assert not any('connected_components' in p for p in result['parts'])
 

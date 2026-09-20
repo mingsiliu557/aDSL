@@ -174,7 +174,8 @@ async def run_case(root, cid):
     work.mkdir(exist_ok=False)
     shutil.copy2(source, work/'source.py')
     request = ObjectRequest(requirement(cid), work, f'fixed_existing_{cid}',
-        max_rounds=2, checker_specs=(), fixed_assembly=config)
+        max_rounds=2, checker_specs=(), fixed_assembly=config,
+        image_paths=original_execution.render_paths)
     workflow = ExistingAssetWorkflow(original)
     start = time.monotonic()
     write_json(folder/'started.json', {'time':time.time(), 'initial_conversion_limit':1,

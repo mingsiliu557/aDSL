@@ -84,7 +84,7 @@ def test_review_error_stops_and_preserves_readable_flow_diagnostic(tmp_path, mon
     async def broken_review(**kwargs):
         raise RuntimeError('mock API error')
 
-    monkeypatch.setattr(state[0], '_review_candidate_appearance', broken_review)
+    monkeypatch.setattr(state[0], '_review_generation_image', broken_review)
     result, book = run_flow(state)
     assert not result.approved and book['stop_reason'] == 'FLOW_ERROR'
     assert state[-1] == []

@@ -1,4 +1,4 @@
-"""Opt-in assembly gate using existing executor, repair budget, reviews and versions.
+"""Assembly execution/version adapter using ordinary aDSL generation reviews.
 
 No physical-checker execution or new agent role. The small loop is initial
 evaluation + bounded isolated repairs, not the overhang optimization workflow.
@@ -44,6 +44,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         write_json(book_path, book)
     book.setdefault('working', book['retained'])
     book.setdefault('qualified', book['retained'] if book['versions'][book['retained']]['reviews'].get('accepted') else None)
+    image_history = book.setdefault('image_history', [])
+    code_history = book.setdefault('code_history', [])
+    corrections = code_history[-1].get('image_critic_corrections', []) if code_history else []
     repairer = runtime.agent(name='object-coder', tools=PATCH_TOOLS,
         instructions=object_prompt('coder', articulation=False, fixed_assembly=True))
     image_critic = runtime.agent(name='object-image-critic', output_type=ImageCriticDecision,
@@ -146,23 +149,41 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             accepted, reason = False, 'FLOW_ERROR'
         if reason != 'FLOW_ERROR':
             display = report.get('diagnostic', {})
-            diagnostic_context = {**display, 'geometry_status':report['status'],
-                'validation_mode':'visual_only' if visual_only else 'geometry',
-                'failures':report.get('failures', [])[:6], 'report_path':str(report_path),
-                'complete':bool(display.get('complete', report['status'] == 'PASS') and reason != 'execution_failed'),
-                'current_source_sha256':file_hash(current)}
+            # Availability is a controller safeguard, never evidence that the
+            # semantic parts or intended shape survived CSG. Read old manifests too.
+            display_available = bool(execution and execution.render_paths and reason != 'execution_failed'
+                and display.get('display_available', display.get('complete', report['status'] == 'PASS')))
+            render_issue = None if display_available else {
+                'stage':'render', 'reason':'Current display unavailable or partial; full appearance cannot be approved.',
+                'report_path':str(report_path), 'missing_parts':display.get('missing_parts', []),
+                'omitted_mesh_nodes':display.get('omitted_mesh_nodes', []),
+            }
             try:
-                baseline = version_assets(working)[1] if working['execution'] else execution
-                approved, reviews = await workflow._review_candidate_appearance(runtime=runtime, request=request,
-                    workspace=workspace, round_number=number, proposal_index=0, proposal=proposal,
-                    baseline_execution=baseline, candidate_execution=execution, candidate_source=current,
-                    candidate_root=candidate_root, image_critic=image_critic, code_critic=code_critic,
-                    diagnostic_context=diagnostic_context)
-                # Neither Code Critic nor an incomplete diagnostic image can
-                # certify appearance or override the geometry gate.
-                if not execution or not execution.render_paths or not diagnostic_context['complete']:
+                image_decision = await workflow._review_generation_image(
+                    runtime=runtime, request=request, plan=plan, execution=execution,
+                    round_number=number, max_rounds=book['max_rounds'], round_root=candidate_root,
+                    image_critic=image_critic, image_history=image_history,
+                    code_critic_corrections=corrections, render_issue=render_issue)
+                approved = image_decision.approved if image_decision else None
+                code_decision = None
+                # Same order as ordinary aDSL: Code reviews a rejected Image
+                # judgement, not a NOT_EVALUATED manufacturing status.
+                if image_decision is None or not image_decision.approved:
+                    code_decision = await workflow._review_generation_code(
+                        runtime=runtime, request=request, plan=plan, execution=execution,
+                        workspace=workspace, source_path=current, round_number=number,
+                        max_rounds=book['max_rounds'], round_root=candidate_root,
+                        code_critic=code_critic, image_decision=image_decision,
+                        code_history=code_history, render_issue=render_issue)
+                    approved = code_decision.approved
+                    corrections = code_decision.image_critic_corrections
+                if not display_available:
                     approved = None
-                    reviews['appearance_approved'] = None
+                reviews = {'appearance_approved':approved,
+                    'image_critic':image_decision.model_dump() if image_decision else None,
+                    'code_critic':code_decision.model_dump() if code_decision else None,
+                    'image_review_status':'COMPLETED' if image_decision else 'SKIPPED',
+                    'review_mode':'generation', 'render_issue':render_issue}
                 gate_passed = (report.get('export_status') == 'PASS' and report['status']=='NOT_EVALUATED'
                                if visual_only else report['status'] == 'PASS')
                 accepted = bool(approved and gate_passed)
@@ -188,7 +209,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             'export_status':report.get('export_status'),
             'report_path':str(report_path),
             'source_version':version_id, 'source_sha256':file_hash(current),
-            'display':report.get('diagnostic'),
+            'render_issue':reviews.get('render_issue'),
             'image_critic':reviews.get('image_critic'), 'code_critic':reviews.get('code_critic')}
         book.update(feedback=feedback, next_round=number+1)
         write_json(book_path, book)

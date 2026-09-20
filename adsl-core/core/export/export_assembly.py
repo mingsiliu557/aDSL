@@ -267,7 +267,8 @@ def _diagnostic_view(assembly, output, meshes, manifest):
     diagnostic = {'diagnostic_only':True, 'parts':parts,
         'invalid_parts':[p['id'] for p in parts if p['geometry_valid'] is False],
         'missing_parts':[p['id'] for p in parts if not p['shown']],
-        'complete':all(p['shown'] and (visual_only or p['geometry_valid']) and not p.get('omitted_mesh_nodes') for p in parts),
+        'display_available':all(p['shown'] and (visual_only or p['geometry_valid']) and not p.get('omitted_mesh_nodes') for p in parts),
+        'semantic_completeness':'NOT_EVALUATED',
         'glb':None}
     if scene.geometry:
         scene.metadata['diagnostic_only'] = True
@@ -365,12 +366,12 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
     try:
         _diagnostic_view(assembly, output, meshes, manifest)
     except (ValueError, RuntimeError, OSError, KeyError) as error:
-        manifest['diagnostic'] = {'diagnostic_only':True, 'complete':False,
+        manifest['diagnostic'] = {'diagnostic_only':True, 'display_available':False,
                                   'glb':None, 'reason':str(error)[:240]}
     if visual_only:
         manifest['diagnostic']['omitted_mesh_nodes'] = [
             {'part_id':p['id'], **node} for p in manifest['parts'] for node in p['omitted_mesh_nodes']]
-        manifest['diagnostic']['complete'] = bool(manifest['diagnostic'].get('complete') and
+        manifest['diagnostic']['display_available'] = bool(manifest['diagnostic'].get('display_available') and
             len(meshes)==len(assembly.parts) and all(p['display_complete'] for p in manifest['parts']))
         if len(meshes)==len(assembly.parts):
             max_coord = max(1., *(float(np.max(np.abs(m.vertices))) for m in meshes.values()))

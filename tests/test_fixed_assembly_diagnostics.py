@@ -21,47 +21,59 @@ def critic_runtime(runtime):
     calls = []
     async def run(**kw):
         calls.append(kw)
-        if kw['stage'].startswith('candidate_image'):
-            return SimpleNamespace(final_output=ImageCriticDecision(approved=True, observations=['visible']))
+        if kw['stage'].startswith('image_critic'):
+            return SimpleNamespace(final_output=ImageCriticDecision(approved=mock_flow.appearance, observations=['visible']))
         context = kw['context']
         context.source_path.read_text()
         context.record('read_file', context.source_path)
-        return SimpleNamespace(final_output=CodeCriticDecision(approved=True,
+        return SimpleNamespace(final_output=CodeCriticDecision(approved=False,
             observations=['read assigned source'], required_changes=['inspect invalid part']))
     runtime.run = run
     return calls
 
 
 @pytest.mark.parametrize('pictures,complete,status,roles,approved', [
-    (True,False,'FAIL',['image','code'],None),
+    (True,False,'FAIL',['image'],None),
     (False,False,'ERROR',['code'],None),
     (True,True,'PASS',['image'],True),
 ])
 def test_actual_critic_requests_for_diagnostic_and_success(tmp_path, monkeypatch,
         pictures, complete, status, roles, approved):
+    from test_fixed_assembly import plan_data
+    from adsl.agents.models import FixedAssemblyPlan
     w,r,rt,source,_ = mock_flow(tmp_path,monkeypatch,[])
+    mock_flow.appearance=True
     calls = critic_runtime(rt)
     png = tmp_path/'view.png'; png.write_bytes(b'mock image bytes')
     glb = tmp_path/'view.glb'; glb.write_bytes(b'mock mesh')
     execution = ExecutionResult(tmp_path, glb, None, (png,), '', '') if pictures else None
-    proposal = RepairProposal(proposal_id='test', finding_ids=['invalid'], hypothesis='inspect',
-                              target=RepairTarget(), action='reshape')
-    context = {'complete':complete,'geometry_status':status,'invalid_parts':['backrest'],
-               'report_path':str(tmp_path/'error.json')}
+    issue = None if complete else {'stage':'render','reason':'Unavailable/partial display',
+                                  'report_path':str(tmp_path/'error.json')}
     (tmp_path/'error.json').write_text('{}')
-    result,reviews = asyncio.run(ObjectWorkflow._review_candidate_appearance(w,
-        runtime=rt,request=r,workspace=tmp_path,round_number=1,proposal_index=0,proposal=proposal,
-        baseline_execution=execution,candidate_execution=execution,candidate_source=source,
-        candidate_root=tmp_path,image_critic='image',code_critic='code',diagnostic_context=context))
-    assert result is approved
+    async def review():
+        image=await ObjectWorkflow._review_generation_image(w,runtime=rt,request=r,
+            plan=FixedAssemblyPlan.model_validate(plan_data()),execution=execution,round_number=1,
+            max_rounds=3,round_root=tmp_path,image_critic='image',image_history=[],
+            code_critic_corrections=[],render_issue=issue)
+        code=None
+        if image is None or not image.approved:
+            code=await ObjectWorkflow._review_generation_code(w,runtime=rt,request=r,
+                plan=FixedAssemblyPlan.model_validate(plan_data()),execution=execution,
+                workspace=tmp_path,source_path=source,round_number=1,max_rounds=3,
+                round_root=tmp_path,code_critic='code',image_decision=image,code_history=[],render_issue=issue)
+        return image,code
+    image,code=asyncio.run(review())
+    assert (image.approved if pictures and complete else None) is approved
     assert [c['agent'] for c in calls] == roles
     for call in calls:
         payload = call['input']
         if isinstance(payload,list): payload = payload[0]['content'][0]['text']
-        assert json.loads(payload)['assembly_diagnostic'] == context
+        payload=json.loads(payload)
+        assert 'assembly_diagnostic' not in payload and 'review_mode' not in payload
+        assert payload.get('render_issue') == issue
     if not pictures:
-        assert reviews['image_review_status']=='SKIPPED'
-        assert reviews['code_critic']['observations']==['read assigned source']
+        assert json.loads((tmp_path/'image_critique.json').read_text())['status']=='SKIPPED'
+        assert code.observations==['read assigned source']
 
 
 def test_no_image_failure_reaches_code_critic_and_coder(tmp_path,monkeypatch):
@@ -69,7 +81,8 @@ def test_no_image_failure_reaches_code_critic_and_coder(tmp_path,monkeypatch):
     state=(state[0],replace(state[1],checker_specs=(),max_rounds=2),*state[2:])
     w,r,rt,source,repairs=state
     critic_calls=critic_runtime(rt)
-    monkeypatch.setattr(w,'_review_candidate_appearance',ObjectWorkflow._review_candidate_appearance.__get__(w))
+    monkeypatch.setattr(w,'_review_generation_image',ObjectWorkflow._review_generation_image.__get__(w))
+    monkeypatch.setattr(w,'_review_generation_code',ObjectWorkflow._review_generation_code.__get__(w))
     execute=flow.execute_asset_source
     count=[]
     def fail_first(*args,**kwargs):
@@ -82,19 +95,20 @@ def test_no_image_failure_reaches_code_critic_and_coder(tmp_path,monkeypatch):
     assert len(repairs)==1 and len(count)==2
     assert repairs[0]['payload']['feedback']['image_critic'] is None
     assert repairs[0]['payload']['feedback']['code_critic']['observations']==['read assigned source']
-    assert critic_calls[0]['stage'].startswith('candidate_code')
+    assert critic_calls[0]['stage'].startswith('code_critic')
 
 
 def test_failed_visible_candidate_reaches_both_critics_and_repair(tmp_path,monkeypatch):
-    state=mock_flow(tmp_path,monkeypatch,[('FAIL',True),('PASS',True)])
+    state=mock_flow(tmp_path,monkeypatch,[('FAIL',False),('PASS',True)])
     state=(state[0],replace(state[1],checker_specs=(),max_rounds=2),*state[2:])
     w,r,rt,_,repairs=state
     calls=critic_runtime(rt)
-    monkeypatch.setattr(w,'_review_candidate_appearance',ObjectWorkflow._review_candidate_appearance.__get__(w))
+    monkeypatch.setattr(w,'_review_generation_image',ObjectWorkflow._review_generation_image.__get__(w))
+    monkeypatch.setattr(w,'_review_generation_code',ObjectWorkflow._review_generation_code.__get__(w))
     result,book=run_flow(state)
     assert result.approved
     assert [c['stage'].split(':')[0] for c in calls]==[
-        'candidate_image_critic','candidate_code_critic','candidate_image_critic']
+        'image_critic','code_critic','image_critic']
     assert repairs[0]['payload']['feedback']['geometry_status']=='FAIL'
     assert repairs[0]['payload']['feedback']['code_critic']
 
@@ -127,7 +141,7 @@ def test_diagnostic_places_saved_invalid_mesh_and_marks_missing(tmp_path,monkeyp
     report={'status':'FAIL','failures':[{'code':'PART_GEOMETRY_INVALID'}]}
     display=exporter._diagnostic_view(assembly,tmp_path,{},report)
     assert display['invalid_parts']==['invalid','missing'] and display['missing_parts']==['missing']
-    assert not display['complete'] and report['status']=='FAIL'
+    assert not display['display_available'] and report['status']=='FAIL'
     scene=trimesh.load(tmp_path/display['glb'],force='scene',process=False)
     assert np.allclose(scene.bounds.mean(axis=0),[10,30,-20])
     assert np.allclose(trimesh.load(tmp_path/'invalid.glb',force='scene').bounds.mean(axis=0),[0,0,0])

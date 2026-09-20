@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from importlib.resources import files
 
 from .utils.prompts import render_prompt_resource
 
@@ -26,7 +27,10 @@ def object_prompt(role: str, *, articulation: bool, fixed_assembly: bool = False
         PROMPT_ROOT / filename,
         articulation=articulation,
     )
-    if fixed_assembly:
+    if fixed_assembly and role == 'code_critic':
+        # API reference, not Planner/Coder assignments or manufacturing approval.
+        prompt += '\n' + files('adsl.core').joinpath('docs/fixed_assembly.md').read_text(encoding='utf-8')
+    elif fixed_assembly and role != 'image_critic':
         prompt += '\n' + (PROMPT_ROOT / 'fixed_assembly.md').read_text(encoding='utf-8')
     return prompt
 

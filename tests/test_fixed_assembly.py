@@ -227,9 +227,16 @@ def mock_flow(tmp_path,monkeypatch, outcomes, patch_status='CHANGED'):
         assert kw['allow_no_change']
         if patch_status=='CHANGED':kw['source_path'].write_text('candidate'+str(len(calls)))
         return {'status':patch_status,'reason':'mock outcome'}
-    async def review(**kw):
-        return mock_flow.appearance, {'appearance_approved':mock_flow.appearance,
-             'image_critic':{'approved':mock_flow.appearance},'code_critic':None}
+    async def image_review(**kw):
+        if not kw['execution'] or not kw['execution'].render_paths:
+            return None
+        decision=ImageCriticDecision(approved=mock_flow.appearance,observations=[])
+        kw['image_history'].append(decision.model_dump())
+        return decision
+    async def code_review(**kw):
+        decision=CodeCriticDecision(approved=False,observations=['mock code review'],required_changes=['repair'])
+        kw['code_history'].append(decision.model_dump())
+        return decision
     def execute(source,out,**kw):
         assert kw['fixed_assembly']['mm_per_unit']==1 and not kw['export_urdf']
         out.mkdir(parents=True)
@@ -243,7 +250,8 @@ def mock_flow(tmp_path,monkeypatch, outcomes, patch_status='CHANGED'):
         (folder/'part.stl').write_text(source.read_text())
         return ExecutionResult(out,glb,None,(png,),'','')
     monkeypatch.setattr(workflow,'_repair',repair)
-    monkeypatch.setattr(workflow,'_review_candidate_appearance',review)
+    monkeypatch.setattr(workflow,'_review_generation_image',image_review)
+    monkeypatch.setattr(workflow,'_review_generation_code',code_review)
     monkeypatch.setattr(flow,'execute_asset_source',execute)
     return workflow,request,runtime,src,calls
 

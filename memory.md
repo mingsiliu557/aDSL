@@ -6,6 +6,19 @@
 
 ## 当前固定装配边界（2026-09-20）
 
+- 本次按用户要求收敛为原aDSL生成审核+connector，开发起点为master
+  `1299bb707931c1f1c436eb0947acc552e8b72d5c`。普通生成和固定装配共用Image/Code审核函数，
+  传入需求、plan/checklist、当前图、轮次和历史；不再走candidate_preservation或把失败初稿图
+  当保留基准。Image通过不因几何NOT_EVALUATED额外调用Code；无图仍可源码诊断。
+  complete改为内部display_available，语义完整性记NOT_EVALUATED；不把shown/complete
+  作为Critic的正面形状证据。Code仅增加connector API参考，不附Planner/Coder任务指令。
+  装配执行/版本适配器保留，未强行合并整个多checker调度器；候选、working/retained、预算不变。
+  四checker实现及接口均未改，当前装配模式不调用；旧过悬保留性审核仍在。
+  本轮仅模拟及轻量回归：217 passed / 6 skipped（6.76s），没有API、SF03重跑或模型修改。
+  原版允许Code推翻Image的裁决仍保留，不能据测试声称缺损靠背已修好。详见
+  `reports/fixed_assembly_generation_review_alignment_20260920.md`；代码、测试与说明随本次提交归档，
+  实验资产/API日志及其他未完成修改不上传。
+
 - 用户追加要求将同一SF03单例上限改为5轮，已通过单例入口 `--max-rounds 5` 启动：
   `local_experiment/fixed_assembly_visual5_20260920T043431Z/SF03`，tmux
   `adsl_assembly_visual5_20260920T043431Z`。第1轮检查原候选+最多4次修补；不强制凑轮数，
@@ -15,12 +28,12 @@
   源码未变，不能称修补成功或外观合格；代理已自动停止。详情见新目录result.json。
   本次定向回归18 passed；入口默认仍2轮，原实验保留。任务自启代理结束自停。
 
-- 本轮开发基线为 `fcfdeda7fe78e73969ec206389396bdc1e77c0ec`；视觉模式、诊断循环、
-  stepcode单例入口及相关测试随本次Git提交归档，实验资产/API日志不上传。
-- 已只读对照官方sig-pku/aDSL及初始提交4d9c1bb：两份Critic核心提示未改，官方也允许Code
-  推翻Image并立即结束。当前固定装配复用candidate_preservation，缺少原版plan/checklist、
-  max_rounds和历史字段，首轮8图重复成16图；新增complete/shown仅表示可显示，不保证
-  子结构语义完整，Code在实测中误用此证据。上述裁决及输入调整仅讨论，尚未实施。
+- 前次开发基线为 `fcfdeda7fe78e73969ec206389396bdc1e77c0ec`；视觉模式、诊断循环、
+  stepcode单例入口及相关测试已随1299bb7提交/推送，实验资产/API日志未上传。
+- 已核对官方 `0c10f36a459bf1033e89e2e5dfcf451bc30043b0`：service.py及两份Critic
+  核心提示与初始4d9c1bb逐字一致，官方也允许Code推翻Image并立即结束。1299bb7装配
+  使用candidate_preservation，缺plan/checklist、max_rounds和历史，首轮图片重复；
+  complete/shown被实测Code误作形状完整证据。现已修审核输入，但没有重跑验证误判是否消失。
 - 用户最新要求优先于之前的几何 gate 方案：先实现原 aDSL + connector + Image/Code Critic，
   通过 `fixed_assembly.validation_mode=visual_only` 关闭闭合、连通、接口体积、穿透及尺寸测量。
   原 `geometry` 模式保留为默认；四个物理 checker 不启用。构造参数合法性与导出一致性仍保留。

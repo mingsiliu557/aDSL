@@ -10,12 +10,25 @@ no Manifold union/validation is performed in visual mode. Serialization consiste
 is compared under the existing float32 coordinate bound (triangle sets, independent
 of face/vertex order); this checks exported files, not physical geometry validity.
 
-Every iteration attempts rendering. A renderable failure still reaches Image and
-Code Critic. Missing/omitted geometry is identified, blocks complete appearance
-approval, and remains repairable. No render skips only Image Critic. Repair uses
-the last working candidate; retained approval requires complete visual/code review
-and consistent exports. `geometry_validation=NOT_EVALUATED` even on visual success.
-The original geometry-validation mode and four-checker implementations are retained.
+Every iteration attempts rendering. Fixed assembly now shares ordinary aDSL's
+generation-review functions: requirement, plan/checklist, current images, round
+budget and review history. It does not use candidate-preservation review or send a
+failed initial render as a baseline. Image approval does not trigger Code Critic
+just because geometry is `NOT_EVALUATED`; Code runs after Image rejection (or when
+no render is available), retaining aDSL's original correction authority.
+
+Missing/omitted geometry is identified, blocks full appearance approval, and remains
+repairable. No render skips only Image Critic. `display_available` describes mesh
+availability, not semantic completeness, and is not positive evidence sent to the
+Critics. Repair uses the last working candidate; retained approval requires the
+existing visual/code decision and consistent exports.
+`geometry_validation=NOT_EVALUATED` even on visual success. The original geometry
+mode and four-checker implementations remain; no physical checker runs here.
+The export/version adapter remains separate; this is shared review, not a rewrite
+of all iteration scheduling. See
+`reports/fixed_assembly_generation_review_alignment_20260920.md` for the code
+comparison, tests and remaining Code/Image disagreement limitation. No real model
+run was made for this alignment change.
 
 One existing failed SF03 source, no Planner, at most one edit, stepcode only:
 

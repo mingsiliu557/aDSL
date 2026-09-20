@@ -72,10 +72,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         if diagnostic.get('diagnostic_only'):
             from PIL import Image, ImageDraw
             import textwrap
-            label = ('DIAGNOSTIC ONLY - NOT ASSEMBLY APPROVAL. '
-                     f"Invalid parts: {', '.join(diagnostic.get('invalid_parts', [])) or 'none recorded'}. "
-                     f"Missing parts: {', '.join(diagnostic.get('missing_parts', [])) or 'none recorded'}. "
-                     f"Omitted mesh nodes: {len(diagnostic.get('omitted_mesh_nodes', []))}.")
+            label = 'DIAGNOSTIC DISPLAY ONLY - SHAPE AND ASSEMBLY NOT VERIFIED.'
+            if diagnostic.get('missing_parts'):
+                label += f" Missing display parts: {', '.join(diagnostic['missing_parts'])}."
+            if diagnostic.get('omitted_mesh_nodes'):
+                label += f" Omitted mesh nodes: {len(diagnostic['omitted_mesh_nodes'])}."
             lines = textwrap.wrap(label.encode('ascii', 'backslashreplace').decode(), 65)
             for path in (output/'render').glob('*.png'):
                 with Image.open(path) as raw:
