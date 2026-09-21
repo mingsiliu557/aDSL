@@ -32,6 +32,22 @@ def test_offline_image_excludes_arm_checker_source_and_history():
     assert not {'arm','topology','code_history','source'} & p.keys()
 
 
+def test_fresh_pair_never_reuses_archived_assets(tmp_path,monkeypatch):
+    monkeypatch.setattr(paired,'reuse_evidence',lambda *a:pytest.fail('historical reuse forbidden'))
+    root=tmp_path/'fresh'
+    paired.prepare(root,fresh_all=True)
+    plan=paired.verify_frozen(root)
+    assert plan['fresh_all'] and len(plan['jobs'])==12
+    assert all(j['origin']=='fresh' and 'reuse' not in j and 'resume_from' not in j for j in plan['jobs'])
+    assert not list(root.rglob('source.py')) and not list(root.rglob('*.glb')) and not list(root.rglob('*.png'))
+    for cid in paired.CASES:
+        wo=read_json(root/'wo'/cid/'input.json');w=read_json(root/'w'/cid/'input.json')
+        assert wo['original_task']==w['original_task'] and wo['original_task']['image_paths']==[]
+        assert wo['fixed_assembly']==w['fixed_assembly']
+        assert wo['source_repair_limit']==w['source_repair_limit']==4
+        assert not wo.get('checker_specs') and [s['name'] for s in w['checker_specs']]==['assembly_topology']
+
+
 def test_selection_uses_retained_not_better_working(tmp_path):
     src=tmp_path/'retained.py';src.write_text('original saved source')
     (tmp_path/'source.py').write_text(src.read_text())

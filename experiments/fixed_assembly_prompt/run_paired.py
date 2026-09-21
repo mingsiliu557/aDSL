@@ -81,7 +81,7 @@ def reuse_evidence(cid, expected):
         charged_repairs={'SF07':3,'SF03':4,'SF13':4}[cid])
 
 
-def prepare(root):
+def prepare(root, *, fresh_all=False):
     root.mkdir(parents=True,exist_ok=False)
     for arm in ('wo','w'):
         prompt.prepare(root/arm,cases=CASES,max_rounds=5,assembly_topology=arm=='w',sizes=SIZES)
@@ -92,7 +92,7 @@ def prepare(root):
         assert control['fixed_assembly']==feedback['fixed_assembly'] and control['source_repair_limit']==feedback['source_repair_limit']==4
         for arm in ('wo','w'):
             item=dict(case=cid,arm=arm,id=cid+'_'+arm,origin='fresh',workspace=str(root/arm/cid/'generate'))
-            if arm=='w' and cid in REUSED:
+            if not fresh_all and arm=='w' and cid in REUSED:
                 item.update(origin='historical_reuse',reuse=reuse_evidence(cid,feedback),workspace=str(REUSED[cid]))
             jobs.append(item)
     paths=(*CORE,'experiments/fixed_assembly_prompt/run.py','experiments/fixed_assembly_prompt/run_paired.py',
@@ -102,7 +102,9 @@ def prepare(root):
         implementation_sha256={p:file_hash(REPO/p) for p in paths},profile_sha256=file_hash(prompt.PROFILE),
         max_evaluation_rounds=5,max_source_repairs=4,api_interruptions_charged=False,
         topology_spec=checker_spec().model_dump(),comparison='independent prompt-to-3D; connector in both arms',
-        note='9 fresh generations + 3 historical results, including failures. Offline scores never select assets.'))
+        fresh_all=fresh_all,
+        note=('12 fresh prompt-to-3D generations; no archived sources, models or renders.' if fresh_all else
+              '9 fresh generations + 3 historical results, including failures.') + ' Offline scores never select assets.'))
     shutil.copy2(prompt.PROFILE,root/'model_profile.yaml')
     for p in paths:
         target=root/'implementation_snapshot'/p;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(REPO/p,target)
@@ -261,9 +263,11 @@ def launch_phase(root,item,phase):
     print('END',item['id'],phase,'rc',child.returncode,flush=True)
 
 
-def run(root):
-    if not (root/'paired_plan.json').exists():prepare(root)
+def run(root, *, fresh_all=False):
+    if not (root/'paired_plan.json').exists():prepare(root, fresh_all=fresh_all)
     plan=verify_frozen(root)
+    if fresh_all:
+        assert plan.get('fresh_all') and all(j['origin']=='fresh' for j in plan['jobs']), 'Not a fresh-only batch'
     # Complete generation/selection of ALL cases before any offline scoring.
     for item in plan['jobs']:
         if item['origin']=='historical_reuse':continue
@@ -286,14 +290,16 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(__doc__)
     parser.add_argument('--root',type=Path,required=True)
     parser.add_argument('--prepare-only',action='store_true')
+    parser.add_argument('--fresh-all',action='store_true',help='All six prompts in both arms start from empty source; no historical reuse')
     parser.add_argument('--continue-from',type=Path,help='Explicitly prepare the interrupted first-case continuation in a new root')
     parser.add_argument('--summarize',action='store_true')
     parser.add_argument('--job');parser.add_argument('--phase',choices=('generate','evaluate'))
     args=parser.parse_args();root=args.root.resolve()
+    if args.fresh_all and args.continue_from:parser.error('--fresh-all cannot continue an old batch')
     if args.continue_from:
         prepare_continuation(root,args.continue_from.resolve())
         if not args.prepare_only:run(root)
-    elif args.prepare_only:prepare(root)
+    elif args.prepare_only:prepare(root, fresh_all=args.fresh_all)
     elif args.summarize:summarize(root)
     elif args.job:
         plan=verify_frozen(root);item=next(j for j in plan['jobs'] if j['id']==args.job)
@@ -305,4 +311,4 @@ if __name__=='__main__':
             else:asyncio.run(evaluate(root,item))
         except Exception:
             traceback.print_exc();raise SystemExit(1)
-    else:run(root)
+    else:run(root, fresh_all=args.fresh_all)
