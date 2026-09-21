@@ -1,12 +1,19 @@
 # aDSL 工作记忆
 
-更新时间：2026-09-20（UTC）
+更新时间：2026-09-21（UTC）
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
 
-## 当前固定装配边界（2026-09-20）
+## 当前固定装配边界（2026-09-21）
 
-- 基于edc0dd5补齐两处任务边界（代码、测试及说明随本次提交归档）：
+- 基于33084a9按最新要求取消实验统一至少两件的规定（代码、测试及说明随本次提交归档）：
+  仅修改fixed_assembly_prompt入口/说明/测试，新输入require_multiple_parts=false；
+  沿用现有Planner方案，Coder在assembly实现相应connector，不新增分件决策阶段。
+  对同一源码哈希的manifest确认为单件零连接，静态API审计不再强求TabSlot/connect；
+  多件仍保留原审计。核心agent、通用装配、几何与四checker、预算、retained均未改。
+  旧冻结输入不迁移，显式任务约束保留可选；69项轻量测试通过，无API或新实验。
+
+- 上一版基于edc0dd5补齐两处任务边界（已提交33084a9；统一多件要求现已取消，见上）：
   可选require_multiple_parts默认false，prompt-to-3D新输入显式true；实际少于2打印件或
   1连接时记MULTIPART_ASSEMBLY_REQUIRED，不因Image通过而批准，仍保留诊断和原候选流程。
   不改通用FixedAssembly单件用法、不恢复初始清单相等检查、不新增几何或四checker。

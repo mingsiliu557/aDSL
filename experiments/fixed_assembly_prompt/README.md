@@ -54,11 +54,13 @@ For a NEW output directory, `run.py::prepare()` explicitly freezes
 The Planner/Coder requirement also states that assembly geometry is not evaluated.
 `launch.sh` uses this entry, so the commands below now select visual-only mode for
 new experiments. The public configuration default remains `geometry`.
-New inputs also freeze `require_multiple_parts=true`: this task needs at least
-two actual print parts and one connector, even if the initial grouping is revised.
-This is a declaration-count requirement, not a geometry/connectivity check. The
-general configuration defaults to false, and single-part FixedAssembly use remains
-legal. Existing frozen inputs are not rewritten; use a new directory to enable it.
+New inputs freeze `require_multiple_parts=false`; there is no experiment-wide
+minimum print-part count. Coder implements the existing Planner's component and
+connection plan in assembly; there is no separate print-part decision stage.
+A single planned print part needs no connector. The API audit allows this only
+when the same source hash has a manifest declaring one part and zero connections;
+multi-part programs retain the existing TabSlot/connect audit. This is not a
+geometry check. The optional task constraint remains available to explicit callers.
 Existing directories are NOT migrated: `prepare()` preserves their inputs/hashes,
 and a missing mode there still means `geometry`. Use a new directory for this phase;
 do not resume an old geometry batch assuming its validation mode changed.
@@ -75,8 +77,8 @@ serialized requests no longer exist, so that provenance limitation is recorded.
 
 Before calling the model, freeze demonstration dimensions: SF07 120×120×120 mm,
 SF03 90×80×180 mm, SF13 100×32×200 mm; 1 mm/source unit and +0.2 mm single-sided
-clearance. No print grouping or interface position is prescribed. At least two
-print parts and the existing tree/TabSlot API are required.
+clearance. No print grouping or interface position is prescribed by the experiment.
+Use the existing Planner scheme and tree/TabSlot API for the declared connections.
 
 New cases default to `--max-rounds 5`: one initial full program/review and at most
 four isolated source repairs with re-execution/review. The option accepts 1–5;

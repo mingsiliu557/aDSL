@@ -28,7 +28,7 @@ IDS = ('SF07', 'SF03', 'SF13')
 SIZES = {'SF07':[120.,120.,120.], 'SF03':[90.,80.,180.], 'SF13':[100.,32.,200.]}
 PROFILE = REPO/'adsl-agents/configs/llm/cliproxy-gpt-5.6-sol.yaml'
 MANIFEST = REPO/'experiments/standing_fea_30/case_manifest.json'
-MANUFACTURING = '''Generate a NEW complete aDSL program from the original task below, with static fixed manufacturing assembly, not articulation. Independently plan semantic components, which belong together in a print part, and local interface locations. Do not assume one Asset/class per print part; there must be at least two distinct print parts. Use ONLY existing FixedAssembly / TabSlot and a receiver-first rooted tree. Within a print part retain normal modeling and attach_part. Between print parts use assembly.connect to generate BOTH mating sides and placement; no global union across print parts. The parameters argument of connect must be a TabSlot object (or an entry containing that object), not a dictionary of dimensions. Preserve the requested appearance and function. Frozen scale, overall dimensions and single-sided fit allowance below must not change. These are geometric demonstration dimensions; clearance is not proof of physical fixation. Use one complete initial source.py and repair only within the frozen budget, with existing Image/Code Critic in visual_only mode and export consistency checks. Assembly geometry checks are NOT_EVALUATED; visual approval is not manufacturing approval. No physical checkers, snap_floaters, or extra interface types.'''
+MANUFACTURING = '''Generate a NEW complete aDSL program from the original task below, with static fixed manufacturing assembly, not articulation. Use the existing Planner's component and connection plan; Coder implements that plan in assembly using connectors for its connections. Do not add a separate print-part decision stage. Do not assume one Asset/class per print part or impose a minimum number of print parts; a single planned print part needs no connector. Use ONLY existing FixedAssembly / TabSlot and a receiver-first rooted tree. Within a print part retain normal modeling and attach_part. Between print parts use assembly.connect to generate BOTH mating sides and placement; no global union across print parts. The parameters argument of connect must be a TabSlot object (or an entry containing that object), not a dictionary of dimensions. Preserve the requested appearance and function. Frozen scale, overall dimensions and single-sided fit allowance below must not change. These are geometric demonstration dimensions; clearance is not proof of physical fixation. Use one complete initial source.py and repair only within the frozen budget, with existing Image/Code Critic in visual_only mode and export consistency checks. Assembly geometry checks are NOT_EVALUATED; visual approval is not manufacturing approval. No physical checkers, snap_floaters, or extra interface types.'''
 
 
 def prepare(root, max_rounds=5):
@@ -49,7 +49,7 @@ def prepare(root, max_rounds=5):
                 f' and at most {max_rounds-1} source repairs. Stop early on approval or explicit no change;'
                 ' do not force edits to exhaust the budget.'),
             'fixed_assembly':{'mm_per_unit':1., 'fit_offset_mm':.2, 'final_size_mm':SIZES[cid],
-                              'validation_mode':'visual_only', 'require_multiple_parts':True},
+                              'validation_mode':'visual_only', 'require_multiple_parts':False},
             'provenance':{'manifest':str(MANIFEST), 'manifest_sha256':file_hash(MANIFEST),
                 'field':f'cases[case_id={cid}].prompt', 'dataset':case['dataset'],
                 'object_id':case['object_id'], 'caption_source':case['caption_source'],
@@ -160,14 +160,22 @@ def input_audit(work, inputs):
             'original_prompt_present':inputs['original_task']['prompt'] in payload['requirement'],
             'reference_images':0, 'tool_events':record.get('tools',[])}
     programs = []
+    single_part_sources = set()
+    if not inputs['fixed_assembly'].get('require_multiple_parts', False):
+        for manifest_path in (work/'rounds').rglob('assembly_manifest.json'):
+            manifest = read_json(manifest_path)
+            if len(manifest.get('part_declarations', manifest.get('parts', []))) == 1 and manifest.get('connections') == []:
+                single_part_sources.add(manifest.get('source_sha256'))
     paths = [work/'original/source.py', *sorted((work/'rounds').rglob('source.py'))]
     for path in paths:
         if not path.is_file():continue
         try:
             calls = [node.func for node in ast.walk(ast.parse(path.read_text())) if isinstance(node,ast.Call)]
             names = [f.id if isinstance(f,ast.Name) else f.attr if isinstance(f,ast.Attribute) else '' for f in calls]
-            programs.append({'source':str(path),'sha256':file_hash(path),
-                             'assembly_api_present':all(n in names for n in ('FixedAssembly','TabSlot','connect'))})
+            source_hash = file_hash(path)
+            programs.append({'source':str(path),'sha256':source_hash,
+                             'assembly_api_present':'FixedAssembly' in names and (
+                                 source_hash in single_part_sources or all(n in names for n in ('TabSlot','connect')))})
         except SyntaxError:
             programs.append({'source':str(path),'sha256':file_hash(path),'assembly_api_present':False})
     result = {'experiment_type':'fixed_assembly_prompt_to_3d', 'stages':evidence,'programs':programs,

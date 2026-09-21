@@ -12,7 +12,7 @@ from experiments.fixed_assembly_prompt import run as prompt
 
 CONFIG = {'mm_per_unit': 1., 'fit_offset_mm': .2,
           'final_size_mm': [120., 120., 120.], 'validation_mode': 'visual_only',
-          'require_multiple_parts': True}
+          'require_multiple_parts': False}
 
 
 def frozen_input():
@@ -56,6 +56,8 @@ def test_prepare_uses_original_prompt_only_and_freezes_dimensions(tmp_path, monk
         inputs = read_json(root/cid/'input.json')
         assert inputs['original_task'] == {'prompt': case['prompt'], 'image_paths': []}
         assert inputs['manufacturing_requirements'].startswith(prompt.MANUFACTURING)
+        assert 'there must be at least two distinct print parts' not in inputs['manufacturing_requirements']
+        assert "Use the existing Planner's component and connection plan" in inputs['manufacturing_requirements']
         assert f'at most {expected_rounds} evaluation rounds' in inputs['manufacturing_requirements']
         assert f'at most {expected_rounds-1} source repairs' in inputs['manufacturing_requirements']
         assert inputs['fixed_assembly'] == dict(CONFIG, final_size_mm=prompt.SIZES[cid])
@@ -70,12 +72,16 @@ def test_prepare_uses_original_prompt_only_and_freezes_dimensions(tmp_path, monk
     assert not list(root.rglob('*.png'))
 
 
-def test_prepare_preserves_old_frozen_mode(tmp_path):
+@pytest.mark.parametrize('old_multiple_parts', [None, True])
+def test_prepare_preserves_old_frozen_mode(tmp_path, old_multiple_parts):
     # Existing directories retain their original geometry default; a new visual
     # experiment must use a new directory, not rewrite frozen inputs or hashes.
     inputs = frozen_input()
     inputs['fixed_assembly'].pop('validation_mode')
-    inputs['fixed_assembly'].pop('require_multiple_parts')
+    if old_multiple_parts is None:
+        inputs['fixed_assembly'].pop('require_multiple_parts')
+    else:
+        inputs['fixed_assembly']['require_multiple_parts'] = old_multiple_parts
     path = write_json(tmp_path/'SF07/input.json', inputs)
     marker = write_json(tmp_path/'batch.json', {'input_sha256': {'SF07': prompt.file_hash(path)}})
     before = (path.read_bytes(), marker.read_bytes())
@@ -100,6 +106,29 @@ def test_audit_requires_matching_actual_model_input(tmp_path, normalized):
     assert all(stage['actual_model_input_matches_stage_input']
                for stage in result['stages'].values())
     assert not result['assembly_api_verified']
+
+
+@pytest.mark.parametrize('parts, links, stale, required, connector_calls, expected', [
+    (1, [], False, False, False, True),
+    (1, [], True, False, False, False),
+    (1, [], False, True, False, False),
+    (2, [{'id':'joint'}], False, False, False, False),
+    (2, [{'id':'joint'}], False, False, True, True),
+])
+def test_single_part_api_audit_uses_current_manifest(tmp_path, parts, links, stale, required, connector_calls, expected):
+    work, inputs = tmp_path/'generate', frozen_input()
+    inputs['fixed_assembly']['require_multiple_parts'] = required
+    stage_records(work, inputs)
+    source = work/'original/source.py'
+    source.parent.mkdir()
+    source.write_text('assembly = FixedAssembly(root_id="body", mm_per_unit=1)\n'
+                      + ('joint = TabSlot()\nassembly.connect()\n' if connector_calls else ''))
+    write_json(work/'rounds/round_01/asset/assembly/assembly_manifest.json', {
+        'source_sha256':'old' if stale else prompt.file_hash(source),
+        'part_declarations':[{'id':f'part{i}'} for i in range(parts)], 'connections':links})
+    audit = prompt.input_audit(work, inputs)
+    assert audit['input_verified']
+    assert audit['assembly_api_verified'] is expected
 
 
 @pytest.mark.parametrize('violation', [
