@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import hashlib
 import os
+import re
 import tempfile
 import time
 import uuid
@@ -11,7 +12,7 @@ from pathlib import Path
 
 from agents import RunContextWrapper, function_tool
 
-from .context import AgentToolContext
+from .context import AgentToolContext, ToolEvent
 
 
 READ_FILE_MAX_CHARS = 12_000
@@ -31,41 +32,69 @@ def read_file(
     Small files read from offset zero retain their original text output.
 
     Args:
-        path: Workspace-relative file path.
+        path: Workspace-relative path or absolute path inside the workspace.
         offset: Zero-based character offset; must be non-negative.
         max_chars: Requested page size, positive and capped at 12000 characters.
         json_pointer: Optional JSON field path, e.g. /findings/0/metric. Use ~1 for
             a slash and ~0 for a tilde in object keys. Offset then refers to the
             selected field's serialized text, not the whole file.
     """
+    ctx = context.context
+    try:
+        target = ctx.resolve(path)
+    except ValueError:
+        ctx.events.append(ToolEvent("read_file", path, success=False, code="READ_OUTSIDE_WORKSPACE"))
+        raise
+
+    def failed(code, message):
+        ctx.record("read_file", target, success=False, code=code)
+        return json.dumps({"ok": False, "code": code, "requested_path": path,
+            "resolved_path": str(target), "message": message,
+            "path_basis": "Relative paths start at the workspace, not the candidate directory. "
+                "Read evidence_files/result_ref paths directly; do not prepend the candidate directory."})
+
     if offset < 0 or max_chars <= 0:
-        raise ValueError("offset must be non-negative and max_chars must be positive")
+        return failed("READ_INVALID_ARGUMENT", "offset must be non-negative and max_chars must be positive")
+    if json_pointer and not json_pointer.startswith("/"):
+        return failed("READ_INVALID_ARGUMENT", "json_pointer must be empty or start with /")
+    if json_pointer and re.search(r"~(?![01])", json_pointer):
+        return failed("READ_INVALID_ARGUMENT", "json_pointer escapes must be ~0 or ~1")
     limit = min(max_chars, READ_FILE_MAX_CHARS)
-    target = context.context.resolve(path)
-    with target.open(encoding="utf-8") as handle:
-        if json_pointer is not None:
-            if json_pointer and not json_pointer.startswith("/"):
-                raise ValueError("json_pointer must be empty or start with /")
-            value = json.load(handle)
-            for raw in json_pointer.split("/")[1:]:
-                key = raw.replace("~1", "/").replace("~0", "~")
-                if isinstance(value, dict):
-                    value = value[key]
-                elif isinstance(value, list) and key.isascii() and key.isdigit():
-                    value = value[int(key)]
-                else:
-                    raise ValueError("json_pointer does not select an existing field")
-            # Parsing stays local; only the requested field/page reaches the model.
-            content = json.dumps(value, ensure_ascii=False, indent=2)[offset:offset + limit + 1]
-        else:
-            # Bounded reads avoid materializing a huge text file just to truncate it.
-            remaining = offset
-            while remaining:
-                skipped = handle.read(min(remaining, READ_FILE_MAX_CHARS))
-                if not skipped:
-                    break
-                remaining -= len(skipped)
-            content = handle.read(limit + 1)
+    try:
+        with target.open(encoding="utf-8") as handle:
+            if json_pointer is not None:
+                value = json.load(handle)
+                for raw in json_pointer.split("/")[1:]:
+                    key = raw.replace("~1", "/").replace("~0", "~")
+                    if isinstance(value, dict):
+                        if key not in value:
+                            return failed("READ_POINTER_NOT_FOUND", "json_pointer does not select an existing field")
+                        value = value[key]
+                    elif isinstance(value, list) and key.isascii() and key.isdigit():
+                        if int(key) >= len(value):
+                            return failed("READ_POINTER_NOT_FOUND", "json_pointer array index is out of range")
+                        value = value[int(key)]
+                    else:
+                        return failed("READ_POINTER_NOT_FOUND", "json_pointer does not select an existing field")
+                # Parsing stays local; only the requested field/page reaches the model.
+                content = json.dumps(value, ensure_ascii=False, indent=2)[offset:offset + limit + 1]
+            else:
+                # Bounded reads avoid materializing a huge text file just to truncate it.
+                remaining = offset
+                while remaining:
+                    skipped = handle.read(min(remaining, READ_FILE_MAX_CHARS))
+                    if not skipped:
+                        break
+                    remaining -= len(skipped)
+                content = handle.read(limit + 1)
+    except FileNotFoundError:
+        return failed("READ_NOT_FOUND", "File not found. Re-read the given evidence path or assigned_source path.")
+    except (json.JSONDecodeError, UnicodeError, OSError) as error:
+        code = ("READ_INVALID_JSON" if isinstance(error, json.JSONDecodeError) else
+                "READ_INVALID_ENCODING" if isinstance(error, UnicodeError) else
+                "READ_PERMISSION_DENIED" if isinstance(error, PermissionError) else "READ_IO_ERROR")
+        ctx.record("read_file", target, success=False, code=code)
+        raise  # Corrupt data, permissions and I/O are not a recoverable missing field.
     truncated = len(content) > limit
     content = content[:limit]
     context.context.record("read_file", target)

@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from pathlib import Path
+import asyncio
 import subprocess
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
+import httpx
+import openai
 
 from adsl.agents.utils import config
 from adsl.agents.utils.config import ModelProfile
@@ -174,3 +178,35 @@ params:
 
     with pytest.raises(ValueError, match="params.trust_env must be a boolean"):
         ModelProfile.load(_profile(tmp_path, content))
+
+
+@pytest.mark.parametrize('statuses,expected_calls,succeeds', [
+    ([500, 503, 200], 3, True),
+    ([500, 503, 500, 503, 500, 503, 200], 7, True),
+    ([503] * 8, 7, False),
+    ([400, 200], 1, False),
+])
+def test_cliproxy_profile_has_bounded_sdk_retries(monkeypatch, statuses, expected_calls, succeeds):
+    monkeypatch.setenv('CLIPROXYAPI_API_KEY', 'test-not-a-real-credential')
+    profile = ModelProfile.load(Path(__file__).resolve().parents[1] /
+                                'adsl-agents/configs/llm/cliproxy-gpt-5.6-sol.yaml')
+    attempts = []
+    def respond(request):
+        status = statuses[len(attempts)]
+        attempts.append(status)
+        payload = ({'object': 'list', 'data': []} if status == 200 else
+                   {'error': {'message': 'simulated upstream failure', 'type': 'server_error'}})
+        return httpx.Response(status, json=payload)
+    monkeypatch.setattr(config, 'httpx', SimpleNamespace(AsyncClient=lambda **kwargs:
+        httpx.AsyncClient(transport=httpx.MockTransport(respond), **kwargs)))
+    async def check():
+        async with profile.client() as client:
+            assert client.max_retries == 6
+            assert profile.timeout == 900
+            if succeeds:
+                assert (await client.models.list()).data == []
+            else:
+                with pytest.raises(openai.APIStatusError):
+                    await client.models.list()
+    asyncio.run(check())
+    assert len(attempts) == expected_calls

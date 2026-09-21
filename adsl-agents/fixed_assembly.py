@@ -55,9 +55,9 @@ def _assembly_context(source, report, *, version_role):
 
 
 async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, source_path, plan,
-                                 initial_execution=None, initial_topology_run=None):
-    from .service import _asset_executor_timeout_seconds
-    from .assembly_topology import NAME, run_assembly_topology, engineer
+                                 initial_execution=None, initial_topology_run=None, evidence_files=()):
+    from .service import _asset_executor_timeout_seconds, _actionable_findings
+    from .assembly_topology import NAME, run_assembly_topology, engineer, prepare_evidence, EVIDENCE_PATH_INSTRUCTION
     topology_spec = next((s for s in request.checker_specs if s.name == NAME), None)
     if sum(s.name == NAME for s in request.checker_specs) > 1:
         raise ValueError('only one assembly_topology specification is allowed')
@@ -83,6 +83,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         book['versions']['original'] = version_record('original', original, None)
         write_json(book_path, book)
     book.setdefault('working', book['retained'])
+    book.setdefault('evidence_files', list(evidence_files))
     book.setdefault('qualified', book['retained'] if book['versions'][book['retained']]['reviews'].get('accepted') else None)
     image_history = book.setdefault('image_history', [])
     code_history = book.setdefault('code_history', [])
@@ -95,8 +96,6 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         instructions=object_prompt('code_critic', articulation=False, fixed_assembly=True))
     feedback = book.get('feedback', {})
     stop = book.get('stop_reason', 'round_budget_exhausted')
-    proposal = RepairProposal(proposal_id='assembly_or_appearance', finding_ids=['assembly_or_appearance'],
-        hypothesis='Preserve requested shape and paired interface geometry', target=RepairTarget(), action='reshape')
     for number in range(book['next_round'], book['max_rounds']+1):
         if book['completed']:
             break
@@ -111,6 +110,12 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         version_id = 'original' if number == 1 else f'attempt_{number-1:04d}'
         current = parent
         if number > 1:
+            # Select afresh from this version's feedback. Engineering is advice,
+            # not a second candidate controller or permission to repair.
+            proposal = RepairProposal(proposal_id='assembly_or_appearance',
+                finding_ids=feedback.get('actionable_finding_ids') or ['assembly_or_appearance'],
+                hypothesis='Use current review and measured evidence; preserve task and paired interfaces',
+                target=RepairTarget(), action='reshape')
             if topology_spec and feedback.get('engineering_proposal'):
                 proposal = RepairProposal.model_validate(feedback['engineering_proposal'])
             policy = request.repair_policy.model_copy(update={'max_total_candidates':book['max_rounds']-1})
@@ -132,11 +137,13 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 reserved_attempt_id=version_id, allow_no_change=True,
                 payload={'requirement':request.requirement, 'plan':plan.model_dump(),
                     'fixed_assembly':request.fixed_assembly, 'feedback':feedback,
+                    'source_version':parent_id, 'source_sha256':file_hash(parent),
+                    'evidence_files':feedback.get('evidence_files', []),
                     'assembly_context':_assembly_context(parent, working['reviews'].get('geometry'),
                                                          version_role='repair_starting_version'),
                     'current_repair_authorized':True,
                     'remaining_repairs_after_this_attempt':book['max_rounds']-number,
-                    'assignment':'This repair is already budget-reserved and may proceed even when remaining_repairs_after_this_attempt is 0; that count excludes the current attempt. Read the assigned source and repair the smallest relevant body/interface/assembly code. Do not edit configuration or checker files.'})
+                    'assignment':'This repair is already budget-reserved and may proceed even when remaining_repairs_after_this_attempt is 0; that count excludes the current attempt. Read the assigned source and repair the smallest relevant body/interface/assembly code. Combine current appearance and topology facts in this single edit; Engineering advice is optional, never a geometry PASS. Unknown geometry is not confirmed disconnection. If no reasonable edit exists, use NO_CHANGE. Do not edit configuration or checker files. ' + EVIDENCE_PATH_INSTRUCTION})
             write_json(candidate_root/'edit_outcome.json', outcome)
             if outcome['status'] != 'CHANGED':
                 book['versions'][version_id] = version_record(version_id, current, None,
@@ -292,17 +299,30 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             'export_status':report.get('export_status'),
             'report_path':str(report_path),
             'source_version':version_id, 'source_sha256':file_hash(current),
+            'appearance_approved':reviews.get('appearance_approved'),
             'render_issue':reviews.get('render_issue'),
             'image_critic':reviews.get('image_critic'), 'code_critic':reviews.get('code_critic')}
         if topology_run:
             from .service import _checker_evidence
             feedback.update(_checker_evidence([topology_run],workspace=workspace))
+            # Detailed absolute paths can exceed the shared scalar-preview limit.
+            # Keep explicit references, not whole domains/logs, in this adapter.
+            findings={f.finding_id:f for f in topology_run.result.findings}
+            for row in feedback['typed_findings']:
+                for field in ('boundary_report','report_path'):
+                    value=findings[row['finding_id']].domain.get(field)
+                    if value: row[field]=value
             feedback['repair_history'] = [
                 {'version':v['id'], 'source_sha256':file_hash(Path(v['source'])),
                  'reason':v['reviews'].get('reason'),
                  'topology_status':v['reviews'].get('assembly_topology',{}).get('status')}
                 for v in list(book['versions'].values())[-3:]]
-            actionable = any(f.repairability=='geometry' for f in topology_run.result.findings)
+        prepare_evidence(feedback,workspace=workspace,source_sha256=file_hash(current),
+                         evidence_files=book['evidence_files'])
+        feedback['engineering']={'status':'NOT_REQUESTED'}
+        if topology_run:
+            actionable = _actionable_findings(topology_run)
+            feedback['actionable_finding_ids']=[f.finding_id for f in actionable]
             remaining = book['max_rounds']-number
             if not accepted and reason != 'FLOW_ERROR' and actionable and remaining > 0:
                 budget = RepairController(workspace=workspace,round_root=root,baseline_source=current,
@@ -316,16 +336,22 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                             feedback,remaining)
                         if next_proposal:
                             feedback['engineering_proposal']=next_proposal.model_dump()
-                        else:
-                            stop='no_executable_engineering_proposal'
-                            book['completed']=True
+                            feedback['engineering']['status']='PROPOSAL'
+                        elif feedback['engineering']['status']=='NOT_REQUESTED':
+                            feedback['engineering']={'status':'NO_PROPOSAL',
+                                'reason':'No structured advice; use trustworthy current feedback or NO_CHANGE.'}
                     except Exception as error:
                         write_json(candidate_root/'engineering_error.json',
                             {'type':type(error).__name__,'reason':str(error)[:300]})
-                        stop='engineering_unavailable';book['completed']=True
+                        # Keep invalid/unparsed output only in the diagnostic.
+                        # Coder still receives the already collected facts.
+                        feedback['engineering']={'status':'UNAVAILABLE','reason':type(error).__name__,
+                            'report_path':str((candidate_root/'engineering_error.json').resolve())}
                 else:
                     stop='repair_budget_exhausted';book['completed']=True
-            elif not accepted and reviews.get('appearance_approved') and not actionable:
+            elif (not accepted and reviews.get('appearance_approved') and not actionable
+                  and not report.get('failures') and report.get('export_status') != 'FAIL'
+                  and not (not visual_only and report['status']=='FAIL')):
                 # No infrastructure-driven blind source edits.
                 stop='topology_unverified_no_executable_feedback';book['completed']=True
         book.update(feedback=feedback, next_round=number+1)

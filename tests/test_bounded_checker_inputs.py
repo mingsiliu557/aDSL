@@ -85,8 +85,13 @@ def test_json_pointer_returns_only_requested_field(tmp_path):
 ])
 def test_invalid_read_arguments_and_workspace_escape(tmp_path, arguments):
     (tmp_path / 'source.py').write_text('x')
-    with pytest.raises(ValueError):
-        invoke(tmp_path, **arguments)
+    if arguments['path'].startswith('../'):
+        with pytest.raises(ValueError):
+            invoke(tmp_path, **arguments)
+    else:
+        text, context = invoke(tmp_path, **arguments)
+        assert json.loads(text)['code'] == 'READ_INVALID_ARGUMENT'
+        assert context.events[-1].success is False
 
 
 def test_candidate_coder_receives_compact_feedback(tmp_path, monkeypatch):

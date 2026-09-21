@@ -6,7 +6,8 @@ params:
   base_url: http://127.0.0.1:8317/v1
   model: gpt-5.6-sol
   timeout: 900
-  max_retries: 0
+  # SDK request retries only: at most 7 attempts, never a new source-edit candidate.
+  max_retries: 6
   max_tokens: 32768
   parallel_tool_calls: false
   include_usage: true

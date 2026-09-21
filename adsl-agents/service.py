@@ -2152,7 +2152,9 @@ class ObjectWorkflow:
             role=f'code-critic:round:{round_number}', stage=f'code_critic:{round_number}', context=context)
         decision = self._normalize_code_critic_decision(
             self._typed_output(result.final_output, CodeCriticDecision),
-            source_grounded=any(event.tool == 'read_file' for event in context.events))
+            source_grounded=any(event.tool == 'read_file' and event.success
+                and event.path == context.source_path.relative_to(context.workspace).as_posix()
+                for event in context.events))
         write_json(round_root/'code_critique.json', decision.model_dump())
         code_history.append(decision.model_dump())
         return decision
@@ -2230,7 +2232,9 @@ class ObjectWorkflow:
             candidate_code_decision = self._normalize_code_critic_decision(
                 self._typed_output(candidate_code_result.final_output, CodeCriticDecision),
                 source_grounded=any(
-                    event.tool == "read_file" for event in code_context.events
+                    event.tool == "read_file" and event.success
+                    and event.path == code_context.source_path.relative_to(code_context.workspace).as_posix()
+                    for event in code_context.events
                 ),
             )
             write_json(

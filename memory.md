@@ -19,6 +19,156 @@
 
 ## 当前固定装配边界（2026-09-21）
 
+- 用户要求修复后直接恢复六物体配对实验：CLIProxy max_retries=6（原3，最多7次请求），
+  候选上限不变；真实预检OK/3.56秒/312tokens，不能保证上游503不再出现。
+  SF07导出误判已定位为GLB省略精确零面积/重复面；只修序列化比较临时数组，
+  不删原网格、不改容差/topology/CSG。原源码真实导出复核8项一致性PASS，零偏差。
+  4项重试、16项导出/visual、63项生成/配对测试通过。
+  新续跑目录 `temp/assembly_topology_paired_resume_20260921T114000Z/`：
+  SF07/wo复用其本轮原始初稿+plan、从原resume审核开始（旧0编辑，最多仍4），
+  不再初始生成；另8次未开始生成+3条历史w复用。原111000Z记录和API消耗保留。
+  配置变更与代码快照在新计划amendments中显式冻结，不修改旧计划哈希。
+  本批已于12:22 UTC停在SF02/wo：SF07/wo三次修补后生成审核通过，SF03/wo与SF13/wo初稿通过；
+  SF02四次修补已执行，最后Code Critic遇上游过载HTTP503，审核未完成。其余5次生成和离线评价未启动。
+  SF02仅初稿backrest_panel.stl有一致性误报，后四候选导出均PASS；批次又聚合初稿旧错误而暂停。
+  已只读定位：落地平移后float32舍入将一张极薄面变零面积，实际顶点差约1.9e-6mm；
+  独立剔除零面积面后错误对应才报12.3mm，并非已证实几何发生毫米级偏移。
+  后按用户要求最小修改：visual_only 正式导出不再做逐面匹配，仅保留文件/部件、单位与位置基础检查；
+  逐面比较保留为显式导出器回归测试，容差不变、不改网格。批次只以当前working报告判断导出阻断，
+  保留历史错误；仅明确逐面编码差异不再停批，真实缺文件/部件、错误尺度/摆放仍报错。
+  39项针对性无API测试通过（6.58秒），含Topology反馈和retained回归；没有修改其他checker或预算。
+  未重跑实验、未重新评价旧资产；后续用户已授权同步代码到远端master。
+  SF02的API503不是本次导出修复解决的内容。
+- 新任务改为 **6 个不同原始 prompt × w/wo topology**，两组都有 connector，
+  不再把“三个已有资产 + 三个全新案例”或初末对比称为六物体消融。
+  六例：SF07、SF03、SF13、SF02、SF10、SF16。核验核心实现/输入/尺度/阈值后，
+  复用前三例已结束的 **new** w/topology 的 retained（包含 SF07/SF03 未验证结果），
+  不复用 existing 改造组、不重跑挑优；新运行 9 次生成。历史 API 续跑/重试差异明确披露。
+  已提交但随后暂停：原tmux `adsl_assembly_paired_20260921T111000Z`；
+  `temp/assembly_topology_paired_20260921T111000Z/paired_plan.json`；
+  SF07/wo 初始生成完成，但 GLB 导出三角面比较报 GEOMETRY_MISMATCH，
+  Code Critic 又遇 HTTP503（7892出站TLS重置/auth_unavailable），本例记FLOW_ERROR。
+  约240秒后停批，0次修补；其余8个新生成及离线评估未开始。不能把rc=0当实验通过。
+  用户回查后已清理5个空闲adsl实验tmux（包括本批）；独立代理、mosalloc及其他会话保留。
+  资产/日志完整保留，未重启，待分别核对导出比较与API恢复；不把偏差日志直接当几何变形事实。
+  5 轮评价=初稿+最多4次源码修补，API中断不计有效次数。CLIProxy gpt-5.6-sol，
+  CPU CYCLES 512/32，保留独立代理，输出/会话 DB 在真实代码盘。
+  所有生成冻结选择后统一离线 Image/topology 评价；wo 结果不回传、不回选。
+  16 项轻量测试通过，真实API预检OK/3.73秒/312tokens；提交后只确认启动。
+  详见 `reports/assembly_topology_paired_20260921.md`，不宣称批次已完成。
+- 用户最新澄清：API错误中断不计修补次数，即使此前成功读取或写了部分补丁；
+  不再附加“没有工具事件／源码未变”的限制。工具错误和真实完成但几何失败的修补仍计数。
+  补跑汇总分开记录原始预留次数、已证实的API中断、有效修补次数；旧账本、部分补丁及API成本保留。
+  `retry_api_cases.py::api_interrupted_repairs()`依据对应尝试的API错误类型、阶段、时间及终止原因识别，
+  不因普通工具异常退还次数，不自动无限重跑。随后用户授权“启动吧”，续跑见下。
+  后续100200Z续测已结束：new_SF07累计3次有效修补，仍未全部验证；new_SF13累计4次，PASS。
+- 已提交授权续跑：`temp/assembly_topology_remaining_20260921T100200Z`，
+  tmux `adsl_assembly_remaining_20260921T100200Z`；仅new_SF07→new_SF13串行，剩余2/4次。
+  从090735Z两例已完成检查的working版本复制，不重生成；API中断的部分补丁仍保存在旧目录。
+  `temp/SF07_api_budget_amendment_20260921.json`记录一次API中断更正；原RESULTS/账本不覆盖。
+  代理保持独立运行；与生产相同trust_env=false的真实预检成功，4.22秒、312tokens。
+  第一次预检误用环境代理返回502（未见本机对应请求日志），用量未知；不是几何或本次候选失败。
+  两例已结束，37次API全部完成、已知467399tokens，约20.2分钟；SF03不追加。
+  仅assembly_topology与Image/Code，阶段超时/阈值不变。启动后不持续监督，详见本次LAUNCH.md。
+- SF03此前两次API中断的计数更正：旧原始账本4次预留不改，另记更正为2次已完成、剩余2次。
+  证据：060500Z新SF03/attempt_0001 API503；083011Z新SF03/attempt_0003 API500，均前后源码哈希相同。
+  更正文件 `temp/SF03_api_budget_amendment_20260921.json`；旧文件中的零修改条件已由上述用户澄清取代。
+  新续跑 `temp/assembly_topology_SF03_resume_20260921T091930Z`，tmux `adsl_SF03_resume_20260921T091930Z`。
+  从083011Z的working=attempt_0002继续（第三次实际修补起），不重生成、不人工改模型、不重跑其他案例。
+  CLIProxy请求max_retries=3；真实预检200、2.58秒、311tokens；9项无API小测试通过。
+  已结束：本次两次实际修补均完成，累计4次有效修补；16次API调用全部完成，已知269809tokens，423.74秒。
+  靠背开口边界21→14→0并恢复件内PASS；座面仍有零面积面，五个接口因依赖网格无效未验证。
+  最终approved=false，整体INDETERMINATE；working=attempt_0002，retained=本次续跑起点original。
+  这是局部改善，不能称装配通过；不再追加SF03修补。仅assembly_topology与现有Image/Code，输出在代码盘temp。
+
+- 用户授权开启有限重试后继续：
+  `temp/assembly_topology_retry3_20260921T090735Z`，tmux `adsl_assembly_retry3_20260921T090735Z`。
+  只续跑new_SF07/new_SF13最新保存资产，剩余2/4次源码修补；不重生成，其他四个物理checker关闭。
+  已批准的existing_SF13不重复跑；当时new_SF03按旧规则4次预算耗尽而未入该批；后续用户计数修订及SF03续跑见上。
+  新retry_plan明确记录唯一配置修订max_retries=0→3、前后配置快照/哈希及遗漏原因；不修改旧账本。
+  真实小请求预检200、5.68秒、311tokens、1次HTTP尝试，未触发重试；不能声称真实500恢复已验证。
+  24项针对性无API测试通过（有限SDK重试、选择案例、剩余预算及配置差异限制）。
+  该两例已结束，仍未通过：SF07预留1次修补后API503中断，SF13首轮Image API503中断。
+  报错包含TLS连接被本地7892链路重置，随后auth_unavailable；三次请求重试尚未解决持续不可用。
+  两例已知94212tokens、2个失败调用用量未知；本次没有擅自重跑它们。
+  独立CLIProxy保持运行；输出和会话DB都在项目temp。只确认启动，不持续监督、不自动无限补跑。
+  使用OpenAI Docs核对有限重试，academic-research-suite/run核对执行与预算；结果待后续用户检查。
+
+- 用户明确授权再次启动后，四例续跑已提交：
+  `temp/assembly_topology_api_retry_20260921T083011Z`（真实代码盘，不是 local_experiment 软链接），
+  tmux `adsl_assembly_api_retry_20260921T083011Z`；CLIProxy独立代理保留。
+  使用071034Z最近保存的working源码/资产，四例均不再调用Planner或重新生成初稿；
+  existing_SF13_open/new_SF07/new_SF03/new_SF13累计剩余源码修补3/2/3/4次。
+  只保留assembly_topology和Image/Code，既有条件、阈值、超时不变；逐例失败后继续，无自动重复补跑。
+  入口仅增加读取上一轮retry_plan/RESULTS及累计预算；9项本地轻量测试通过。
+  本次API预检HTTP200、3.36秒、311tokens（独立预检开销），不代表上游已稳定。
+  已于08:50 UTC全部结束：已有SF13通过（6件/5接口，本次0修补）；新SF07/新SF13被TLS API500中断。
+  新SF03本次3次修补尝试，前2次实际修改但仍未验证，第3次API500且无工具执行；累计4次预算耗尽。
+  SF03保留原始FAIL版本，working候选为INDETERMINATE，不把不可测当改善；没有追加机会。
+  四例共30次逻辑API调用、已知514499tokens、3次失败用量未知，约19.57分钟。旧结果不覆盖。
+  日志为目录旁console.log及jobs/<case>/run.log；结果RESULTS.json在每例结束后更新。
+  合并原六例：已有组3/3程序批准（含SF13两个版本），新生成组0/3；已有SF07视觉负例仍有效。
+  用户授权后CLIProxy模型配置max_retries由0改3：每个请求最多首次+3次SDK重试，不新增候选。
+  不改代理/模型/900秒timeout；32项无网络配置测试通过；后续新配置续跑见上。
+  已冻结配置哈希保留，后续续跑需明确记录配置修订；详见reports/assembly_retry_results_20260921.md。
+  旧结果/预算保留；运行结束后再检查归档到数据盘，目前尚未迁移本轮产物。
+
+- 071034Z补跑仍被API错误终止，没有新增源码修补；新SF13已实际生成但未验证。
+  API诊断：代理存活，实际日志在easycliproxyapi/auths/logs；上游TLS EOF/HTTP2协议中断，
+  51秒后503并随后恢复，与单账号默认60秒冷却一致（推断，非内存状态实测）。
+  尚未确定是出口还是上游故障，没有改代理/凭据/重试配置；后续授权补跑见上。
+  新SF13另在db.backup写jiigan-hp时I/O异常，截断result.json；原/tmp数据库quick_check=ok。
+  按用户要求，补跑入口默认改为真实代码盘temp/，会话DB放temp/assembly_sessions；
+  SQLite先在代码盘完成并关闭快照，再普通复制。先写result.json，归档失败单列警告，不改物理结论。
+  52项针对性测试及真实代码盘SQLite探针通过；运行完成后才校验迁移到数据盘。
+  详见reports/assembly_api_io_diagnosis_20260921.md。旧实验、模型及预算记录未改。
+
+- 六例060500Z批次已结束：程序批准已有SF07和正常SF13；其他4例被API错误中断。
+  注意已有SF07虽Topology PASS，图片桌面凸起仍明显，Code推翻Image后批准，不能当作外观可靠通过。
+  SF13问题版候选Topology PASS但Image HTTP500，保留原版；新SF07/03/13分别有408/503等中断。
+  用户授权只补跑这4例，不扩展API重试框架；真实代理预检HTTP200，311tokens。
+  补跑目录 `local_experiment/assembly_topology_api_retry_20260921T071034Z`，
+  tmux `adsl_assembly_api_retry_20260921T071034Z`。前三例从保存的working资产继续，
+  分别剩3/2/3次源码修补；新SF13尚无源码，从同一冻结原prompt生成，5轮/4次修补。
+  `retry_plan.json`记录原批次、已用次数和原成本；原结果未改，只新增一次补跑，不自动无限重试。
+  入口 `experiments/fixed_assembly_prompt/retry_api_cases.py`，结果RESULTS.json、逐例日志jobs/；
+  生产API/checker/生成源码未人工修改。启动确认后不持续监督。
+
+- 用户授权六例小批验证，随后将预算统一改为最多5轮审核（含初稿）、4次源码修补。
+  新批次 `local_experiment/assembly_topology_six_20260921T060500Z`，
+  tmux `adsl_assembly_six_20260921T060500Z`；CLIProxy/gpt-5.6-sol，代理独立会话保留。
+  已有组：SF07开口问题版、SF13开口问题版、SF13已通过版正常对照；后两例是配对版本，不是独立物体。
+  新生成组：SF07/SF03/SF13原始prompt，不给旧源码/旧图。两组分开统计。
+  仅assembly_topology＋原有Image/Code，尺度1mm/scene unit、单侧余量0.2mm、各例尺寸与参数冻结。
+  各例独立进程/目录，失败保存后继续，不自动重试或追加预算；仅确认启动后停止监督。
+  入口 `experiments/fixed_assembly_prompt/launch_six.sh NEW_DIR`；汇总在批次REPORT.md、case_results.csv/json，
+  日志jobs/<case>/run.log及目录旁console.log；人工外观退步核对仍待运行结束。
+  旧060000Z批次在预算调整时停止：0次修补，已知5959tokens，另1个中断调用用量未知。
+  旧日志完整保留，budget_amendment.json记录关联，不能把旧RUNNING字段当作仍在运行或用量为零。
+
+- 用户授权后，SF13 单次真实修补已完成：
+  `local_experiment/assembly_topology_SF13_feedback_recovery_20260921T051900Z`，CLIProxy/gpt-5.6-sol。
+  复用原六件五接口源码，初始生成0次、仅1次真实源码修补，预算未追加；旧v2/v3账本不变。
+  Engineer根据开口坐标定位ShelfBoard；Coder真实read_file/apply_patch，将齐平木纹实体改为浅槽。
+  只有ShelfBoard修改；接口、frame、参数和冻结尺度未变，无人工修改生成模型。
+  五层板各14条边界边降为0；6件内部连通及5条接口均PASS，最终Image PASS、导出一致性PASS。
+  retained/qualified=attempt_0001，approved=true，源码/结果/资产哈希核验通过。
+  9次API/156504tokens（输入150365，输出6139），闭环367.06秒，基线另25.40秒。
+  tmux `adsl_SF13_feedback_recovery_20260921` rc0并可交互；CLIProxy保留。
+  Agent使用内联几何证据并阅读源码，未额外读取boundary_localization.json；实际错误读取纠正仍仅经模拟验证。
+  仅本轮装配Topology通过，不代表真实固定/承载/制造成功；未运行其他物理checker。
+  报告 `reports/SF13_feedback_recovery_20260921.md`；已停止，不自动追加案例。
+
+- 基于 `8cc8e4c` 完成统一反馈/错误恢复的代码修复；实现阶段先仅做无API测试，随后真实续测见上：
+  Image/Code 与 assembly_topology 收集后汇总到同一个 Coder；Engineering 是建议，
+  解析失败/辅助 scope 不支持/无提案不再单独阻断可信反馈。仅无定位未验证且无外观待修项时停止。
+  证据文件使用 workspace 内绝对路径，原始定位保留 source hash 与 initial_source_only 标记。
+  `read_file` 缺文件/参数/pointer 错误可在当前调用内纠正；失败事件不算 source_grounded，
+  越界/权限/损坏 JSON 不伪装成功。沿用一份候选预算与 retained；不修改几何算法/阈值。
+  相关110项测试通过，核心闭环使用模拟模型/几何但真实 `_repair/read_file/apply_patch`。
+  详见 `reports/fixed_assembly_feedback_recovery_20260921.md`。
+  实现阶段未擅自启动SF13或新批次，不清零历史账本；后续仅执行用户明确授权的一次SF13续测。
+
 - 按用户随后要求，停止使用 StepCode，改用现有独立 `adsl_cliproxy_20260919` 代理，
   新建 `adsl_topology_SF13_cliproxy_20260921` 实验 tmux 补跑 SF13 一次修补。
   输出 `local_experiment/assembly_topology_SF13_cliproxy_20260921_v3`，使用相同原源码与边界证据，
@@ -27,8 +177,10 @@
   已结束：4次API均返回，逐调用合计62913tokens、首个请求至最后返回71.91秒。
   Image通过；Engineering定位ShelfBoard并提出木纹局部修补，方案通过校验。
   Coder进入隔离候选后读取boundary_localization.json失败：文件在实验根目录，
-  工具却按候选目录解析相对路径，故TOOL_ERROR；未修改源码、未重新导出，保留原资产和INDETERMINATE。
-  这是尚未修复的诊断路径传递问题，不是API或几何修复失败。汇总usage漏记失败阶段，成本以4条api_calls为准。
+  模型误加了候选目录前缀，故TOOL_ERROR；工具的workspace一直是实验根目录，没有改变。
+  未修改源码、未重新导出，保留原资产和INDETERMINATE。
+  诊断路径传递/读取恢复现已代码修复，但该次失败仍保留，不是几何修复失败或成功。
+  汇总usage漏记失败阶段，成本以4条api_calls为准；usage问题不属于本次修复范围。
   不改写v2失败，不重生成SF07，不自动关闭独立CLIProxy；本轮不持续盯等。
 
 - 本轮基于 d7c2cec，用户允许已定位的开口网格进行一次真实修补：

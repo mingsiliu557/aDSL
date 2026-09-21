@@ -294,6 +294,9 @@ INVALID_MESH = {'code': 'EXPORTED_FILE_INVALID', 'file': 'pedestal.stl',
 @pytest.mark.parametrize('failure, should_pause', [
     (INVALID_MESH, False),
     ({'code': 'EXPORTED_FILE_GEOMETRY_MISMATCH', 'file': 'scene.glb'}, True),
+    ({'code': 'EXPORTED_FILE_GEOMETRY_MISMATCH', 'file': 'part.stl',
+      'triangle_coordinate_deviation_mm': 12.2976}, False),
+    ({'code': 'EXPORTED_FILE_PLACEMENT_OR_SCALE_MISMATCH', 'file': 'scene.glb'}, True),
     ({**INVALID_MESH, 'reason': 'No such file: scene.glb'}, True),
     ({**INVALID_MESH, 'reason': "geometry node 'mesh' has no unique print-part ID"}, True),
     ({**INVALID_MESH, 'reason': 'unexpected read error'}, True),
@@ -322,6 +325,25 @@ def test_candidate_geometry_rejection_does_not_imply_shared_failure(
     assert not result['approved']
     assert result['geometry_failures'] == [failure]
     assert result['physical_checkers'] == 'NOT_EXECUTED'
+
+
+def test_current_report_not_historical_export_error_controls_batch(tmp_path):
+    failure={'code':'EXPORTED_FILE_INVALID','file':'part.stl','reason':'No such file'}
+    source=tmp_path/'candidate.py';source.write_text('current candidate')
+    report={'source_sha256':prompt.file_hash(source),'failures':[]}
+    ledger={'retained':'original','working':'attempt_0001','versions':{
+        'original':{'reviews':{'geometry':{'failures':[failure]}}},
+        'attempt_0001':{'source':str(source),'reviews':{'geometry':report}}}}
+    path=write_json(tmp_path/'assembly_versions.json',ledger)
+    before=path.read_bytes()
+    assert prompt.current_geometry_failures(tmp_path,[failure])==[]
+    assert path.read_bytes()==before  # Never rewrite old evidence/retained.
+    report['failures']=[failure]
+    write_json(path,ledger)
+    assert prompt.shared_export_failures(prompt.current_geometry_failures(tmp_path))==[failure]
+    source.write_text('other version')
+    with pytest.raises(ValueError,match='report/source mismatch'):
+        prompt.current_geometry_failures(tmp_path)
 
 
 def saved_geometry_pause(root):

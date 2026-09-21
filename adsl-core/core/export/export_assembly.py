@@ -157,13 +157,36 @@ def _write_mesh_glb(meshes, transforms, path, mm_per_unit):
         export_apply=False, export_extras=True, export_draco_mesh_compression_enable=False)
 
 
-def _verify_written_exports(output, manifest, solids, *, surface_meshes=None):
-    """Read actual files, group material primitives by explicit part ID, undo poses."""
+def _serialization_triangles(mesh):
+    """Compare surface sets, not redundant encoding; never alter the mesh.
+
+    Blender GLB serialization can omit exact zero-area and duplicate triangles.
+    Keep those defects in the assets for topology; their multiplicity does not
+    describe a different displayed surface. Positive-area triangles, however
+    small, remain subject to the existing coordinate tolerance.
+    """
+    triangles = np.asarray(mesh.triangles)
+    if not np.isfinite(triangles).all():
+        raise ValueError('non-finite serialized triangle coordinates')
+    cross = np.cross(triangles[:,1]-triangles[:,0], triangles[:,2]-triangles[:,0])
+    nonzero = np.any(cross != 0, axis=1)
+    usable = triangles[nonzero]
+    order = np.lexsort((usable[:,:,2], usable[:,:,1], usable[:,:,0]), axis=1)
+    canonical = np.take_along_axis(usable, order[:,:,None], axis=1)
+    unique = np.unique(canonical.reshape(-1,9), axis=0).reshape(-1,3,3)
+    return unique, dict(exact_zero_area_faces=int((~nonzero).sum()),
+                       exact_duplicate_surface_faces=len(usable)-len(unique),
+                       surface_triangles=len(unique), mesh_modified=False)
+
+
+def _verify_written_exports(output, manifest, solids, *, surface_meshes=None, compare_triangles=False):
+    """Check saved files/placement; triangle matching is opt-in regression only."""
     import trimesh
     z_up = np.array([[1,0,0,0], [0,0,-1,0], [0,1,0,0], [0,0,0,1.]])
     unit = manifest['mm_per_unit']
     parts = {p['id']:p for p in manifest['parts']}
     checks = manifest['export_consistency'] = []
+    manifest['triangle_comparison'] = 'REGRESSION_ONLY' if compare_triangles else 'NOT_EXECUTED'
     files = [(p['stl'], {name: np.asarray(p['print_transform_mm'])}, False) for name,p in parts.items()]
     files += [(p['glb'], {name: np.eye(4)}, True) for name,p in parts.items()]
     for filename, field in [('scene.glb','assembly_transform'), ('exploded.glb','exploded_transform')]:
@@ -197,12 +220,37 @@ def _verify_written_exports(output, manifest, solids, *, surface_meshes=None):
                 mesh = trimesh.util.concatenate(pieces)
                 mesh.apply_transform(np.linalg.inv(transforms[name]))
                 if surface_meshes is not None:
-                    # Serialization consistency only: compare the same triangles,
-                    # allowing vertex/face reordering and the existing float32 bound.
+                    reference = surface_meshes[name]
+                    if not len(mesh.vertices) or not len(mesh.faces) or not np.isfinite(mesh.vertices).all():
+                        raise ValueError(f'empty or nonfinite saved geometry for {name}')
+                    if not compare_triangles:
+                        # Cheap file/units/placement checks, not surface equivalence.
+                        # A format may encode the same surface with different faces.
+                        tolerance = manifest['numeric_tolerance']['length_mm']
+                        bounds_error = float(np.max(np.abs(mesh.bounds-reference.bounds)))
+                        pose_error = 0.0
+                        if glb:
+                            actual_pose = z_up @ scene.graph[name][0] @ np.linalg.inv(z_up)
+                            actual_pose[:3,3] *= unit
+                            delta = actual_pose-transforms[name]
+                            scale = max(1., float(np.max(np.abs(reference.vertices))))
+                            pose_error = max(float(np.max(np.abs(delta[:3,3]))),
+                                             float(np.max(np.abs(delta[:3,:3])))*scale)
+                        passed = bounds_error <= tolerance and pose_error <= tolerance
+                        checks.append(dict(file=filename, part_id=name, status='PASS' if passed else 'FAIL',
+                            scope='file_structure_units_and_placement', local_bounds_deviation_mm=bounds_error,
+                            placement_deviation_mm=pose_error))
+                        if not passed:
+                            manifest['failures'].append(dict(code='EXPORTED_FILE_PLACEMENT_OR_SCALE_MISMATCH',
+                                file=filename, part_id=name, local_bounds_deviation_mm=bounds_error,
+                                placement_deviation_mm=pose_error))
+                        continue
+                    # Serialization consistency only: compare surface triangles,
+                    # allowing redundant encoding and the existing float32 bound.
                     # This does not test closedness, connectivity or interface fit.
                     from scipy.spatial import cKDTree
-                    reference = surface_meshes[name]
-                    a, b = np.asarray(mesh.triangles), np.asarray(reference.triangles)
+                    a, actual_encoding = _serialization_triangles(mesh)
+                    b, reference_encoding = _serialization_triangles(reference)
                     def distance(left, right):
                         variants = np.concatenate([right[:,p,:].reshape(-1,9)
                             for p in itertools.permutations(range(3))])
@@ -210,7 +258,8 @@ def _verify_written_exports(output, manifest, solids, *, surface_meshes=None):
                     deviation = max(distance(a,b), distance(b,a)) if len(a) and len(b) else float('inf')
                     passed = len(a)==len(b) and deviation <= manifest['numeric_tolerance']['length_mm']*np.sqrt(3)
                     checks.append(dict(file=filename, part_id=name, status='PASS' if passed else 'FAIL',
-                        triangle_coordinate_deviation_mm=deviation, scope='serialization_only'))
+                        triangle_coordinate_deviation_mm=deviation, scope='serialization_only',
+                        actual_encoding=actual_encoding, reference_encoding=reference_encoding))
                     if not passed:
                         manifest['failures'].append(dict(code='EXPORTED_FILE_GEOMETRY_MISMATCH',
                             file=filename, part_id=name, triangle_coordinate_deviation_mm=deviation))

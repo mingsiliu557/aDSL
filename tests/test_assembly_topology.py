@@ -143,13 +143,17 @@ def test_batched_engineer_source_fallback_one_budget_and_publication(tmp_path,mo
     assert f[-1][0]['payload']['feedback']['engineering_proposal']['proposal_id']=='coordinated'
 
 
-def test_empty_proposal_saves_original_without_edit(tmp_path,monkeypatch):
+def test_empty_proposal_allows_coder_to_decline_and_saves_original(tmp_path,monkeypatch):
     f=setup_flow(tmp_path,monkeypatch,['FAIL'])
     async def stop(*a,**kw): return None
     monkeypatch.setattr(adapter,'engineer',stop)
+    async def decline(**kw):
+        f[-1].append(kw)
+        return {'status':'NO_CHANGE','reason':'No safe local change'}
+    monkeypatch.setattr(f[0],'_repair',decline)
     final,book=run_flow(f)
-    assert not final.approved and not f[-1]
-    assert book['retained']=='original' and book['stop_reason']=='no_executable_engineering_proposal'
+    assert not final.approved and len(f[-1])==1
+    assert book['retained']=='original' and book['stop_reason']=='NO_CHANGE'
     assert (tmp_path/'source.py').read_text()=='original'
 
 

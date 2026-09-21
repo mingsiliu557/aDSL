@@ -5,9 +5,11 @@ import argparse
 import ast
 import asyncio
 from dataclasses import asdict
+from contextlib import closing
 import hashlib
 import json
 from pathlib import Path
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -27,11 +29,12 @@ from adsl.agents.utils.sessions import SessionManager
 IDS = ('SF07', 'SF03', 'SF13')
 SIZES = {'SF07':[120.,120.,120.], 'SF03':[90.,80.,180.], 'SF13':[100.,32.,200.]}
 PROFILE = REPO/'adsl-agents/configs/llm/cliproxy-gpt-5.6-sol.yaml'
+SESSION_ROOT = REPO/'temp'/'assembly_sessions'
 MANIFEST = REPO/'experiments/standing_fea_30/case_manifest.json'
 MANUFACTURING = '''Generate a NEW complete aDSL program from the original task below, with static fixed manufacturing assembly, not articulation. Use the existing Planner's component and connection plan; Coder implements that plan in assembly using connectors for its connections. Do not add a separate print-part decision stage. Do not assume one Asset/class per print part or impose a minimum number of print parts; a single planned print part needs no connector. Use ONLY existing FixedAssembly / TabSlot and a receiver-first rooted tree. Within a print part retain normal modeling and attach_part. Between print parts use assembly.connect to generate BOTH mating sides and placement; no global union across print parts. The parameters argument of connect must be a TabSlot object (or an entry containing that object), not a dictionary of dimensions. Preserve the requested appearance and function. Frozen scale, overall dimensions and single-sided fit allowance below must not change. These are geometric demonstration dimensions; clearance is not proof of physical fixation. Use one complete initial source.py and repair only within the frozen budget, with existing Image/Code Critic in visual_only mode and export consistency checks. Assembly geometry checks are NOT_EVALUATED; visual approval is not manufacturing approval. No physical checkers, snap_floaters, or extra interface types.'''
 
 
-def prepare(root, max_rounds=5, *, cases=IDS, assembly_topology=False, profile=PROFILE):
+def prepare(root, max_rounds=5, *, cases=IDS, assembly_topology=False, profile=PROFILE, sizes=None):
     if not 1 <= max_rounds <= 5:
         raise ValueError('max_rounds must be between 1 and 5')
     root.mkdir(parents=True, exist_ok=True)
@@ -48,7 +51,7 @@ def prepare(root, max_rounds=5, *, cases=IDS, assembly_topology=False, profile=P
                 f' Budget: at most {max_rounds} evaluation rounds, including the initial review,'
                 f' and at most {max_rounds-1} source repairs. Stop early on approval or explicit no change;'
                 ' do not force edits to exhaust the budget.'),
-            'fixed_assembly':{'mm_per_unit':1., 'fit_offset_mm':.2, 'final_size_mm':SIZES[cid],
+            'fixed_assembly':{'mm_per_unit':1., 'fit_offset_mm':.2, 'final_size_mm':(sizes or SIZES)[cid],
                               'validation_mode':'visual_only', 'require_multiple_parts':False},
             'provenance':{'manifest':str(MANIFEST), 'manifest_sha256':file_hash(MANIFEST),
                 'field':f'cases[case_id={cid}].prompt', 'dataset':case['dataset'],
@@ -116,8 +119,9 @@ class PromptWorkflow(ObjectWorkflow):
     def _runtime(self, request, workspace, **kwargs):
         runtime = super()._runtime(request, workspace, **kwargs)
         self.runtime = runtime
+        SESSION_ROOT.mkdir(parents=True,exist_ok=True)
         runtime.sessions = SessionManager(workspace, request.task_id,
-            Path(tempfile.mkdtemp(prefix='adsl-prompt-assembly-sessions-')))
+            Path(tempfile.mkdtemp(prefix='session-',dir=SESSION_ROOT)))
         runtime.model = RequestLogModel(runtime.model, workspace)
         call = runtime.run
 
@@ -139,6 +143,35 @@ class PromptWorkflow(ObjectWorkflow):
                 write_json(path,row)
         runtime.run = recorded_run
         return runtime
+
+
+def snapshot_sessions(runtime, work):
+    """Finish SQLite on the code disk before copying closed snapshot bytes.
+
+    Archival failure is an artifact warning, not a model/checker failure. Keep
+    the live database and local snapshot for recovery; never discard evidence.
+    """
+    if not runtime or not runtime.sessions.database_path.is_file():
+        return {'status':'NOT_AVAILABLE'}
+    source=runtime.sessions.database_path
+    local=source.with_name('sessions_snapshot.sqlite3')
+    destination=work/'sessions_snapshot.sqlite3'
+    stage='local_sqlite_backup'
+    try:
+        with closing(sqlite3.connect(source.as_uri()+'?mode=ro',uri=True)) as db:
+            with closing(sqlite3.connect(local)) as out:
+                db.backup(out)
+                if out.execute('PRAGMA quick_check').fetchone()!=('ok',):
+                    raise sqlite3.DatabaseError('snapshot quick_check failed')
+        stage='snapshot_file_copy'
+        temporary=destination.with_suffix('.sqlite3.copying')
+        shutil.copyfile(local,temporary)
+        temporary.replace(destination)
+        return {'status':'SAVED','path':str(destination),'local_path':str(local)}
+    except (sqlite3.Error,OSError) as error:
+        return {'status':'ERROR','stage':stage,'type':type(error).__name__,
+                'reason':str(error),'source_database':str(source),'local_path':str(local),
+                'local_snapshot_available':stage=='snapshot_file_copy' and local.is_file()}
 
 
 def input_audit(work, inputs):
@@ -201,12 +234,31 @@ def shared_export_failures(failures):
 
     EXPORTED_FILE_INVALID also wraps file/ID/read errors. Only the existing
     mesh_solid validity error is known to be a case-level geometry rejection;
-    unknown reasons and actual geometry mismatches still pause the batch.
+    unknown reasons and non-triangle geometry mismatches still pause the batch.
+    Old per-triangle serialization reports are regression evidence, not gates.
     """
     invalid_mesh = 'mesh is not a finite closed oriented volume, or has zero-area faces'
     return [failure for failure in failures if failure['code'].startswith('EXPORTED_')
+            and not (failure['code'] == 'EXPORTED_FILE_GEOMETRY_MISMATCH'
+                     and 'triangle_coordinate_deviation_mm' in failure)
             and not (failure['code'] == 'EXPORTED_FILE_INVALID'
                      and failure.get('reason') == invalid_mesh)]
+
+
+def current_geometry_failures(work, fallback=()):
+    """Current checked working version only; keep history out of batch gates."""
+    ledger = work/'assembly_versions.json'
+    if ledger.is_file():
+        book = read_json(ledger)
+        version = book['versions'][book.get('working', book['retained'])]
+        report = version.get('reviews', {}).get('geometry')
+        if isinstance(report, dict):
+            if report.get('source_sha256') and report['source_sha256'] != file_hash(Path(version['source'])):
+                raise ValueError('current assembly report/source mismatch')
+            return report.get('failures', [])
+        return []  # No current geometry; execution/tool failures are reported separately.
+    reports = sorted((work/'rounds').rglob('assembly_manifest.json'))
+    return read_json(reports[-1]).get('failures', []) if reports else list(fallback)
 
 
 def reclassify_saved_geometry_pause(folder):
@@ -221,7 +273,7 @@ def reclassify_saved_geometry_pause(folder):
     evidence_complete = bool(paths and calls and failures == result.get('geometry_failures'))
     old_export_pause = any(failure['code'].startswith('EXPORTED_') for failure in failures)
     blocked = bool(
-        not evidence_complete or not old_export_pause or shared_export_failures(failures)
+        not evidence_complete or not old_export_pause or shared_export_failures(current_geometry_failures(work, failures))
         or result.get('exception', True) is not None
         or result.get('tool_errors', True) != [] or result.get('flow_errors', True) != []
         or list(work.rglob('flow_error.json'))
@@ -233,13 +285,13 @@ def reclassify_saved_geometry_pause(folder):
                    if not blocked else 'shared error or incomplete evidence; keep batch paused'),
         'evidence_sha256': {str(path): file_hash(path)
                            for path in [result_path, audit_path, *paths, *calls]},
-        'shared_export_failures': shared_export_failures(failures),
+        'shared_export_failures': shared_export_failures(current_geometry_failures(work, failures)),
         'case_replayed': False, 'checked_at': time.time()}
     write_json(folder/'continuation_gate.json', gate)
     return not blocked
 
 
-async def run_case(root, cid):
+async def run_case(root, cid, *, resume_from=None):
     folder = root/cid
     if (folder/'result.json').exists():return read_json(folder/'result.json')
     if (folder/'started.json').exists():raise RuntimeError('No automatic replay of a started case')
@@ -250,20 +302,39 @@ async def run_case(root, cid):
     max_rounds = inputs.get('source_repair_limit', 1) + 1
     requirement = '[ORIGINAL TASK]\n'+inputs['original_task']['prompt']+'\n\n[UNIFORM MANUFACTURING REQUIREMENTS]\n'+inputs['manufacturing_requirements']
     work = folder/'generate'
+    if resume_from is not None:
+        # A previously generated initial program interrupted during review.
+        # Never replay Planner/Coder generation, discard history, or reset edits.
+        previous=read_json(resume_from.parent/'result.json')
+        assert previous['repair_attempts']==0 and previous['stop_reason']=='FLOW_ERROR'
+        assert not (resume_from/'repair_history.jsonl').exists()
+        assert file_hash(resume_from/'source.py')==file_hash(resume_from/'original/source.py')
+        assert inputs==read_json(resume_from.parent/'input.json')
+        work.mkdir(parents=True,exist_ok=False)
+        for name in ('source.py','plan.json'):
+            shutil.copy2(resume_from/name,work/name)
     workflow = PromptWorkflow(Path(read_json(root/'batch.json').get('model_profile',str(PROFILE))))
     specs=tuple(CheckerSpec.model_validate(s) for s in inputs.get('checker_specs',[]))
     request = ObjectRequest(requirement,work,f'prompt_assembly_{cid}',image_paths=(),
         articulation=False,max_rounds=max_rounds,checker_specs=specs,fixed_assembly=inputs['fixed_assembly'])
     start = time.time()
-    write_json(folder/'started.json',{'time':start,'route':'ObjectWorkflow.generate','source_preloaded':False})
-    print(f'{cid}: native generate, fresh source, no reference images; max_rounds={max_rounds}, max_repairs={max_rounds-1}',flush=True)
+    write_json(folder/'started.json',{'time':start,'route':'ObjectWorkflow.resume' if resume_from else 'ObjectWorkflow.generate',
+        'source_preloaded':bool(resume_from),'resume_from':str(resume_from) if resume_from else None})
+    print(f'{cid}: native {"resume initial review (no regeneration)" if resume_from else "generate, fresh source, no reference images"}; max_rounds={max_rounds}, max_repairs={max_rounds-1}',flush=True)
     result, error = None, None
     try:
-        result = await workflow.generate(request)
+        result = await workflow.resume(request) if resume_from else await workflow.generate(request)
     except Exception as exc:
         error = {'type':type(exc).__name__,'reason':str(exc)[:600]}
         (folder/'error.log').write_text(traceback.format_exc())
-    audit = input_audit(work,inputs)
+    if resume_from:
+        audit=read_json(resume_from.parent/'input_audit.json')
+        audit={**audit,'original_generation_audit':str(resume_from.parent/'input_audit.json'),
+               'continuation_initial_source_sha256':file_hash(work/'original/source.py') if (work/'original/source.py').exists() else file_hash(work/'source.py'),
+               'new_initial_generation':False}
+        write_json(folder/'input_audit.json',audit)
+    else:
+        audit = input_audit(work,inputs)
     book_path = work/'assembly_versions.json'
     book = read_json(book_path) if book_path.exists() else {}
     if book:
@@ -273,7 +344,8 @@ async def run_case(root, cid):
             raise ValueError('Retained/source mismatch')
     reports = [read_json(p) for p in sorted((work/'rounds').rglob('assembly_manifest.json'))]
     failures = [f for report in reports for f in report.get('failures',[])]
-    shared = shared_export_failures(failures)
+    current_failures = current_geometry_failures(work, failures)
+    shared = shared_export_failures(current_failures)
     tool_errors = [read_json(p) for p in work.rglob('*edit_outcome.json') if read_json(p).get('status')=='TOOL_ERROR']
     missing_reports = [e for e in tool_errors if 'No such file' in e.get('reason','') and 'assembly_manifest.json' in e['reason']]
     flow_errors = [str(p) for p in work.rglob('flow_error.json')]
@@ -288,14 +360,18 @@ async def run_case(root, cid):
         'max_rounds':max_rounds,'source_repair_limit':max_rounds-1,
         'source':str(work/'source.py'),'retained_version':book.get('retained'),
         'stop_reason':book.get('stop_reason'), 'elapsed_seconds':time.time()-start,
-        'geometry_failures':failures,'tool_errors':tool_errors,'flow_errors':flow_errors,'exception':error,
+        'geometry_failures':failures,'current_geometry_failures':current_failures,
+        'tool_errors':tool_errors,'flow_errors':flow_errors,'exception':error,
         'actual_api_requests':len(calls),'known_actual_tokens':sum(c.get('total_tokens') or 0 for c in calls),
         'unknown_usage_requests':sum(c.get('total_tokens') is None for c in calls),
         'physical_checkers':[s.name for s in specs] if specs else 'NOT_EXECUTED'}
     runtime = getattr(workflow,'runtime',None)
-    if runtime and runtime.sessions.database_path.exists():
-        with sqlite3.connect(runtime.sessions.database_path) as db, sqlite3.connect(work/'sessions_snapshot.sqlite3') as out:
-            db.backup(out)
+    # Save the real outcome before optional history archival. A copy failure
+    # must not hide an earlier API failure or prevent the next independent case.
+    write_json(folder/'result.json',summary)
+    summary['session_snapshot']=snapshot_sessions(runtime,work)
+    if summary['session_snapshot']['status']=='ERROR':
+        print(f'{cid}: session snapshot unavailable; details saved in result.json',flush=True)
     write_json(folder/'result.json',summary)
     print(f'{cid}: approved={summary["approved"]} pause={pause} repairs={repairs}/{max_rounds-1} tokens={summary["known_actual_tokens"]}',flush=True)
     return summary

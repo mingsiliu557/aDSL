@@ -68,7 +68,42 @@ def test_export_comparison_does_not_validate_solids_and_rejects_changed_files(tm
     transform=np.asarray(manifest['parts'][0]['assembly_transform']).copy();transform[0,3]+=.5
     exporter._write_mesh_glb({'part':mesh},{'part':transform},tmp_path/'scene.glb',manifest['mm_per_unit'])
     exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':mesh})
+    assert any(f['code']=='EXPORTED_FILE_PLACEMENT_OR_SCALE_MISMATCH' for f in manifest['failures'])
+
+
+def test_triangle_encoding_difference_is_regression_only(tmp_path):
+    from test_fixed_assembly_exports import _files
+    mesh,manifest,_=_files(tmp_path)
+    # Identical box surface/bounds, different tessellation: not a runtime gate.
+    reference=mesh.subdivide()
+    before=reference.faces.copy()
+    exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':reference})
+    assert not manifest['failures']
+    assert manifest['triangle_comparison']=='NOT_EXECUTED'
+    assert all(row['scope']=='file_structure_units_and_placement' for row in manifest['export_consistency'])
+    exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':reference},compare_triangles=True)
+    assert manifest['triangle_comparison']=='REGRESSION_ONLY'
     assert any(f['code']=='EXPORTED_FILE_GEOMETRY_MISMATCH' for f in manifest['failures'])
+    assert np.array_equal(before,reference.faces)
+
+
+@pytest.mark.parametrize('defect', ['missing_file','missing_part','wrong_units'])
+def test_basic_export_errors_remain_failures(tmp_path,defect):
+    from test_fixed_assembly_exports import _files
+    mesh,manifest,_=_files(tmp_path)
+    if defect=='missing_file':
+        (tmp_path/'part.stl').unlink()
+    elif defect=='missing_part':
+        # A readable scene without the declared part is still invalid.
+        exporter._write_mesh_glb({'other':mesh},{'other':np.eye(4)},
+            tmp_path/'scene.glb',manifest['mm_per_unit'])
+    else:
+        changed=mesh.copy();changed.apply_scale(2.)
+        changed.apply_transform(np.asarray(manifest['parts'][0]['print_transform_mm']))
+        changed.export(tmp_path/'part.stl')
+    exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':mesh})
+    expected='EXPORTED_FILE_PLACEMENT_OR_SCALE_MISMATCH' if defect=='wrong_units' else 'EXPORTED_FILE_INVALID'
+    assert any(f['code']==expected for f in manifest['failures'])
 
 
 def test_visual_export_only_evaluates_final_parts_not_bodies_or_interface_checks(tmp_path,monkeypatch):
@@ -84,6 +119,7 @@ def test_visual_export_only_evaluates_final_parts_not_bodies_or_interface_checks
         return mesh.copy(),None,{'display_complete':True,'omitted_mesh_nodes':[]}
     monkeypatch.setattr(exporter,'evaluated',display)
     monkeypatch.setattr(exporter,'mesh_solid',lambda *a,**k:pytest.fail('no geometric check'))
+    monkeypatch.setattr(exporter,'_serialization_triangles',lambda *a:pytest.fail('regression comparison in production'))
     result=exporter.export_assembly(assembly,tmp_path/'output',source_sha256='test',
         expected={**CONFIG,'validation_mode':'visual_only'})
     assert evaluated==['bar.glb','stem.glb']
@@ -91,6 +127,7 @@ def test_visual_export_only_evaluates_final_parts_not_bodies_or_interface_checks
     assert result['diagnostic']['display_available']
     assert result['diagnostic']['semantic_completeness']=='NOT_EVALUATED'
     assert result['backend']['within_part_union']=='NOT_EXECUTED'
+    assert result['triangle_comparison']=='NOT_EXECUTED'
     assert not any('connected_components' in p for p in result['parts'])
 
 
@@ -101,6 +138,31 @@ def test_mode_is_explicit_and_old_default_unchanged():
     with pytest.raises(ValueError): FixedAssemblyConfig.model_validate({**CONFIG,'require_multiple_parts':'false'})
     assert FixedAssemblyConfig.model_validate({**CONFIG,'validation_mode':'visual_only'}).validation_mode=='visual_only'
     with pytest.raises(ValueError): FixedAssemblyConfig.model_validate({**CONFIG,'validation_mode':'ignore_everything'})
+
+
+def test_serialization_redundant_faces_do_not_change_surface_or_mutate_mesh(tmp_path):
+    import trimesh
+    from test_fixed_assembly_exports import _files
+    mesh,manifest,_=_files(tmp_path)
+    faces=np.vstack([mesh.faces,mesh.faces[:2],[[0,0,1]]])
+    reference=trimesh.Trimesh(mesh.vertices.copy(),faces,process=False)
+    exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':reference},compare_triangles=True)
+    assert not manifest['failures']
+    assert np.array_equal(reference.faces,faces)  # No mesh repair/filtering.
+    for row in manifest['export_consistency']:
+        assert row['reference_encoding']['exact_zero_area_faces']==1
+        assert row['reference_encoding']['exact_duplicate_surface_faces']==2
+    # Losing a real surface must still fail, even when all vertices remain.
+    reference=trimesh.Trimesh(mesh.vertices.copy(),mesh.faces[1:],process=False)
+    exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':reference},compare_triangles=True)
+    assert any(f['code']=='EXPORTED_FILE_GEOMETRY_MISMATCH' for f in manifest['failures'])
+
+
+def test_serialization_keeps_tiny_positive_area_triangles():
+    import trimesh
+    mesh=trimesh.Trimesh([[0,0,0],[1,0,0],[0,1e-12,0]],[[0,1,2]],process=False)
+    triangles,info=exporter._serialization_triangles(mesh)
+    assert len(triangles)==1 and info['exact_zero_area_faces']==0
 
 
 @pytest.mark.parametrize('last_pass', [False,True])

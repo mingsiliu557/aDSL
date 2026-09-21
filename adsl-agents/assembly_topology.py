@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+from copy import deepcopy
 import json
 import os
 from pathlib import Path
@@ -217,13 +218,66 @@ def run_assembly_topology(spec, *, execution, source, root):
     return CheckerRun(spec,result,run.output_dir,run.command)
 
 
+EVIDENCE_PATH_INSTRUCTION = (
+    'Read the given evidence_files/result_ref paths directly; do not add a candidate directory prefix. '
+    'Relative tool paths are workspace-relative. Only assigned_source may be modified. '
+    'Initial-source-only evidence is a historical clue, not a measurement of modified geometry. '
+    'Use inline facts first; reading every detailed report is not required.')
+
+
+def prepare_evidence(feedback, *, workspace, source_sha256, evidence_files=()):
+    """Normalize only this adapter's explicit file fields, not arbitrary text."""
+    workspace = workspace.resolve()
+    files = []
+    # Reviews/manifests have already been version-hashed. Normalize the payload,
+    # never mutate those saved records through shared dictionaries.
+    for key in ('failures','render_issue','checker_summary','typed_findings'):
+        if key in feedback: feedback[key] = deepcopy(feedback[key])
+
+    def reference(path, purpose, metadata=None):
+        row = dict(metadata or {'source_sha256':source_sha256, 'version_role':'current_source'})
+        row.update(path=None, purpose=purpose, availability='UNAVAILABLE')
+        try:
+            target = Path(path).expanduser()
+            if not target.is_absolute(): target = workspace/target
+            target = target.resolve()
+            if not target.is_relative_to(workspace):
+                row['reason'] = 'outside_workspace'
+            else:
+                row['path'] = str(target)
+                row['availability'] = 'AVAILABLE' if target.is_file() else 'UNAVAILABLE'
+                if row['availability'] == 'UNAVAILABLE': row['reason'] = 'file_not_found'
+        except (OSError, ValueError, TypeError) as error:
+            row['reason'] = f'path_unavailable:{type(error).__name__}'
+        row['matches_current_source'] = row.get('source_sha256') == source_sha256
+        if row not in files: files.append(row)
+        return row['path']
+
+    for row in evidence_files:
+        reference(row.get('path'), row.get('purpose', 'optional evidence'), row)
+    rows = [feedback, *(feedback.get('failures') or []),
+            *(feedback.get('checker_summary') or []), *(feedback.get('typed_findings') or [])]
+    if feedback.get('render_issue'): rows.append(feedback['render_issue'])
+    for row in rows:
+        for field in ('result_ref', 'report_path', 'boundary_report'):
+            if row.get(field): row[field] = reference(row[field], field)
+        if row.get('evidence_refs'):
+            row['evidence_refs'] = [reference(p, 'checker detail') for p in row['evidence_refs']]
+        for field in ('report_path', 'boundary_report'):
+            values = row.get('key_values', {})
+            if values.get(field): values[field] = reference(values[field], field)
+    feedback['evidence_files'] = files
+    feedback['evidence_path_instruction'] = EVIDENCE_PATH_INSTRUCTION
+
+
 ENGINEERING_INSTRUCTION='''Fixed assembly specialization: the old whole-object topology
 bridge_parent/scope-only rules do NOT apply. Index candidates are hints, not edit
 permissions. Read the assigned current source; infer relevant body classes,
 helpers and add_part/connect/frame calls when index candidates are absent or
 ambiguous. Explain location, evidence and uncertainty; never invent index IDs.
 Use exact current source symbols in allowed_scopes; top-level assembly statements
-can use <module>. These are source scopes, not invented index IDs.
+can use <module>. These are optional location hints, not edit permissions or
+invented index IDs. Unresolved attribute hints must be verified by reading source.
 You may minimally correct print grouping and connections, without a new Planner.
 Keep frozen units, fit allowance, dimensions and task requirements. No checker,
 configuration or mesh repair edits. Propose at most ONE coordinated source patch,
@@ -240,7 +294,7 @@ Engineering approval cannot override measured FAIL. Recheck assembly_topology.
 
 
 async def engineer(workflow,runtime,request,plan,source,execution,root,run,context,feedback,remaining):
-    from .service import _checker_evidence
+    from .service import _actionable_findings
     from .prompts import object_prompt
     from .tools import READ_TOOLS, AgentToolContext
     from .utils.inputs import user_input
@@ -249,12 +303,14 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
         output_type=EngineeringCriticDecision,strict_json_schema=False)
     payload={'requirement':request.requirement,'plan':plan.model_dump(),
         'assigned_source':str(source.relative_to(request.workspace)), 'assembly_context':context,
-        **_checker_evidence([run],workspace=request.workspace),
+        **{k:feedback.get(k) for k in ('checker_summary','typed_findings','evidence_access',
+                                     'evidence_files','evidence_path_instruction')},
+        'source_sha256':sha256_file(source), 'source_version':feedback.get('source_version'),
         'assembly_item_statuses':[{k:r.get(k) for k in ('part_id','connection_id','status','code')}
             for r in run.result.metrics.get('items',[])],
         'pending_reviews':{k:feedback.get(k) for k in ('image_critic','code_critic','render_issue','repair_history')},
         'remaining_repairs':remaining,'maximum_repair_proposals':1,
-        'assignment':ENGINEERING_INSTRUCTION}
+        'assignment':ENGINEERING_INSTRUCTION + EVIDENCE_PATH_INSTRUCTION}
     write_json(root/'engineering_input.json',payload)
     tool_context=AgentToolContext(workspace=request.workspace,source_path=source)
     response=await runtime.run(agent=agent,input=user_input(json.dumps(payload),
@@ -265,15 +321,21 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
     write_json(root/'engineering_critique.json',decision.model_dump())
     if len(decision.repair_proposals)>1: raise ValueError('expected at most one coordinated assembly proposal')
     proposal=next(iter(decision.repair_proposals),None)
+    feedback['engineering'] = {'status':'PROPOSAL' if proposal else 'NO_PROPOSAL',
+        'observations':[s[:300] for s in decision.observations[:3]],
+        'unresolved_findings':decision.unresolved_findings[:6],
+        'report_path':str((root/'engineering_critique.json').resolve())}
     if proposal:
-        ids={f.finding_id for f in run.result.findings if f.repairability=='geometry'}
+        ids={f.finding_id for f in _actionable_findings(run)}
         if not set(proposal.finding_ids)<=ids or proposal.action in ('request_evidence','change_print_orientation'):
-            write_json(root/'proposal_rejected.json',{'reason':'unknown/unrepairable finding or unsupported action'})
+            feedback['engineering']={'status':'UNAVAILABLE','reason':'unknown/unrepairable finding or unsupported action'}
+            write_json(root/'proposal_rejected.json',feedback['engineering'])
             return None
         known={sid for f in run.result.findings for c in f.source_candidates for sid in c.source_ids}
         features={c.feature_id for f in run.result.findings for c in f.source_candidates}
         if not set(proposal.target.source_ids)<=known or not set(proposal.target.feature_ids)<=features:
-            write_json(root/'proposal_rejected.json',{'reason':'unverified source/index IDs'})
+            feedback['engineering']={'status':'UNAVAILABLE','reason':'unverified source/index IDs'}
+            write_json(root/'proposal_rejected.json',feedback['engineering'])
             return None
         tree=ast.parse(source.read_text())
         symbols={'<module>':tree}
@@ -283,15 +345,19 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
                     symbols[prefix+node.name]=node
                     visit(node.body,prefix+node.name+'.')
         visit(tree.body)
-        if any(scope not in symbols for scope in proposal.target.allowed_scopes):
-            write_json(root/'proposal_rejected.json',{'reason':'target symbol does not exist in current source'})
-            return None
+        unresolved=[scope for scope in proposal.target.allowed_scopes if scope not in symbols]
+        if unresolved:
+            feedback['engineering']['unresolved_location_hints']=unresolved
+            feedback['engineering']['location_note']='Unresolved hints, not tool-confirmed scopes; Coder must read source to verify.'
+            proposal=proposal.model_copy(update={'target':proposal.target.model_copy(update={
+                'allowed_scopes':[scope for scope in proposal.target.allowed_scopes if scope in symbols]})})
         write_json(root/'proposal_location.json',{'source_sha256':sha256_file(source),
             'method':'index_assisted' if proposal.target.source_ids else 'model_inferred',
             'tool_confirmed_geometry_ownership':False,
             'scopes':[{ 'symbol':s,'start_line':getattr(symbols[s],'lineno',1),
                 'end_line':getattr(symbols[s],'end_lineno',len(source.read_text().splitlines()))}
-                for s in proposal.target.allowed_scopes], 'basis':proposal.evidence})
+                for s in proposal.target.allowed_scopes], 'unresolved_location_hints':unresolved,
+                'basis':proposal.evidence})
     return proposal
 
 
