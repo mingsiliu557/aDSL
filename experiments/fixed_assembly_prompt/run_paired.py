@@ -271,9 +271,10 @@ def run(root):
         result=optional(root/item['arm']/item['case']/'result.json')
         audit=optional(root/item['arm']/item['case']/'input_audit.json')
         current_failures = prompt.current_geometry_failures(Path(item['workspace']), result.get('geometry_failures',[])) if result else []
-        if prompt.shared_export_failures(current_failures) or (
-                result.get('initial_generations') and audit and not audit.get('input_verified')):
-            write_json(root/'paused.json',dict(case=item['id'],reason='shared export or actual prompt-input contract error'))
+        shared = (prompt.shared_export_failures(current_failures + result.get('shared_failures', []))
+                  + prompt.shared_input_failures(audit))
+        if shared:
+            write_json(root/'paused.json',dict(case=item['id'],reason='confirmed shared fault',failures=shared))
             return
     for item in plan['jobs']:
         launch_phase(root,item,'evaluate')

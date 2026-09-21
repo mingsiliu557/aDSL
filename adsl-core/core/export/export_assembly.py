@@ -179,14 +179,16 @@ def _serialization_triangles(mesh):
                        surface_triangles=len(unique), mesh_modified=False)
 
 
-def _verify_written_exports(output, manifest, solids, *, surface_meshes=None, compare_triangles=False):
-    """Check saved files/placement; triangle matching is opt-in regression only."""
+def _verify_written_exports(output, manifest, solids, *, surface_meshes=None,
+                            compare_triangles=False, compare_placement=False):
+    """Check readable, nonempty part files; numerical comparisons are regression-only."""
     import trimesh
     z_up = np.array([[1,0,0,0], [0,0,-1,0], [0,1,0,0], [0,0,0,1.]])
     unit = manifest['mm_per_unit']
     parts = {p['id']:p for p in manifest['parts']}
     checks = manifest['export_consistency'] = []
     manifest['triangle_comparison'] = 'REGRESSION_ONLY' if compare_triangles else 'NOT_EXECUTED'
+    manifest['placement_comparison'] = 'REGRESSION_ONLY' if compare_placement else 'NOT_EXECUTED'
     files = [(p['stl'], {name: np.asarray(p['print_transform_mm'])}, False) for name,p in parts.items()]
     files += [(p['glb'], {name: np.eye(4)}, True) for name,p in parts.items()]
     for filename, field in [('scene.glb','assembly_transform'), ('exploded.glb','exploded_transform')]:
@@ -223,9 +225,7 @@ def _verify_written_exports(output, manifest, solids, *, surface_meshes=None, co
                     reference = surface_meshes[name]
                     if not len(mesh.vertices) or not len(mesh.faces) or not np.isfinite(mesh.vertices).all():
                         raise ValueError(f'empty or nonfinite saved geometry for {name}')
-                    if not compare_triangles:
-                        # Cheap file/units/placement checks, not surface equivalence.
-                        # A format may encode the same surface with different faces.
+                    if compare_placement:
                         tolerance = manifest['numeric_tolerance']['length_mm']
                         bounds_error = float(np.max(np.abs(mesh.bounds-reference.bounds)))
                         pose_error = 0.0
@@ -238,12 +238,16 @@ def _verify_written_exports(output, manifest, solids, *, surface_meshes=None, co
                                              float(np.max(np.abs(delta[:3,:3])))*scale)
                         passed = bounds_error <= tolerance and pose_error <= tolerance
                         checks.append(dict(file=filename, part_id=name, status='PASS' if passed else 'FAIL',
-                            scope='file_structure_units_and_placement', local_bounds_deviation_mm=bounds_error,
+                            scope='placement_regression_only', local_bounds_deviation_mm=bounds_error,
                             placement_deviation_mm=pose_error))
                         if not passed:
                             manifest['failures'].append(dict(code='EXPORTED_FILE_PLACEMENT_OR_SCALE_MISMATCH',
                                 file=filename, part_id=name, local_bounds_deviation_mm=bounds_error,
                                 placement_deviation_mm=pose_error))
+                    if not compare_triangles:
+                        if not compare_placement:
+                            checks.append(dict(file=filename, part_id=name, status='PASS',
+                                               scope='file_structure_only'))
                         continue
                     # Serialization consistency only: compare surface triangles,
                     # allowing redundant encoding and the existing float32 bound.
@@ -277,7 +281,8 @@ def _verify_written_exports(output, manifest, solids, *, surface_meshes=None, co
                         file=filename, part_id=name, symmetric_difference_mm3=difference))
         except (ValueError, RuntimeError, OSError, KeyError) as error:
             checks.append(dict(file=filename, status='FAIL', reason=str(error)[:300]))
-            manifest['failures'].append(dict(code='EXPORTED_FILE_INVALID', file=filename, reason=str(error)[:300]))
+            manifest['failures'].append(dict(code='EXPORTED_FILE_INVALID', file=filename,
+                stage='read_written_exports', failure_kind='export', reason=str(error)[:300]))
 
 
 def _write(path, value):
@@ -379,7 +384,8 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
     _write(target, manifest)
     def require(condition, code, **location):
         if not condition:
-            manifest['failures'].append(dict(code=code, **location))
+            manifest['failures'].append(dict(code=code, stage=manifest.get('stage','declaration'),
+                failure_kind='candidate_geometry', **location))
     if expected.get('require_multiple_parts', False):
         manifest['task_constraints'] = {'require_multiple_parts':True}
         require(len(assembly.parts) >= 2 and len(assembly.connections) >= 1,
@@ -414,11 +420,13 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
     for name, part in assembly.parts.items():
         manifest['stage'] = f'part:{name}'
         _write(target, manifest)
+        part_stage = 'evaluate_part'
         try:
             if visual_only:
                 mesh, _, diagnostics = evaluated(part, output/f'{name}.glb', assembly.mm_per_unit,
                     keep_materials=True, validate_geometry=False)
                 meshes[name] = mesh
+                part_stage = 'write_print_mesh'
                 print_transform = np.eye(4)
                 print_transform[2,3] = -float(mesh.bounds[0,2])
                 printed = mesh.copy(); printed.apply_transform(print_transform)
@@ -428,6 +436,7 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
                     print_transform_mm=print_transform.tolist(), **diagnostics))
                 if not diagnostics['display_complete']:
                     manifest['failures'].append(dict(code='DISPLAY_INCOMPLETE', part_id=name,
+                        stage='evaluate_part', failure_kind='candidate_geometry',
                         omitted_mesh_nodes=diagnostics['omitted_mesh_nodes']))
                 continue
             mesh, solid, diagnostics = evaluated(part, output/f'{name}.glb', assembly.mm_per_unit, keep_materials=True)
@@ -435,6 +444,7 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
             meshes[name], solids[name], bodies[name] = mesh, solid, body
             components = len(mesh.split(only_watertight=False, repair=False))
             require(components == 1, 'DISCONNECTED_PRINT_PART', part_id=name, components=components)
+            part_stage = 'write_print_mesh'
             print_transform = np.eye(4)
             print_transform[2, 3] = -float(mesh.bounds[0, 2])
             printed = mesh.copy()
@@ -446,9 +456,17 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
                 print_transform_mm=print_transform.tolist(), volume_mm3=float(mesh.volume),
                 bounds_mm=mesh.bounds.tolist(), closed=bool(mesh.is_watertight), connected_components=components,
                 zero_area_faces=int(np.count_nonzero(mesh.area_faces <= 0)), **diagnostics))
-        except (ValueError, RuntimeError) as error:
-            manifest['failures'].append(dict(code='PART_DISPLAY_UNAVAILABLE' if visual_only else 'PART_GEOMETRY_INVALID',
-                part_id=name, reason=str(error)[:300]))
+        except (ValueError, RuntimeError, OSError) as error:
+            # Only our explicit mesh diagnostics establish a candidate defect.
+            # Generic Boolean/export exceptions do not establish a shape cause.
+            geometry = isinstance(error, ValueError) and str(error).startswith((
+                'empty evaluated', 'No finite nonempty mesh available for display',
+                'mesh is not a finite closed oriented volume, or has zero-area faces'))
+            kind = ('export' if isinstance(error, OSError) or part_stage == 'write_print_mesh'
+                    else 'candidate_geometry' if geometry else 'unknown')
+            manifest['failures'].append(dict(code='PART_EXPORT_FAILED' if kind == 'export' else
+                'PART_DISPLAY_UNAVAILABLE' if visual_only else 'PART_GEOMETRY_INVALID',
+                part_id=name, stage=part_stage, failure_kind=kind, reason=str(error)[:300]))
     # A failed part must not prevent visual feedback about available geometry.
     try:
         _diagnostic_view(assembly, output, meshes, manifest)
@@ -460,7 +478,7 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
             {'part_id':p['id'], **node} for p in manifest['parts'] for node in p['omitted_mesh_nodes']]
         manifest['diagnostic']['display_available'] = bool(manifest['diagnostic'].get('display_available') and
             len(meshes)==len(assembly.parts) and all(p['display_complete'] for p in manifest['parts']))
-        if len(meshes)==len(assembly.parts):
+        if len(meshes)==len(assembly.parts) and len(manifest['parts'])==len(assembly.parts):
             max_coord = max(1., *(float(np.max(np.abs(m.vertices))) for m in meshes.values()))
             manifest['numeric_tolerance'] = dict(length_mm=float(16*np.finfo(np.float32).eps*max_coord),
                 source='16 * float32 epsilon * max local coordinate; serialization only')
@@ -470,8 +488,14 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
                 transform[:3,3] *= assembly.mm_per_unit
                 world.apply_transform(transform); bounds.append(world.bounds)
             extent=np.max(np.asarray(bounds)[:,1,:],axis=0)-np.min(np.asarray(bounds)[:,0,:],axis=0)
-            _write_final_meshes(assembly, output, manifest, meshes, extent)
-            _verify_written_exports(output, manifest, {}, surface_meshes=meshes)
+            manifest['stage'] = 'write_and_verify_final_meshes'
+            _write(target, manifest)
+            try:
+                _write_final_meshes(assembly, output, manifest, meshes, extent)
+                _verify_written_exports(output, manifest, {}, surface_meshes=meshes)
+            except (ValueError, RuntimeError, OSError, KeyError) as error:
+                manifest['failures'].append(dict(code='EXPORTED_FILE_INVALID',
+                    stage='write_final_meshes', failure_kind='export', reason=str(error)[:300]))
         manifest.update(status='NOT_EVALUATED', export_status='FAIL' if manifest['failures'] else 'PASS',
             stage='complete', elapsed_seconds=time.monotonic()-start)
         manifest['files_sha256']={p.name:hashlib.sha256(p.read_bytes()).hexdigest()

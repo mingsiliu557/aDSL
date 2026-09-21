@@ -10,7 +10,7 @@ from adsl.agents import fixed_assembly as flow
 from test_fixed_assembly import mock_flow, run_flow
 
 
-@pytest.mark.parametrize('failure', ['no_manifest', 'broken_manifest', 'empty_error', 'timeout'])
+@pytest.mark.parametrize('failure', ['no_manifest', 'empty_error', 'timeout'])
 def test_failed_execution_has_readable_feedback_and_can_repair(tmp_path, monkeypatch, failure):
     state = mock_flow(tmp_path, monkeypatch, [('PASS', True)])
     state = (state[0], replace(state[1], checker_specs=(), max_rounds=2), *state[2:])
@@ -120,3 +120,50 @@ def test_existing_geometry_failure_is_not_relabelled_as_unavailable(tmp_path, mo
     diagnostic = json.loads(Path(feedback['report_path']).read_text())
     assert Path(diagnostic['assembly_report_path']).is_file()
     assert diagnostic['type'] == 'AssetExecutionError'
+
+
+@pytest.mark.parametrize('defect', ['empty','missing','disconnected','unreadable','export_exception','unknown'])
+def test_part_feedback_repairs_geometry_not_file_errors(tmp_path,monkeypatch,defect):
+    state=mock_flow(tmp_path,monkeypatch,[('NOT_EVALUATED',True)]*2)
+    state=(state[0],replace(state[1],checker_specs=(),max_rounds=2,
+        fixed_assembly={**state[1].fixed_assembly,'validation_mode':'visual_only'}),*state[2:])
+    execute=flow.execute_asset_source
+    codes={'empty':'PART_DISPLAY_UNAVAILABLE','missing':'DISPLAY_INCOMPLETE',
+        'disconnected':'DISCONNECTED_PRINT_PART','export_exception':'PART_EXPORT_FAILED',
+        'unknown':'PART_DISPLAY_UNAVAILABLE'}
+    kind='candidate_geometry' if defect in ('empty','missing','disconnected') else 'export' if defect=='export_exception' else 'unknown'
+    calls=[];contexts=[]
+    review=state[0]._review_generation_code
+    async def code(**kw):
+        contexts.append(kw['assembly_context'])
+        return await review(**kw)
+    monkeypatch.setattr(state[0],'_review_generation_code',code)
+    def run(source,out,**kw):
+        result=execute(source,out,**kw);calls.append(1)
+        if len(calls)==1: mock_flow.appearance=False
+        path=out/'assembly/assembly_manifest.json'
+        if len(calls)==1 and defect=='unreadable':
+            path.write_text('{broken JSON')
+            return result
+        report=json.loads(path.read_text())
+        bad=len(calls)==1
+        report.update(export_status='FAIL' if bad else 'PASS',
+            diagnostic={'display_available':not bad,'missing_parts':['shelf'] if bad else []},
+            failures=[{'code':codes[defect],'part_id':'shelf','stage':'evaluate_part',
+                'failure_kind':kind,'reason':'measured empty part' if defect=='empty' else 'saved evidence'}] if bad else [])
+        path.write_text(json.dumps(report));return result
+    monkeypatch.setattr(flow,'execute_asset_source',run)
+    result,book=run_flow(state)
+    repairable=defect in ('empty','missing','disconnected')
+    assert result.approved is repairable
+    assert len(state[-1])==int(repairable)
+    assert (tmp_path/'original/source.py').read_text()=='original'
+    assert (tmp_path/'scene.glb').is_file()
+    assert contexts and 'do not change object shape' in contexts[0]['failure_instruction']
+    if repairable:
+        row=state[-1][0]['payload']['feedback']['failure_feedback'][0]
+        assert row['part_id']=='shelf' and row['stage']=='evaluate_part' and row['geometry_repair_allowed']
+        assert book['retained']=='attempt_0001'
+    else:
+        assert book['retained']=='original' and book['stop_reason']=='export_unassessed_no_geometry_repair'
+        assert book['feedback']['failure_feedback'][0]['failure_kind']==('export' if defect=='unreadable' else kind)

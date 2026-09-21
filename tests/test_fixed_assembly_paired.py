@@ -67,14 +67,15 @@ def test_api_failure_phase_preserves_error_and_next_phase_runs(tmp_path,monkeypa
     paired.launch_phase(tmp_path,item,'generate')
 
 
-@pytest.mark.parametrize('current_bad',[False,True])
-def test_batch_uses_latest_export_not_rejected_history(tmp_path,monkeypatch,current_bad):
+@pytest.mark.parametrize('current_bad',[False,True,'shared'])
+def test_batch_continues_case_export_error_but_stops_confirmed_fault(tmp_path,monkeypatch,current_bad):
     work=tmp_path/'wo/SF02/generate'
     failure={'code':'EXPORTED_FILE_INVALID','file':'scene.glb','reason':'No such file'}
     result_path=write_json(work.parent/'result.json',{'geometry_failures':[failure]})
     original=result_path.read_bytes()
     write_json(work/'rounds/round_01/assembly_manifest.json',{'failures':[failure]})
-    write_json(work/'rounds/round_02/assembly_manifest.json',{'failures':[failure] if current_bad else []})
+    current_failure={'code':'SHARED_ENVIRONMENT_UNAVAILABLE','reason':'confirmed service fault'} if current_bad=='shared' else failure
+    write_json(work/'rounds/round_02/assembly_manifest.json',{'failures':[current_failure] if current_bad else []})
     jobs=[dict(id='SF02_wo',arm='wo',case='SF02',origin='fresh',workspace=str(work))]
     write_json(tmp_path/'paired_plan.json',{'jobs':jobs})
     monkeypatch.setattr(paired,'verify_frozen',lambda root:read_json(root/'paired_plan.json'))
@@ -82,8 +83,8 @@ def test_batch_uses_latest_export_not_rejected_history(tmp_path,monkeypatch,curr
     monkeypatch.setattr(paired,'launch_phase',lambda root,item,phase:calls.append(phase))
     monkeypatch.setattr(paired,'summarize',lambda root:None)
     paired.run(tmp_path)
-    assert calls==(['generate'] if current_bad else ['generate','evaluate'])
-    assert (tmp_path/'paused.json').exists() is current_bad
+    assert calls==(['generate'] if current_bad=='shared' else ['generate','evaluate'])
+    assert (tmp_path/'paused.json').exists() is (current_bad=='shared')
     assert result_path.read_bytes()==original
 
 

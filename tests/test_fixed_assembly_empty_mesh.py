@@ -54,8 +54,23 @@ def test_empty_object_uses_existing_part_geometry_failure(tmp_path, monkeypatch)
                                       expected={'mm_per_unit': 1.})
     assert report['status'] == 'FAIL'
     assert report['failures'] == [dict(code='PART_GEOMETRY_INVALID', part_id='part',
+        stage='evaluate_part', failure_kind='candidate_geometry',
         reason="empty evaluated mesh 'evaluated_fixture': vertices=0, loop_triangles=0")]
     assert json.loads((tmp_path / 'assembly_manifest.json').read_text()) == report
+
+
+def test_part_file_error_is_not_labelled_as_bad_geometry(tmp_path,monkeypatch):
+    assembly = SimpleNamespace(validate=lambda:None,mm_per_unit=1.,root_id='part',
+        parts={'part':None},components={'part':('part',)},transforms={'part':np.eye(4)},connections=[])
+    def unavailable(*a,**kw):raise PermissionError('mock part.glb is not writable')
+    monkeypatch.setattr(exporter,'evaluated',unavailable)
+    report=exporter.export_assembly(assembly,tmp_path,source_sha256='fixture',
+        expected={'mm_per_unit':1.,'fit_offset_mm':.2,'validation_mode':'visual_only'})
+    assert report['export_status']=='FAIL'
+    failure=report['failures'][0]
+    assert failure['part_id']=='part' and failure['stage']=='evaluate_part'
+    assert failure['code']=='PART_EXPORT_FAILED' and failure['failure_kind']=='export'
+    assert json.loads((tmp_path/'assembly_manifest.json').read_text())==report
 
 
 @pytest.mark.parametrize('keep_materials', [False, True])

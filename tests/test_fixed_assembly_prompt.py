@@ -245,7 +245,7 @@ def test_native_generation_keeps_completed_usage_after_tool_failure(tmp_path, mo
     assert request.articulation is False and request.fixed_assembly == CONFIG
     assert request.requirement == ('[ORIGINAL TASK]\n' + inputs['original_task']['prompt'] +
         '\n\n[UNIFORM MANUFACTURING REQUIREMENTS]\n' + prompt.MANUFACTURING)
-    assert result['pause_batch'] and not result['approved']
+    assert not result['pause_batch'] and not result['approved']
     assert result['known_actual_tokens'] == 38 and result['actual_api_requests'] == 1
     assert result['unknown_usage_requests'] == 0
     assert result['exception']['reason'] == 'tool failed after completed model call'
@@ -253,7 +253,7 @@ def test_native_generation_keeps_completed_usage_after_tool_failure(tmp_path, mo
 
 
 @pytest.mark.parametrize('gate', ['absent', 'paused', 'input_unverified', 'assembly_unverified'])
-def test_main_never_starts_later_cases_without_sf07_gate(tmp_path, monkeypatch, gate):
+def test_incomplete_single_case_does_not_block_later_cases(tmp_path, monkeypatch, gate):
     monkeypatch.setattr(prompt, 'prepare', lambda root, **kw: None)
     run_case = AsyncMock(return_value={'pause_batch': False})
     monkeypatch.setattr(prompt, 'run_case', run_case)
@@ -262,9 +262,8 @@ def test_main_never_starts_later_cases_without_sf07_gate(tmp_path, monkeypatch, 
         write_json(tmp_path/'SF07/input_audit.json', {
             'input_verified': gate != 'input_unverified',
             'assembly_api_verified': gate != 'assembly_unverified'})
-    with pytest.raises(ValueError, match='SF07'):
-        asyncio.run(prompt.main(tmp_path, ['SF03', 'SF13']))
-    run_case.assert_not_awaited()
+    assert asyncio.run(prompt.main(tmp_path, ['SF03', 'SF13']))==0
+    assert run_case.await_count==2
 
 
 def test_main_runs_later_cases_after_sf07_audit_passes(tmp_path, monkeypatch):
@@ -293,13 +292,14 @@ INVALID_MESH = {'code': 'EXPORTED_FILE_INVALID', 'file': 'pedestal.stl',
 
 @pytest.mark.parametrize('failure, should_pause', [
     (INVALID_MESH, False),
-    ({'code': 'EXPORTED_FILE_GEOMETRY_MISMATCH', 'file': 'scene.glb'}, True),
+    ({'code': 'EXPORTED_FILE_GEOMETRY_MISMATCH', 'file': 'scene.glb'}, False),
     ({'code': 'EXPORTED_FILE_GEOMETRY_MISMATCH', 'file': 'part.stl',
       'triangle_coordinate_deviation_mm': 12.2976}, False),
-    ({'code': 'EXPORTED_FILE_PLACEMENT_OR_SCALE_MISMATCH', 'file': 'scene.glb'}, True),
-    ({**INVALID_MESH, 'reason': 'No such file: scene.glb'}, True),
-    ({**INVALID_MESH, 'reason': "geometry node 'mesh' has no unique print-part ID"}, True),
-    ({**INVALID_MESH, 'reason': 'unexpected read error'}, True),
+    ({'code': 'EXPORTED_FILE_PLACEMENT_OR_SCALE_MISMATCH', 'file': 'scene.glb'}, False),
+    ({**INVALID_MESH, 'reason': 'No such file: scene.glb'}, False),
+    ({**INVALID_MESH, 'reason': "geometry node 'mesh' has no unique print-part ID"}, False),
+    ({**INVALID_MESH, 'reason': 'unexpected read error'}, False),
+    ({'code':'SHARED_ENVIRONMENT_UNAVAILABLE','reason':'confirmed external renderer service unavailable'},True),
 ])
 def test_candidate_geometry_rejection_does_not_imply_shared_failure(
         tmp_path, monkeypatch, failure, should_pause):
@@ -340,10 +340,10 @@ def test_current_report_not_historical_export_error_controls_batch(tmp_path):
     assert path.read_bytes()==before  # Never rewrite old evidence/retained.
     report['failures']=[failure]
     write_json(path,ledger)
-    assert prompt.shared_export_failures(prompt.current_geometry_failures(tmp_path))==[failure]
+    assert prompt.current_geometry_failures(tmp_path)==[failure]
+    assert prompt.shared_export_failures(prompt.current_geometry_failures(tmp_path))==[]
     source.write_text('other version')
-    with pytest.raises(ValueError,match='report/source mismatch'):
-        prompt.current_geometry_failures(tmp_path)
+    assert prompt.shared_export_failures(prompt.current_geometry_failures(tmp_path))[0]['code']=='CURRENT_REPORT_SOURCE_MISMATCH'
 
 
 def saved_geometry_pause(root):
@@ -374,8 +374,8 @@ def test_saved_sf07_geometry_pause_can_continue_without_replay_or_result_overwri
     assert read_json(folder/'result.json')['repair_attempts'] == 1
 
 
-@pytest.mark.parametrize('defect', ['mismatch', 'api_error', 'flow_error', 'audit_error', 'evidence_missing'])
-def test_saved_pause_cannot_bypass_shared_error_or_missing_evidence(tmp_path, monkeypatch, defect):
+@pytest.mark.parametrize('defect', ['mismatch', 'api_error', 'flow_error', 'audit_error', 'evidence_missing','shared_fault'])
+def test_saved_pause_only_blocks_confirmed_shared_fault(tmp_path, monkeypatch, defect):
     folder = saved_geometry_pause(tmp_path)
     if defect == 'mismatch':
         failure = {'code': 'EXPORTED_FILE_GEOMETRY_MISMATCH', 'file': 'scene.glb'}
@@ -389,13 +389,53 @@ def test_saved_pause_cannot_bypass_shared_error_or_missing_evidence(tmp_path, mo
     elif defect == 'flow_error':
         write_json(folder/'generate/rounds/round_01/flow_error.json', {'reason': 'version mismatch'})
     elif defect == 'audit_error':
-        write_json(folder/'input_audit.json', {'input_verified': False, 'assembly_api_verified': True})
+        write_json(folder/'input_audit.json', {'input_verified':False, 'stages':{
+            'initial_code':{'frozen_config_unchanged':False}}})
+    elif defect == 'shared_fault':
+        write_json(folder/'generate/rounds/round_01/assembly_manifest.json', {
+            'failures':[{'code':'SHARED_ENVIRONMENT_UNAVAILABLE','reason':'confirmed service failure'}]})
     else:
         (folder/'generate/rounds/round_01/assembly_manifest.json').unlink()
     monkeypatch.setattr(prompt, 'prepare', lambda root, **kw: None)
-    run_case = AsyncMock()
+    run_case = AsyncMock(return_value={'pause_batch':False,'approved':False})
     monkeypatch.setattr(prompt, 'run_case', run_case)
-    with pytest.raises(ValueError, match='SF07'):
-        asyncio.run(prompt.main(tmp_path, ['SF03', 'SF13']))
-    run_case.assert_not_awaited()
-    assert read_json(folder/'continuation_gate.json')['pause_batch']
+    blocked=defect in ('audit_error','shared_fault')
+    if blocked:
+        with pytest.raises(ValueError, match='SF07'):
+            asyncio.run(prompt.main(tmp_path, ['SF03', 'SF13']))
+        run_case.assert_not_awaited()
+    else:
+        assert asyncio.run(prompt.main(tmp_path,['SF03','SF13']))==0
+        assert run_case.await_count==2
+    assert read_json(folder/'continuation_gate.json')['pause_batch'] is blocked
+
+
+def test_frozen_input_change_is_saved_and_stops_before_model(tmp_path,monkeypatch):
+    write_json(tmp_path/'SF07/input.json',frozen_input())
+    write_json(tmp_path/'batch.json',{'input_sha256':{'SF07':'other version'}})
+    monkeypatch.setattr(prompt,'PromptWorkflow',lambda *a:pytest.fail('must not call model'))
+    result=asyncio.run(prompt.run_case(tmp_path,'SF07'))
+    assert result['pause_batch'] and not result['approved']
+    assert result['shared_failures'][0]['code']=='FROZEN_INPUT_CHANGED'
+    assert read_json(tmp_path/'SF07/result.json')==result
+
+
+def test_unreadable_export_manifest_still_saves_case_result(tmp_path,monkeypatch):
+    inputs=frozen_input()
+    path=write_json(tmp_path/'SF07/input.json',inputs)
+    write_json(tmp_path/'batch.json',{'input_sha256':{'SF07':prompt.file_hash(path)}})
+    class Workflow:
+        def __init__(self,*a):pass
+        async def generate(self,request):
+            stage_records(request.workspace,inputs)
+            source=request.workspace/'source.py';source.write_text('preserved source')
+            path=request.workspace/'rounds/round_01/assembly_manifest.json'
+            path.parent.mkdir(parents=True);path.write_text('{broken JSON')
+            return SimpleNamespace(approved=False)
+    monkeypatch.setattr(prompt,'PromptWorkflow',Workflow)
+    result=asyncio.run(prompt.run_case(tmp_path,'SF07'))
+    assert not result['pause_batch'] and not result['approved']
+    assert result['current_geometry_failures'][0]['code']=='EXPORTED_REPORT_UNAVAILABLE'
+    assert read_json(tmp_path/'SF07/input_audit.json')['artifact_errors']
+    assert (tmp_path/'SF07/generate/source.py').read_text()=='preserved source'
+    assert read_json(tmp_path/'SF07/result.json')==result

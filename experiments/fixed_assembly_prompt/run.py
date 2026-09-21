@@ -203,11 +203,18 @@ def input_audit(work, inputs):
             'frozen_config_unchanged':payload['fixed_assembly']==inputs['fixed_assembly'],
             'original_prompt_present':inputs['original_task']['prompt'] in payload['requirement'],
             'reference_images':0, 'tool_events':record.get('tools',[])}
-    programs = []
+    programs, artifact_errors = [], []
     single_part_sources = set()
     if not inputs['fixed_assembly'].get('require_multiple_parts', False):
         for manifest_path in (work/'rounds').rglob('assembly_manifest.json'):
-            manifest = read_json(manifest_path)
+            try:
+                manifest = read_json(manifest_path)
+                if not isinstance(manifest, dict):
+                    raise ValueError('manifest must be an object')
+            except (OSError, ValueError) as error:
+                artifact_errors.append({'path':str(manifest_path),'stage':'assembly_api_audit',
+                                        'reason':str(error)[:240]})
+                continue
             if len(manifest.get('part_declarations', manifest.get('parts', []))) == 1 and manifest.get('connections') == []:
                 single_part_sources.add(manifest.get('source_sha256'))
     paths = [work/'original/source.py', *sorted((work/'rounds').rglob('source.py'))]
@@ -223,6 +230,7 @@ def input_audit(work, inputs):
         except SyntaxError:
             programs.append({'source':str(path),'sha256':file_hash(path),'assembly_api_present':False})
     result = {'experiment_type':'fixed_assembly_prompt_to_3d', 'stages':evidence,'programs':programs,
+              'artifact_errors':artifact_errors,
               'input_verified':all(evidence[s].get('verified') and evidence[s].get('frozen_config_unchanged') and evidence[s].get('original_prompt_present') for s in ('plan','initial_code')),
               'assembly_api_verified':any(p['assembly_api_present'] for p in programs)}
     write_json(work.parent/'input_audit.json', result)
@@ -230,62 +238,64 @@ def input_audit(work, inputs):
 
 
 def shared_export_failures(failures):
-    """Bad candidate geometry is not proof of a shared export implementation bug.
+    """Only controller-confirmed shared faults pause; an EXPORTED_* code does not."""
+    confirmed = {'FROZEN_INPUT_CHANGED', 'ACTUAL_INPUT_CONTRACT_MISMATCH',
+                 'RETAINED_VERSION_MISMATCH', 'CURRENT_REPORT_SOURCE_MISMATCH',
+                 'SHARED_ENVIRONMENT_UNAVAILABLE'}
+    return [f for f in failures if f.get('code') in confirmed]
 
-    EXPORTED_FILE_INVALID also wraps file/ID/read errors. Only the existing
-    mesh_solid validity error is known to be a case-level geometry rejection;
-    unknown reasons and non-triangle geometry mismatches still pause the batch.
-    Old per-triangle serialization reports are regression evidence, not gates.
-    """
-    invalid_mesh = 'mesh is not a finite closed oriented volume, or has zero-area faces'
-    return [failure for failure in failures if failure['code'].startswith('EXPORTED_')
-            and not (failure['code'] == 'EXPORTED_FILE_GEOMETRY_MISMATCH'
-                     and 'triangle_coordinate_deviation_mm' in failure)
-            and not (failure['code'] == 'EXPORTED_FILE_INVALID'
-                     and failure.get('reason') == invalid_mesh)]
+
+def shared_input_failures(audit):
+    # A stage not reached or missing audit evidence is not a proven bad input.
+    bad = [stage for stage, row in audit.get('stages', {}).items()
+        if any(row.get(key) is False for key in
+               ('source_empty', 'frozen_config_unchanged', 'original_prompt_present'))
+        or (row.get('payload_fields') is not None and set(row['payload_fields']) != (
+            {'requirement','fixed_assembly'} if stage=='plan' else
+            {'requirement','fixed_assembly','articulation_required','plan','assignment'}))
+        or (row.get('api_call_count', 0) > 0 and
+            row.get('actual_model_input_matches_stage_input') is False)]
+    return [{'code':'ACTUAL_INPUT_CONTRACT_MISMATCH', 'stages':bad}] if bad else []
 
 
 def current_geometry_failures(work, fallback=()):
     """Current checked working version only; keep history out of batch gates."""
-    ledger = work/'assembly_versions.json'
-    if ledger.is_file():
-        book = read_json(ledger)
-        version = book['versions'][book.get('working', book['retained'])]
-        report = version.get('reviews', {}).get('geometry')
-        if isinstance(report, dict):
-            if report.get('source_sha256') and report['source_sha256'] != file_hash(Path(version['source'])):
-                raise ValueError('current assembly report/source mismatch')
-            return report.get('failures', [])
-        return []  # No current geometry; execution/tool failures are reported separately.
-    reports = sorted((work/'rounds').rglob('assembly_manifest.json'))
-    return read_json(reports[-1]).get('failures', []) if reports else list(fallback)
+    try:
+        ledger = work/'assembly_versions.json'
+        if ledger.is_file():
+            book = read_json(ledger)
+            version = book['versions'][book.get('working', book['retained'])]
+            report = version.get('reviews', {}).get('geometry')
+            if isinstance(report, dict):
+                if report.get('source_sha256') and report['source_sha256'] != file_hash(Path(version['source'])):
+                    return [{'code':'CURRENT_REPORT_SOURCE_MISMATCH', 'reason':'current assembly report/source mismatch'}]
+                return report.get('failures', [])
+            return []  # No current geometry; execution/tool failures are reported separately.
+        reports = sorted((work/'rounds').rglob('assembly_manifest.json'))
+        return read_json(reports[-1]).get('failures', []) if reports else list(fallback)
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        return [{'code':'EXPORTED_REPORT_UNAVAILABLE', 'failure_kind':'export',
+                 'stage':'read_current_report', 'reason':str(error)[:240]}]
 
 
 def reclassify_saved_geometry_pause(folder):
-    """Re-evaluate only the old export-prefix pause, without replaying a case."""
+    """Reclassify saved case errors without replay, approval or budget changes."""
     result_path, audit_path = folder/'result.json', folder/'input_audit.json'
-    result, audit = read_json(result_path), read_json(audit_path)
+    result = read_json(result_path)
+    audit = read_json(audit_path) if audit_path.is_file() else {}
     work = folder/'generate'
     paths = sorted((work/'rounds').rglob('assembly_manifest.json'))
-    failures = [failure for path in paths for failure in read_json(path).get('failures', [])]
     calls = sorted((work/'api_calls').glob('*.json'))
-    # Do not turn an old/partial summary with missing evidence into permission.
-    evidence_complete = bool(paths and calls and failures == result.get('geometry_failures'))
-    old_export_pause = any(failure['code'].startswith('EXPORTED_') for failure in failures)
-    blocked = bool(
-        not evidence_complete or not old_export_pause or shared_export_failures(current_geometry_failures(work, failures))
-        or result.get('exception', True) is not None
-        or result.get('tool_errors', True) != [] or result.get('flow_errors', True) != []
-        or list(work.rglob('flow_error.json'))
-        or any(read_json(path).get('status') != 'COMPLETED' for path in calls)
-        or not audit.get('input_verified') or not audit.get('assembly_api_verified'))
+    shared = (shared_export_failures(current_geometry_failures(work, result.get('geometry_failures', [])))
+              + shared_export_failures(result.get('shared_failures', [])) + shared_input_failures(audit))
+    blocked = bool(shared)
     gate = {'case': folder.name, 'original_pause_batch': result.get('pause_batch'),
         'pause_batch': blocked, 'case_approved': result.get('approved', False),
-        'reason': ('saved evidence confirms only case-level exported mesh invalidity'
-                   if not blocked else 'shared error or incomplete evidence; keep batch paused'),
+        'reason': ('No confirmed shared fault; continue independent cases, not approval of this case'
+                   if not blocked else 'confirmed shared fault; keep batch paused'),
         'evidence_sha256': {str(path): file_hash(path)
-                           for path in [result_path, audit_path, *paths, *calls]},
-        'shared_export_failures': shared_export_failures(current_geometry_failures(work, failures)),
+                           for path in [result_path, audit_path, *paths, *calls] if path.is_file()},
+        'shared_export_failures': shared,
         'case_replayed': False, 'checked_at': time.time()}
     write_json(folder/'continuation_gate.json', gate)
     return not blocked
@@ -297,7 +307,10 @@ async def run_case(root, cid, *, resume_from=None):
     if (folder/'started.json').exists():raise RuntimeError('No automatic replay of a started case')
     inputs = read_json(folder/'input.json')
     if file_hash(folder/'input.json') != read_json(root/'batch.json')['input_sha256'][cid]:
-        raise ValueError('Frozen task input changed')
+        failure = {'code':'FROZEN_INPUT_CHANGED', 'stage':'preflight', 'reason':'Frozen task input changed'}
+        summary = {'case':cid, 'approved':False, 'pause_batch':True, 'shared_failures':[failure]}
+        write_json(folder/'result.json', summary)
+        return summary
     # Old saved inputs used one repair; never expand an existing case's budget.
     max_rounds = inputs.get('source_repair_limit', 1) + 1
     requirement = '[ORIGINAL TASK]\n'+inputs['original_task']['prompt']+'\n\n[UNIFORM MANUFACTURING REQUIREMENTS]\n'+inputs['manufacturing_requirements']
@@ -337,25 +350,44 @@ async def run_case(root, cid, *, resume_from=None):
         audit = input_audit(work,inputs)
     book_path = work/'assembly_versions.json'
     book = read_json(book_path) if book_path.exists() else {}
+    publication_failures = []
     if book:
-        selected = book['versions'][book['retained']]
-        assert_version(selected)
-        if file_hash(work/'source.py') != file_hash(Path(selected['source'])):
-            raise ValueError('Retained/source mismatch')
-    reports = [read_json(p) for p in sorted((work/'rounds').rglob('assembly_manifest.json'))]
+        try:
+            selected = book['versions'][book['retained']]
+            assert_version(selected)
+            if file_hash(work/'source.py') != file_hash(Path(selected['source'])):
+                raise ValueError('Retained/source mismatch')
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            confirmed = isinstance(exc, ValueError) and (str(exc) in
+                ('Retained/source mismatch', 'version checker/review record changed')
+                or str(exc).startswith('version asset hash changed:'))
+            publication_failures.append({'code':'RETAINED_VERSION_MISMATCH' if confirmed else 'EXPORTED_REPORT_UNAVAILABLE',
+                'stage':'verify_publication', 'reason':str(exc)[:240]})
+    reports = []
+    for path in sorted((work/'rounds').rglob('assembly_manifest.json')):
+        try:
+            report = read_json(path)
+            if not isinstance(report, dict) or not isinstance(report.get('failures', []), list):
+                raise ValueError('assembly report must contain a failures list')
+            reports.append(report)
+        except (OSError, ValueError) as exc:
+            reports.append({'failures':[{'code':'EXPORTED_REPORT_UNAVAILABLE',
+                'report_path':str(path), 'reason':str(exc)[:240]}]})
     failures = [f for report in reports for f in report.get('failures',[])]
     current_failures = current_geometry_failures(work, failures)
-    shared = shared_export_failures(current_failures)
+    shared = shared_export_failures(current_failures + publication_failures) + shared_input_failures(audit)
     tool_errors = [read_json(p) for p in work.rglob('*edit_outcome.json') if read_json(p).get('status')=='TOOL_ERROR']
-    missing_reports = [e for e in tool_errors if 'No such file' in e.get('reason','') and 'assembly_manifest.json' in e['reason']]
     flow_errors = [str(p) for p in work.rglob('flow_error.json')]
+    # Do not inherit old candidate faults after a later version is evaluated.
+    if book.get('stop_reason') == 'FLOW_ERROR' and flow_errors:
+        shared += shared_export_failures([read_json(Path(sorted(flow_errors)[-1]))])
     calls = [read_json(p) for p in sorted((work/'api_calls').glob('*.json'))]
     repair_log = work/'repair_history.jsonl'
     repairs = len(repair_log.read_text().splitlines()) if repair_log.exists() else 0
-    pause = bool(error or shared or missing_reports or flow_errors or not audit['input_verified'])
-    if cid==IDS[0] and not audit['assembly_api_verified']:pause=True
+    pause = bool(shared)
     summary = {'case':cid,'experiment_type':'fixed_assembly_prompt_to_3d',
-        'approved':bool(result and result.approved),'pause_batch':pause,
+        'approved':bool(result and result.approved and not error and not publication_failures),
+        'pause_batch':pause, 'shared_failures':shared, 'publication_failures':publication_failures,
         'initial_generations':int((work/'stage_inputs/initial_code.json').exists()),'repair_attempts':repairs,
         'max_rounds':max_rounds,'source_repair_limit':max_rounds-1,
         'source':str(work/'source.py'),'retained_version':book.get('retained'),
@@ -382,17 +414,14 @@ async def main(root, cases, max_rounds=5, *, assembly_topology=False, profile=PR
             cases=cases if assembly_topology else IDS)
     if any(c!=IDS[0] for c in cases):
         first = root/IDS[0]
-        if not (first/'result.json').exists():
-            raise ValueError('SF07 must finish without a shared error before later cases')
-        if read_json(first/'result.json')['pause_batch'] and not reclassify_saved_geometry_pause(first):
+        if ((first/'result.json').exists() and read_json(first/'result.json')['pause_batch']
+                and not reclassify_saved_geometry_pause(first)):
             raise ValueError('SF07 saved evidence still requires a batch pause')
-        audit = read_json(first/'input_audit.json')
-        if not (audit['input_verified'] and audit['assembly_api_verified']):
-            raise ValueError('SF07 actual input/API audit must pass first')
     for cid in cases:
         result = await run_case(root,cid)
         if result['pause_batch']:
-            write_json(root/'paused.json',{'case':cid,'reason':'shared flow/export/input error; inspect evidence before continuing'})
+            write_json(root/'paused.json',{'case':cid,'reason':'confirmed shared fault',
+                                          'failures':result.get('shared_failures',[])})
             return 2
     return 0
 

@@ -59,7 +59,7 @@ def test_visual_mesh_does_not_require_a_closed_volume(tmp_path,monkeypatch):
     assert np.allclose(mesh.bounds,[[0,0,0],[2,2,0]])
 
 
-def test_export_comparison_does_not_validate_solids_and_rejects_changed_files(tmp_path,monkeypatch):
+def test_bounds_pose_comparison_only_runs_in_export_regression(tmp_path,monkeypatch):
     from test_fixed_assembly_exports import _files
     mesh,manifest,_=_files(tmp_path)
     monkeypatch.setattr(exporter,'mesh_solid',lambda *a,**k:pytest.fail('no solid check'))
@@ -68,6 +68,10 @@ def test_export_comparison_does_not_validate_solids_and_rejects_changed_files(tm
     transform=np.asarray(manifest['parts'][0]['assembly_transform']).copy();transform[0,3]+=.5
     exporter._write_mesh_glb({'part':mesh},{'part':transform},tmp_path/'scene.glb',manifest['mm_per_unit'])
     exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':mesh})
+    assert not manifest['failures']
+    assert manifest['placement_comparison']=='NOT_EXECUTED'
+    assert all('placement_deviation_mm' not in row for row in manifest['export_consistency'])
+    exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':mesh},compare_placement=True)
     assert any(f['code']=='EXPORTED_FILE_PLACEMENT_OR_SCALE_MISMATCH' for f in manifest['failures'])
 
 
@@ -80,14 +84,14 @@ def test_triangle_encoding_difference_is_regression_only(tmp_path):
     exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':reference})
     assert not manifest['failures']
     assert manifest['triangle_comparison']=='NOT_EXECUTED'
-    assert all(row['scope']=='file_structure_units_and_placement' for row in manifest['export_consistency'])
+    assert all(row['scope']=='file_structure_only' for row in manifest['export_consistency'])
     exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':reference},compare_triangles=True)
     assert manifest['triangle_comparison']=='REGRESSION_ONLY'
     assert any(f['code']=='EXPORTED_FILE_GEOMETRY_MISMATCH' for f in manifest['failures'])
     assert np.array_equal(before,reference.faces)
 
 
-@pytest.mark.parametrize('defect', ['missing_file','missing_part','wrong_units'])
+@pytest.mark.parametrize('defect', ['missing_file','missing_part','unreadable_file'])
 def test_basic_export_errors_remain_failures(tmp_path,defect):
     from test_fixed_assembly_exports import _files
     mesh,manifest,_=_files(tmp_path)
@@ -98,12 +102,9 @@ def test_basic_export_errors_remain_failures(tmp_path,defect):
         exporter._write_mesh_glb({'other':mesh},{'other':np.eye(4)},
             tmp_path/'scene.glb',manifest['mm_per_unit'])
     else:
-        changed=mesh.copy();changed.apply_scale(2.)
-        changed.apply_transform(np.asarray(manifest['parts'][0]['print_transform_mm']))
-        changed.export(tmp_path/'part.stl')
+        (tmp_path/'scene.glb').write_bytes(b'not a glb file')
     exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':mesh})
-    expected='EXPORTED_FILE_PLACEMENT_OR_SCALE_MISMATCH' if defect=='wrong_units' else 'EXPORTED_FILE_INVALID'
-    assert any(f['code']==expected for f in manifest['failures'])
+    assert any(f['code']=='EXPORTED_FILE_INVALID' and f['failure_kind']=='export' for f in manifest['failures'])
 
 
 def test_visual_export_only_evaluates_final_parts_not_bodies_or_interface_checks(tmp_path,monkeypatch):
@@ -128,6 +129,7 @@ def test_visual_export_only_evaluates_final_parts_not_bodies_or_interface_checks
     assert result['diagnostic']['semantic_completeness']=='NOT_EVALUATED'
     assert result['backend']['within_part_union']=='NOT_EXECUTED'
     assert result['triangle_comparison']=='NOT_EXECUTED'
+    assert result['placement_comparison']=='NOT_EXECUTED'
     assert not any('connected_components' in p for p in result['parts'])
 
 

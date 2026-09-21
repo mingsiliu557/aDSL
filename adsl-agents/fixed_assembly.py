@@ -18,8 +18,39 @@ from .prompts import object_prompt
 from .repair_controller import RepairController
 from .tools import PATCH_TOOLS, READ_TOOLS
 from .models import ImageCriticDecision, CodeCriticDecision
-from .utils.execution import execute_asset_source, AssetExecutionError, ExecutionResult
+from .utils.execution import execute_asset_source, AssetExecutionError, AssetInfrastructureError, ExecutionResult
 from .utils.io import read_json, write_json
+
+
+def _failure_feedback(report):
+    """Classify saved evidence, not the physical cause of an export exception."""
+    rows = []
+    for failure in report.get('failures', []):
+        row = dict(failure)
+        code = row.get('code', '')
+        kind = row.get('failure_kind')
+        if kind is None:
+            if code in ('DISPLAY_INCOMPLETE', 'DISCONNECTED_PRINT_PART', 'INTERNAL_PART_DISCONNECTED'):
+                kind = 'candidate_geometry'
+            elif code in ('EXPORTED_FILE_INVALID', 'PART_EXPORT_FAILED'):
+                kind = 'export'
+            elif code in ('PART_GEOMETRY_INVALID', 'PART_DISPLAY_UNAVAILABLE') and row.get('reason','').startswith((
+                    'empty evaluated', 'No finite nonempty mesh available for display',
+                    'mesh is not a finite closed oriented volume, or has zero-area faces')):
+                kind = 'candidate_geometry'
+            else:
+                kind = 'unknown'
+        row.update(failure_kind=kind, stage=row.get('stage') or report.get('stage') or 'unknown',
+                   geometry_repair_allowed=kind == 'candidate_geometry')
+        rows.append(row)
+    return rows
+
+
+FAILURE_INSTRUCTION = (
+    'Candidate geometry evidence (empty/missing generated parts or disconnected components) may guide '
+    'local source repair. File save/read and exporter errors are unassessed, not physical failures: '
+    'do not change object shape to fix them. Unknown means cause unknown, not a confirmed shared bug. '
+    'Use actual part IDs, stages and evidence; independently justified appearance/topology repairs remain allowed.')
 
 
 def _assembly_context(source, report, *, version_role):
@@ -51,6 +82,8 @@ def _assembly_context(source, report, *, version_role):
         } if current else None,
         'plan_changes':report.get('plan_changes') if current else None,
         'task_constraints':report.get('task_constraints') if current else None,
+        'failure_feedback':_failure_feedback(report)[:6] if current else [],
+        'failure_instruction':FAILURE_INSTRUCTION,
     }
 
 
@@ -168,7 +201,16 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             else:
                 execution = execute_asset_source(current, candidate_root/'asset', render=True,
                     export_urdf=False, timeout=_asset_executor_timeout_seconds(), fixed_assembly=config)
-            report = read_json(execution.output_root/'assembly'/'assembly_manifest.json')
+            try:
+                report = read_json(execution.output_root/'assembly'/'assembly_manifest.json')
+                if not isinstance(report, dict) or not isinstance(report.get('failures'), list):
+                    raise ValueError('assembly manifest must contain a failures list')
+            except (OSError, ValueError) as error:
+                report = {'status':'ERROR', 'export_status':'FAIL', 'source_sha256':file_hash(current),
+                    'failures':[{'code':'EXPORTED_FILE_INVALID', 'failure_kind':'export',
+                        'stage':'read_assembly_manifest', 'reason':str(error)[:240]}]}
+                report_path = candidate_root/'export_error.json'
+                write_json(report_path, report)
         except (AssetExecutionError, subprocess.TimeoutExpired) as error:
             diagnostic = {'type':type(error).__name__, 'error':str(error)}
             if report_path.exists():
@@ -180,6 +222,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     diagnostic['assembly_report_path'] = str(report_path)
                 except (OSError, ValueError) as report_error:
                     diagnostic['assembly_report_error'] = str(report_error)[:240]
+                    report['failures'].append({'code':'EXPORTED_FILE_INVALID', 'failure_kind':'export',
+                        'stage':'read_assembly_manifest', 'reason':str(report_error)[:240]})
             # Execution may fail before producing any manifest. Give the next
             # Coder a real diagnostic file, never a speculative export path.
             report_path = candidate_root/'execution_error.json'
@@ -189,9 +233,14 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             if report.get('status') not in ('PASS', 'FAIL', 'NOT_EVALUATED'):
                 report['status'] = 'ERROR'
                 error_lines = str(error).strip().splitlines()
-                report['failures'].append({'code':'EXECUTION_UNAVAILABLE',
-                    'reason':error_lines[-1][:240] if error_lines else type(error).__name__,
-                    'report_path':str(report_path)})
+                if isinstance(error, AssetInfrastructureError):
+                    report['failures'].append({'code':'SHARED_ENVIRONMENT_UNAVAILABLE',
+                        'failure_kind':'export', 'stage':'external_executor',
+                        'reason':error_lines[-1][:240], 'report_path':str(report_path)})
+                elif not report['failures']:
+                    report['failures'].append({'code':'EXECUTION_UNAVAILABLE',
+                        'reason':error_lines[-1][:240] if error_lines else type(error).__name__,
+                        'report_path':str(report_path)})
             accepted, reason = False, 'execution_failed'
             saved_execution = candidate_root/'asset'/'execution.json'
             if saved_execution.is_file():
@@ -203,10 +252,21 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                             tuple(sorted((candidate_root/'asset'/'render').glob('*.png'))), '', str(error))
                 except (OSError, ValueError, KeyError, TypeError):
                     pass  # Source-only review still works if no recoverable asset exists.
+        except OSError as error:
+            report = {'status':'ERROR', 'export_status':'FAIL', 'source_sha256':file_hash(current),
+                'failures':[{'code':'EXPORTED_FILE_INVALID', 'failure_kind':'export',
+                    'stage':'execute_or_read_export', 'reason':str(error)[:240]}]}
+            report_path = candidate_root/'export_error.json'
+            write_json(report_path, report)
+            accepted, reason = False, 'export_unavailable'
         except Exception as error:
-            # Unexpected/API review failure: save evidence and stop, no blind rerun.
+            # Unknown is not proof of a shared process fault. Only these explicit
+            # version-contract checks establish one; ordinary API errors do not.
             report_path = candidate_root/'flow_error.json'
-            write_json(report_path, {'type':type(error).__name__, 'error':str(error)})
+            shared = str(error) in ('cached initial assembly belongs to another source',
+                                   'cached initial assembly file changed')
+            write_json(report_path, {'type':type(error).__name__, 'error':str(error),
+                'code':'CURRENT_REPORT_SOURCE_MISMATCH' if shared else 'UNKNOWN_EXECUTION_ERROR'})
             accepted, reason = False, 'FLOW_ERROR'
         if reason != 'FLOW_ERROR':
             assembly_context = _assembly_context(current, report, version_role='current_candidate')
@@ -294,7 +354,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         if accepted:
             book['retained'] = version_id
             book['qualified'] = version_id
+        failure_feedback = _failure_feedback(report)
         feedback = {'geometry_status':report['status'], 'failures':report.get('failures',[])[:6],
+            'failure_feedback':failure_feedback[:6], 'failure_instruction':FAILURE_INSTRUCTION,
             'validation_mode':'visual_only' if visual_only else 'geometry',
             'export_status':report.get('export_status'),
             'report_path':str(report_path),
@@ -320,6 +382,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         prepare_evidence(feedback,workspace=workspace,source_sha256=file_hash(current),
                          evidence_files=book['evidence_files'])
         feedback['engineering']={'status':'NOT_REQUESTED'}
+        actionable = []
         if topology_run:
             actionable = _actionable_findings(topology_run)
             feedback['actionable_finding_ids']=[f.finding_id for f in actionable]
@@ -354,6 +417,15 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                   and not (not visual_only and report['status']=='FAIL')):
                 # No infrastructure-driven blind source edits.
                 stop='topology_unverified_no_executable_feedback';book['completed']=True
+        # Export unavailability alone is not a reason to change shape. Keep
+        # independent visual/topology defects repairable, in the same loop.
+        image_pending = bool(reviews.get('image_critic') and
+            not reviews['image_critic'].get('approved') and not reviews.get('render_issue'))
+        if (not accepted and reason != 'FLOW_ERROR' and failure_feedback
+                and not any(f['geometry_repair_allowed'] for f in failure_feedback)
+                and not actionable and not image_pending
+                and not any(f.get('code') == 'EXECUTION_UNAVAILABLE' for f in failure_feedback)):
+            stop='export_unassessed_no_geometry_repair';book['completed']=True
         book.update(feedback=feedback, next_round=number+1)
         write_json(book_path, book)
         if accepted or reason == 'FLOW_ERROR':
