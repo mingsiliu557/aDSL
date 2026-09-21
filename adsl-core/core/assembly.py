@@ -77,13 +77,12 @@ class TabSlot:
         if not 0 <= self.lead_in_mm < min(self.width_mm / 2, self.thickness_mm / 2, self.insertion_mm):
             raise ValueError("lead-in exceeds effective tab dimensions")
 
-    def geometry(self, mm_per_unit: float):
-        """Tab solid and slot cutter from ONE shared parameter set."""
+    def geometry_recipe(self, mm_per_unit: float = 1):
+        """Shared boxes and cut planes for generation and final-mesh queries."""
         w, t, length, depth, fit, root, opening, lead = (
             getattr(self, name) / mm_per_unit for name in asdict(self))
-        tab = Cube((w, t, length + root), center=(0, 0, (length - root) / 2))
+        planes = []
         if lead:
-            span = 4 * max(w, t, length + root)
             for axis, half in ((0, w / 2), (1, t / 2)):
                 for sign in (-1, 1):
                     normal = np.zeros(3)
@@ -92,9 +91,20 @@ class TabSlot:
                     point[axis], point[2] = sign * (half - lead), length
                     z = np.zeros(3)
                     z[1 - axis] = 1
-                    m = InterfaceFrame(tuple(point), tuple(normal), tuple(z)).matrix()
-                    tab = boolean_difference(tab, transform(Cube((span, span, span), center=(span / 2, 0, 0)), m))
-        slot = Cube((w + 2 * fit, t + 2 * fit, depth + opening), center=(0, 0, (depth - opening) / 2))
+                    planes.append((tuple(point), tuple(normal), tuple(z)))
+        return dict(tab_size=(w,t,length+root), tab_center=(0,0,(length-root)/2),
+                    slot_size=(w+2*fit,t+2*fit,depth+opening), slot_center=(0,0,(depth-opening)/2),
+                    cut_span=4*max(w,t,length+root), planes=planes)
+
+    def geometry(self, mm_per_unit: float):
+        """Tab solid and slot cutter from ONE shared parameter set."""
+        r = self.geometry_recipe(mm_per_unit)
+        tab = Cube(r['tab_size'], center=r['tab_center'])
+        for point, normal, z in r['planes']:
+            m = InterfaceFrame(point, normal, z).matrix()
+            span = r['cut_span']
+            tab = boolean_difference(tab, transform(Cube((span,span,span), center=(span/2,0,0)), m))
+        slot = Cube(r['slot_size'], center=r['slot_center'])
         return tab, slot
 
 

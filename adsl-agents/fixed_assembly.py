@@ -1,6 +1,6 @@
 """Assembly execution/version adapter using ordinary aDSL generation reviews.
 
-No physical-checker execution or new agent role. The small loop is initial
+Only explicitly requested assembly_topology is supported. The small loop is initial
 evaluation + bounded isolated repairs, not the overhang optimization workflow.
 """
 from __future__ import annotations
@@ -54,12 +54,20 @@ def _assembly_context(source, report, *, version_role):
     }
 
 
-async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, source_path, plan):
+async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, source_path, plan,
+                                 initial_execution=None, initial_topology_run=None):
     from .service import _asset_executor_timeout_seconds
+    from .assembly_topology import NAME, run_assembly_topology, engineer
+    topology_spec = next((s for s in request.checker_specs if s.name == NAME), None)
+    if sum(s.name == NAME for s in request.checker_specs) > 1:
+        raise ValueError('only one assembly_topology specification is allowed')
     config = {**request.fixed_assembly, 'assembly_plan':plan.model_dump()}
     visual_only = config.get('validation_mode', 'geometry') == 'visual_only'
     verification_scope = 'visual_code_only' if visual_only else 'interface_geometry_only'
-    config_hash = hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()
+    frozen = {**config, 'assembly_topology_spec':topology_spec.model_dump()} if topology_spec else config
+    config_hash = hashlib.sha256(json.dumps(frozen, sort_keys=True).encode()).hexdigest()
+    if topology_spec:
+        verification_scope = 'visual_code_export_and_assembly_topology'
     book_path = workspace/'assembly_versions.json'
     if book_path.exists():
         book = read_json(book_path)
@@ -103,6 +111,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         version_id = 'original' if number == 1 else f'attempt_{number-1:04d}'
         current = parent
         if number > 1:
+            if topology_spec and feedback.get('engineering_proposal'):
+                proposal = RepairProposal.model_validate(feedback['engineering_proposal'])
             policy = request.repair_policy.model_copy(update={'max_total_candidates':book['max_rounds']-1})
             controller = RepairController(workspace=workspace, round_root=root, baseline_source=parent,
                 source_index=None, findings=[], checker_specs_sha256=config_hash, policy=policy)
@@ -140,8 +150,17 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         report_path = candidate_root/'asset'/'assembly'/'assembly_manifest.json'
         accepted, reason = False, 'interface_or_appearance_rejected'
         try:
-            execution = execute_asset_source(current, candidate_root/'asset', render=True,
-                export_urdf=False, timeout=_asset_executor_timeout_seconds(), fixed_assembly=config)
+            if number == 1 and initial_execution is not None:
+                execution = initial_execution
+                cached_report=read_json(execution.output_root/'assembly'/'assembly_manifest.json')
+                if cached_report.get('source_sha256') != file_hash(current):
+                    raise ValueError('cached initial assembly belongs to another source')
+                for name,digest in cached_report.get('files_sha256',{}).items():
+                    if file_hash(execution.output_root/'assembly'/name) != digest:
+                        raise ValueError('cached initial assembly file changed')
+            else:
+                execution = execute_asset_source(current, candidate_root/'asset', render=True,
+                    export_urdf=False, timeout=_asset_executor_timeout_seconds(), fixed_assembly=config)
             report = read_json(execution.output_root/'assembly'/'assembly_manifest.json')
         except (AssetExecutionError, subprocess.TimeoutExpired) as error:
             diagnostic = {'type':type(error).__name__, 'error':str(error)}
@@ -232,9 +251,34 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 report_path = candidate_root/'flow_error.json'
                 write_json(report_path, {'type':type(error).__name__, 'error':str(error)})
                 accepted, reason = False, 'FLOW_ERROR'
+        topology_run = None
+        if topology_spec:
+            topology_execution = ExecutionResult(candidate_root/'asset',
+                candidate_root/'asset'/'assembly'/'scene.glb',None,(),'', '',
+                source_index_path=execution.source_index_path if execution else None)
+            if number == 1 and initial_topology_run is not None:
+                topology_run=initial_topology_run
+                if (topology_run.spec != topology_spec or
+                    topology_run.result.assumptions.get('source_sha256') != file_hash(current) or
+                    topology_run.result.assumptions.get('manifest_sha256') !=
+                        file_hash(topology_execution.glb_path.parent/'assembly_manifest.json')):
+                    raise ValueError('cached topology result/source/config mismatch')
+            else:
+                topology_run = run_assembly_topology(topology_spec, execution=topology_execution,
+                    source=current,root=candidate_root)
+            reviews['assembly_topology'] = topology_run.result.model_dump()
+            reviews['checker_source_sha256'] = file_hash(current)
+            if topology_run.result.status != 'PASS':
+                accepted = False
+                if reason != 'FLOW_ERROR': reason = 'assembly_topology_not_passed'
+            elif accepted:
+                reason = 'appearance_export_and_assembly_topology_passed'
         reviews.update(geometry=report, accepted=accepted, reason=reason)
         extra = sorted((candidate_root/'asset'/'assembly').rglob('*'))
-        book['versions'][version_id] = version_record(version_id, current, execution, reviews=reviews,
+        if topology_spec:
+            extra += sorted((candidate_root/'checkers').rglob('*'))
+        book['versions'][version_id] = version_record(version_id, current, execution,
+                                                      runs=[topology_run] if topology_run else (),reviews=reviews,
                                                       extra_files=extra)
         book['working'] = version_id
         write_json(candidate_root/'decision.json', {'version':version_id, 'parent':parent_id,
@@ -250,6 +294,40 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             'source_version':version_id, 'source_sha256':file_hash(current),
             'render_issue':reviews.get('render_issue'),
             'image_critic':reviews.get('image_critic'), 'code_critic':reviews.get('code_critic')}
+        if topology_run:
+            from .service import _checker_evidence
+            feedback.update(_checker_evidence([topology_run],workspace=workspace))
+            feedback['repair_history'] = [
+                {'version':v['id'], 'source_sha256':file_hash(Path(v['source'])),
+                 'reason':v['reviews'].get('reason'),
+                 'topology_status':v['reviews'].get('assembly_topology',{}).get('status')}
+                for v in list(book['versions'].values())[-3:]]
+            actionable = any(f.repairability=='geometry' for f in topology_run.result.findings)
+            remaining = book['max_rounds']-number
+            if not accepted and reason != 'FLOW_ERROR' and actionable and remaining > 0:
+                budget = RepairController(workspace=workspace,round_root=root,baseline_source=current,
+                    source_index=None,findings=[],checker_specs_sha256=config_hash,
+                    policy=request.repair_policy.model_copy(update={'max_total_candidates':book['max_rounds']-1}))
+                budget.started_at=book['started_at']
+                if not budget.budget_error():
+                    try:
+                        next_proposal = await engineer(workflow,runtime,request,plan,current,execution,
+                            candidate_root,topology_run,_assembly_context(current,report,version_role='current_candidate'),
+                            feedback,remaining)
+                        if next_proposal:
+                            feedback['engineering_proposal']=next_proposal.model_dump()
+                        else:
+                            stop='no_executable_engineering_proposal'
+                            book['completed']=True
+                    except Exception as error:
+                        write_json(candidate_root/'engineering_error.json',
+                            {'type':type(error).__name__,'reason':str(error)[:300]})
+                        stop='engineering_unavailable';book['completed']=True
+                else:
+                    stop='repair_budget_exhausted';book['completed']=True
+            elif not accepted and reviews.get('appearance_approved') and not actionable:
+                # No infrastructure-driven blind source edits.
+                stop='topology_unverified_no_executable_feedback';book['completed']=True
         book.update(feedback=feedback, next_round=number+1)
         write_json(book_path, book)
         if accepted or reason == 'FLOW_ERROR':
@@ -276,15 +354,24 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         if initial.exists():
             shutil.copytree(initial, workspace/'assembly', dirs_exist_ok=True)
     retained_approved = bool(selected['reviews'].get('accepted'))
-    approved = retained_approved and not any(spec.required for spec in request.checker_specs)
-    statuses = {s.name:{'status':'INDETERMINATE', 'reason':'ASSEMBLY_ANALYSIS_UNSUPPORTED'} for s in request.checker_specs}
-    write_json(workspace/'checker_results.json', {'required_checkers_passed':False, 'results':[],
+    unsupported = [s for s in request.checker_specs if s.name != NAME]
+    approved = retained_approved and not any(spec.required for spec in unsupported)
+    statuses = {s.name:{'status':'INDETERMINATE', 'reason':'ASSEMBLY_ANALYSIS_UNSUPPORTED'} for s in unsupported}
+    final_topology = selected['reviews'].get('assembly_topology')
+    if topology_spec:
+        if selected['reviews'].get('checker_source_sha256') != file_hash(source_path):
+            raise ValueError('retained checker/source version mismatch')
+        approved = bool(approved and final_topology and final_topology['status']=='PASS')
+    write_json(workspace/'checker_results.json', {'required_checkers_passed':bool(topology_spec and final_topology
+        and final_topology['status']=='PASS' and not any(s.required for s in unsupported)),
+        'source_sha256':file_hash(source_path),'results':[final_topology] if final_topology else [],
         'not_executed':{name:'disabled_for_fixed_assembly_v1' for name in ('topology','standing','overhang','fea')},
         'requested_unsupported':statuses})
     write_json(workspace/'assembly_result.json', {'version_id':book['retained'], 'source_sha256':file_hash(source_path),
         'working_version':book['working'], 'qualified_version':book['qualified'],
         'approved':approved, 'verification_scope':verification_scope,
         'visual_code_approved':selected['reviews'].get('appearance_approved'),
+        'assembly_topology_status':final_topology['status'] if final_topology else 'NOT_EXECUTED',
         'geometry_validation':'NOT_EVALUATED' if visual_only else selected['reviews'].get('geometry',{}).get('status'),
         'interface_and_appearance_approved':None if visual_only else retained_approved,
         'reviews':selected['reviews'], 'stop_reason':stop,

@@ -49,6 +49,7 @@ def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geomet
     export_glb(shape, path)
     shells, welded = [], 0
     materials, face_materials, display_meshes, omissions = [], [], [], []
+    face_groups = []
     for obj in bpy.context.scene.objects:
         if obj.type != 'MESH':
             continue
@@ -89,6 +90,8 @@ def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geomet
             face_materials.extend(offset+obj.data.polygons[t.polygon_index].material_index
                                   for t in obj.data.loop_triangles)
             if not validate_geometry:
+                start = sum(len(m.faces) for m in display_meshes)
+                face_groups.append([start, start+len(mesh.faces)])
                 display_meshes.append(mesh)
                 continue
             # Explicit face subsets preserve provenance that mesh.split discards.
@@ -105,7 +108,8 @@ def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geomet
         mesh.face_attributes['material'] = np.asarray(face_materials)
         mesh.metadata['materials'] = materials
         return mesh, None, {'geometry_validation':'NOT_EVALUATED',
-            'omitted_mesh_nodes':omissions, 'display_complete':not omissions}
+            'omitted_mesh_nodes':omissions, 'display_complete':not omissions,
+            'mesh_face_groups':face_groups}
     if not shells:
         raise ValueError('empty evaluated part')
     merged = mf.Manifold.batch_boolean(shells, mf.OpType.Add)
