@@ -18,7 +18,7 @@ import traceback
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 from agents.models.interface import Model
-from adsl.agents.models import ObjectRequest
+from adsl.agents.models import ObjectRequest, CheckerSpec
 from adsl.agents.overhang_edit import assert_version, file_hash
 from adsl.agents.service import ObjectWorkflow
 from adsl.agents.utils.io import read_json, write_json
@@ -31,7 +31,7 @@ MANIFEST = REPO/'experiments/standing_fea_30/case_manifest.json'
 MANUFACTURING = '''Generate a NEW complete aDSL program from the original task below, with static fixed manufacturing assembly, not articulation. Use the existing Planner's component and connection plan; Coder implements that plan in assembly using connectors for its connections. Do not add a separate print-part decision stage. Do not assume one Asset/class per print part or impose a minimum number of print parts; a single planned print part needs no connector. Use ONLY existing FixedAssembly / TabSlot and a receiver-first rooted tree. Within a print part retain normal modeling and attach_part. Between print parts use assembly.connect to generate BOTH mating sides and placement; no global union across print parts. The parameters argument of connect must be a TabSlot object (or an entry containing that object), not a dictionary of dimensions. Preserve the requested appearance and function. Frozen scale, overall dimensions and single-sided fit allowance below must not change. These are geometric demonstration dimensions; clearance is not proof of physical fixation. Use one complete initial source.py and repair only within the frozen budget, with existing Image/Code Critic in visual_only mode and export consistency checks. Assembly geometry checks are NOT_EVALUATED; visual approval is not manufacturing approval. No physical checkers, snap_floaters, or extra interface types.'''
 
 
-def prepare(root, max_rounds=5):
+def prepare(root, max_rounds=5, *, cases=IDS, assembly_topology=False, profile=PROFILE):
     if not 1 <= max_rounds <= 5:
         raise ValueError('max_rounds must be between 1 and 5')
     root.mkdir(parents=True, exist_ok=True)
@@ -39,9 +39,9 @@ def prepare(root, max_rounds=5):
     if marker.exists():
         print('Existing batch: preserve frozen repair limits; --max-rounds only affects new batches.', flush=True)
         return
-    cases = {c['case_id']:c for c in read_json(MANIFEST)['cases']}
-    for cid in IDS:
-        case = cases[cid]
+    manifest_cases = {c['case_id']:c for c in read_json(MANIFEST)['cases']}
+    for cid in cases:
+        case = manifest_cases[cid]
         inputs = {'case_id':cid, 'experiment_type':'fixed_assembly_prompt_to_3d',
             'original_task':{'prompt':case['prompt'], 'image_paths':[]},
             'manufacturing_requirements':MANUFACTURING + (
@@ -58,14 +58,25 @@ def prepare(root, max_rounds=5):
                     'adsl-agents/cli.py --image default []'],
                 'geometry_dimensions':'New demonstration specification, not inferred from any saved model.'},
             'initial_generation_limit':1, 'source_repair_limit':max_rounds-1}
+        if assembly_topology:
+            from adsl.agents.assembly_topology import checker_spec
+            inputs['checker_specs']=[checker_spec().model_dump()]
+            inputs['manufacturing_requirements'] += (
+                '\nCURRENT RUN OVERRIDE: enable ONLY assembly_topology after export, '
+                'alongside the unchanged Image/Code review. Keep geometry-mode gates off. '
+                'Use measured part/interface feedback via Engineering and the existing Coder '
+                'repair budget; localized open mesh is unverified, not confirmed disconnection. '
+                'Old topology, FEA, standing and overhang remain disabled.')
         write_json(root/cid/'input.json', inputs)
-    paths = [Path(__file__), PROFILE, REPO/'adsl-agents/service.py', REPO/'adsl-agents/fixed_assembly.py',
+    paths = [Path(__file__), profile, REPO/'adsl-agents/service.py', REPO/'adsl-agents/fixed_assembly.py',
              REPO/'adsl-core/core/export/export_assembly.py']
-    write_json(marker, {'experiment_type':'fixed_assembly_prompt_to_3d','case_order':IDS,
+    write_json(marker, {'experiment_type':'fixed_assembly_prompt_to_3d','case_order':cases,
+        'model_profile':str(profile),
         'commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip(),
         'file_sha256':{str(p):file_hash(p) for p in paths}, 'created_at':time.time(),
-        'input_sha256':{cid:file_hash(root/cid/'input.json') for cid in IDS},
-        'physical_checkers':[], 'geometry_timeout_seconds':120, 'render_timeout_seconds':300,
+        'input_sha256':{cid:file_hash(root/cid/'input.json') for cid in cases},
+        'physical_checkers':['assembly_topology'] if assembly_topology else [],
+        'geometry_timeout_seconds':120, 'render_timeout_seconds':300,
         'render':{'engine':'CYCLES','width':512,'height':512,'samples':32},
         'cross_experiment_token_accounting':False})
 
@@ -239,9 +250,10 @@ async def run_case(root, cid):
     max_rounds = inputs.get('source_repair_limit', 1) + 1
     requirement = '[ORIGINAL TASK]\n'+inputs['original_task']['prompt']+'\n\n[UNIFORM MANUFACTURING REQUIREMENTS]\n'+inputs['manufacturing_requirements']
     work = folder/'generate'
-    workflow = PromptWorkflow(PROFILE)
+    workflow = PromptWorkflow(Path(read_json(root/'batch.json').get('model_profile',str(PROFILE))))
+    specs=tuple(CheckerSpec.model_validate(s) for s in inputs.get('checker_specs',[]))
     request = ObjectRequest(requirement,work,f'prompt_assembly_{cid}',image_paths=(),
-        articulation=False,max_rounds=max_rounds,checker_specs=(),fixed_assembly=inputs['fixed_assembly'])
+        articulation=False,max_rounds=max_rounds,checker_specs=specs,fixed_assembly=inputs['fixed_assembly'])
     start = time.time()
     write_json(folder/'started.json',{'time':start,'route':'ObjectWorkflow.generate','source_preloaded':False})
     print(f'{cid}: native generate, fresh source, no reference images; max_rounds={max_rounds}, max_repairs={max_rounds-1}',flush=True)
@@ -279,7 +291,7 @@ async def run_case(root, cid):
         'geometry_failures':failures,'tool_errors':tool_errors,'flow_errors':flow_errors,'exception':error,
         'actual_api_requests':len(calls),'known_actual_tokens':sum(c.get('total_tokens') or 0 for c in calls),
         'unknown_usage_requests':sum(c.get('total_tokens') is None for c in calls),
-        'physical_checkers':'NOT_EXECUTED'}
+        'physical_checkers':[s.name for s in specs] if specs else 'NOT_EXECUTED'}
     runtime = getattr(workflow,'runtime',None)
     if runtime and runtime.sessions.database_path.exists():
         with sqlite3.connect(runtime.sessions.database_path) as db, sqlite3.connect(work/'sessions_snapshot.sqlite3') as out:
@@ -289,8 +301,9 @@ async def run_case(root, cid):
     return summary
 
 
-async def main(root, cases, max_rounds=5):
-    prepare(root, max_rounds=max_rounds)
+async def main(root, cases, max_rounds=5, *, assembly_topology=False, profile=PROFILE):
+    prepare(root, max_rounds=max_rounds, assembly_topology=assembly_topology, profile=profile,
+            cases=cases if assembly_topology else IDS)
     if any(c!=IDS[0] for c in cases):
         first = root/IDS[0]
         if not (first/'result.json').exists():
@@ -312,7 +325,10 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root',type=Path,required=True)
     parser.add_argument('--cases',nargs='+',choices=IDS,default=[IDS[0]])
+    parser.add_argument('--assembly-topology',action='store_true')
+    parser.add_argument('--llm-config',type=Path,default=PROFILE)
     parser.add_argument('--max-rounds',type=int,choices=range(1,6),default=5,
                         help='New batches only: total review rounds including initial evaluation (default 5, at most 4 repairs); existing frozen limits remain unchanged')
     args=parser.parse_args()
-    raise SystemExit(asyncio.run(main(args.root.resolve(),args.cases,args.max_rounds)))
+    raise SystemExit(asyncio.run(main(args.root.resolve(),args.cases,args.max_rounds,
+        assembly_topology=args.assembly_topology,profile=args.llm_config.resolve())))

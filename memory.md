@@ -4,7 +4,50 @@
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
 
+## 当前实验存储（2026-09-21）
+
+- 按用户要求，原 `local_experiment/` 的 10 组实验已迁至
+  `/jiigan-hp/lms/aDSL/experiment/local_experiment/`；项目中的同名路径为软链接。
+  旧日志、报告及源码中的绝对路径继续可用，未来向该路径写入会直接落到数据盘。
+- 迁移前确认没有进程打开现有实验文件；复制后逐文件 SHA-256 与目录结构一致：
+  1,563 文件、303 目录、156,886,759 字节；目录内容摘要
+  `a3482757b09c13a50cc74f73a5632ccb5ba07ad189e7c4b2d8f99f4339d1ce0a`。
+  切换后 SF13 retained 的源码、模型、渲染及审核版本哈希校验通过。
+  已移除代码盘重复副本，不保留迁移备份；数据仍完整保存在上述正式路径。
+- `experiments/` 是实验脚本和配置，继续留在代码仓库；不迁移代码、不改代理和其他 tmux。
+  `.gitignore` 排除本机 `local_experiment` 路径（含软链接），避免误提交数据盘映射。
+
 ## 当前固定装配边界（2026-09-21）
+
+- 按用户随后要求，停止使用 StepCode，改用现有独立 `adsl_cliproxy_20260919` 代理，
+  新建 `adsl_topology_SF13_cliproxy_20260921` 实验 tmux 补跑 SF13 一次修补。
+  输出 `local_experiment/assembly_topology_SF13_cliproxy_20260921_v3`，使用相同原源码与边界证据，
+  初始生成0次、最多1次编辑，Image/Code/assembly_topology保留，不变更提案校验或几何阈值。
+  `verify_topology.py --llm-config` 仅在准备新目录时冻结模型配置，修补读取已冻结配置；2项模拟测试通过。
+  已结束：4次API均返回，逐调用合计62913tokens、首个请求至最后返回71.91秒。
+  Image通过；Engineering定位ShelfBoard并提出木纹局部修补，方案通过校验。
+  Coder进入隔离候选后读取boundary_localization.json失败：文件在实验根目录，
+  工具却按候选目录解析相对路径，故TOOL_ERROR；未修改源码、未重新导出，保留原资产和INDETERMINATE。
+  这是尚未修复的诊断路径传递问题，不是API或几何修复失败。汇总usage漏记失败阶段，成本以4条api_calls为准。
+  不改写v2失败，不重生成SF07，不自动关闭独立CLIProxy；本轮不持续盯等。
+
+- 本轮基于 d7c2cec，用户允许已定位的开口网格进行一次真实修补：
+  `OPEN_PRINT_MESH` 仍为 INDETERMINATE，记录边界数量/坐标/区域；仅此类有定位证据时
+  可进入现有 Engineering→Coder，不将依赖未测接口当成断开，不改变四个旧 checker。
+  SF13 新目录 `local_experiment/assembly_topology_SF13_repair_20260921_v2` 已结束：
+  五层板各 14 条边界边位于 ShelfBoard 顶面三条齐平木纹轮廓（93–103 行），远离榫头。
+  真实 Engineer 收到证据并读取源码，但只建议背部支撑外观修改；其 scope 中含属性
+  RearSpine.solid，被类/函数位置校验拒绝；因此 **0 次 Coder 修改，未重新导出候选**。
+  保留原版本及 INDETERMINATE，5次API/73614tokens，无追加机会。不能称实际网格修复失败或成功。
+  随后按顺序启动全新 SF07：`local_experiment/assembly_topology_prompt_SF07_20260921_v1`，
+  tmux `adsl_topology_prompt_SF07_20260921`，StepCode，5轮/最多4修补，visual_only + assembly_topology。
+  原始prompt、空源码、无旧生成图片；120×120×120mm、1mm/unit、+0.2mm余量。
+  已结束：实际生成1次、修补0次、507.82秒、8次API/86390tokens；三件两接口，输入/API审计通过。
+  立柱、桌面及上接口PASS；底座顶面41条开口边，底座及下接口INDETERMINATE。
+  Image/Code都拒绝环状台阶外观；Engineering已收到定位并读源码，但返回后JSON解析失败，
+  `engineering_unavailable`，未进入Coder。原资产/图片和未通过状态保存，未重试或追加预算。
+  当前记录不足以说明输出具体为何非JSON，不能猜测代理或截断；API返回成功不等于结构化提案有效。
+  StepCode自启代理已关闭，tmux回到可交互shell。详见 `reports/fixed_assembly_boundary_repair_20260921.md`。
 
 - 基于33084a9按最新要求取消实验统一至少两件的规定（代码、测试及说明随本次提交归档）：
   仅修改fixed_assembly_prompt入口/说明/测试，新输入require_multiple_parts=false；

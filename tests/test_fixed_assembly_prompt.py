@@ -97,6 +97,18 @@ def test_prepare_rejects_invalid_round_budget(tmp_path, max_rounds):
     assert not root.exists()
 
 
+def test_one_fresh_topology_case_freezes_only_requested_tool_and_stepcode(tmp_path):
+    profile=prompt.REPO/'adsl-agents/configs/llm/stepcode-gpt-5.6-sol.yaml'
+    prompt.prepare(tmp_path,cases=('SF07',),assembly_topology=True,profile=profile)
+    batch=read_json(tmp_path/'batch.json');inputs=read_json(tmp_path/'SF07/input.json')
+    assert batch['case_order']==['SF07'] and batch['model_profile']==str(profile)
+    assert batch['physical_checkers']==['assembly_topology']
+    assert [s['name'] for s in inputs['checker_specs']]==['assembly_topology']
+    assert inputs['fixed_assembly']['validation_mode']=='visual_only'
+    assert inputs['source_repair_limit']==4 and inputs['original_task']['image_paths']==[]
+    assert not (tmp_path/'SF03').exists() and not list(tmp_path.rglob('source.py'))
+
+
 @pytest.mark.parametrize('normalized', [False, True])
 def test_audit_requires_matching_actual_model_input(tmp_path, normalized):
     work, inputs = tmp_path/'generate', frozen_input()

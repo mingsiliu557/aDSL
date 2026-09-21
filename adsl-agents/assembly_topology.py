@@ -87,6 +87,8 @@ def make_result(report, rows, source, output, source_index=None):
         candidates=source_candidates(source,source_index,set(names)|{
             c for n in names for c in parts.get(n,{}).get('components',[])})
         ident=row.get('part_id') or row.get('connection_id','input')
+        localized_open = (row['code']=='OPEN_PRINT_MESH' and row.get('bounds_mm')
+                          and row.get('boundary_edge_count',0)>0)
         relations=[]
         nearest=row.get('nearest_components')
         if nearest:
@@ -98,12 +100,15 @@ def make_result(report, rows, source, output, source_index=None):
                     'method':nearest['method'],'aabb_distance_lower_bound_mm':nearest['aabb_distance_lower_bound_mm']})]
         findings.append(CheckerFinding(finding_id=f'{NAME}:{ident}:{row["code"]}',rule_id=row['code'],
             category='geometry_failure' if row['status']=='FAIL' else 'evidence_insufficient',
-            repairability='geometry' if row['status']=='FAIL' else 'analysis',
-            message=f'{ident}: {row["code"]}; geometry evidence only, manufacture unverified.',
+            repairability='geometry' if row['status']=='FAIL' or localized_open else 'analysis',
+            message=(f'{ident}: open boundary located; connectivity and dependent interfaces unverified; '
+                     'source-level geometric cause not established.' if localized_open else
+                     f'{ident}: {row["code"]}; geometry evidence only, manufacture unverified.'),
             region=RegionEvidence(kind='aabb' if row.get('bounds_mm') else 'parts',
                 frame=f'part_local:{ident}' if row['kind']=='part' else f'slot_interface:{ident}',
                 unit='mm',bounds=row.get('bounds_mm'),part_names=names,
                 details={'component_bounds_preview_mm':row.get('component_bounds_mm',[])[:3],
+                    'boundary_regions_preview':row.get('boundary_regions',[])[:6],
                     'preview_only':row.get('component_count',0)>3}), relations=relations,
             source_candidates=candidates,evidence_refs=[str(output/'report.json')],domain=row))
     counts={s:sum(r['status']==s for r in rows) for s in ('PASS','FAIL','INDETERMINATE')}
@@ -117,16 +122,23 @@ def make_result(report, rows, source, output, source_index=None):
 
 def worker(args):
     from adsl.core.assembly_topology import (part_measurement,read_print_mesh,
-        interface_measurement,mesh_solid,solid_mesh)
+        interface_measurement,mesh_solid,solid_mesh,OpenPrintMeshError)
     import trimesh
     report=_input(args.manifest,args.source)
     parts={p['id']:p for p in report['parts']}
     if args.part:
         part=parts[args.part]
         mesh=read_print_mesh(_part_file(args.manifest,report,part),part['print_transform_mm'])
-        row,solid=part_measurement(mesh,args.part,part.get('mesh_face_groups'))
-        # PLY preserves indexed triangles and millimetres, no STL re-welding.
-        solid_mesh(solid).export(args.output/'solid.ply',encoding='binary_little_endian')
+        try:
+            row,solid=part_measurement(mesh,args.part,part.get('mesh_face_groups'))
+            # PLY preserves indexed triangles and millimetres, no STL re-welding.
+            solid_mesh(solid).export(args.output/'solid.ply',encoding='binary_little_endian')
+        except OpenPrintMeshError as error:
+            write_json(args.output/'boundary_edges.json',error.evidence)
+            row=dict(kind='part',part_id=args.part,status='INDETERMINATE',code='OPEN_PRINT_MESH',
+                stage='final_print_mesh_validation',reason=str(error),
+                **{k:v for k,v in error.evidence.items() if k!='boundary_edges_mm'},
+                boundary_report=str(args.output/'boundary_edges.json'))
     else:
         connection=next(c for c in report['connections'] if c['id']==args.connection)
         paths=read_json(args.solids)
@@ -217,6 +229,12 @@ Keep frozen units, fit allowance, dimensions and task requirements. No checker,
 configuration or mesh repair edits. Propose at most ONE coordinated source patch,
 including compatible pending Image/Code issues. Stop with no proposals if no
 reasonable edit follows from evidence. INDETERMINATE alone is not a shape defect.
+OPEN_PRINT_MESH with measured boundary locations permits a bounded local SOURCE
+repair attempt, but is NOT confirmed disconnection. Read the current source and
+boundary evidence; local body/decoration simplification may be proposed without
+assuming the connector is at fault. Preserve required visible features. The exact
+cause remains uncertain until re-export and recheck. Never fill holes in exported
+meshes, change tolerances/checker settings, or treat unavailable interfaces as FAIL.
 Engineering approval cannot override measured FAIL. Recheck assembly_topology.
 '''
 

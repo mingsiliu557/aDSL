@@ -25,6 +25,7 @@ from adsl.agents.utils.execution import ExecutionResult
 from adsl.agents.utils.io import read_json,write_json
 from experiments.fixed_assembly_prompt.run import PromptWorkflow
 
+DEFAULT_PROFILE=REPO/'adsl-agents/configs/llm/stepcode-gpt-5.6-sol.yaml'
 
 def initial_execution(root):
     asset=root/'rounds/round_01/asset'
@@ -34,7 +35,9 @@ def initial_execution(root):
         source_index_path=index if index.is_file() else None)
 
 
-def measure(saved,output):
+def measure(saved,output,profile=DEFAULT_PROFILE):
+    profile=profile.resolve()
+    profile_hash=file_hash(profile)
     output.mkdir(parents=True,exist_ok=False)
     generate=saved/'generate'
     shutil.copy2(generate/'source.py',output/'source.py')
@@ -48,7 +51,8 @@ def measure(saved,output):
         'requirement':read_json(generate/'runtime_config.json')['request']['requirement'],
         'commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip(),
         'checker_spec':checker_spec().model_dump(),'initial_generations':0,'max_source_repairs':1,
-        'max_rounds':2,'api_profile':'stepcode-gpt-5.6-sol',
+        'max_rounds':2,'api_profile':profile.stem,'llm_config':str(profile),
+        'llm_config_sha256':profile_hash,
         'disabled_checkers':['topology','fea','standing','overhang'],
         'file_sha256':{p:file_hash(REPO/p) for p in ('adsl-core/core/assembly.py',
             'adsl-core/core/assembly_topology.py','adsl-agents/assembly_topology.py','adsl-agents/fixed_assembly.py')}}
@@ -64,8 +68,9 @@ def measure(saved,output):
 async def repair(output):
     record=read_json(output/'input.json')
     baseline=CheckerResult.model_validate(read_json(output/'baseline_result.json'))
-    if baseline.status!='FAIL' or not any(f.repairability=='geometry' for f in baseline.findings):
-        print('No confirmed repairable FAIL; do not call API.',flush=True);return
+    from adsl.agents.service import _actionable_findings
+    if not _actionable_findings(CheckerRun(checker_spec(),baseline,output,())):
+        print('No confirmed failure or localized repairable open mesh; do not call API.',flush=True);return
     if (output/'assembly_versions.json').exists():
         raise ValueError('Repair already attempted; do not reset or replay the budget')
     config={**record['fixed_assembly'],'validation_mode':'visual_only'}
@@ -73,10 +78,17 @@ async def repair(output):
         ' Only assembly_topology is enabled, in addition to Image/Code and export consistency.'
         ' Existing geometry mode is off. At most ONE source edit, two evaluations, no Planner.'
         ' Apply minimal body/interface/assembly changes using measured evidence; preserve original task and frozen conditions.')
+    if (output/'boundary_localization.json').exists():
+        req += (' Initial-source-only boundary localization is saved in boundary_localization.json; '
+                'read it for measured positions and verified source ranges. This does not establish '
+                'a Boolean-kernel cause or prove the interfaces disconnected. Current mesh feedback governs recheck.')
     request=ObjectRequest(req,output,'SF13_assembly_topology',max_rounds=2,fixed_assembly=config,
         checker_specs=(checker_spec(),))
     write_json(output/'repair_request.json',asdict(request))
-    workflow=PromptWorkflow(REPO/'adsl-agents/configs/llm/stepcode-gpt-5.6-sol.yaml')
+    profile=Path(record.get('llm_config',DEFAULT_PROFILE))
+    if record.get('llm_config_sha256') and file_hash(profile)!=record['llm_config_sha256']:
+        raise ValueError('Frozen model profile changed')
+    workflow=PromptWorkflow(profile)
     runtime=workflow._runtime(request,output,mode='generate')
     plan=FixedAssemblyPlan.model_validate(read_json(output/'plan.json'))
     run=CheckerRun(checker_spec(),baseline,output/'rounds/round_01/checkers/assembly_topology',())
@@ -91,7 +103,10 @@ if __name__=='__main__':
     parser.add_argument('--saved-case',type=Path)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--repair',action='store_true')
+    parser.add_argument('--llm-config',type=Path,
+        help='Freeze model profile when preparing a new measurement; repair reuses the recorded profile')
     args=parser.parse_args()
+    if args.repair and args.llm_config: parser.error('--llm-config is selected during initial preparation only')
     if args.repair: asyncio.run(repair(args.output.resolve()))
-    elif args.saved_case: measure(args.saved_case.resolve(),args.output.resolve())
+    elif args.saved_case: measure(args.saved_case.resolve(),args.output.resolve(),args.llm_config or DEFAULT_PROFILE)
     else: parser.error('--saved-case is required for initial measurement')

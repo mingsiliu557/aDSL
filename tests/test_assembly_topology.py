@@ -195,7 +195,76 @@ def test_real_subprocess_invalid_part_does_not_block_good_part(tmp_path):
     assert result['status']=='INDETERMINATE'
     bad,good=result['metrics']['items']
     assert bad['status']=='INDETERMINATE' and 'open' in bad['reason']
+    assert bad['code']=='OPEN_PRINT_MESH' and bad['boundary_edge_count']==3
+    assert bad['bounds_mm'] and Path(bad['boundary_report']).is_file()
     assert good['status']=='PASS'
+
+
+def test_localized_open_mesh_reaches_engineer_and_coder_without_becoming_fail(tmp_path,monkeypatch):
+    f=setup_flow(tmp_path,monkeypatch,['INDETERMINATE','INDETERMINATE'])
+    def check(spec,*,execution,source,root):
+        out=root/'checkers'/adapter.NAME;out.mkdir(parents=True)
+        rows=[dict(kind='part',part_id='shelf',status='INDETERMINATE',code='OPEN_PRINT_MESH',
+            boundary_edge_count=14,bounds_mm=[[-37,-24,2],[40,-7,2]],
+            boundary_regions=[{'bounds_mm':[[-37,-24,2],[23,-23,2]],'boundary_edge_count':4}]),
+            dict(kind='interface',connection_id='joint',status='INDETERMINATE',
+                 code='DEPENDENCY_MESH_UNAVAILABLE',tab_part='shelf',slot_part='frame')]
+        r=adapter.make_result({},rows,source,out)
+        write_json(out/'result.json',r.model_dump())
+        return CheckerRun(spec,r,out,())
+    monkeypatch.setattr(adapter,'run_assembly_topology',check)
+    f=(f[0],replace(f[1],max_rounds=2),*f[2:])
+    calls=[]
+    async def run(**kw):
+        calls.append(kw)
+        text=str(kw['input'])
+        assert 'OPEN_PRINT_MESH' in text and 'boundary_edge_count' in text and '14' in text
+        assert 'boundary_regions_preview' in text and 'INDETERMINATE' in text
+        assert 'NOT confirmed disconnection' in kw['agent']['instructions']
+        ctx=kw['context'];ctx.record('read_file',ctx.source_path)
+        return SimpleNamespace(final_output=EngineeringCriticDecision(approved=False,observations=[],
+            repair_proposals=[RepairProposal(proposal_id='local',
+                finding_ids=['assembly_topology:shelf:OPEN_PRINT_MESH'],
+                hypothesis='inspect local decoration at measured boundary; cause uncertain',
+                evidence=['14 exported boundary edges'],target=RepairTarget(),action='reshape')]))
+    f[2].run=run
+    final,book=run_flow(f)
+    assert len(calls)==len(f[-1])==1
+    assert 'OPEN_PRINT_MESH' in str(f[-1][0]['payload']['feedback']['typed_findings'])
+    assert not final.approved and book['retained']=='original'
+    assert book['versions']['attempt_0001']['reviews']['assembly_topology']['status']=='INDETERMINATE'
+    assert (tmp_path/'source.py').read_text()=='original'
+
+
+def test_unlocated_or_infrastructure_error_is_not_source_repair_feedback(tmp_path):
+    from adsl.agents.service import _checker_evidence,_actionable_findings
+    source=tmp_path/'source.py';source.write_text('original')
+    rows=[dict(kind='part',part_id='part',status='INDETERMINATE',code='CHECKER_UNAVAILABLE'),
+          dict(kind='part',part_id='other',status='INDETERMINATE',code='OPEN_PRINT_MESH')]
+    r=adapter.make_result({},rows,source,tmp_path)
+    run=CheckerRun(adapter.checker_spec(),r,tmp_path,())
+    assert not _actionable_findings(run)
+    assert not _checker_evidence([run],workspace=tmp_path)['typed_findings']
+
+
+@pytest.mark.parametrize('profile_name',['stepcode-gpt-5.6-sol','cliproxy-gpt-5.6-sol'])
+def test_saved_repair_freezes_selected_api_profile(tmp_path,monkeypatch,profile_name):
+    from experiments.fixed_assembly_prompt import verify_topology as entry
+    saved=tmp_path/'saved';generate=saved/'generate';generate.mkdir(parents=True)
+    for name in ('assembly','render'): (generate/name).mkdir()
+    (generate/'source.py').write_text('original source, never executed')
+    write_json(generate/'plan.json',{})
+    write_json(generate/'runtime_config.json',{'request':{'requirement':'original task'}})
+    write_json(saved/'input.json',{'fixed_assembly':{'mm_per_unit':1,'fit_offset_mm':.2}})
+    monkeypatch.setattr(entry,'run_assembly_topology',lambda *a,**kw:SimpleNamespace(
+        result=CheckerResult(checker=adapter.NAME,status='INDETERMINATE',summary='fixture')))
+    profile=entry.REPO/'adsl-agents/configs/llm'/f'{profile_name}.yaml'
+    out=tmp_path/'new';entry.measure(saved,out,profile)
+    record=json.loads((out/'input.json').read_text())
+    assert record['api_profile']==profile_name and record['llm_config']==str(profile.resolve())
+    assert record['llm_config_sha256']==sha256_file(profile)
+    assert record['initial_generations']==0 and record['max_source_repairs']==1
+    assert (out/'source.py').read_text()==(generate/'source.py').read_text()
 
 
 def test_real_short_timeout_is_unverified_and_reaped(tmp_path):

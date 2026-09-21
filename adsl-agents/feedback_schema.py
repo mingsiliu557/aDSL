@@ -17,7 +17,12 @@ MESH_FEEDBACK_CODES = {"MESH_INVALID", "MESH_GENERATION_FAILED", "MESH_TIMEOUT"}
 
 
 def localized_mesh_feedback(result: CheckerResult, finding: CheckerFinding) -> bool:
-    """Analysis failure, not a strength failure; require resolved local evidence."""
+    """Unverified analysis with local geometry evidence, never physical FAIL."""
+    if result.checker == 'assembly_topology':
+        return (result.status in {'INDETERMINATE', 'FAIL'}
+                and finding.rule_id == 'OPEN_PRINT_MESH' and finding.repairability == 'geometry'
+                and finding.region is not None and finding.region.bounds is not None
+                and finding.domain.get('boundary_edge_count', 0) > 0)
     return (
         result.checker == "fea" and result.status == "INDETERMINATE"
         and finding.rule_id in MESH_FEEDBACK_CODES

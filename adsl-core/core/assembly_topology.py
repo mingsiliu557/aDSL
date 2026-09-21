@@ -25,6 +25,34 @@ def checked(solid):
     return solid
 
 
+class OpenPrintMeshError(ValueError):
+    """An observed boundary, not proof of disconnected material or its cause."""
+    def __init__(self, evidence):
+        super().__init__('open exported print mesh; connectivity and dependent interfaces unverified')
+        self.evidence = evidence
+
+
+def boundary_evidence(groups):
+    edges = []
+    nonmanifold = 0
+    for group in groups:
+        counts = np.bincount(group.edges_unique_inverse, minlength=len(group.edges_unique))
+        edges.extend(group.vertices[group.edges_unique[counts == 1]].tolist())
+        nonmanifold += int(np.count_nonzero(counts > 2))
+    if not edges:
+        return None
+    vertices, inverse = np.unique(np.asarray(edges).reshape(-1, 3), axis=0, return_inverse=True)
+    pairs = inverse.reshape(-1, 2)
+    regions = []
+    for ids in trimesh.graph.connected_components(pairs, nodes=np.arange(len(vertices)), min_len=1):
+        regions.append({'bounds_mm':[vertices[ids].min(axis=0).tolist(), vertices[ids].max(axis=0).tolist()],
+                        'boundary_edge_count':int(np.isin(pairs[:, 0], ids).sum())})
+    return {'boundary_edge_count':len(edges), 'nonmanifold_edge_count':nonmanifold,
+            'bounds_mm':[vertices.min(axis=0).tolist(), vertices.max(axis=0).tolist()],
+            'boundary_regions':regions, 'boundary_edges_mm':edges,
+            'method':'exact-coordinate export vertex deduplication within face groups; no mesh repair'}
+
+
 def union_print_mesh(mesh, face_groups=None):
     """Union oriented closed shells; negative cavity shells are not solids.
 
@@ -38,17 +66,21 @@ def union_print_mesh(mesh, face_groups=None):
     groups=face_groups or [[0,len(mesh.faces)]]
     if [i for start,end in groups for i in range(start,end)] != list(range(len(mesh.faces))):
         raise ValueError('exported face groups do not partition this mesh')
-    shells=[]
+    shells=[]; welded_groups=[]
     for start,end in groups:
         # Preserve known exported object boundaries, especially shared faces.
         # Legacy exports without metadata use conservative surface decomposition.
         faces=mesh.faces[start:end]
         vertices,inverse=np.unique(mesh.vertices[faces].reshape(-1,3),axis=0,return_inverse=True)
         group=trimesh.Trimesh(vertices,inverse.reshape(-1,3),process=False)
+        welded_groups.append(group)
         shells.extend(group.split(only_watertight=False,repair=False))
     positive, negative = [], []
     for shell in shells:
         if not shell.is_watertight or not shell.is_winding_consistent or shell.volume == 0:
+            evidence = boundary_evidence(welded_groups)
+            if evidence:
+                raise OpenPrintMeshError(evidence)
             raise ValueError('open, nonmanifold, unoriented or zero-volume shell')
         if shell.volume < 0:
             shell = shell.copy(); shell.invert()
