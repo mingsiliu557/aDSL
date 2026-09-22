@@ -1,8 +1,55 @@
 # aDSL 工作记忆
 
-更新时间：2026-09-21（UTC）
+更新时间：2026-09-22（UTC）
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
+
+## 当前六物体全新配对与离线补评（2026-09-22）
+
+- 用户已取消续跑/历史复用，`558de6e`（已推送 master）启动全新 6 prompts × w/wo 的 12 次生成。
+  原批目录 `temp/assembly_topology_paired_fresh_20260921T173631Z/`，两组均有 connector、5轮评价/最多4次修补。
+  全部生成及离线入口于 2026-09-21 20:24 UTC 结束，约2小时44分，无API中断记录；结束不等于全部通过。
+- 离线 topology 原结果全 INDETERMINATE 是入口路径错误：保存的 execution.glb_path 指向 render/scene.glb，
+  checker按同目录找manifest；实际manifest在 output_root/assembly。在线循环有正确适配，21个版本的在线
+  源码哈希/manifest路径均正确；SF07、SF16最终在线PASS，不能把离线故障当模型断开。
+- 本轮仅给 `run_paired.py` 离线入口增加小适配，其他字段保留，在线循环/checker/模型/阈值不改。
+  `tests/test_fixed_assembly_paired.py` 14项通过（3.60秒），覆盖实际输出目录、缺manifest、retained不变。
+  用户授权只补 topology，输出 `temp/assembly_topology_offline_recheck_20260922T014722Z/`，原Image评分复用，
+  不调用API、不重新生成、不回选候选；旧目录及其失败结果不覆盖。12份补评已完成，198.67秒、exit=0；
+  manifest路径错误消失，w六例状态与原在线记录一致。wo拓扑PASS=SF13/SF16，w=SF07/SF16，均2/6；
+  该首次补评中每组其余4例未验证，不能计为断开。复用独立Image结果为wo 0/6、w 1/6；联合仅w/SF16通过。
+  详见 `reports/assembly_topology_offline_recheck_20260922.md`。原批metrics保留错误历史，汇报使用新目录。
+  离线修复及后续精度修复与当前报告同次提交；实验原件仍留在本机。
+
+## 精度修复与局部续测（2026-09-22，当前结果）
+
+- 用户后续要求只采用验证器判断，并明确允许 SF02/w 用已接受的补测版本替换当前展示表。
+  已保存 `reports/assembly_topology_latest_20260922.md`；原主实验账本/成绩不覆盖。
+  最新 Topology wo=2/6、w=3/6；已保存 Image wo=0/6、w=2/6，其中SF02用补测在线Image，
+  其余沿用离线Image，未统一重评，不能悄悄声称同口径/同预算主实验收益。
+  原wo六例均在线Image拒绝但Code覆核通过；离线单Image不读Code纠偏，须区别这两个字段。
+- 本轮实现/验证基线为 `558de6e`。确认 topology worker 把双精度件内并集写成默认 float32 PLY，
+  SF07/wo pedestal 的 4 个零面积面由缓存序列化新增。仅改中间传递为 float64/int64 NPZ；
+  原 STL、构造、connector、测量阈值不变。相同并集新旧保存对照：零面积面 0→4（旧）/0（新）；
+  正常 top_plate 0→0。新缓存数组逐值一致，相关 topology/paired 测试 43 passed。
+- 用同一修正版补评原12份retained，目录 `temp/assembly_mesh_followup_20260922/recheck/`，
+  218.99秒、0 API/生成/修补，原独立Image评分复用。wo=2PASS/1FAIL/3INDETERMINATE，
+  w=2PASS/0FAIL/4INDETERMINATE；SF07/wo缓存修好后测出约50 mm³接口局部干涉，不能算新增通过。
+  原批结果/旧补评/retained保持不变；当前汇报使用此次修正版，不能归因为agent改善。
+- 仅局部复现 SF02/w 一条腿、SF03/w 靠背。原源码不改，120秒子进程限时；最终三角坐标与原STL完全相同。
+  SF02木纹union首先产生4+4条多边形边界，SF03立柱/下横梁union首先产生零面积多边形，最终14个退化三角面；
+  两者落盘前已有异常，非缓存精度问题。不全局改求解器、不查内核、不手工修模型。
+- 补充修补与主实验分开：SF02复用源码，最多两次修补，实际一次；6/6件连通、5/5接口PASS，
+  Image通过，控制器接受attempt_0001。9次API，162,526 tokens，375.06秒。
+  **人工对图/网格发现靠背弧顶消失，最高点150→145 mm，Image漏判；不能称外观/尺寸完整保留成功。**
+  不追加修补、不改审核规则，原资产保留。新图/源码/模型都在 `temp/assembly_mesh_followup_20260922/repairs/SF02/`。
+- SF03仅准备、定位并测量，0API/0修补：既有localized_mesh_feedback只接受OPEN_PRINT_MESH，
+  零面积面PRINT_MESH_UNMEASURABLE即使有补充位置也不进入修补。记录能力缺口，不伪造类型绕过；
+  本轮已完成用户允许的1–2例中的1个真实闭环，未扩展生产反馈规则。SF03不算agent修复失败。
+- `adsl_mesh_followup_20260922`任务exit=0、已回交互shell，CLIProxy专用会话保留。
+  详见 `reports/assembly_mesh_followup_20260922.md`，全部证据及成本 `supplement_summary.json`。
+  本轮修复、相关测试、局部诊断脚本和报告同次提交；未上传模型、API日志、代理配置或无关改动。
+  未改四个其他物理checker、Image/Code裁决、原批成绩或生成源码原件。
 
 ## 当前实验存储（2026-09-21）
 
@@ -17,9 +64,9 @@
 - `experiments/` 是实验脚本和配置，继续留在代码仓库；不迁移代码、不改代理和其他 tmux。
   `.gitignore` 排除本机 `local_experiment` 路径（含软链接），避免误提交数据盘映射。
 
-## 当前固定装配边界（2026-09-21）
+## 固定装配历史修复与旧批次（截至2026-09-21；当前运行见上）
 
-- 最新本地修改（基于已推送master `5472ee1`，本轮未提交）：将导出前后bounds/pose数值比较
+- 历史修复（已以 `60051b9` 推送 master）：将导出前后bounds/pose数值比较
   也移至显式导出回归测试；正常visual_only只检查文件可读、件ID/齐全性及有限非空网格。
   候选部件空/遗漏/断开给现有修补入口；文件/导出异常不引导改形状，未知原因不自动叫公共故障。
   单例EXPORTED/API/泛化FLOW_ERROR不再单凭名称停批，只有明确输入/版本契约或公共环境故障停止。

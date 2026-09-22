@@ -121,10 +121,23 @@ def make_result(report, rows, source, output, source_index=None):
         artifacts={'report':str(output/'report.json')})
 
 
+def _save_solid_mesh(mesh, path):
+    """Lossless worker transport: PLY's default float32 collapses small faces."""
+    import numpy as np
+    np.savez(path, vertices=np.asarray(mesh.vertices, dtype=np.float64),
+             faces=np.asarray(mesh.faces, dtype=np.int64))
+
+
+def _load_solid_mesh(path):
+    import numpy as np
+    import trimesh
+    with np.load(path, allow_pickle=False) as data:
+        return trimesh.Trimesh(data['vertices'], data['faces'], process=False)
+
+
 def worker(args):
     from adsl.core.assembly_topology import (part_measurement,read_print_mesh,
         interface_measurement,mesh_solid,solid_mesh,OpenPrintMeshError)
-    import trimesh
     report=_input(args.manifest,args.source)
     parts={p['id']:p for p in report['parts']}
     if args.part:
@@ -132,8 +145,8 @@ def worker(args):
         mesh=read_print_mesh(_part_file(args.manifest,report,part),part['print_transform_mm'])
         try:
             row,solid=part_measurement(mesh,args.part,part.get('mesh_face_groups'))
-            # PLY preserves indexed triangles and millimetres, no STL re-welding.
-            solid_mesh(solid).export(args.output/'solid.ply',encoding='binary_little_endian')
+            # Preserve the SAME indexed float64 union mesh, without re-welding.
+            _save_solid_mesh(solid_mesh(solid),args.output/'solid.npz')
         except OpenPrintMeshError as error:
             write_json(args.output/'boundary_edges.json',error.evidence)
             row=dict(kind='part',part_id=args.part,status='INDETERMINATE',code='OPEN_PRINT_MESH',
@@ -143,7 +156,7 @@ def worker(args):
     else:
         connection=next(c for c in report['connections'] if c['id']==args.connection)
         paths=read_json(args.solids)
-        solids={name:mesh_solid(trimesh.load_mesh(paths[name],process=False))
+        solids={name:mesh_solid(_load_solid_mesh(paths[name]))
                 for name in (connection['tab_part'],connection['slot_part'])}
         row=interface_measurement(connection,parts,solids,report['mm_per_unit'])
     result=CheckerResult(checker=NAME,status=row['status'],summary=row['code'],metrics={'item':row})
@@ -188,8 +201,8 @@ def measure(args):
                 execution=execution,source_path=args.source,round_root=args.output/'items'/f'{kind}_{ident}')
             if run.result.metrics.get('item'):
                 row.update(run.result.metrics['item'])
-                if kind=='part' and (run.output_dir/'solid.ply').is_file():
-                    paths[ident]=str(run.output_dir/'solid.ply')
+                if kind=='part' and (run.output_dir/'solid.npz').is_file():
+                    paths[ident]=str(run.output_dir/'solid.npz')
             else:
                 violation=next(iter(run.result.violations),{})
                 row.update(code=violation.get('code','MEASUREMENT_UNAVAILABLE'),stage=violation.get('stage'),

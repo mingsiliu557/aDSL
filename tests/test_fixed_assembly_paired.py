@@ -7,6 +7,7 @@ import pytest
 
 from experiments.fixed_assembly_prompt import run_paired as paired
 from adsl.agents.overhang_edit import version_record
+from adsl.agents.utils.execution import ExecutionResult
 from adsl.agents.utils.io import read_json,write_json
 
 
@@ -110,7 +111,8 @@ def test_topology_error_still_allows_independent_image_review(tmp_path,monkeypat
     write_json(work/'assembly_versions.json',book)
     version=dict(id='original',record_hash='frozen',execution={})
     monkeypatch.setattr(paired,'selected_version',lambda w:(book,version))
-    execution=SimpleNamespace(render_paths=('mock.png',))
+    execution=ExecutionResult(work/'asset',work/'asset/render/scene.glb',None,
+                              (Path('mock.png'),),'','')
     monkeypatch.setattr(paired,'version_assets',lambda v:(work/'source.py',execution,[]))
     monkeypatch.setattr(paired,'assert_version',lambda v:None)
     def fail(*a,**kw):raise RuntimeError('simulated topology timeout')
@@ -126,6 +128,40 @@ def test_topology_error_still_allows_independent_image_review(tmp_path,monkeypat
     assert r['topology_status']=='ERROR' and r['image_status']=='PASS'
     runtime.run.assert_awaited_once()
     assert (work/'source.py').read_text()=='unchanged'
+
+
+@pytest.mark.parametrize('manifest_exists',[True,False])
+def test_offline_topology_reads_final_assembly_without_changing_selection(tmp_path,monkeypatch,manifest_exists):
+    work=tmp_path/'work';asset=work/'asset'
+    (asset/'render').mkdir(parents=True);(asset/'assembly').mkdir()
+    source=work/'source.py';source.write_text('retained source')
+    glb=asset/'render/scene.glb';glb.write_bytes(b'render mesh')
+    mesh=asset/'assembly/scene.glb';mesh.write_bytes(b'final assembly mesh')
+    manifest=asset/'assembly/assembly_manifest.json'
+    if manifest_exists:write_json(manifest,{'source_sha256':paired.file_hash(source)})
+    execution=ExecutionResult(asset,glb,None,(),'','',source_index_path=asset/'source_index.json')
+    version=version_record('retained',source,execution,extra_files=[mesh,manifest])
+    book_path=write_json(work/'assembly_versions.json',dict(retained='retained',
+        working='unselected',versions={'retained':version}))
+    book_before=book_path.read_bytes();source_before=source.read_bytes();calls=[]
+    def checker(spec, *, execution, source, root):
+        calls.append(execution)
+        assert execution.glb_path==mesh
+        assert execution.source_index_path==asset/'source_index.json'
+        # A missing real manifest must not fall back to a render or other version.
+        assert read_json(execution.glb_path.parent/'assembly_manifest.json')['source_sha256']==paired.file_hash(source)
+        return SimpleNamespace(result=SimpleNamespace(status='PASS',summary='measured',metrics={'items':[]}))
+    monkeypatch.setattr(paired,'run_assembly_topology',checker)
+    monkeypatch.setattr(paired.prompt,'PromptWorkflow',lambda *a:pytest.fail('no image/API run without renders'))
+    asyncio.run(paired.evaluate(tmp_path,dict(id='SF02_wo',case='SF02',arm='wo',
+        origin='fresh',workspace=str(work))))
+    result=read_json(tmp_path/'offline/SF02_wo/evaluation.json')
+    assert result['topology_status']==('PASS' if manifest_exists else 'ERROR')
+    if not manifest_exists:assert 'FileNotFoundError' in result['topology_error']
+    assert len(calls)==1 and execution.glb_path==glb
+    assert result['image_status']=='INDETERMINATE'
+    assert book_path.read_bytes()==book_before and source.read_bytes()==source_before
+    assert paired.selected_version(work)[1]['record_hash']==version['record_hash']
 
 
 @pytest.mark.parametrize('previous_edits',[0,1])

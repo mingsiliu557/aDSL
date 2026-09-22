@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import csv
+from dataclasses import replace
 import json
 from pathlib import Path
 import shutil
@@ -168,6 +169,15 @@ def image_payload(inputs, count):
         evaluation_instruction='Judge visible task adherence in these final views only. Do not assume missing geometry exists in code. This is a standalone final image assessment, not a repair request.')
 
 
+def evaluate_topology(execution, source, output):
+    # Mirrors the online fixed-assembly adapter. The saved GLB is the render
+    # copy; the final print meshes and manifest live in asset/assembly instead.
+    topology_execution = replace(execution,
+        glb_path=execution.output_root/'assembly'/'scene.glb')
+    return run_assembly_topology(checker_spec(), execution=topology_execution,
+        source=source, root=output)
+
+
 async def evaluate(root,item):
     output=root/'offline'/item['id'];output.mkdir(parents=True,exist_ok=False)
     work=Path(item['workspace']);book,v=selected_version(work)
@@ -179,7 +189,7 @@ async def evaluate(root,item):
     result=dict(case=item['case'],arm=item['arm'],source_sha256=file_hash(source),image_status='NOT_EXECUTED',topology_status='NOT_EXECUTED')
     write_json(output/'evaluation.json',result)
     try:
-        run=run_assembly_topology(checker_spec(),execution=execution,source=source,root=output)
+        run=evaluate_topology(execution,source,output)
         result.update(topology_status=run.result.status,topology_summary=run.result.summary,
             topology_items=run.result.metrics.get('items',[]))
     except Exception as error:

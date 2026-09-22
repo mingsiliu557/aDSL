@@ -33,6 +33,22 @@ def fixture_pair(fit=.2):
     return c,parts,solids
 
 
+@pytest.mark.parametrize('small_edge',[False,True])
+def test_solid_worker_transport_preserves_float64_geometry(tmp_path,small_edge):
+    # A finite positive-area face can collapse if a float64 union is stored as float32.
+    edge=1e-8 if small_edge else 1.
+    mesh=trimesh.Trimesh([[1.,0.,0.],[1.+edge,0.,0.],[1.,1.,0.]],[[0,1,2]],process=False)
+    assert mesh.area_faces[0]>0
+    if small_edge:
+        lossy=trimesh.Trimesh(mesh.vertices.astype(np.float32),mesh.faces,process=False)
+        assert lossy.area_faces[0]==0
+    adapter._save_solid_mesh(mesh,tmp_path/'solid.npz')
+    loaded=adapter._load_solid_mesh(tmp_path/'solid.npz')
+    assert np.array_equal(loaded.vertices,mesh.vertices)
+    assert np.array_equal(loaded.faces,mesh.faces)
+    assert np.array_equal(loaded.area_faces,mesh.area_faces)
+
+
 @pytest.mark.parametrize('offset,count',[(None,1),((.5,.5,.5),1),((3,0,0),2),((2,2,0),2),((2,2,2),2)])
 def test_material_union_not_raw_shell_count(offset,count):
     box=mf.Manifold.cube((2,2,2),True)
