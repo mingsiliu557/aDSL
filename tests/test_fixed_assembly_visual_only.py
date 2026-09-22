@@ -133,6 +133,39 @@ def test_visual_export_only_evaluates_final_parts_not_bodies_or_interface_checks
     assert not any('connected_components' in p for p in result['parts'])
 
 
+def test_print_stl_preserves_small_faces_after_placement(tmp_path,monkeypatch):
+    import trimesh
+    from adsl.core import FixedAssembly, Cube
+    # A finite tetrahedron with a thin face that survives local-coordinate
+    # float32 but collapses when encoded at print-bed height z=55.5 mm.
+    mesh=trimesh.Trimesh([[0,1,-50],[0,0,5.5],[1,0,5.5],[.5,0,5.5000005]],
+                        [[0,2,1],[0,1,3],[0,3,2],[1,2,3]],process=False)
+    if mesh.volume < 0: mesh.invert()  # Fixture orientation, not export repair.
+    original=mesh.triangles.copy()
+    mesh.metadata['materials']=[dict(name='body',base_color=[1.,1.,1.,1.],alpha=1.,
+        metallic=0.,roughness=.5,blend_method='OPAQUE',use_backface_culling=False)]
+    mesh.face_attributes['material']=np.zeros(len(mesh.faces),dtype=int)
+    assembly=FixedAssembly(root_id='part',mm_per_unit=1.)
+    assembly.add_part('part',Cube(1),components=('body',))
+    def evaluated(*a,**kw):
+        assert not kw['validate_geometry']
+        return mesh.copy(),None,dict(display_complete=True,omitted_mesh_nodes=[],mesh_face_groups=[[0,4]])
+    monkeypatch.setattr(exporter,'evaluated',evaluated)
+    report=exporter.export_assembly(assembly,tmp_path/'output',source_sha256='test',
+        expected=dict(mm_per_unit=1.,fit_offset_mm=.2,final_size_mm=[1.,1.,55.5000005],
+                      validation_mode='visual_only'))
+    assert report['export_status']=='PASS',report['failures']
+    path=tmp_path/'output'/report['parts'][0]['stl']
+    assert path.read_bytes().startswith(b'solid ')
+    loaded=trimesh.load_mesh(path,process=False)
+    printed=mesh.copy();printed.apply_transform(np.asarray(report['parts'][0]['print_transform_mm']))
+    assert np.all(printed.area_faces>0) and np.all(loaded.area_faces>0)
+    assert np.array_equal(loaded.triangles,printed.triangles)
+    binary=printed.copy();binary.vertices=np.asarray(binary.vertices,dtype=np.float32).astype(float)
+    assert np.any(binary.area_faces==0), 'fixture must expose binary STL rounding'
+    assert np.array_equal(mesh.triangles,original), 'export must not mutate the shared mesh'
+
+
 def test_mode_is_explicit_and_old_default_unchanged():
     assert FixedAssemblyConfig.model_validate(CONFIG).validation_mode=='geometry'
     assert not FixedAssemblyConfig.model_validate(CONFIG).require_multiple_parts

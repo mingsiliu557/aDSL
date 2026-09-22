@@ -4,6 +4,44 @@
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
 
+## EXACT + ASCII STL 与两例全新生成（2026-09-22）
+
+- 用户批准精度修复，并要求SF02/SF03从零重新生成。仅将两处正式STL导出设为stl_ascii，
+  保留公共EXACT、尺度/打印平移/阈值、同网格复用；checker继续读取交付STL，不删面/补洞。
+- 24项针对性测试通过（12.56秒），包含先前失败的normal/tilted真实导出；正常T支架实际topology
+  2/2件、1/1接口PASS。此前阻止EXACT推送的这项STL回归已解决，不能据此称SF02/SF03整件通过。
+- 新实验目录 `temp/assembly_exact_ascii_fresh_20260922/`，仅两例w/assembly_topology，
+  同原prompt/毫米尺度/0.2余量/目标尺寸，5轮评估=初始+最多4修补；不提供旧源码/图片，不跑wo。
+  CLIProxy/gpt-5.6-sol，独立代理tmux `adsl_cliproxy_20260919` 保持原样；新任务会话
+  `adsl_exact_ascii_fresh_20260922`，启动/完成状态以目录run_status.json和日志为准。
+- 详见 `reports/exact_ascii_stl_fresh_20260922.md`。沿用已有prepare/main，仅本次目录加薄包装，
+  不扩大CLI白名单或重构流程。旧失败/旧API成本/旧结果不覆盖；本轮无跨实验累计token记账。
+
+## 局部 Boolean 后端对照（2026-09-22）
+
+- 离线对照基线 `ee712bc` 当时为 FAST 成功即接受、异常才 EXACT。用户随后明确授权公共求值切换 EXACT 并推送。
+  本轮仅将 `_apply_boolean` 的求解器选择改为 EXACT-only（union/difference/intersection），参数、材质、
+  异常清理、checker、agent预算/流程均不改；不回退 FAST、不增加重试。
+- **先前替换曾暂缓：验证发现新回归，现已按用户授权用ASCII STL修复并通过回归（见上）。**
+  当时21项轻量测试通过，正常/倾斜T支架真实导出2项失败；
+  独立恢复旧求值函数的同输入对照均PASS。正常stem.glb无零面积面，打印平移+50mm后float32编码
+  准确重现stem.stl的3个零面积面（全部三角集合相同）；不改阈值/模型、不自动删面。
+- 用户追加拓扑复查：原始SF02/SF03在EXACT下完整新导出、仅检查无API。SF02件内4/6、接口3/5PASS，
+  SF03件内1/6、接口0/5PASS，两者总INDETERMINATE；其他件各有3条开口边，原因尚未逐阶段确认。
+  正常T支架旧策略拓扑PASS，新策略stem不可测/接口依赖未验证。其余历史资产没有重评。
+  证据 `reports/exact_public_topology_validation_20260922.md`、`temp/exact_topology_verification_20260922/`。
+  临时诊断首次manifest基准误用render已在调用参数纠正，重用同一资产；错误现场保留，不算几何问题。
+- `temp/boolean_backend_comparison_20260922/`：冻结原始 SF02 腿/木纹 UNION、SF03 立柱/下横梁 UNION，
+  加正常 SF07/wo 桌面/榫头对照。相同 `.blend` 操作数保留矩阵与材料；Manifold 读同坐标 float64 原始输入。
+  3×3 后端运行均完成，现有进程隔离每步120秒，0 API/模型修改/阈值修改，旧资产/成绩不动。
+- FAST 重现 SF02 4条开口边、SF03 8个零面积三角面/13条非流形边，输出逐值匹配旧局部诊断；
+  EXACT/Manifold 两例均闭合无退化，体积与独立盒并集参考一致，占据探针无缺失/新增；正常对照三者有效。
+  Boolean 耗时 FAST 1.4–2.0ms、EXACT 3.5–15.4ms、Manifold 0.14–0.50ms，仅本地单次小运算。
+- 本轮采用 EXACT 公共路径并准备同步远端；不全面换 Manifold，不把新策略效果当作agent修补收益。
+  SF02齐平内嵌木纹在 EXACT/Manifold 实体正确后仍没有独立深色面，材质/外观保留不能冒充通过。
+  此前SF02修补候选弧顶丢失是另一运算，本次未测；没有宣称完整资产或后续CSG修复成功。
+- 详见 `reports/boolean_backend_comparison_20260922.md`，脚本 `experiments/fixed_assembly_prompt/compare_boolean_backends.py`。
+
 ## 当前六物体全新配对与离线补评（2026-09-22）
 
 - 用户已取消续跑/历史复用，`558de6e`（已推送 master）启动全新 6 prompts × w/wo 的 12 次生成。

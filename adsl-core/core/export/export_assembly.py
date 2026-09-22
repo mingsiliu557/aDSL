@@ -430,7 +430,9 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
                 print_transform = np.eye(4)
                 print_transform[2,3] = -float(mesh.bounds[0,2])
                 printed = mesh.copy(); printed.apply_transform(print_transform)
-                printed.export(output/f'{name}.stl')
+                # Binary STL rounds to float32 after print placement; tiny
+                # valid faces can collapse. Preserve coordinates in ASCII.
+                printed.export(output/f'{name}.stl', file_type='stl_ascii')
                 manifest['parts'].append(dict(id=name, components=assembly.components[name],
                     stl=f'{name}.stl', glb=f'{name}.glb', assembly_transform=assembly.transforms[name].tolist(),
                     print_transform_mm=print_transform.tolist(), **diagnostics))
@@ -450,7 +452,7 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
             printed = mesh.copy()
             printed.apply_transform(print_transform)
             stl = output/f'{name}.stl'
-            printed.export(stl)
+            printed.export(stl, file_type='stl_ascii')
             manifest['parts'].append(dict(id=name, components=assembly.components[name], stl=stl.name,
                 glb=f'{name}.glb', assembly_transform=assembly.transforms[name].tolist(),
                 print_transform_mm=print_transform.tolist(), volume_mm3=float(mesh.volume),

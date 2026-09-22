@@ -167,7 +167,9 @@ def _apply_boolean(
     bpy.context.view_layer.objects.active = base_obj
     last_exc: Exception | None = None
 
-    for solver in ("FAST", "EXACT"):
+    # FAST can return successfully with open/degenerate geometry at coplanar
+    # overlaps (SF02/SF03). Use EXACT directly; keep parameters and cleanup.
+    for solver in ("EXACT",):
         modifier = base_obj.modifiers.new(
             name=f"Boolean_{operation}",
             type='BOOLEAN'

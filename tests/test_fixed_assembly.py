@@ -329,3 +329,5 @@ def test_real_boolean_export(tmp_path,variant):
     if variant=='missing_slot':assert any(f['code']=='EXPORTED_INTERFACE_GEOMETRY_MISMATCH' for f in report['failures'])
     if variant=='disconnected':assert any(f['code']=='DISCONNECTED_PRINT_PART' for f in report['failures'])
     assert all((result.output_root/'assembly'/part['stl']).is_file() for part in report['parts'])
+    assert all((result.output_root/'assembly'/part['stl']).read_bytes().startswith(b'solid ')
+               for part in report['parts'])
