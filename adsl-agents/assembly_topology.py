@@ -203,6 +203,7 @@ def measure(args):
                 row.update(run.result.metrics['item'])
                 if kind=='part' and (run.output_dir/'solid.npz').is_file():
                     paths[ident]=str(run.output_dir/'solid.npz')
+                    row['solid_sha256']=sha256_file(run.output_dir/'solid.npz')
             else:
                 violation=next(iter(run.result.violations),{})
                 row.update(code=violation.get('code','MEASUREMENT_UNAVAILABLE'),stage=violation.get('stage'),
@@ -311,8 +312,18 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
     from .prompts import object_prompt
     from .tools import READ_TOOLS, AgentToolContext
     from .utils.inputs import user_input
+    runs = list(run) if isinstance(run,(list,tuple)) else [run]
+    instruction = ENGINEERING_INSTRUCTION + (
+        '\nAssembly physics: combine all current tools in ONE proposal. Self-weight standing and '
+        'ideal-bonded FEA have different assumptions; neither proves real fastening. '
+        'Overhang is a geometric soft objective, not a physical FAIL. Only change print orientation '
+        'for overhang optimization. Use change_print_orientation only when enabled, naming actual '
+        'print-part IDs in target.parameters. It edits set_print_orientation calls, not the use pose. '
+        'Do not change shapes just for overhang, loads, material, support, friction or tool settings. '
+        'A source change requires rechecking all selected applicable tools.' if len(runs)>1 or
+        any(r.spec.name!='assembly_topology' for r in runs) else '')
     agent=runtime.agent(name='object-engineering-critic',tools=READ_TOOLS,
-        instructions=object_prompt('engineering_critic',articulation=False)+ '\n'+ENGINEERING_INSTRUCTION,
+        instructions=object_prompt('engineering_critic',articulation=False)+ '\n'+instruction,
         output_type=EngineeringCriticDecision,strict_json_schema=False)
     payload={'requirement':request.requirement,'plan':plan.model_dump(),
         'assigned_source':str(source.relative_to(request.workspace)), 'assembly_context':context,
@@ -320,10 +331,11 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
                                      'evidence_files','evidence_path_instruction')},
         'source_sha256':sha256_file(source), 'source_version':feedback.get('source_version'),
         'assembly_item_statuses':[{k:r.get(k) for k in ('part_id','connection_id','status','code')}
-            for r in run.result.metrics.get('items',[])],
+            for result in runs for r in result.result.metrics.get('items',[])],
+        'print_orientation_editable':request.repair_policy.print_orientation_editable,
         'pending_reviews':{k:feedback.get(k) for k in ('image_critic','code_critic','render_issue','repair_history')},
         'remaining_repairs':remaining,'maximum_repair_proposals':1,
-        'assignment':ENGINEERING_INSTRUCTION + EVIDENCE_PATH_INSTRUCTION}
+        'assignment':instruction + EVIDENCE_PATH_INSTRUCTION}
     write_json(root/'engineering_input.json',payload)
     tool_context=AgentToolContext(workspace=request.workspace,source_path=source)
     response=await runtime.run(agent=agent,input=user_input(json.dumps(payload),
@@ -339,13 +351,17 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
         'unresolved_findings':decision.unresolved_findings[:6],
         'report_path':str((root/'engineering_critique.json').resolve())}
     if proposal:
-        ids={f.finding_id for f in _actionable_findings(run)}
-        if not set(proposal.finding_ids)<=ids or proposal.action in ('request_evidence','change_print_orientation'):
+        ids={f.finding_id for result in runs for f in _actionable_findings(result)}
+        current_parts={p['id'] for p in (context.get('current_assembly') or {}).get('parts',[])}
+        orientation_valid = (request.repair_policy.print_orientation_editable and
+            bool(proposal.target.parameters) and set(proposal.target.parameters)<=current_parts)
+        if (not set(proposal.finding_ids)<=ids or proposal.action=='request_evidence' or
+                proposal.action=='change_print_orientation' and not orientation_valid):
             feedback['engineering']={'status':'UNAVAILABLE','reason':'unknown/unrepairable finding or unsupported action'}
             write_json(root/'proposal_rejected.json',feedback['engineering'])
             return None
-        known={sid for f in run.result.findings for c in f.source_candidates for sid in c.source_ids}
-        features={c.feature_id for f in run.result.findings for c in f.source_candidates}
+        known={sid for result in runs for f in result.result.findings for c in f.source_candidates for sid in c.source_ids}
+        features={c.feature_id for result in runs for f in result.result.findings for c in f.source_candidates}
         if not set(proposal.target.source_ids)<=known or not set(proposal.target.feature_ids)<=features:
             feedback['engineering']={'status':'UNAVAILABLE','reason':'unverified source/index IDs'}
             write_json(root/'proposal_rejected.json',feedback['engineering'])

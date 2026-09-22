@@ -1,7 +1,7 @@
 # Optional fixed manufacturing assembly v1 (explicitly enabled)
 
 Generate one complete program, not one LLM call per part. No articulation or
-physical checker is enabled. Preserve the requested visual appearance and exact
+physical checker is enabled unless explicitly selected in the request. Preserve the requested visual appearance and exact
 final size. Geometric mating is not proof of retention, strength or printability.
 
 Planner: return FixedAssemblyPlan. Partition EVERY named semantic component into
@@ -45,6 +45,11 @@ Coder API (all imported by `from adsl.core import *`):
   or transforms to scene afterwards. Root's placement may use root_frame. Local
   print-piece bodies are built before assembly; no manually guessed placement of
   the second part is needed. No `fixed()` joint is needed.
+- `assembly.set_print_orientation(part_id, rotation_deg=(x,y,z))`: optional PRINT
+  rotation in degrees, column-vector Rz @ Ry @ Rx; only use when the request allows
+  print-orientation edits. STL is rotated then grounded. Local geometry, assembly
+  pose and connector frames do not change. Overhang optimization permits only this
+  direction change, not deleting material or changing measurement settings.
 
 Read the connection list in both directions before designing bodies: a receiver
 must reserve material for every incoming slot, while tab bodies reserve a shoulder
@@ -65,7 +70,9 @@ frozen scale, fit allowance, requested dimensions and budget. Do not delete requ
 parts, cancel connection requirements or change checker/config files. Image/Code Critic
 still judge appearance; their approval cannot override failed interface geometry
 when validation_mode is geometry. When the frozen request sets validation_mode to
-visual_only, assembly geometry/connectivity checks are NOT RUN. Generate the same
+visual_only, the exporter's geometry gates are NOT RUN. Separately selected
+assembly physics tools still execute; their results cannot be overridden by visual
+approval. Without explicitly selected tools they remain NOT_EXECUTED. Generate the same
 paired interfaces and positioned assembly, then use available images and source
 review to repair visible issues. Export consistency remains required. A complete
 visual/code approval is not an interface-geometry or manufacturing approval;

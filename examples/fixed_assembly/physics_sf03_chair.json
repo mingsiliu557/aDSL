@@ -1,0 +1,75 @@
+{
+  "scope": "SF03 full-size 450x400x900 mm chair screening. Explicit user-selected historical functional loads; not a comparison of numerical results with the old 90x80x180 mm control. Not wood material certification or proof of real TabSlot retention.",
+  "coordinate_convention": "Assembly frame in mm: X left/right, Y back (+Y), Z up; footprint centred at X=Y=0, feet at Z=0, seat top within Z=300..600, back load on rear-facing (+Y) surfaces above Z=600. Local part origins may differ; the existing assembly transforms map them to these frozen regions. Retain descriptive seat/back/leg or foot/frame components for semantic region lookup. Do not edit these analysis regions or rename components to evade loads.",
+  "material": {
+    "name": "isotropic_PLA_screening_proxy",
+    "youngs_modulus_pa": 3000000000.0,
+    "poisson_ratio": 0.35,
+    "density_kg_m3": 1240.0,
+    "yield_strength_pa": 50000000.0,
+    "evidence": "Reuse experiments/standing_fea_30/configs/fea_chair_stool.json. Uniform isotropic experimental assumption; reddish-brown wood appearance does not establish physical wood properties."
+  },
+  "standing": {
+    "duration_seconds": 5.0,
+    "timestep_seconds": 0.002,
+    "friction": [0.5, 0.005, 0.0001],
+    "tilt_threshold_deg": 25.0,
+    "settle_window_seconds": 0.5,
+    "settle_linear_m_s": 0.001,
+    "settle_angular_rad_s": 0.01,
+    "coacd": {
+      "threshold_mm": 0.02,
+      "resolution": 2000,
+      "mcts_iterations": 30,
+      "mcts_nodes": 20,
+      "mcts_max_depth": 3,
+      "merge": true,
+      "seed": 0
+    }
+  },
+  "overhang": {
+    "overhang_threshold_from_horizontal_deg": 45.0,
+    "layer_height_mm": 0.2,
+    "orientation_editable": true
+  },
+  "fea": {
+    "mesh_size_mm": 10.0,
+    "include_gravity": true,
+    "supports": [{
+      "name": "feet_on_ideal_fixed_floor",
+      "semantic_pattern": "leg|foot|feet|base|frame|chair",
+      "allow_multiple_parts": true,
+      "frame": "assembly",
+      "bounds_mm": [[-226.0, -201.0, -0.1], [226.0, 201.0, 0.1]],
+      "normal": [0.0, 0.0, -1.0],
+      "dofs": [1, 2, 3]
+    }],
+    "loads": [
+      {
+        "name": "seat_load",
+        "semantic_pattern": "seat|cushion",
+        "allow_multiple_parts": true,
+        "frame": "assembly",
+        "bounds_mm": [[-226.0, -201.0, 300.0], [226.0, 201.0, 600.0]],
+        "normal": [0.0, 0.0, 1.0],
+        "force_n": [0.0, 0.0, -1000.0]
+      },
+      {
+        "name": "back_load",
+        "semantic_pattern": "back|backrest",
+        "allow_multiple_parts": true,
+        "frame": "assembly",
+        "bounds_mm": [[-226.0, -201.0, 600.0], [226.0, 201.0, 901.0]],
+        "normal": [0.0, 1.0, 0.0],
+        "force_n": [0.0, 300.0, 0.0]
+      }
+    ],
+    "allowable_stress_pa": 25000000.0,
+    "allowable_displacement_m": 0.005,
+    "solver_timeout_seconds": 120,
+    "limit_basis": "25 MPa = historical proxy yield 50 MPa / design factor 2, matching the assembly demo stress limit. 5 mm is the declared functional-displacement screening limit reused from the assembly demo, not a material constant or a cited chair standard. Mesh convergence remains NOT_EVALUATED.",
+    "connection_model": "ideal_bonded",
+    "external_load_stability": "NOT_EVALUATED",
+    "unverified_policy": "Missing regions, invalid mesh, unmatched tie or reaction/interface residual remain INDETERMINATE. Do not relax tolerances or use diagnostic stresses to drive geometry repair. Only valid evaluated stress/displacement violations are actionable."
+  }
+}

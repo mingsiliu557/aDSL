@@ -20,6 +20,8 @@ dependencies = [
 [project.optional-dependencies]
 test = ["pytest>=8"]
 overhang = ["manifold3d==3.5.2"]
+assembly-standing = ["mujoco>=3.2,<4", "coacd==1.0.14", "matplotlib>=3.8,<4"]
+assembly-fea = ["gmsh==4.15.2", "matplotlib>=3.8,<4"]
 
 [project.scripts]
 adsl-run = "adsl.agents.cli:main_cli"

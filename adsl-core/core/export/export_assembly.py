@@ -427,8 +427,8 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
                     keep_materials=True, validate_geometry=False)
                 meshes[name] = mesh
                 part_stage = 'write_print_mesh'
-                print_transform = np.eye(4)
-                print_transform[2,3] = -float(mesh.bounds[0,2])
+                print_transform = assembly.print_rotation(name)
+                print_transform[2,3] = -float((mesh.vertices @ print_transform[:3,:3].T)[:,2].min())
                 printed = mesh.copy(); printed.apply_transform(print_transform)
                 # Binary STL rounds to float32 after print placement; tiny
                 # valid faces can collapse. Preserve coordinates in ASCII.
@@ -447,8 +447,8 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
             components = len(mesh.split(only_watertight=False, repair=False))
             require(components == 1, 'DISCONNECTED_PRINT_PART', part_id=name, components=components)
             part_stage = 'write_print_mesh'
-            print_transform = np.eye(4)
-            print_transform[2, 3] = -float(mesh.bounds[0, 2])
+            print_transform = assembly.print_rotation(name)
+            print_transform[2, 3] = -float((mesh.vertices @ print_transform[:3,:3].T)[:,2].min())
             printed = mesh.copy()
             printed.apply_transform(print_transform)
             stl = output/f'{name}.stl'

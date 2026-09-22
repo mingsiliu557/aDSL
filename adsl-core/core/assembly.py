@@ -120,6 +120,7 @@ class FixedAssembly:
             raise ValueError("mm_per_unit must be positive and fixed")
         self.bodies, self.parts, self.components, self.connections = {}, {}, {}, []
         self.transforms = {self.root_id: (root_frame or InterfaceFrame()).matrix()}
+        self.print_rotations = {}
         self._selected_nodes = set()
         self._input_bodies = []  # Keep identity references alive for overlap detection.
 
@@ -143,6 +144,27 @@ class FixedAssembly:
         self.bodies[part_id] = body.copy()
         self.parts[part_id] = body.copy()
         self.components[part_id] = tuple(components)
+
+    def set_print_orientation(self, part_id: str, *, rotation_deg=(0, 0, 0)):
+        """Print-only Euler degrees, column vectors: Rz @ Ry @ Rx.
+
+        Does not alter local geometry, assembly frames or interface placement.
+        """
+        if part_id not in self.parts:
+            raise ValueError(f'unknown print part: {part_id}')
+        angles = np.asarray(rotation_deg, dtype=float)
+        if angles.shape != (3,) or not np.isfinite(angles).all():
+            raise ValueError('print orientation needs three finite angles in degrees')
+        self.print_rotations[part_id] = tuple(float(a) for a in angles)
+
+    def print_rotation(self, part_id: str):
+        x, y, z = np.deg2rad(self.print_rotations.get(part_id, (0, 0, 0)))
+        cx, cy, cz = np.cos([x, y, z]); sx, sy, sz = np.sin([x, y, z])
+        rotation = np.eye(4)
+        rotation[:3, :3] = (np.array([[cz,-sz,0],[sz,cz,0],[0,0,1]]) @
+            np.array([[cy,0,sy],[0,1,0],[-sy,0,cy]]) @
+            np.array([[1,0,0],[0,cx,-sx],[0,sx,cx]]))
+        return rotation
 
     def connect(self, interface_id: str, *, tab_part: str, slot_part: str,
                 tab_frame: InterfaceFrame, slot_frame: InterfaceFrame, parameters: TabSlot,

@@ -1,6 +1,6 @@
 """Assembly execution/version adapter using ordinary aDSL generation reviews.
 
-Only explicitly requested assembly_topology is supported. The small loop is initial
+Only explicitly requested assembly tools are enabled. The small loop is initial
 evaluation + bounded isolated repairs, not the overhang optimization workflow.
 """
 from __future__ import annotations
@@ -91,6 +91,10 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                  initial_execution=None, initial_topology_run=None, evidence_files=()):
     from .service import _asset_executor_timeout_seconds, _actionable_findings
     from .assembly_topology import NAME, run_assembly_topology, engineer, prepare_evidence, EVIDENCE_PATH_INSTRUCTION
+    from .assembly_physics import NAMES, run_assembly_checks, orientation_only, area_comparison
+    specs = [s for s in request.checker_specs if s.name in NAMES]
+    if len({s.name for s in specs}) != len(specs):
+        raise ValueError('duplicate assembly checker specification')
     topology_spec = next((s for s in request.checker_specs if s.name == NAME), None)
     if sum(s.name == NAME for s in request.checker_specs) > 1:
         raise ValueError('only one assembly_topology specification is allowed')
@@ -98,9 +102,15 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
     visual_only = config.get('validation_mode', 'geometry') == 'visual_only'
     verification_scope = 'visual_code_only' if visual_only else 'interface_geometry_only'
     frozen = {**config, 'assembly_topology_spec':topology_spec.model_dump()} if topology_spec else config
+    # Keep the legacy topology-only resume hash exactly as before.
+    if any(s.name != NAME for s in specs):
+        frozen = {**frozen,'assembly_physics_specs':[s.model_dump() for s in specs],
+                  'print_orientation_editable':request.repair_policy.print_orientation_editable}
     config_hash = hashlib.sha256(json.dumps(frozen, sort_keys=True).encode()).hexdigest()
     if topology_spec:
         verification_scope = 'visual_code_export_and_assembly_topology'
+    if any(s.name != NAME for s in specs):
+        verification_scope = 'visual_code_export_and_selected_assembly_physics'
     book_path = workspace/'assembly_versions.json'
     if book_path.exists():
         book = read_json(book_path)
@@ -149,7 +159,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 finding_ids=feedback.get('actionable_finding_ids') or ['assembly_or_appearance'],
                 hypothesis='Use current review and measured evidence; preserve task and paired interfaces',
                 target=RepairTarget(), action='reshape')
-            if topology_spec and feedback.get('engineering_proposal'):
+            if specs and feedback.get('engineering_proposal'):
                 proposal = RepairProposal.model_validate(feedback['engineering_proposal'])
             policy = request.repair_policy.model_copy(update={'max_total_candidates':book['max_rounds']-1})
             controller = RepairController(workspace=workspace, round_root=root, baseline_source=parent,
@@ -176,12 +186,17 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                                          version_role='repair_starting_version'),
                     'current_repair_authorized':True,
                     'remaining_repairs_after_this_attempt':book['max_rounds']-number,
-                    'assignment':'This repair is already budget-reserved and may proceed even when remaining_repairs_after_this_attempt is 0; that count excludes the current attempt. Read the assigned source and repair the smallest relevant body/interface/assembly code. Combine current appearance and topology facts in this single edit; Engineering advice is optional, never a geometry PASS. Unknown geometry is not confirmed disconnection. If no reasonable edit exists, use NO_CHANGE. Do not edit configuration or checker files. ' + EVIDENCE_PATH_INSTRUCTION})
+                    'assignment':'This repair is already budget-reserved and may proceed even when remaining_repairs_after_this_attempt is 0; that count excludes the current attempt. Read the assigned source and repair the smallest relevant body/interface/assembly code. Combine current appearance and selected assembly-tool facts in this single edit; Engineering advice is optional, never a physical PASS. Unknown geometry is not confirmed disconnection. For overhang alone, only the requested print-orientation calls may change. Never change frozen physical specifications or checker configuration. If no reasonable edit exists, use NO_CHANGE. ' + EVIDENCE_PATH_INSTRUCTION})
             write_json(candidate_root/'edit_outcome.json', outcome)
             if outcome['status'] != 'CHANGED':
                 book['versions'][version_id] = version_record(version_id, current, None,
                     reviews={'edit_outcome':outcome, 'accepted':False})
                 stop = outcome['status']
+                break
+            if feedback.get('orientation_only_edit') and not orientation_only(parent.read_text(),current.read_text()):
+                book['versions'][version_id] = version_record(version_id,current,None,
+                    reviews={'edit_outcome':outcome,'accepted':False,'reason':'overhang_only_shape_edit_rejected'})
+                stop = 'overhang_only_shape_edit_rejected'
                 break
         else:
             candidate_root = root
@@ -319,33 +334,49 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 write_json(report_path, {'type':type(error).__name__, 'error':str(error)})
                 accepted, reason = False, 'FLOW_ERROR'
         topology_run = None
-        if topology_spec:
-            topology_execution = ExecutionResult(candidate_root/'asset',
-                candidate_root/'asset'/'assembly'/'scene.glb',None,(),'', '',
+        runs = []
+        if specs:
+            asset_root=execution.output_root if execution else candidate_root/'asset'
+            topology_execution = ExecutionResult(asset_root,
+                asset_root/'assembly'/'scene.glb',None,(),'', '',
                 source_index_path=execution.source_index_path if execution else None)
-            if number == 1 and initial_topology_run is not None:
+            if topology_spec and number == 1 and initial_topology_run is not None:
                 topology_run=initial_topology_run
                 if (topology_run.spec != topology_spec or
                     topology_run.result.assumptions.get('source_sha256') != file_hash(current) or
                     topology_run.result.assumptions.get('manifest_sha256') !=
                         file_hash(topology_execution.glb_path.parent/'assembly_manifest.json')):
                     raise ValueError('cached topology result/source/config mismatch')
-            else:
-                topology_run = run_assembly_topology(topology_spec, execution=topology_execution,
-                    source=current,root=candidate_root)
-            reviews['assembly_topology'] = topology_run.result.model_dump()
+            runs = run_assembly_checks(specs,execution=topology_execution,source=current,
+                root=candidate_root,physics=config.get('physics',{}),initial_topology_run=topology_run)
+            topology_run = next((r for r in runs if r.spec.name==NAME),None)
+            reviews.update({r.spec.name:r.result.model_dump() for r in runs})
             reviews['checker_source_sha256'] = file_hash(current)
-            if topology_run.result.status != 'PASS':
+            if any(r.spec.required and r.result.status != 'PASS' for r in runs):
                 accepted = False
-                if reason != 'FLOW_ERROR': reason = 'assembly_topology_not_passed'
+                if reason != 'FLOW_ERROR': reason = 'assembly_topology_not_passed' if len(specs)==1 and topology_spec else 'assembly_required_checks_not_passed'
             elif accepted:
-                reason = 'appearance_export_and_assembly_topology_passed'
+                reason = 'appearance_export_and_assembly_topology_passed' if len(specs)==1 and topology_spec else 'appearance_export_and_selected_checks_passed'
+            # A qualified retained result cannot regress to failed/unmeasurable.
+            for r in runs:
+                old = retained['reviews'].get(r.spec.name)
+                if old and old['status']=='PASS' and r.result.status!='PASS':
+                    accepted=False; reason='previously_valid_check_regressed'
+            overhang = next((r for r in runs if r.spec.name=='assembly_overhang'),None)
+            prior_area=retained['reviews'].get('assembly_overhang')
+            if number>1 and overhang and prior_area:
+                comparison=area_comparison(prior_area,overhang.result.model_dump())
+                reviews['overhang_change_vs_retained']=comparison
+                pure = orientation_only(Path(retained['source']).read_text(),current.read_text())
+                reviews['edit_kind']='print_orientation_only' if pure else 'structural'
+                if pure and comparison['conclusion']!='IMPROVED':
+                    accepted=False;reason='print_orientation_not_reliably_improved'
         reviews.update(geometry=report, accepted=accepted, reason=reason)
         extra = sorted((candidate_root/'asset'/'assembly').rglob('*'))
-        if topology_spec:
+        if specs:
             extra += sorted((candidate_root/'checkers').rglob('*'))
         book['versions'][version_id] = version_record(version_id, current, execution,
-                                                      runs=[topology_run] if topology_run else (),reviews=reviews,
+                                                      runs=runs,reviews=reviews,
                                                       extra_files=extra)
         book['working'] = version_id
         write_json(candidate_root/'decision.json', {'version':version_id, 'parent':parent_id,
@@ -364,12 +395,12 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             'appearance_approved':reviews.get('appearance_approved'),
             'render_issue':reviews.get('render_issue'),
             'image_critic':reviews.get('image_critic'), 'code_critic':reviews.get('code_critic')}
-        if topology_run:
+        if runs:
             from .service import _checker_evidence
-            feedback.update(_checker_evidence([topology_run],workspace=workspace))
+            feedback.update(_checker_evidence(runs,workspace=workspace))
             # Detailed absolute paths can exceed the shared scalar-preview limit.
             # Keep explicit references, not whole domains/logs, in this adapter.
-            findings={f.finding_id:f for f in topology_run.result.findings}
+            findings={f.finding_id:f for r in runs for f in r.result.findings}
             for row in feedback['typed_findings']:
                 for field in ('boundary_report','report_path'):
                     value=findings[row['finding_id']].domain.get(field)
@@ -377,17 +408,26 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             feedback['repair_history'] = [
                 {'version':v['id'], 'source_sha256':file_hash(Path(v['source'])),
                  'reason':v['reviews'].get('reason'),
-                 'topology_status':v['reviews'].get('assembly_topology',{}).get('status')}
+                 'topology_status':v['reviews'].get('assembly_topology',{}).get('status'),
+                 'tool_statuses':{s.name:v['reviews'].get(s.name,{}).get('status') for s in specs},
+                 'overhang_change':v['reviews'].get('overhang_change_vs_retained')}
                 for v in list(book['versions'].values())[-3:]]
         prepare_evidence(feedback,workspace=workspace,source_sha256=file_hash(current),
                          evidence_files=book['evidence_files'])
         feedback['engineering']={'status':'NOT_REQUESTED'}
         actionable = []
-        if topology_run:
-            actionable = _actionable_findings(topology_run)
+        optimize = False
+        if runs:
+            actionable = [f for r in runs for f in _actionable_findings(r)
+                          if f.category!='optimization_opportunity' or request.repair_policy.print_orientation_editable]
+            optimize = any(f.category=='optimization_opportunity' for f in actionable)
+            feedback['orientation_only_edit'] = bool(actionable and reviews.get('appearance_approved') and
+                all(f.category=='optimization_opportunity' for f in actionable))
+            if feedback['orientation_only_edit']:
+                feedback['edit_restriction']='Only literal set_print_orientation(part_id, rotation_deg=(x,y,z)) calls; keep all geometry and assembly unchanged.'
             feedback['actionable_finding_ids']=[f.finding_id for f in actionable]
             remaining = book['max_rounds']-number
-            if not accepted and reason != 'FLOW_ERROR' and actionable and remaining > 0:
+            if (not accepted or optimize) and reason != 'FLOW_ERROR' and actionable and remaining > 0:
                 budget = RepairController(workspace=workspace,round_root=root,baseline_source=current,
                     source_index=None,findings=[],checker_specs_sha256=config_hash,
                     policy=request.repair_policy.model_copy(update={'max_total_candidates':book['max_rounds']-1}))
@@ -395,7 +435,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 if not budget.budget_error():
                     try:
                         next_proposal = await engineer(workflow,runtime,request,plan,current,execution,
-                            candidate_root,topology_run,_assembly_context(current,report,version_role='current_candidate'),
+                            candidate_root,runs if len(runs)>1 or not topology_run else topology_run,_assembly_context(current,report,version_role='current_candidate'),
                             feedback,remaining)
                         if next_proposal:
                             feedback['engineering_proposal']=next_proposal.model_dump()
@@ -403,6 +443,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                         elif feedback['engineering']['status']=='NOT_REQUESTED':
                             feedback['engineering']={'status':'NO_PROPOSAL',
                                 'reason':'No structured advice; use trustworthy current feedback or NO_CHANGE.'}
+                        if accepted and optimize and not next_proposal:
+                            optimize=False;stop='no_reasonable_orientation_proposal';book['completed']=True
                     except Exception as error:
                         write_json(candidate_root/'engineering_error.json',
                             {'type':type(error).__name__,'reason':str(error)[:300]})
@@ -416,7 +458,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                   and not report.get('failures') and report.get('export_status') != 'FAIL'
                   and not (not visual_only and report['status']=='FAIL')):
                 # No infrastructure-driven blind source edits.
-                stop='topology_unverified_no_executable_feedback';book['completed']=True
+                stop=('topology_unverified_no_executable_feedback' if len(specs)==1 and topology_spec
+                      else 'assembly_checks_unverified_no_executable_feedback');book['completed']=True
         # Export unavailability alone is not a reason to change shape. Keep
         # independent visual/topology defects repairable, in the same loop.
         image_pending = bool(reviews.get('image_critic') and
@@ -428,7 +471,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             stop='export_unassessed_no_geometry_repair';book['completed']=True
         book.update(feedback=feedback, next_round=number+1)
         write_json(book_path, book)
-        if accepted or reason == 'FLOW_ERROR':
+        if accepted and not optimize or reason == 'FLOW_ERROR':
             stop = reason
             break
     book.update(completed=True, stop_reason=stop)
@@ -452,18 +495,21 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         if initial.exists():
             shutil.copytree(initial, workspace/'assembly', dirs_exist_ok=True)
     retained_approved = bool(selected['reviews'].get('accepted'))
-    unsupported = [s for s in request.checker_specs if s.name != NAME]
+    unsupported = [s for s in request.checker_specs if s.name not in NAMES]
     approved = retained_approved and not any(spec.required for spec in unsupported)
     statuses = {s.name:{'status':'INDETERMINATE', 'reason':'ASSEMBLY_ANALYSIS_UNSUPPORTED'} for s in unsupported}
     final_topology = selected['reviews'].get('assembly_topology')
-    if topology_spec:
+    final_checks=[selected['reviews'][s.name] for s in specs if s.name in selected['reviews']]
+    requirements_satisfied=bool(all(any(r['checker']==s.name and r['status']=='PASS' for r in final_checks)
+        for s in specs if s.required) and not any(s.required for s in unsupported))
+    required_passed=bool(any(s.required for s in specs) and requirements_satisfied)
+    if specs:
         if selected['reviews'].get('checker_source_sha256') != file_hash(source_path):
             raise ValueError('retained checker/source version mismatch')
-        approved = bool(approved and final_topology and final_topology['status']=='PASS')
-    write_json(workspace/'checker_results.json', {'required_checkers_passed':bool(topology_spec and final_topology
-        and final_topology['status']=='PASS' and not any(s.required for s in unsupported)),
-        'source_sha256':file_hash(source_path),'results':[final_topology] if final_topology else [],
-        'not_executed':{name:'disabled_for_fixed_assembly_v1' for name in ('topology','standing','overhang','fea')},
+        approved = bool(approved and requirements_satisfied)
+    write_json(workspace/'checker_results.json', {'required_checkers_passed':required_passed,
+        'source_sha256':file_hash(source_path),'results':final_checks,
+        'not_executed':{name:'not_enabled' for name in (*NAMES,'topology','standing','overhang','fea') if name not in {s.name for s in specs}},
         'requested_unsupported':statuses})
     write_json(workspace/'assembly_result.json', {'version_id':book['retained'], 'source_sha256':file_hash(source_path),
         'working_version':book['working'], 'qualified_version':book['qualified'],
@@ -473,11 +519,13 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         'geometry_validation':'NOT_EVALUATED' if visual_only else selected['reviews'].get('geometry',{}).get('status'),
         'interface_and_appearance_approved':None if visual_only else retained_approved,
         'reviews':selected['reviews'], 'stop_reason':stop,
-        'physical_validation':'NOT_EVALUATED', 'requested_unsupported':statuses})
+        'physical_validation':('SELECTED_SCOPE_PASSED' if required_passed else
+            'NO_REQUIRED_PHYSICAL_CHECKS' if not any(s.required for s in specs) else 'NOT_FULLY_VERIFIED') if specs else 'NOT_EVALUATED',
+        'checker_statuses':{r['checker']:r['status'] for r in final_checks},'requested_unsupported':statuses})
     runtime.usage.update_manifest(status='completed', mode='generate', approved=approved,
         source_path=str(source_path), glb_path=str(glb) if glb else None, urdf_path=None,
         render_paths=[str(p) for p in renders], selected_round=1 if book['retained']=='original' else int(book['retained'].split('_')[1])+1,
-        finalization_reason=stop, verification_scope=verification_scope, physical_checks_passed=False)
+        finalization_reason=stop, verification_scope=verification_scope, physical_checks_passed=required_passed)
     workflow._write_checkpoint(workspace, mode='generate', stage='completed', approved=approved)
     return ObjectRunResult(workspace, source_path, glb, urdf, tuple(renders),
         1 if book['retained']=='original' else int(book['retained'].split('_')[1])+1, approved, runtime.usage.totals())

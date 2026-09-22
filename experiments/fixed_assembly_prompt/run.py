@@ -20,7 +20,7 @@ import traceback
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 from agents.models.interface import Model
-from adsl.agents.models import ObjectRequest, CheckerSpec
+from adsl.agents.models import ObjectRequest, CheckerSpec, RepairPolicy
 from adsl.agents.overhang_edit import assert_version, file_hash
 from adsl.agents.service import ObjectWorkflow
 from adsl.agents.utils.io import read_json, write_json
@@ -34,7 +34,7 @@ MANIFEST = REPO/'experiments/standing_fea_30/case_manifest.json'
 MANUFACTURING = '''Generate a NEW complete aDSL program from the original task below, with static fixed manufacturing assembly, not articulation. Use the existing Planner's component and connection plan; Coder implements that plan in assembly using connectors for its connections. Do not add a separate print-part decision stage. Do not assume one Asset/class per print part or impose a minimum number of print parts; a single planned print part needs no connector. Use ONLY existing FixedAssembly / TabSlot and a receiver-first rooted tree. Within a print part retain normal modeling and attach_part. Between print parts use assembly.connect to generate BOTH mating sides and placement; no global union across print parts. The parameters argument of connect must be a TabSlot object (or an entry containing that object), not a dictionary of dimensions. Preserve the requested appearance and function. Frozen scale, overall dimensions and single-sided fit allowance below must not change. These are geometric demonstration dimensions; clearance is not proof of physical fixation. Use one complete initial source.py and repair only within the frozen budget, with existing Image/Code Critic in visual_only mode and export consistency checks. Assembly geometry checks are NOT_EVALUATED; visual approval is not manufacturing approval. No physical checkers, snap_floaters, or extra interface types.'''
 
 
-def prepare(root, max_rounds=5, *, cases=IDS, assembly_topology=False, profile=PROFILE, sizes=None):
+def prepare(root, max_rounds=5, *, cases=IDS, assembly_topology=False, profile=PROFILE, sizes=None, tools=(), physics=None):
     if not 1 <= max_rounds <= 5:
         raise ValueError('max_rounds must be between 1 and 5')
     root.mkdir(parents=True, exist_ok=True)
@@ -43,6 +43,9 @@ def prepare(root, max_rounds=5, *, cases=IDS, assembly_topology=False, profile=P
         print('Existing batch: preserve frozen repair limits; --max-rounds only affects new batches.', flush=True)
         return
     manifest_cases = {c['case_id']:c for c in read_json(MANIFEST)['cases']}
+    from adsl.agents.assembly_physics import NAMES,checker_spec as physics_spec
+    selected=list(dict.fromkeys([*(['assembly_topology'] if assembly_topology else []),*tools]))
+    if set(selected)-set(NAMES):raise ValueError('unknown fixed-assembly tool')
     for cid in cases:
         case = manifest_cases[cid]
         inputs = {'case_id':cid, 'experiment_type':'fixed_assembly_prompt_to_3d',
@@ -61,15 +64,25 @@ def prepare(root, max_rounds=5, *, cases=IDS, assembly_topology=False, profile=P
                     'adsl-agents/cli.py --image default []'],
                 'geometry_dimensions':'New demonstration specification, not inferred from any saved model.'},
             'initial_generation_limit':1, 'source_repair_limit':max_rounds-1}
-        if assembly_topology:
+        if selected:
             from adsl.agents.assembly_topology import checker_spec
-            inputs['checker_specs']=[checker_spec().model_dump()]
-            inputs['manufacturing_requirements'] += (
-                '\nCURRENT RUN OVERRIDE: enable ONLY assembly_topology after export, '
-                'alongside the unchanged Image/Code review. Keep geometry-mode gates off. '
-                'Use measured part/interface feedback via Engineering and the existing Coder '
-                'repair budget; localized open mesh is unverified, not confirmed disconnection. '
-                'Old topology, FEA, standing and overhang remain disabled.')
+            inputs['checker_specs']=[(checker_spec() if name=='assembly_topology' else physics_spec(name)).model_dump() for name in selected]
+            inputs['manufacturing_requirements']=inputs['manufacturing_requirements'].replace(
+                'No physical checkers, snap_floaters, or extra interface types.',
+                'Selected assembly tools: '+', '.join(selected)+'. Old whole-object checkers remain off. '
+                'All available feedback enters one shared repair budget. No snap_floaters or extra interface types.')
+            if physics is not None:
+                inputs['fixed_assembly']['physics']=physics
+                editable=bool(physics.get('overhang',{}).get('orientation_editable',False))
+                inputs['repair_policy']={'print_orientation_editable':editable}
+                inputs['manufacturing_requirements'] += (
+                    '\nPhysics specifications are frozen, not editable. Use actual millimetre dimensions, '
+                    'not normalized toy geometry. FEA uses explicit load/support regions, ideal bonding, '
+                    'and is separate from self-weight contact stability. Overhang optimization permits '
+                    'only print-orientation changes, not shape/use-pose changes. Keep source local/world '
+                    'coordinates consistent with configured load and support regions; unresolved mapping '
+                    'is unverified, never permission to change loading. These conditions are screening, '
+                    'not manufacturing or fastening certification.')
         write_json(root/cid/'input.json', inputs)
     paths = [Path(__file__), profile, REPO/'adsl-agents/service.py', REPO/'adsl-agents/fixed_assembly.py',
              REPO/'adsl-core/core/export/export_assembly.py']
@@ -78,7 +91,7 @@ def prepare(root, max_rounds=5, *, cases=IDS, assembly_topology=False, profile=P
         'commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip(),
         'file_sha256':{str(p):file_hash(p) for p in paths}, 'created_at':time.time(),
         'input_sha256':{cid:file_hash(root/cid/'input.json') for cid in cases},
-        'physical_checkers':['assembly_topology'] if assembly_topology else [],
+        'physical_checkers':selected,
         'geometry_timeout_seconds':120, 'render_timeout_seconds':300,
         'render':{'engine':'CYCLES','width':512,'height':512,'samples':32},
         'cross_experiment_token_accounting':False})
@@ -329,7 +342,8 @@ async def run_case(root, cid, *, resume_from=None):
     workflow = PromptWorkflow(Path(read_json(root/'batch.json').get('model_profile',str(PROFILE))))
     specs=tuple(CheckerSpec.model_validate(s) for s in inputs.get('checker_specs',[]))
     request = ObjectRequest(requirement,work,f'prompt_assembly_{cid}',image_paths=(),
-        articulation=False,max_rounds=max_rounds,checker_specs=specs,fixed_assembly=inputs['fixed_assembly'])
+        articulation=False,max_rounds=max_rounds,checker_specs=specs,fixed_assembly=inputs['fixed_assembly'],
+        repair_policy=RepairPolicy.model_validate(inputs.get('repair_policy',{})))
     start = time.time()
     write_json(folder/'started.json',{'time':start,'route':'ObjectWorkflow.resume' if resume_from else 'ObjectWorkflow.generate',
         'source_preloaded':bool(resume_from),'resume_from':str(resume_from) if resume_from else None})
@@ -409,9 +423,9 @@ async def run_case(root, cid, *, resume_from=None):
     return summary
 
 
-async def main(root, cases, max_rounds=5, *, assembly_topology=False, profile=PROFILE):
+async def main(root, cases, max_rounds=5, *, assembly_topology=False, profile=PROFILE, tools=(), physics=None, sizes=None):
     prepare(root, max_rounds=max_rounds, assembly_topology=assembly_topology, profile=profile,
-            cases=cases if assembly_topology else IDS)
+            cases=cases if assembly_topology or tools else IDS, tools=tools,physics=physics,sizes=sizes)
     if any(c!=IDS[0] for c in cases):
         first = root/IDS[0]
         if ((first/'result.json').exists() and read_json(first/'result.json')['pause_batch']
@@ -431,9 +445,14 @@ if __name__=='__main__':
     parser.add_argument('--root',type=Path,required=True)
     parser.add_argument('--cases',nargs='+',choices=IDS,default=[IDS[0]])
     parser.add_argument('--assembly-topology',action='store_true')
+    parser.add_argument('--tools',nargs='+',choices=['assembly_topology','assembly_standing','assembly_overhang','assembly_fea'],default=[])
+    parser.add_argument('--physics-config',type=Path)
+    parser.add_argument('--final-size-mm',nargs=3,type=float)
     parser.add_argument('--llm-config',type=Path,default=PROFILE)
     parser.add_argument('--max-rounds',type=int,choices=range(1,6),default=5,
                         help='New batches only: total review rounds including initial evaluation (default 5, at most 4 repairs); existing frozen limits remain unchanged')
     args=parser.parse_args()
     raise SystemExit(asyncio.run(main(args.root.resolve(),args.cases,args.max_rounds,
-        assembly_topology=args.assembly_topology,profile=args.llm_config.resolve())))
+        assembly_topology=args.assembly_topology,profile=args.llm_config.resolve(),tools=args.tools,
+        physics=read_json(args.physics_config) if args.physics_config else None,
+        sizes={c:args.final_size_mm for c in args.cases} if args.final_size_mm else None)))

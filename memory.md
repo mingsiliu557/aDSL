@@ -16,6 +16,23 @@
   `adsl_exact_ascii_fresh_20260922`，启动/完成状态以目录run_status.json和日志为准。
 - 详见 `reports/exact_ascii_stl_fresh_20260922.md`。沿用已有prepare/main，仅本次目录加薄包装，
   不扩大CLI白名单或重构流程。旧失败/旧API成本/旧结果不覆盖；本轮无跨实验累计token记账。
+- 两例任务已结束：SF03 两次修补后 `approved=true`，发布 `attempt_0002`，停止原因
+  `appearance_export_and_assembly_topology_passed`；SF02 修补请求遇到 CLIProxy 上游503
+  `auth_unavailable / PROTOCOL_ERROR`，未实际改动源码，保存 original，不能称两例都几何失败。
+- 用户授权仅SF02重新从prompt生成，目录 `temp/assembly_sf02_fresh_retry_20260922T041330Z/`，
+  会话 `adsl_sf02_retry_20260922T041330Z`；输入逐字段与上一轮SF02一致，仍5轮/最多4修补，
+  只用assembly_topology。已完成5轮/4修补，约2390秒、972101 tokens；最后attempt_0004
+  6/6件、5/5接口PASS，但Image/Code木纹外观拒绝，未接受；实际retained仍original
+  （5/6件、4/5接口PASS，总INDETERMINATE）。旧SF02及SF03不覆盖。
+- 用户授权更新展示选择：SF03/w用新生成已接受attempt_0002；SF02/w用最新未接受attempt_0004。
+  展示Topology wo=2/6、w=4/6；Image wo=0/6、w=2/6；二者联合wo=0/6、w=2/6。
+  两个替换使用在线Image，其他用旧离线Image；生成批次/求值实现也不同，非同预算主实验结论。
+  原批账本/实际retained不改；SF13/wo单件零接口不代表接口配对已验证。
+- 已打包 `adsl_fixed_assembly_6cases_updated_20260922.zip`（16859286 bytes，12份资产/1012文件），
+  包含源码、输入、plan、STL/GLB、多视角/拆分图、checker证据、CSV、REPORT.md和逐案例原因。
+  解压工作目录 `temp/presentation_pack_20260922/adsl_fixed_assembly_6cases_updated_20260922/`；
+  CRC、所有打包文件哈希及Markdown相对链接校验通过。不含API密钥、代理配置或原始请求。
+  ZIP SHA256：88c3cbe0fea6e6c1fa0e3a31ecf6e8640a3e22dee36ca239af470e790dbb77f5。
 
 ## 局部 Boolean 后端对照（2026-09-22）
 
@@ -1504,3 +1521,74 @@ Toys4K 最小下载：
   保存诊断并上报 FLOW_ERROR 停批，不再重复消耗轮次；单例 API 错误仍隔离。
   166 项轻量测试通过，包括完整 mock 修复闭环与 retained 发布一致性。
   未修改几何内核/阈值，未启动实验或调用 API，历史失败记录未改，尚未推送。
+
+### 2026-09-22 固定装配多物理工具接入（部分真实验证，尚未全部完成）
+
+- 基线 HEAD `766db7da00b98e8583adcdffa1970c957119879a`；新增 assembly_physics /
+  standing / overhang / fea adapter，复用原单 Coder 循环、进程隔离和 retained。
+  增加逐件 set_print_orientation，T @ R 仅影响打印姿态，使用/总装姿态不变。
+- 相关轻量测试 77 passed；真实 Blender 导出/方向链通过；真实两件 C3D10 tie
+  传力、去 tie 和解析杆对照已执行。细网格峰值应力变化 +35.34%，不能称收敛。
+- 真实现有 T 支架：topology PASS，overhang 测量 PASS；standing CoACD 超时后
+  FEA 仍执行，后者因位移协调复核未满足保留 INDETERMINATE，不是强度 FAIL。
+- 重力观察完整运行 **5 秒**。0.04 秒是脱离测试的首次退出事件，不是停止时间。
+  新反馈明确第 5 秒的倾角、接口、运动状态，同时保留峰值及最早异常。
+  修复 numpy.bool_ 被 JSON default=str 写成字符串的问题。25°阈值不变。
+- MuJoCo 精确测试代理下能检出脱离及倾倒；正常落座例仍有末段运动，不标
+  稳定 PASS。解析凸块只用于隔离测试，不是生产 CoACD 失败的备用方案。
+  CoACD 自动分解及独立双精度对照仍超时，未替换生产依赖、未放宽误差。
+- 尚未启动新 SF03 / API / 批次，尚未推送。当前代码与工具证据详见
+  `reports/assembly_physics_v1.md`；产物在 `temp/assembly_physics_smoke_v1/`。
+  不得把模拟控制流通过或单个求解例通过表述为整个计划已经完成。
+
+### 2026-09-22 SF03 单例 prompt-to-3D 已启动
+
+- 用户要求先跑一个真实 case 验证修补能力。新目录
+  `temp/assembly_physics_SF03_20260922T082400Z/`，同名 `adsl_physics_SF03_20260922T082400Z`
+  tmux；CLIProxy 健康检查通过，实际 Planner 请求已记录 RUNNING，初始源码为空。
+- 只跑 SF03，不传旧源码/旧渲染；沿用 archived wo/SF03 的 90×80×180 mm、
+  1 mm/scene unit、0.2 mm 余量。5轮评估含初稿，最多4次共享修补；不重跑对照组。
+- 接入 Image/Code 及四个 assembly adapter，当前 FEA **NEEDS_SPEC**：T 支架工况
+  不能套到小尺寸椅子，尚无适用的载荷/支撑/材料允许应力/功能位移限值，故本例
+  不能验证 FEA 指导修补。未验证保持未验证，不拿缺配置驱动几何修改。
+- 自重完整观察5秒；CoACD 代理可靠性仍是已知风险，失败后其余工具继续。
+- T支架短诊断仅读旧网格/求解场：角点最近主面几乎等距，位移插值残差随选择不同；
+  未恢复求解器真实 MPC 对应，未改变判定容差，不能宣布接口绑定已修好。
+  证据 `temp/assembly_physics_smoke_v1/fea_short_diagnostic/result.json`。
+- 开销与实际输入由已有 runner 保存；本轮代码快照、协议、console.log 在新目录。
+  启动不等于修补成功，完成状态须以后续实际结果为准。未推送、未扩展批次。
+
+### 2026-09-22 用户要求停止缺 FEA 规格的单例，补齐后从头重跑
+
+- 已只停止 `adsl_physics_SF03_20260922T082400Z` 的前台任务（exit130），未停代理；
+  旧代码/图/日志保留并写 `STOPPED_BY_USER.md`。旧初稿 topology 6/6件、5/5接口PASS；
+  Image/Code拒绝座面接缝，standing CoACD阶段exit-9（原因未确定），overhang面积
+  5929.80487064 mm²，FEA NEEDS_SPEC；未完成源码修补，不算修补结果。
+- 用户明确选择实际家具尺度 **450×400×900 mm**，座面1000N向下、靠背300N水平；
+  不与旧90×80×180mm的wo对照直接比较数值。
+- 新配置 `examples/fixed_assembly/physics_sf03_chair.json`：历史PLA等效筛查材料
+  E3GPa/ν0.35/ρ1240，允许应力25MPa（50MPa代理屈服/2），功能位移限5mm；
+  支脚底面区域固定平移，座面+Z/靠背+Y选面按面积分配总载荷，叠加自重。
+  采用现有语义名称/assembly坐标区域，不硬编码旧part_id；缺区域仍未验证。
+  数值有效性、tie、网格及现有阈值实现不变；无新的自动载荷推断。
+- 新增 `tests/test_assembly_chair_profile.py`；6项相关轻量测试通过。
+  一次真实两件FEA冒烟1passed/16.75s，反力/接口协调通过；不冒充SF03结果。
+  首次该测试只因输出父目录缺失未进入求解器，建目录后重试，已在协议中记录。
+- 新目录 `temp/assembly_physics_SF03_fullsize_20260922T085200Z/`，同名
+  `adsl_physics_SF03_fullsize_20260922T085200Z` tmux。从原始prompt重新生成，
+  5轮评估含初稿、最多4次共享修补；CLIProxy/gpt-5.6-sol；新预算与旧记录分开。
+  actual Planner payload已核对含完整FEA配置且source为空，请求001 RUNNING。
+- 工具顺序topology→overhang→FEA→standing，避免CoACD延迟FEA启动；反馈仍统一
+  一次Coder。FEA这次会尝试真实分析，不预置NEEDS_SPEC；若绑定/求解不可用仍
+  未验证，不让模型按不可靠应力改形状。未启动其他case、未推送。
+
+### 2026-09-22 物理工具代码与未解问题归档
+
+- 用户要求同步远端并列出现阶段问题；整理范围只包含固定装配工具、打印方向、
+  实验配置、相关测试和报告，不混入历史报告删除、GPU keeper或大体积实验资产。
+- `reports/assembly_physics_open_issues_20260922.md` 区分SF03真实tie未匹配、
+  T支架后处理主面对应不明、CoACD代理耗时/可靠性、FEA假设及比较口径。
+- SF03首轮3个未绑定节点在左前/右前/右后腿榫根Z=0；已选主面距离约0.199997mm，
+  小于0.200801mm容差。日志为no opposite master face，不是距离过远。
+  具体搜索/投影失败原因仍未证实，不能直接归为模型断开；未动模型或阈值。
+- 此次提交不停止/重启运行中的全尺寸SF03，不新增实验；结果继续以原账本为准。

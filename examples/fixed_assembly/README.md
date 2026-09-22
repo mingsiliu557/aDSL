@@ -2,8 +2,13 @@
 
 Opt-in static manufacturing assembly: one `tab_slot` type, explicit print parts,
 one complete aDSL program, and the original Image/Code Critic responsibilities.
-All four physical checkers are disabled; requesting one records it as unsupported,
-not PASS. This is not the `planned_checks` or overhang experiment mode.
+Physical checks remain off by default. Explicit `assembly_topology`,
+`assembly_standing`, `assembly_overhang`, and `assembly_fea` adapters now use the
+same fixed-assembly repair loop; the old whole-object tools remain unsupported
+here, not PASS. This is not the `planned_checks` or old overhang experiment mode.
+Native standing validation is **not complete**; see
+[`reports/assembly_physics_v1.md`](../../reports/assembly_physics_v1.md) for tested
+scope, CoACD/settling blockers, and the FEA numerical limitations.
 
 `t_bracket.py` is the hand-written geometry fixture; it is NOT provided to the
 prompt-to-3D smoke agent. The smoke prompt specifies dimensions and interface
@@ -23,6 +28,14 @@ twice or select both ancestor and descendant. Copies are independent instances.
 Print-part IDs `scene` and `exploded` are rejected because they would overwrite
 the whole-assembly GLBs; this is checked in planning and again before export.
 Only the helper adds tab/slot material; bodies supply mounting material.
+
+Printing orientation is independent of assembly placement:
+`assembly.set_print_orientation('stem', rotation_deg=(90, 0, 0))`.
+Angles are degrees, `R = Rz @ Ry @ Rx`; the exporter applies rotation then bed
+translation to STL, while local/assembled GLB geometry and use pose stay unchanged.
+`physics.json` is an explicit **T-bracket-only** load/support example, not a
+universal furniture specification. Standing observes the entire 5 seconds;
+the first exit time is an event timestamp, never an early simulation stop.
 
 ```bash
 # Small tests, no API:
