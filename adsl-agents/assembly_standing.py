@@ -236,14 +236,17 @@ def analyze(args,physics):
                 'assessment_time_seconds':result['assessment_time_seconds'],
                 'final_interface':next(i for i in result['final_interfaces'] if i['connection_id']==cid)}))
     capture_verified=result['interface_retention_verified']
-    status='FAIL' if findings else 'PASS' if result['settled'] and capture_verified else 'INDETERMINATE'
+    # Settling is diagnostic only; standing requires no tipping or interface exit.
+    status='FAIL' if findings else 'PASS' if capture_verified else 'INDETERMINATE'
     write_json(args.output/'stage.json',{'stage':'completed','status':status})
     result['simulation_frames']=save_frames(report,meshes,trajectory,args.output)
     return CheckerResult(checker=NAME,status=status,
         summary=f'After {result["assessment_time_seconds"]:g} s self-weight: final tilt {result["final_tilt_deg"]:.4g} deg; '
             f'{len(result["final_exited_interfaces"])} interfaces outside; '+
-            ('settled' if result['settled'] else 'motion not settled')+f'; observation verdict {status}',
+            f'standing observation {status}; settling diagnostic: '+
+            ('settled' if result['settled'] else 'motion not settled')+' (not a pass requirement)',
         metrics=result,findings=findings,assumptions={'uniform_density_kg_m3':density,'external_load_stability':'NOT_EVALUATED',
+            'standing_criterion':'No sampled root tilt above the configured limit and no interface exit during the full observation; settling is diagnostic only',
             'contact':'independent bodies, no weld; CoACD proxies verified locally by sampling/queries',
             'mujoco_version':importlib.metadata.version('mujoco'),'coacd_version':importlib.metadata.version('coacd'),
             'configuration':config},artifacts={'trajectory':str(args.output/'trajectory.json'),'simulation':str(args.output/'model.xml')})

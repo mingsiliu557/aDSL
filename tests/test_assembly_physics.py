@@ -291,7 +291,7 @@ def test_real_mujoco_with_exact_fixture_proxies_only(tmp_path):
         result['proxy_scope']='Exact test-fixture boxes; CoACD NOT validated; not a production alternative'
         write_json(args.output/'test_result.json',result);results.append(result)
     # This isolated test validates time/event semantics, NOT end-to-end stable
-    # PASS. The full CoACD+settling acceptance gate is the separate test above.
+    # PASS. The full CoACD+standing acceptance gate is the separate test above.
     assert not results[0]['tipped'] and not results[0]['exits'],results[0]
     assert results[1]['exits'],results[1]
     for result in results:
