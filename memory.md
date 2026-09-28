@@ -4,7 +4,32 @@
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
 
-## 静态视觉审查修正（2026-09-28，当前任务）
+## temp 仅保留当前 SF03（2026-09-28，最新清理状态）
+
+- 用户随后明确要求 temp 下全部其他内容删除，仅保留当前 case；已执行，删除其他 50 个顶层项，
+  释放约 3.342 GiB。temp 现仅有 `sf03_visual_generation_20260928T050438Z/`。
+  删除前后校验本 case 原有 134 个文件内容不变；之后仅更新清理摘要和记录。
+- 先前保留的 temp 历史实验、visual_critic_review_20260928、assembly_sessions 和临时运行/构建依赖
+  也已按本次授权删除。下文旧 temp 路径属于历史记录，不再表示文件存在；temp 外内容未动。
+- 本 case 的源码、GLB、生成结果、API/评审记录、会话归档副本、原始八视图、补充六视图均保留。
+  删除清单及保留文件哈希：本 case 内 `cleanup_keep_only_case.json`。
+- 已再次核对实际 Image Critic 请求：8 张渲染、0 张参考图；前 6 张环绕、第 7 张俯视、第 8 张仰视。
+  `extra_views_20260928/` 中 6 张 CPU 补图只用于展示整体/细节，没有替换 Critic 的输入。
+
+## SF03 椅子单例新生成（2026-09-28，已完成）
+
+- 用户要求在修订后的 Critic 上真实生成一个 SF 椅子，所有物理 checker 关闭，只用 CPU。
+- 已启动独立会话 `adsl_sf03_visual_20260928T050438Z`，输出
+  `temp/sf03_visual_generation_20260928T050438Z/`；现有 CLIProxy / gpt-5.6-sol。
+- 仅 SF03 原始高靠背木椅 prompt，从空源码开始，无旧模型/渲染/参考图；原有装配单例入口。
+  沿用演示规格 90×80×180 mm、1 mm/unit、0.2 mm 余量；visual_only、checker_specs=[]。
+  最多 5 轮评审/4 次修补，提前通过或 NO_CHANGE 即停止；CPU CYCLES 512×512、32 samples。
+- 已结束 exit=0，263.54 秒，4 次 API / 41,844 tokens；初稿 original 首轮接受，0 修补。
+  Image 仅木纹质感 MED、靠背接缝 LOW，无 HIGH，按规则未调用 Code。导出 PASS、几何 NOT_EVALUATED。
+  实际 runtime_config、checker_results 和输入审计确认无 checker、无旧源码/图片；6 件、5 连接，
+  发布源码/manifest/版本文件校验通过。预览与摘要在本目录 preview.jpg、SUMMARY.md。
+
+## 静态视觉审查修正（2026-09-28，实现已完成）
 
 - 已承接对话 `01a04d06-102b-73f2-8abe-ead93a99af1a` 的最小修复计划，在
   `fix/visual-critic-review` 实施，基线 `54e7df1470c9829c5645d73067d39d3c75868ad1`。
@@ -25,7 +50,7 @@
   遮挡误报，不改样例追求通过。错位靠背两者均判 HIGH，Code 定位 Backrest.__init__.panel 的 x=0.75，未凭类名存在放行。
 - 真实抽查已全部完成：6 次 Critic / 9 次 SDK 记账请求、68,625 tokens；三次 Code 均成功读取源码，样例源码哈希不变。
 - 实现与验证已完成，正式报告 `reports/visual_critic_review_20260928.md`；本次仅提交上述代码、测试、报告和 memory。
-  既有 FEA/standing 改动、实验文件、历史文件删除保持原样，不纳入本提交；不合并 master、不推送。
+  既有 FEA/standing 改动、实验文件、历史文件删除保持原样，不纳入本提交。用户随后已授权将本任务合并 master 并推送 GitHub，发布范围包含该实现及相关验证/清理记录。
 
 ## EXACT + ASCII STL 与两例全新生成（2026-09-22）
 

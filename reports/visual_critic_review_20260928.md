@@ -46,7 +46,7 @@
 
 ## 证据与边界
 
-本地证据目录：`temp/visual_critic_review_20260928/`。
+原始本地证据目录：`temp/visual_critic_review_20260928/`。下列为当时保存的证据清单；用户随后要求 temp 只保留 SF03，故该诊断目录现已删除，不能再通过这些本地路径复核。
 
 - `regression_final_scoped.log`、`regression_fixture_cleanup.log`：测试结果。
 - `render_results.json`、`fixture_correction.json`、`render_contact_sheet.jpg`：真实 CPU 渲染与夹具修正。
@@ -55,4 +55,13 @@
 - `api_launch_diagnostic.json`、`critics.log`、`critics_live_proxy.log`：首次连接故障和本次完成记录。
 - `code_snapshot.json`：最终代码与测试 SHA256；`code_snapshot_before_scope_guard.json` 保存最后范围保护前的状态（真实调用使用其中产品实现；之后只增加静态路径条件保护，静态调用内容不变）。各样例输入另保存源码 SHA256。
 
-这是小规模功能抽查，不能推断大样本误判率或真实修补成功率。没有重新生成历史实验、重评旧成绩或启动 GPU；真实物理 checker 全部关闭。既有 FEA/standing 修改、实验脚本和历史文件删除不属于本提交。报告与 memory 更新后只提交本任务改动，不合并 master、不推送远端。
+这是小规模功能抽查，不能推断大样本误判率或真实修补成功率。没有重新生成历史实验、重评旧成绩或启动 GPU；真实物理 checker 全部关闭。既有 FEA/standing 修改、实验脚本和历史文件删除不属于本提交。初次交付只提交本任务分支；用户随后授权将本任务合并到 master 并推送 GitHub，既有无关改动仍不纳入发布。
+
+
+## 后续 SF03 单例生成与保留状态
+
+用户要求用新 Critic 从原始 SF03 高靠背木椅 prompt 生成一个完整 case，仍只用 CPU、关闭全部物理 checker。既有 CLIProxy / gpt-5.6-sol 完成 Planner → Coder → 执行/导出 → 八视图 → Image，263.54 秒，4 次 API、41,844 tokens。输入审计确认空源码起步、无旧图或参考图。
+
+首轮 Image 无 HIGH，只有木纹质感 MED 和靠背接缝 LOW，故直接接受 original，0 修补，未触发 Code。导出 PASS，几何 NOT_EVALUATED；6 件、5 连接。已核对实际 Image 请求附件为 6 环绕 + 俯视 + 仰视，共 8 张。随后补渲染的 6 张整体/细节展示图没有替换 Critic 输入。
+
+用户最终要求清空 temp 中其余内容。当前只保留 `temp/sf03_visual_generation_20260928T050438Z/`，含 SF03 源码、GLB、运行和评审记录、会话归档、八视图、补充六视图及清理清单。生成产物和原始 API 日志不纳入 Git；本报告及 memory 保留验证结论和数据已删除的事实。
