@@ -2,7 +2,7 @@
 
 Called inside the existing isolated asset executor (120-second geometry budget).
 Blender evaluates aDSL CSG; Manifold unions shells WITHIN each print part only.
-The shared Blender exporter normalizes exact-zero polygon tessellation and
+The shared Blender exporter normalizes exact-zero edges/polygon tessellation and
 validated local numerical boundary cracks within each evaluated object.
 No cross-part welding, remeshing, solver checks or fit-tolerance tuning is performed.
 """
@@ -62,6 +62,9 @@ def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geomet
                 zero_area_triangles_before=get('adsl_zero_area_triangles_before'),
                 zero_area_triangles_after=0, shell_components=get('adsl_mesh_shell_components'),
                 vertices_unchanged=True, closed=True, manifold=True, winding_consistent=True))
+        if get('adsl_zero_length_normalization'):
+            normalizations.append(dict(object=obj.name,
+                **json.loads(get('adsl_zero_length_normalization'))))
         if get('adsl_microcrack_normalization'):
             normalizations.append(dict(object=obj.name,
                 **json.loads(get('adsl_microcrack_normalization'))))

@@ -444,13 +444,98 @@ def _bmesh_component_count(mesh):
     return count
 
 
+def _normalize_exact_zero_length_edges(obj, vertices, faces, crosses, polygons):
+    """Collapse only adjacent exact duplicates, preserving every positive triangle.
+
+    Triangulate before welding so deleting a redundant polygon corner cannot
+    silently change the diagonals of a slightly nonplanar Boolean face.
+    """
+    import bmesh
+    from collections import Counter
+
+    mesh = bmesh.new()
+    candidate = None
+    committed = False
+    try:
+        mesh.from_mesh(obj.data)
+        mesh.verts.ensure_lookup_table()
+        mesh.faces.ensure_lookup_table()
+        targets, affected, used = {}, set(), set()
+        for edge in mesh.edges:
+            a, b = sorted(edge.verts, key=lambda v: v.index)
+            if (tuple(a.co) != tuple(b.co) or not edge.is_manifold or not edge.is_contiguous
+                    or not all(v.is_manifold for v in edge.verts)
+                    or not all(f.index in polygons and len(f.verts) > 3 for f in edge.link_faces)):
+                continue
+            if a in used or b in used:
+                raise ValueError('adjacent zero-length edges require separate diagnosis')
+            targets[b] = a
+            used.update((a, b))
+            affected.update(edge.link_faces)
+        if not targets:
+            return False
+        components = _bmesh_component_count(mesh)
+        positions = {v: tuple(v.co) for v in mesh.verts if v not in targets}
+        candidate = obj.data.copy()
+        bmesh.ops.triangulate(mesh, faces=list(affected), quad_method='FIXED', ngon_method='EAR_CLIP')
+        bmesh.ops.weld_verts(mesh, targetmap=targets)
+        if (not all(e.is_manifold and e.is_contiguous for e in mesh.edges)
+                or not all(v.is_manifold for v in mesh.verts)):
+            raise ValueError('exact zero-length cleanup is not closed, manifold and consistently wound')
+        if _bmesh_component_count(mesh) != components:
+            raise ValueError('exact zero-length cleanup changed connectivity')
+        if (len(mesh.verts) != len(positions)
+                or any(not v.is_valid or tuple(v.co) != p for v, p in positions.items())):
+            raise ValueError('exact zero-length cleanup moved or removed unrelated vertices')
+        mesh.to_mesh(candidate)
+        candidate.update()
+        new_vertices, new_faces, new_crosses = _mesh_triangles(candidate, obj.matrix_world)
+        if not np.isfinite(new_crosses).all() or np.any(np.all(new_crosses == 0, axis=1)):
+            raise ValueError('exact zero-length cleanup left degenerate triangles')
+        if (len(np.unique(new_vertices, axis=0)) != len(new_vertices)
+                or not np.array_equal(np.unique(vertices, axis=0), np.unique(new_vertices, axis=0))):
+            raise ValueError('exact zero-length cleanup changed positions or left coincident vertices')
+
+        def surfaces(data, points, triangles, normals):
+            # Cyclic permutations preserve winding; reversed triangles do not.
+            keys = []
+            for triangle, cross, loop in zip(triangles, normals, data.loop_triangles):
+                if np.all(cross == 0):
+                    continue
+                coords = tuple(tuple(p) for p in points[triangle])
+                oriented = min(coords, coords[1:]+coords[:1], coords[2:]+coords[:2])
+                keys.append((oriented, data.polygons[loop.polygon_index].material_index))
+            return Counter(keys)
+
+        if surfaces(obj.data, vertices, faces, crosses) != surfaces(candidate, new_vertices, new_faces, new_crosses):
+            raise ValueError('exact zero-length cleanup changed positive triangle surfaces or materials')
+        original = obj.data
+        obj.data = candidate
+        committed = True
+        obj['adsl_zero_length_normalization'] = json.dumps(dict(
+            method='exact_zero_length_edge_cleanup', status='APPLIED', merged_vertices=len(targets),
+            zero_area_triangles_before=int(np.count_nonzero(np.all(crosses == 0, axis=1))),
+            zero_area_triangles_after=0, maximum_displacement_mm=0.0,
+            positive_triangle_surfaces_unchanged=True, materials_preserved=True,
+            boundary_edges_after=0, closed=True, manifold=True, winding_consistent=True,
+            shell_components=components))
+        if original.users == 0:
+            bpy.data.meshes.remove(original)
+        return True
+    finally:
+        mesh.free()
+        if candidate is not None and not committed:
+            bpy.data.meshes.remove(candidate)
+
+
 def _normalize_zero_area_tessellation(obj):
-    """Retriangulate bad planar polygons, never delete faces or weld/move vertices.
+    """Clean exact zero-length edges or retriangulate bad planar polygons.
 
     Exact zero cross products trigger this pass; small positive faces are left
     alone. Work on a copy and commit only a closed, manifold, consistently wound
-    result with the same vertices, components, area and signed volume. Genuine
-    degenerate triangles and unsuccessful normalization remain evaluation errors.
+    result with unchanged geometric vertex positions and components. Exact edge
+    cleanup preserves every positive triangle; planar retriangulation preserves
+    area and signed volume. Unresolved degenerate triangles remain evaluation errors.
     """
     vertices, faces, crosses = _mesh_triangles(obj.data, obj.matrix_world)
     bad = np.flatnonzero(np.all(crosses == 0, axis=1))
@@ -461,11 +546,17 @@ def _normalize_zero_area_tessellation(obj):
     def reject(reason):
         raise ValueError(
             f"EVALUATED_MESH_DEGENERATE: object={obj.name!r} "
-            f"zero_area_triangles={len(bad)} polygons={polygons} reason={reason}"
+            f"zero_area_triangles={len(bad)} polygons={polygons} "
+            f"coincident_vertices={len(vertices)-len(np.unique(vertices, axis=0))} reason={reason}"
         )
 
     if not np.isfinite(vertices).all():
         reject('nonfinite vertices')
+    try:
+        if _normalize_exact_zero_length_edges(obj, vertices, faces, crosses, polygons):
+            return
+    except (ValueError, RuntimeError) as error:
+        reject(str(error))
     # A nonplanar polygon can change its surface when its diagonal changes.
     # Use only a floating-point arithmetic bound, never a small-face threshold.
     for index in polygons:
@@ -477,8 +568,12 @@ def _normalize_zero_area_tessellation(obj):
         normal = normals[np.argmax(np.linalg.norm(normals, axis=1))]
         size = np.linalg.norm(normal)
         bound = 64 * np.finfo(float).eps * np.max(np.abs(offsets)) * size
-        if size == 0 or np.any(np.abs(offsets @ normal) > bound):
-            reject('polygon is collinear or nonplanar')
+        if size == 0:
+            reject(f'polygon {index} is collinear')
+        distance = float(np.max(np.abs(offsets @ normal)) / size)
+        if np.any(np.abs(offsets @ normal) > bound):
+            reject(f'polygon {index} is nonplanar: max_plane_distance_scene_units={distance:.9g} '
+                   f'planarity_bound_scene_units={bound/size:.9g}')
 
     import bmesh
     candidate = obj.data.copy()

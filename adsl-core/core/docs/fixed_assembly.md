@@ -48,15 +48,24 @@ nominal tab size plus twice the SINGLE-SIDED fit offset. Depth clearance is sepa
 Lead-in is a 45° tip chamfer, not a global numeric tolerance. Explicit mounting
 overlap must be real material; the geometry evaluator checks it.
 
-Before writing meshes, the shared exporter locally retriangulates planar polygons
-whose default tessellation contains exact-zero triangles. It preserves vertices,
-materials and connectivity, and commits only after closure, manifoldness, winding
-and geometric invariants are checked. Small positive faces are not filtered.
+Before writing meshes, the shared exporter normalizes exact-zero triangles on a
+copy. Adjacent vertices with exactly equal local coordinates may be merged only
+along a manifold zero-length edge shared by the affected polygons. Those polygons
+are triangulated before welding, and every positive triangle must retain exactly
+the same coordinates, winding and material. This also handles redundant edges
+inside closed meshes, where the boundary-crack pass has no search region.
+Otherwise, bad planar polygons use the existing local retriangulation path.
+Both paths preserve geometric vertex positions and connectivity, and commit only
+after closure, manifoldness, winding and geometric invariants are checked. Small
+positive faces are not filtered; no distance or planarity tolerance is increased.
 The same evaluated mesh supplies STL, display and downstream checks; successful
 normalizations are recorded in each part's `mesh_normalizations`. An unresolved
 `EVALUATED_MESH_DEGENERATE` is an evaluation error, not established evidence of a
 source-design defect. This pass does not fill open boundaries or repair arbitrary
-degenerate triangle meshes.
+degenerate triangle meshes. Successful exact-edge cleanup records merged vertex
+and zero-area counts, zero displacement and positive-surface preservation in
+`mesh_normalizations`. Rejection diagnostics distinguish collinearity from
+nonplanarity and report plane distance/bound in scene units and coincident vertices.
 
 For fixed-part exports with known mm_per_unit, a second bounded pass uses BMesh
 find_doubles/weld_verts only inside individual triangular boundary loops. A pair
