@@ -90,7 +90,7 @@ def _assembly_context(source, report, *, version_role):
 async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, source_path, plan,
                                  initial_execution=None, initial_topology_run=None, evidence_files=()):
     from .service import _asset_executor_timeout_seconds, _actionable_findings, VISUAL_FEEDBACK_INSTRUCTION
-    from .assembly_topology import NAME, run_assembly_topology, engineer, prepare_evidence, EVIDENCE_PATH_INSTRUCTION
+    from .assembly_topology import NAME, TOPOLOGY_SCOPE_VERSION, run_assembly_topology, engineer, prepare_evidence, EVIDENCE_PATH_INSTRUCTION
     from .assembly_physics import NAMES, run_assembly_checks, orientation_only, area_comparison
     specs = [s for s in request.checker_specs if s.name in NAMES]
     if len({s.name for s in specs}) != len(specs):
@@ -347,6 +347,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     topology_run.result.assumptions.get('manifest_sha256') !=
                         file_hash(topology_execution.glb_path.parent/'assembly_manifest.json')):
                     raise ValueError('cached topology result/source/config mismatch')
+                if topology_run.result.assumptions.get('topology_scope_version') != TOPOLOGY_SCOPE_VERSION:
+                    topology_run=None
             runs = run_assembly_checks(specs,execution=topology_execution,source=current,
                 root=candidate_root,physics=config.get('physics',{}),initial_topology_run=topology_run)
             topology_run = next((r for r in runs if r.spec.name==NAME),None)

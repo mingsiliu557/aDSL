@@ -5,6 +5,8 @@ import argparse
 import ast
 from copy import deepcopy
 import json
+import itertools
+import math
 import os
 from pathlib import Path
 import signal
@@ -19,6 +21,7 @@ from .utils.execution import ExecutionResult
 from .utils.io import read_json, write_json
 
 NAME='assembly_topology'
+TOPOLOGY_SCOPE_VERSION=2
 
 
 def install_worker_cleanup():
@@ -83,11 +86,24 @@ def make_result(report, rows, source, output, source_index=None):
     parts={p['id']:p for p in report.get('part_declarations',report.get('parts',[]))}
     for row in rows:
         if row['status']=='PASS': continue
-        names=[row['part_id']] if row['kind']=='part' else [row.get('tab_part'),row.get('slot_part')]
+        names=([row['part_id']] if row['kind']=='part' else row['part_ids'] if row['kind']=='pair'
+               else [row.get('tab_part'),row.get('slot_part')])
         names=[n for n in names if n]
         candidates=source_candidates(source,source_index,set(names)|{
             c for n in names for c in parts.get(n,{}).get('components',[])})
-        ident=row.get('part_id') or row.get('connection_id','input')
+        ident=('pair:'+row['pair_id'] if row['kind']=='pair' else
+               row.get('part_id') or row.get('connection_id','input'))
+        metric = None
+        details = {'component_bounds_preview_mm':row.get('component_bounds_mm',[])[:3],
+            'boundary_regions_preview':row.get('boundary_regions',[])[:6],
+            'preview_only':row.get('component_count',0)>3}
+        if row['kind']=='pair':
+            details={k:row.get(k) for k in ('connection_ids','related_connection_ids',
+                'allowed_fit_connection_ids','raw_intersection_mm3','length_tolerance_mm')}
+            if row.get('undeclared_interference_mm3') is not None:
+                metric=MetricEvidence(name='undeclared_interference_mm3',value=row['undeclared_interference_mm3'],
+                    unit='mm3',threshold=row['volume_tolerance_mm3'],comparator='le',
+                    relative_tolerance=0,absolute_tolerance=0)
         localized_open = (row['code']=='OPEN_PRINT_MESH' and row.get('bounds_mm')
                           and row.get('boundary_edge_count',0)>0)
         relations=[]
@@ -106,17 +122,17 @@ def make_result(report, rows, source, output, source_index=None):
                      'source-level geometric cause not established.' if localized_open else
                      f'{ident}: {row["code"]}; geometry evidence only, manufacture unverified.'),
             region=RegionEvidence(kind='aabb' if row.get('bounds_mm') else 'parts',
-                frame=f'part_local:{ident}' if row['kind']=='part' else f'slot_interface:{ident}',
+                frame=('assembly' if row['kind']=='pair' else
+                       f'part_local:{ident}' if row['kind']=='part' else f'slot_interface:{ident}'),
                 unit='mm',bounds=row.get('bounds_mm'),part_names=names,
-                details={'component_bounds_preview_mm':row.get('component_bounds_mm',[])[:3],
-                    'boundary_regions_preview':row.get('boundary_regions',[])[:6],
-                    'preview_only':row.get('component_count',0)>3}), relations=relations,
+                details=details), relations=relations,metric=metric,
             source_candidates=candidates,evidence_refs=[str(output/'report.json')],domain=row))
     counts={s:sum(r['status']==s for r in rows) for s in ('PASS','FAIL','INDETERMINATE')}
     return CheckerResult(checker=NAME,status=status,summary=f'Assembly topology {status}; item counts {counts}',
         metrics={'items':rows}, findings=findings,
         assumptions={'source_sha256':sha256_file(source),'manifest_sha256':report.get('_manifest_sha256'),
-            'scope':'within-part solid connectivity and local TabSlot pairing; not retention, insertion path, strength or manufacturing',
+            'topology_scope_version':TOPOLOGY_SCOPE_VERSION,
+            'scope':'within-part solid connectivity, local TabSlot pairing and global assembly material interference; not retention, insertion path, strength or manufacturing',
             'localization':'index-assisted if current candidates exist; otherwise model source inference'},
         artifacts={'report':str(output/'report.json')})
 
@@ -137,7 +153,7 @@ def _load_solid_mesh(path):
 
 def worker(args):
     from adsl.core.assembly_topology import (part_measurement,read_print_mesh,
-        interface_measurement,mesh_solid,solid_mesh,OpenPrintMeshError)
+        interface_measurement,pair_interference_measurement,mesh_solid,solid_mesh,OpenPrintMeshError)
     report=_input(args.manifest,args.source)
     parts={p['id']:p for p in report['parts']}
     if args.part:
@@ -153,6 +169,19 @@ def worker(args):
                 stage='final_print_mesh_validation',reason=str(error),
                 **{k:v for k,v in error.evidence.items() if k!='boundary_edges_mm'},
                 boundary_report=str(args.output/'boundary_edges.json'))
+    elif args.pair:
+        names=sorted(args.pair)
+        paths=read_json(args.solids)
+        if any(n not in parts or n not in paths or not Path(paths[n]).is_file() for n in names):
+            row=dict(kind='pair',pair_id=':'.join(names),part_ids=names,status='INDETERMINATE',
+                code='DEPENDENCY_MESH_UNAVAILABLE',reason='pair requires both measured part solids')
+        else:
+            if any(v is None or not math.isfinite(v) or v<0
+                   for v in (args.length_tolerance_mm,args.volume_tolerance_mm3)):
+                raise ValueError('missing or invalid measured pair tolerance')
+            solids={n:mesh_solid(_load_solid_mesh(paths[n])) for n in names}
+            row=pair_interference_measurement(*names,parts,solids,report.get('connections',[]),report['mm_per_unit'],
+                length_tolerance_mm=args.length_tolerance_mm,volume_tolerance_mm3=args.volume_tolerance_mm3)
     else:
         connection=next(c for c in report['connections'] if c['id']==args.connection)
         paths=read_json(args.solids)
@@ -170,35 +199,59 @@ def measure(args):
     report['_manifest_sha256']=sha256_file(args.manifest)
     parts={p['id']:p for p in report['parts']}
     declared=report.get('part_declarations',report['parts'])
-    rows=[]; paths={}
+    paths={}
+    jobs=[('part',p['id'],p) for p in declared]+[('interface',c['id'],c) for c in report.get('connections',[])]
+    pairs=list(itertools.combinations(sorted(p['id'] for p in declared),2))
+    jobs += [('pair',':'.join(pair),pair) for pair in pairs]
+    rows=[]
+    for kind,ident,data in jobs:
+        row=dict(kind=kind,status='INDETERMINATE',code='CHECKER_BUDGET_NOT_EXECUTED')
+        if kind=='part': row['part_id']=ident
+        elif kind=='pair': row.update(pair_id=ident,part_ids=list(data),frame='assembly',unit='mm')
+        else:
+            row.update({k:data[k] for k in ('tab_part','slot_part','parameter_name','tab_port','slot_port')})
+            row['connection_id']=ident
+        rows.append(row)
     def save():
         write_json(args.output/'report.json',{'source_sha256':sha256_file(args.source),
-            'manifest_sha256':report['_manifest_sha256'],'items':rows,'elapsed_seconds':time.monotonic()-start,
+            'manifest_sha256':report['_manifest_sha256'],'topology_scope_version':TOPOLOGY_SCOPE_VERSION,
+            'items':rows,'elapsed_seconds':time.monotonic()-start,
             'single_operation_timeout_seconds':120,'checker_budget_seconds':args.budget_seconds})
         write_json(args.output/'result.json',make_result(report,rows,args.source,args.output,args.source_index).model_dump())
     execution=ExecutionResult(args.manifest.parent,args.manifest.parent/'scene.glb',None,(),'','')
-    jobs=[('part',p['id'],p) for p in declared]+[('interface',c['id'],c) for c in report.get('connections',[])]
     save()
-    for kind,ident,data in jobs:
-        row=dict(kind=kind,status='INDETERMINATE',code='MEASUREMENT_UNAVAILABLE')
-        row.update({'part_id':ident} if kind=='part' else
-                   {k:data[k] for k in ('tab_part','slot_part','parameter_name','tab_port','slot_port')})
-        if kind=='interface': row['connection_id']=ident
+    tolerances=None
+    pair_index=0
+    for (kind,ident,data),row in zip(jobs,rows):
         remaining=args.budget_seconds-(time.monotonic()-start)-3
+        if kind=='pair' and tolerances is None:
+            measured=[r for r in rows if r['kind']=='part' and r['part_id'] in paths
+                      and 'surface_area_mm2' in r and 'length_tolerance_mm' in r]
+            if measured:
+                length=max(r['length_tolerance_mm'] for r in measured)
+                tolerances=(length,max(r['surface_area_mm2'] for r in measured)*length)
+        directory=f'pair_{pair_index:04d}' if kind=='pair' else f'{kind}_{ident}'
+        if kind=='pair':pair_index+=1
         if kind=='part' and ident not in parts:
             row['code']='PRINT_MESH_UNAVAILABLE'
-        elif kind=='interface' and any(data[k] not in paths for k in ('tab_part','slot_part')):
+        elif ((kind=='interface' and any(data[k] not in paths for k in ('tab_part','slot_part')))
+              or (kind=='pair' and any(n not in paths for n in data))):
             row['code']='DEPENDENCY_MESH_UNAVAILABLE'
+        elif kind=='pair' and tolerances is None:
+            row.update(code='PAIR_QUERY_UNAVAILABLE',reason='measured numerical bounds unavailable')
         elif remaining<=0:
             row['code']='CHECKER_BUDGET_NOT_EXECUTED'
         else:
             write_json(args.output/'solids.json',paths)
             command=['{python}','-m','adsl.agents.assembly_topology','--manifest',str(args.manifest),
-                '--source','{source}','--output','{output_dir}',
-                '--part' if kind=='part' else '--connection',ident,'--solids',str(args.output/'solids.json')]
+                '--source','{source}','--output','{output_dir}','--solids',str(args.output/'solids.json')]
+            if kind=='pair':
+                command += ['--pair',*data,'--length-tolerance-mm',str(tolerances[0]),
+                            '--volume-tolerance-mm3',str(tolerances[1])]
+            else:command += ['--part' if kind=='part' else '--connection',ident]
             job_start=time.monotonic()
             run=run_checker(CheckerSpec(name=NAME,command=command,timeout_seconds=min(120,remaining)),
-                execution=execution,source_path=args.source,round_root=args.output/'items'/f'{kind}_{ident}')
+                execution=execution,source_path=args.source,round_root=args.output/'items'/directory)
             if run.result.metrics.get('item'):
                 row.update(run.result.metrics['item'])
                 if kind=='part' and (run.output_dir/'solid.npz').is_file():
@@ -206,10 +259,10 @@ def measure(args):
                     row['solid_sha256']=sha256_file(run.output_dir/'solid.npz')
             else:
                 violation=next(iter(run.result.violations),{})
-                row.update(code=violation.get('code','MEASUREMENT_UNAVAILABLE'),stage=violation.get('stage'),
-                    reason=run.result.summary[:240],raw_status=run.result.status)
+                row.update(code=violation.get('code','PAIR_QUERY_UNAVAILABLE' if kind=='pair' else 'MEASUREMENT_UNAVAILABLE'),
+                    stage=violation.get('stage'),reason=run.result.summary[:240],raw_status=run.result.status)
             row.update(elapsed_seconds=time.monotonic()-job_start,report_path=str(run.output_dir/'result.json'))
-        rows.append(row); save()
+        save()
 
 
 def run_assembly_topology(spec, *, execution, source, root):
@@ -397,19 +450,23 @@ def main():
     parser=argparse.ArgumentParser(__doc__)
     for name in ('manifest','source','output','solids'): parser.add_argument('--'+name,type=Path,required=name in ('manifest','source','output'))
     parser.add_argument('--source-index',default='')
-    parser.add_argument('--part'); parser.add_argument('--connection')
+    selection=parser.add_mutually_exclusive_group()
+    selection.add_argument('--part'); selection.add_argument('--connection'); selection.add_argument('--pair',nargs=2)
+    parser.add_argument('--length-tolerance-mm',type=float); parser.add_argument('--volume-tolerance-mm3',type=float)
     parser.add_argument('--budget-seconds',type=float,default=900)
     args=parser.parse_args(); args.output.mkdir(parents=True,exist_ok=True)
     args.source_index=Path(args.source_index) if args.source_index else None
-    if args.part or args.connection:
+    if args.part or args.connection or args.pair:
         try:
             worker(args)
         except (ValueError,KeyError,OSError,RuntimeError) as error:
-            row=dict(kind='part' if args.part else 'interface',status='INDETERMINATE',
-                code='PRINT_MESH_UNMEASURABLE' if args.part else 'INTERFACE_QUERY_UNAVAILABLE',
-                stage='final_mesh_load_or_union' if args.part else 'interface_query',
+            row=dict(kind='part' if args.part else 'pair' if args.pair else 'interface',status='INDETERMINATE',
+                code='PRINT_MESH_UNMEASURABLE' if args.part else 'PAIR_QUERY_UNAVAILABLE' if args.pair else 'INTERFACE_QUERY_UNAVAILABLE',
+                stage='final_mesh_load_or_union' if args.part else 'pair_query' if args.pair else 'interface_query',
                 reason=f'{type(error).__name__}: {str(error)[:240]}')
-            row.update({'part_id':args.part} if args.part else {'connection_id':args.connection})
+            row.update({'part_id':args.part} if args.part else
+                {'pair_id':':'.join(sorted(args.pair)),'part_ids':sorted(args.pair),'frame':'assembly','unit':'mm'}
+                if args.pair else {'connection_id':args.connection})
             write_json(args.output/'result.json',CheckerResult(checker=NAME,status='INDETERMINATE',
                 summary=row['reason'],metrics={'item':row}).model_dump())
     else: measure(args)

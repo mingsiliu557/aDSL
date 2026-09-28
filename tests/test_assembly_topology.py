@@ -213,7 +213,7 @@ def test_real_subprocess_invalid_part_does_not_block_good_part(tmp_path):
     adapter.measure(args)
     result=json.loads((args.output/'result.json').read_text())
     assert result['status']=='INDETERMINATE'
-    bad,good=result['metrics']['items']
+    bad,good=[r for r in result['metrics']['items'] if r['kind']=='part']
     assert bad['status']=='INDETERMINATE' and 'open' in bad['reason']
     assert bad['code']=='OPEN_PRINT_MESH' and bad['boundary_edge_count']==3
     assert bad['bounds_mm'] and Path(bad['boundary_report']).is_file()
@@ -325,6 +325,7 @@ def test_cached_initial_geometry_and_measurement_are_reused(tmp_path,monkeypatch
     report=ex.output_root/'assembly/assembly_manifest.json'
     checked=result('PASS',source)
     checked.assumptions['manifest_sha256']=sha256_file(report)
+    checked.assumptions['topology_scope_version']=adapter.TOPOLOGY_SCOPE_VERSION
     out=root/'checkers'/adapter.NAME;out.mkdir(parents=True)
     write_json(out/'result.json',checked.model_dump())
     run=CheckerRun(adapter.checker_spec(),checked,out,())
@@ -341,12 +342,154 @@ def test_outer_timeout_kills_nested_worker_group(tmp_path):
     import os
     from adsl.agents.utils.execution import ExecutionResult
     source=tmp_path/'source.py';source.write_text('unchanged')
-    program=('import subprocess,sys; from adsl.agents.assembly_topology import install_worker_cleanup; '
-        'install_worker_cleanup(); p=subprocess.Popen([sys.executable,"-c","import time;time.sleep(30)"],start_new_session=True); '
+    import inspect
+    # Exercise the actual cleanup function without spending the 3-second
+    # timeout importing the unrelated Agent SDK on a cold filesystem.
+    program=('import os,signal,subprocess,sys\nfrom pathlib import Path\n'+
+        inspect.getsource(adapter.install_worker_cleanup)+
+        '\ninstall_worker_cleanup(); p=subprocess.Popen([sys.executable,"-c","import time;time.sleep(30)"],start_new_session=True); '
         'print(p.pid,flush=True)\ntry: p.wait()\nfinally: p.wait(timeout=2)\n')
+    program=program.replace('{','{{').replace('}','}}')  # checker command placeholders
     spec=adapter.checker_spec().model_copy(update={'timeout_seconds':3,'command':['{python}','-c',program]})
     execution=ExecutionResult(tmp_path,tmp_path/'scene.glb',None,(),'','')
     run=adapter.run_assembly_topology(spec,execution=execution,source=source,root=tmp_path)
     pid=int((run.output_dir/'stdout.log').read_text().strip().splitlines()[-1])
     with pytest.raises(ProcessLookupError): os.kill(pid,0)
     assert run.result.status=='INDETERMINATE'
+
+
+def pair_manifest(tmp_path, *, collision=True, bad=False, single=False):
+    from test_assembly_interference import collision_pair
+    from adsl.agents.utils.execution import ExecutionResult
+    c,parts,solids=collision_pair() if collision else fixture_pair()
+    if single:
+        parts={k:v for k,v in parts.items() if k=='bar'}
+        solids={k:v for k,v in solids.items() if k=='bar'}
+    source=tmp_path/'source.py';source.write_text('# fixture meshes; source is not executed\n')
+    folder=tmp_path/'assembly';folder.mkdir()
+    if bad:parts['bad']={'assembly_transform':np.eye(4).tolist()}
+    declarations=[]
+    for n,p in parts.items():
+        declarations.append(dict(p,id=n,stl=n+'.stl',components=[n],print_transform_mm=np.eye(4).tolist()))
+        if n in solids:solid_mesh(solids[n]).export(folder/(n+'.stl'),file_type='stl_ascii')
+    manifest=dict(source_sha256=sha256_file(source),mm_per_unit=1.,parts=declarations,
+        part_declarations=declarations,connections=[] if single else [c],
+        files_sha256={p.name:sha256_file(p) for p in folder.glob('*.stl')})
+    write_json(folder/'assembly_manifest.json',manifest)
+    return source,ExecutionResult(folder,folder/'scene.glb',None,(),'',''),manifest
+
+
+def test_real_subprocess_pair_finds_overlap_outside_passing_interface(tmp_path):
+    source,execution,manifest=pair_manifest(tmp_path)
+    run=adapter.run_assembly_topology(adapter.checker_spec(),execution=execution,source=source,root=tmp_path)
+    parsed=CheckerResult.model_validate(json.loads((run.output_dir/'result.json').read_text()))
+    assert parsed.status=='FAIL'
+    rows=parsed.metrics['items'];pair=next(r for r in rows if r['kind']=='pair')
+    assert all(r['status']=='PASS' for r in rows if r['kind']!='pair')
+    assert pair['part_ids']==['bar','stem'] and pair['frame']=='assembly'
+    assert pair['undeclared_interference_mm3']>pair['volume_tolerance_mm3']
+    assert Path(pair['report_path']).is_file()
+    finding=parsed.findings[0]
+    assert finding.finding_id=='assembly_topology:pair:bar:stem:UNDECLARED_PART_INTERFERENCE'
+    assert finding.region.part_names==['bar','stem'] and finding.region.frame=='assembly'
+    assert finding.region.bounds==pair['bounds_mm']
+    assert finding.region.details['connection_ids']==['joint']
+    assert finding.metric.value==pair['undeclared_interference_mm3']
+    assert finding.metric.absolute_tolerance==finding.metric.relative_tolerance==0
+    assert parsed.assumptions['topology_scope_version']==adapter.TOPOLOGY_SCOPE_VERSION
+    assert json.loads((run.output_dir/'report.json').read_text())['topology_scope_version']==adapter.TOPOLOGY_SCOPE_VERSION
+
+
+@pytest.mark.parametrize('single',[False,True])
+def test_real_subprocess_pair_missing_dependency_or_single_part(tmp_path,single):
+    source,execution,_=pair_manifest(tmp_path,collision=False,bad=not single,single=single)
+    run=adapter.run_assembly_topology(adapter.checker_spec(),execution=execution,source=source,root=tmp_path)
+    pairs=[r for r in run.result.metrics['items'] if r['kind']=='pair']
+    if single:
+        assert pairs==[] and run.result.status=='PASS'
+    else:
+        assert len(pairs)==3 and run.result.status=='INDETERMINATE'
+        assert next(r for r in pairs if r['pair_id']=='bar:stem')['status']=='PASS'
+        for r in pairs:
+            if 'bad' in r['part_ids']:
+                assert r['code']=='DEPENDENCY_MESH_UNAVAILABLE'
+                assert 'undeclared_interference_mm3' not in r
+
+
+def test_pair_timeout_preserves_other_rows_and_unexecuted_pairs(tmp_path,monkeypatch):
+    source,execution,manifest=pair_manifest(tmp_path,collision=False)
+    # Third declared part gives three unordered pairs.
+    third={**manifest['parts'][0],'id':'third'}
+    manifest['parts'].append(third)
+    manifest['part_declarations']=list(manifest['parts'])
+    write_json(execution.output_root/'assembly_manifest.json',manifest)
+    clock=[0.];monkeypatch.setattr(adapter.time,'monotonic',lambda:clock[0])
+    def run(spec,*,execution,source_path,round_root):
+        out=round_root/'checkers'/adapter.NAME;out.mkdir(parents=True)
+        if '--part' in spec.command:
+            name=spec.command[spec.command.index('--part')+1]
+            adapter._save_solid_mesh(solid_mesh(mf.Manifold.cube((1,1,1))),out/'solid.npz')
+            item=dict(kind='part',part_id=name,status='PASS',code='CONNECTED_PRINT_PART',
+                length_tolerance_mm=.00001,surface_area_mm2=6.)
+        elif '--connection' in spec.command:
+            item=dict(kind='interface',connection_id='joint',status='PASS',code='INTERFACE_GEOMETRY_PAIRED')
+        else:
+            clock[0]=100.
+            return CheckerRun(spec,CheckerResult(checker=adapter.NAME,status='ERROR',summary='pair timeout',
+                violations=[{'code':'CHECKER_TIMEOUT'}]),out,())
+        return CheckerRun(spec,CheckerResult(checker=adapter.NAME,status='PASS',summary='fixture',metrics={'item':item}),out,())
+    monkeypatch.setattr(adapter,'run_checker',run)
+    output=tmp_path/'measure';output.mkdir()
+    adapter.measure(SimpleNamespace(source=source,manifest=execution.output_root/'assembly_manifest.json',
+        output=output,source_index=None,budget_seconds=30))
+    result=json.loads((output/'result.json').read_text());rows=result['metrics']['items']
+    assert len([r for r in rows if r['kind']=='part' and r['status']=='PASS'])==3
+    pairs=[r for r in rows if r['kind']=='pair']
+    assert [r['code'] for r in pairs]==['CHECKER_TIMEOUT','CHECKER_BUDGET_NOT_EXECUTED','CHECKER_BUDGET_NOT_EXECUTED']
+    assert all(r['status']=='INDETERMINATE' and 'undeclared_interference_mm3' not in r for r in pairs)
+    assert result['status']=='INDETERMINATE'
+
+
+@pytest.mark.parametrize('scope',[None,1])
+def test_old_topology_scope_remeasures_without_reexport(tmp_path,monkeypatch,scope):
+    from adsl.agents import fixed_assembly as flow
+    f=mock_flow(tmp_path,monkeypatch,[('PASS',True)])
+    w,r,rt,source,calls=f;r=replace(r,checker_specs=(adapter.checker_spec(),))
+    ex=flow.execute_asset_source(source,tmp_path/'rounds/round_01/asset',fixed_assembly=r.fixed_assembly,export_urdf=False)
+    measured=result('PASS',source);measured.assumptions.update(manifest_sha256=sha256_file(ex.output_root/'assembly/assembly_manifest.json'))
+    if scope is not None:measured.assumptions['topology_scope_version']=scope
+    out=tmp_path/'old';out.mkdir();write_json(out/'result.json',measured.model_dump())
+    cached=CheckerRun(adapter.checker_spec(),measured,out,());old=(out/'result.json').read_bytes()
+    def forbidden(*a,**kw):pytest.fail('cached geometry re-exported')
+    monkeypatch.setattr(flow,'execute_asset_source',forbidden)
+    rechecks=[]
+    def check(spec,*,execution,source,root):
+        rechecks.append(sha256_file(source));new=result('PASS',source)
+        new.assumptions['topology_scope_version']=adapter.TOPOLOGY_SCOPE_VERSION
+        folder=root/'checkers'/adapter.NAME;folder.mkdir(parents=True)
+        write_json(folder/'result.json',new.model_dump());return CheckerRun(spec,new,folder,())
+    monkeypatch.setattr(adapter,'run_assembly_topology',check)
+    final=asyncio.run(flow.iterate_fixed_assembly(w,runtime=rt,request=r,workspace=tmp_path,
+        source_path=source,plan=FixedAssemblyPlan.model_validate(plan_data()),initial_execution=ex,initial_topology_run=cached))
+    assert final.approved and len(rechecks)==1 and not calls
+    assert (out/'result.json').read_bytes()==old
+
+
+def test_pair_worker_query_failure_has_identity_and_no_fake_volume(tmp_path,monkeypatch):
+    import sys
+    import adsl.core.assembly_topology as core
+    source,execution,_=pair_manifest(tmp_path)
+    paths={}
+    for name in ['bar','stem']:
+        path=tmp_path/(name+'.npz');adapter._save_solid_mesh(solid_mesh(mf.Manifold.cube((1,1,1))),path);paths[name]=str(path)
+    write_json(tmp_path/'solids.json',paths)
+    def broken(*a,**kw):raise ValueError('native intersection rejected')
+    monkeypatch.setattr(core,'pair_interference_measurement',broken)
+    output=tmp_path/'worker'
+    monkeypatch.setattr(sys,'argv',['topology','--manifest',str(execution.output_root/'assembly_manifest.json'),
+        '--source',str(source),'--output',str(output),'--solids',str(tmp_path/'solids.json'),
+        '--pair','stem','bar','--length-tolerance-mm','.001','--volume-tolerance-mm3','.01'])
+    adapter.main();row=json.loads((output/'result.json').read_text())['metrics']['item']
+    assert row['status']=='INDETERMINATE' and row['code']=='PAIR_QUERY_UNAVAILABLE'
+    assert row['part_ids']==['bar','stem'] and row['pair_id']=='bar:stem'
+    assert 'undeclared_interference_mm3' not in row
