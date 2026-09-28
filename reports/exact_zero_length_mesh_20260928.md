@@ -1,0 +1,77 @@
+# 精确零长度边的确定性网格处理
+
+实现提交：`b103671`，分支 `feat/assembly-material-interference`。尚未合并 master。
+本轮补齐 SF16 首次 Agent 修补候选的自动处理缺口，不增加模型调用，不扩大配合或网格距离阈值。
+
+## 缺口与最终实现
+
+失败的斜背板有两个不同索引但局部坐标完全相同的顶点，通过零长度边相连，共享两个多边形。
+它没有开放边，所以现有微裂缝边界搜索不会选中它；只重三角化仍会保留零面积面。
+其中一个多边形还有约 1.947489e-6 mm 的不共面残差，超过既有 float64 运算界限。
+这些事实不足以将问题归因于用户设计。
+
+在现有 `_normalize_zero_area_tessellation()` 中增加局部分支，复用 BMesh：
+
+1. 仅选同一对象、局部坐标精确相等、由流形零长度边相连的顶点；两侧均须属于本次问题多边形。
+2. 在副本上先用 EAR_CLIP 三角化受影响面，再按精确 targetmap 焊接该边。零面积三角形随边折叠消除。
+3. 必须保留每一张原有正面积三角面的精确坐标、绕序和材质；有效三角面少一张、多一张、换对角线或反向都拒绝。
+4. 复核顶点位置、连通分量、闭合、流形、朝向以及零面积；未通过则丢弃副本，原对象保持不变。
+
+先焊接再任由 Blender 重新三角化，虽然顶点不移动，仍可能改变轻微不共面多边形的有效表面。
+定向对照发现这一差别，因此生产实现采用上述相反顺序，并明确核对全部有效三角面。
+由此无需放宽共面、面积或体积阈值；也不新增可调阈值。
+
+成功结果经既有公共导出统一用于 GLB、STL 和 checker。manifest 的 `mesh_normalizations`
+记录 `exact_zero_length_edge_cleanup`、合并顶点数、零面积面前后数量、零位移和表面保留证据。
+未解决的错误同时报告重合顶点数量；共面失败区分共线/非平面，并给出 scene units 的残差与界限。
+
+改动范围：`export_glb.py`、`export_assembly.py`、现有固定装配说明、现有零面积测试及一份
+26 顶点的 SF16 原始网格回归夹具。未改互穿、standing、FEA、Agent 接受规则或用户模型。
+
+## 验证
+
+```bash
+source /tmp/adsl_interference_env_20260929.sh
+ADSL_TEST_FIXED_REAL=1 python -m pytest -q -p no:cacheprovider tests/test_zero_area_tessellation.py tests/test_microcrack_welding.py tests/test_fixed_assembly_visual_only.py
+```
+
+**51 passed，15.20 秒，无 skip。** 覆盖旧平面重三角化/微裂缝、真实退化网格、
+geometry/visual_only 的 STL/GLB 共用、材质及细小正面积面保留、幂等、近邻不合并，
+以及开放网格、异常、顶点移动、材质变化、非平面换对角线的事务回滚。
+
+日志：`temp/assembly_interference_20260929/sf16_zero_area_diagnosis/implementation_tests.log`。
+
+原失败源码 SHA256：`9f1d4a49927e8641d6a1dd6060931a1d1e64753530bd397f8034d6970dc32815`。
+真实完整装配复测直接使用该源码，不采用随后 Agent 绕开该问题的建模补丁。
+执行脚本、source、GLB/STL、manifest、topology 位于：
+`temp/assembly_interference_20260929/sf16_zero_area_diagnosis/fixed_export/`；
+脚本为上一级的 `verify_export.py`。最终结果见下方快照。
+
+## 能力边界
+
+这是已观测退化类型的补充，未测量对所有网格退化类型的覆盖率。
+不自动修补自相交、任意非流形结构、大孔洞或零厚度设计；未承诺任意退化三角网格可修。
+未通过严格几何检查的候选仍报错。几何通过不代表插入路径、保持力或重力行为已验证。
+
+## 完整 SF16 复测结果
+
+原失败源码哈希保持不变，公共导出 export_status=PASS，斜背板自动合并1个冗余顶点，
+零面积面2→0，顶点最大位移0，全部有效三角面坐标/绕序/材质保持。
+独立 topology：**6/6 打印件、5/5 接口、15/15 部件对全部 PASS**。
+visual_only 的 geometry_validation 仍为 NOT_EVALUATED，没有改写为完整 geometry 模式通过。
+该结果不依赖后来 Agent 用连接帧旋转绕开问题的候选。
+
+## 用户追加的12个人工样例
+
+在同一 b103671 上按公共处理顺序做原生网格对照：6例修复、6例拒绝并保持原网格不变。
+单条/两条独立零长度边、0.001倍/1000倍尺度、多壳体平面退化、极小有效面共存均完成相应退化清理。
+多壳体保持分离，所以其打印件连通检查仍正确报FAIL；不把“退化清理成功”混同“单打印件合格”。
+
+未覆盖的具体情况：连续重合顶点链；零长度边和微裂缝并存（首步全局闭合要求阻断下一步）；
+额外非轴向旋转后的坐标精度退化。已有开口、非流形结构和纯共线三角面也仍未解决。
+旋转样例在局部坐标中有2个零面积面，当前mathutils世界坐标运算后为6个，float64运算对照为2个。
+这是新发现的定向证据，未扩展生产改动去处理这些额外类型。
+
+逐项结果、原始/结果网格及复现脚本：
+`temp/assembly_interference_20260929/mesh_degeneracy_samples/README.md`。
+这是12个精心选定的边界样例，6/12不是总体覆盖率；未增加模型调用或完整benchmark。

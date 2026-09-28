@@ -2,7 +2,8 @@
 
 实施时间：2026-09-28 UTC；文件名沿用实施计划的 20260929 标识。
 基线：`3d047c531ac4eb8e056b2386de2d70dbf7c6e810`。实现及确定性验证已完成。
-SF16/SF10 按用户要求提交后台 CPU 任务，不持续监督或等待它们完成。
+SF16/SF10 定向复测已完成；随后 SF16 实际 Agent 修补在用户追加一次机会后通过。
+所有工作仍在独立分支，按用户要求未合并 master。
 
 ## 提交与范围
 
@@ -142,3 +143,18 @@ SF10 人工候选检查的是最终材料实体，接口本身也重新通过。
 - 后台清单 `sf16_agent_job.json`；日志 `sf16_agent.log`。按用户要求只确认启动，不持续监督。
   本节为提交记录，不代表实际模型已修复成功；以 completion 和新 topology 报告为准。
 - 代码仍在独立分支，等待用户检查，未合并 master。
+
+## 追加结果：真实 Agent 第二次修补与确定性网格处理
+
+首次 SF16 修补已结束：斜背板因两个零面积面导出失败，topology INDETERMINATE。
+用户明确追加一次修补后，Coder 使用上一轮 Code Critic 的具体反馈，将背板旋转从局部实体
+改为接口帧表达；保留第一轮的局部让位修改。第二次候选外观及 topology 全部通过，
+包含全部 6 件、5 接口、15 个部件对。未追加预算之外的修补。
+
+最终接受源码 SHA256：`75ffc413c593e22da3dd1384cb1248f1ae162cb4eb609277b7cd1cc3d15ad4f0`。
+记录：`temp/assembly_interference_20260929/cases/SF16/agent_repair/extra_repair_completion.json`；
+补丁 `attempt_0002.diff`（相对第一次候选）。原运行记录在 `before_extra_repair/` 保留。
+
+用户随后要求补齐网格处理缺口；`b103671` 新增受限的精确零长度边处理，不放宽数值界限。
+用第一次失败源码原样做公共导出及 topology 验证，结果独立于 Agent 第二次建模修补；
+详见 `reports/exact_zero_length_mesh_20260928.md`。该实现同样未合入 master。

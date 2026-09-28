@@ -4,29 +4,39 @@
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
 
-## 全局打印件互穿检查（2026-09-28，当前范围）
+## 全局互穿与零长度边处理（2026-09-28，当前范围）
 
-- 已实现 topology scope v2：检查装配坐标中全部打印件对，包含已连接部件；
-  与 geometry 导出复用 Manifold 材料求交、原有数值界限、同对局部负间隙豁免。
-- pair 证据含双方、体积、容差、装配区域和相关连接，进入现有 Engineering/Coder；
-  缺件/求交失败/超时保留未验证，旧范围缓存触发重测，不冒充已完成全局检查。
-- 分阶段提交 25f818b / 7747e98 / 533d22c / da1e51c；最终完整 topology+反馈测试 47 passed，
-  S1 几何 14 passed；真实 Blender 多连接 geometry/visual_only 3 passed，未新增误报。
-  详见 `reports/assembly_interference_20260929.md`（含 S2 既有测试冷启动问题及复测记录）。
-- SF16/SF10 已于 2026-09-28 16:45:43 UTC 提交后台 CPU 复测，用户要求不持续监督。
-  SF10 原始目标成功检出后自动运行人工定向减薄支承帽候选；不是 Agent 自主修复。
-  证据 `temp/assembly_interference_20260929/`；提交清单 `s5_jobs.json`、完成文件
-  `s5_SF16_completion.json` / `s5_SF10_completion.json`，各例 `summary.json` 保存实际体积/区域。
-  未完成结果不计为通过；未调用真实模型、未跑新 standing/FEA/overhang。
-- 用户随后要求确认自主修复能力，追加 SF16 真实 Agent 修补任务，2026-09-28 16:59:17 UTC 后台提交。
-  原 source/plan，CLIProxy/gpt-5.6-sol、CPU 八图、仅 topology；初评+最多一次源码修补，不给预制补丁。
-  使用现有 resume/固定装配循环，记录真实 prompts/tools/session。路径 `temp/assembly_interference_20260929/cases/SF16/agent_repair/`，
-  日志 `temp/assembly_interference_20260929/sf16_agent.log`，结束看 `completion.json`。已确认启动，未持续监督，尚不声称修复成功。
-- 用户要求先审查两例，暂不合并 master。当前实现分支 `feat/assembly-material-interference`。
-- SF16 original 已完成：topology FAIL；目标互穿 842681.3089759703 mm³（容差 6251.241398513488 mm³）。
-- SF10 original 已完成：topology FAIL；目标互穿 288000.0 mm³（容差 4982.854187435704 mm³）。
-- SF10 manual_candidate 已完成：topology PASS；目标互穿 0.0 mm³（容差 4978.390991634923 mm³）。
-- 本次未合入主工作区无关 FEA、GPU 脚本和历史删除；原有文件指纹核对保持。
+- 用户要求先审查案例，暂不合并 master。实现保留在 `/tmp/adsl_interference_20260929`、
+  分支 `feat/assembly-material-interference`；主工作区无关 FEA/GPU/历史删除未纳入。
+- topology scope v2 已覆盖全部装配部件对（含已连接部件），与 geometry 导出复用实体求交、
+  原数值容差和同对局部负间隙豁免。pair 证据进入 Engineering/Coder；旧范围缓存重测。
+  阶段提交 25f818b / 7747e98 / 533d22c / da1e51c；完整 topology+反馈 47 passed，
+  真实 Blender 多接口 geometry/visual_only 3 passed，未新增误报。
+- 原始案例复测完成：SF16 目标斜背板/顶层板互穿 842681.308976 mm³（容差6251.241399），
+  其余14对/全部6件5接口PASS；SF10目标互穿288000 mm³（容差4982.854187），
+  人工定向降低支承帽1mm后全部PASS。人工候选不等于Agent自主修复。
+- SF16随后真实Agent修补：CLIProxy/gpt-5.6-sol、CPU、仅topology，正常Image/Code/Engineering链路。
+  第一次调整层板和背板后，斜背板2个零面积面导出失败。用户追加一次机会后，第二次把背板
+  局部旋转改为接口帧定位；外观和全部6件/5接口/15部件对PASS，未追加模型调用。
+  已接受源码SHA256 `75ffc413c593e22da3dd1384cb1248f1ae162cb4eb609277b7cd1cc3d15ad4f0`。
+- 对第一次失败候选做定向诊断，发现闭合网格内部有一条精确零长度边；仅放宽共面门槛无效。
+  先直接焊接会改变少量有效三角面；改成先三角化再焊接，可严格保留所有正面积面。
+- 已提交 b103671：在现有零面积公共处理里补充精确零长度边分支，保持有效三角面的精确
+  坐标/绕序/材质、几何顶点位置和连通性；副本闭合/流形/零面积等复核失败则回滚。
+  没有放宽共面、面积/体积或距离阈值。51项原生定向回归全部通过。
+- 原失败源码不修改，已通过新公共导出生成全部6件，manifest记录2→0零面积面、最大位移0。
+  完整topology复测6件/5接口/15部件对全部PASS，结果 `sf16_zero_area_diagnosis/fixed_export/summary.json`。
+- 用户追加12个人工退化样例：6例修复、6例拒绝并保持原网格。范围缺口：连续重合顶点链、
+  零长度边与微裂缝并存、额外非轴向旋转的有限精度退化（局部2个→当前世界计算6个零面积面，
+  float64对照2个）；开口/非流形/纯共线面也不自动修补。本轮只验证，不扩充生产修复范围。
+  结果和输入/输出网格 `temp/assembly_interference_20260929/mesh_degeneracy_samples/README.md`。
+- 证据根目录 `temp/assembly_interference_20260929/`；真实Agent记录位于
+  `cases/SF16/agent_repair/`，原始一轮结果已备份在 `before_extra_repair/`，
+  最终结果 `extra_repair_completion.json`，历史prompts/tools/session均保留。
+  诊断在 `sf16_zero_area_diagnosis/README.md`；交付说明
+  `reports/assembly_interference_20260929.md`、`reports/exact_zero_length_mesh_20260928.md`。
+- 新增处理只覆盖受限退化类型，不代表任意自相交/孔洞/非流形/零厚度均可自动修复。
+  未跑新的standing/FEA/overhang，也不据topology通过宣称真实插入路径或保持力已验证。
 
 ## 微裂缝修复与 rigid_flex 联合发布（2026-09-28，提交 3d047c5）
 
