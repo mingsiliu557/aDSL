@@ -161,13 +161,12 @@ def test_reserved_print_part_names_fail_before_export(name):
     with pytest.raises(ValueError,match=message):a.validate()
 
 
-@pytest.mark.parametrize('bad',['unknown','duplicate','self','cycle','ownership'])
+@pytest.mark.parametrize('bad',['unknown','duplicate','self','ownership'])
 def test_plan_errors(bad):
     d=plan_data()
     if bad=='unknown':d['connections'][0]['tab_part']='missing'
     if bad=='duplicate':d['connections']*=2
     if bad=='self':d['connections'][0]['tab_part']='crossbar'
-    if bad=='cycle':d['connections'][0].update(tab_part='crossbar',slot_part='stem')
     if bad=='ownership':d['print_parts'][1]['components']=['crossbar']
     with pytest.raises(ValueError):FixedAssemblyPlan.model_validate(d)
 

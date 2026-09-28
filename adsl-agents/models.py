@@ -64,14 +64,16 @@ class FixedAssemblyPlan(ObjectPlan):
         placed, links, ports = {self.root_part}, set(), set()
         for c in self.connections:
             if c.id in links or c.tab_part == c.slot_part or {c.tab_part,c.slot_part} - set(ids):
-                raise ValueError('duplicate connection, self connection or unknown print part')
-            if c.slot_part not in placed or c.tab_part in placed:
-                raise ValueError('unsupported placement: connections must be an ordered rooted tree, receiver before tab child')
-            if (c.slot_part,c.slot_port) in ports:
-                raise ValueError('receiver port already occupied')
-            ports.add((c.slot_part,c.slot_port))
+                raise ValueError(f'connection {c.id}: duplicate connection, self connection or unknown print part')
+            endpoints = {c.tab_part, c.slot_part}
+            if not endpoints & placed:
+                raise ValueError(f'connection {c.id}: tab={c.tab_part} slot={c.slot_part}: at least one endpoint must already be placed')
+            endpoint_ports = {(c.tab_part, 'tab', c.tab_port), (c.slot_part, 'slot', c.slot_port)}
+            if endpoint_ports & ports:
+                raise ValueError(f'connection {c.id}: interface port already occupied')
+            ports.update(endpoint_ports)
             links.add(c.id)
-            placed.add(c.tab_part)
+            placed.update(endpoints)
         if placed != set(ids) or not all(math.isfinite(v) and v > 0 for v in [self.mm_per_unit,*self.final_size_mm]):
             raise ValueError('all print parts must be placed; fixed scale and size must be finite and positive')
         return self

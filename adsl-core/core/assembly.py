@@ -108,10 +108,49 @@ class TabSlot:
         return tab, slot
 
 
-class FixedAssembly:
-    """Explicit print-part roots; receiver is placed before each tab child.
+def _check_world_frames(tab_world, slot_world, mm_per_unit):
+    """Existing matrix tolerance in scene units, not manufacturing clearance."""
+    tab_world, slot_world = np.asarray(tab_world), np.asarray(slot_world)
+    relative_rotation = tab_world[:3, :3] @ slot_world[:3, :3].T
+    angle = math.acos(float(np.clip((np.trace(relative_rotation) - 1) / 2, -1, 1)))
+    return dict(matched=bool(np.allclose(tab_world, slot_world, rtol=0, atol=1e-8)),
+                translation_error_mm=float(np.linalg.norm(tab_world[:3, 3] - slot_world[:3, 3]) * mm_per_unit),
+                rotation_error_deg=math.degrees(angle))
 
-    No graph closure, multi-mate solving, articulation or automatic segmentation.
+
+def _require_matching_frames(connection, transforms, mm_per_unit):
+    residual = _check_world_frames(
+        transforms[connection['tab_part']] @ np.asarray(connection['tab_frame']),
+        transforms[connection['slot_part']] @ np.asarray(connection['slot_frame']), mm_per_unit)
+    if not residual['matched']:
+        raise ValueError(
+            f"MATE_FRAME_MISMATCH: interface={connection['id']} "
+            f"tab={connection['tab_part']} slot={connection['slot_part']} "
+            f"translation_error_mm={residual['translation_error_mm']:.12g} "
+            f"rotation_error_deg={residual['rotation_error_deg']:.12g}")
+
+
+def _validate_connection(connection, parts, previous):
+    cid = connection['id']
+    for key in ('id', 'parameter_name', 'tab_port', 'slot_port'):
+        _identifier(connection[key])
+    if connection['tab_part'] == connection['slot_part'] or {connection['tab_part'], connection['slot_part']} - parts.keys():
+        raise ValueError(f"connection {cid}: self connection or unknown print part")
+    for other in previous:
+        if other['id'] == cid:
+            raise ValueError(f"connection {cid}: duplicate interface ID")
+        if other['parameter_name'] == connection['parameter_name'] and other['parameters'] != connection['parameters']:
+            raise ValueError(f"connection {cid}: shared parameter name {connection['parameter_name']} has inconsistent values")
+        for role in ('tab', 'slot'):
+            if (other[f'{role}_part'], other[f'{role}_port']) == (connection[f'{role}_part'], connection[f'{role}_port']):
+                raise ValueError(f"connection {cid}: {role} port {connection[f'{role}_part']}/{connection[f'{role}_port']} already occupied")
+
+
+class FixedAssembly:
+    """Ordered placement and additional interfaces with world-frame checks.
+
+    Either placed endpoint can locate the other. Already placed parts stay fixed;
+    extra connections check consistency, without graph solving or articulation.
     """
     def __init__(self, *, root_id: str, mm_per_unit: float, root_frame: InterfaceFrame | None = None):
         self.root_id = _print_part_identifier(root_id)
@@ -169,37 +208,49 @@ class FixedAssembly:
     def connect(self, interface_id: str, *, tab_part: str, slot_part: str,
                 tab_frame: InterfaceFrame, slot_frame: InterfaceFrame, parameters: TabSlot,
                 parameter_name: str, tab_port: str = "tab", slot_port: str = "slot"):
-        for name in (interface_id, parameter_name, tab_port, slot_port):
-            _identifier(name)
-        if interface_id in {c['id'] for c in self.connections}:
-            raise ValueError("duplicate interface ID")
-        if tab_part == slot_part or {tab_part, slot_part} - self.parts.keys():
-            raise ValueError("self connection or unknown print part")
-        if slot_part not in self.transforms or tab_part in self.transforms:
-            raise ValueError("unsupported placement: connect unplaced tab child to placed receiver; no cycles/multiple mates")
-        for connection in self.connections:
-            if connection['parameter_name'] == parameter_name and connection['parameters'] != asdict(parameters):
-                raise ValueError("shared parameter name has inconsistent values")
-            if (connection['slot_part'], connection['slot_port']) == (slot_part, slot_port):
-                raise ValueError("slot port already occupied")
+        connection = dict(id=interface_id, tab_part=tab_part, slot_part=slot_part,
+            tab_port=tab_port, slot_port=slot_port, parameter_name=parameter_name,
+            parameters=asdict(parameters))
+        _validate_connection(connection, self.parts, self.connections)
         tf, sf = tab_frame.matrix(), slot_frame.matrix()
+        connection.update(tab_frame=tf.tolist(), slot_frame=sf.tolist())
+        tab_placed, slot_placed = tab_part in self.transforms, slot_part in self.transforms
+        new_part, new_transform = None, None
+        if not tab_placed and not slot_placed:
+            raise ValueError(f"connection {interface_id}: tab={tab_part} slot={slot_part}: at least one endpoint must already be placed")
+        if not tab_placed:
+            new_part, new_transform = tab_part, self.transforms[slot_part] @ sf @ np.linalg.inv(tf)
+        elif not slot_placed:
+            new_part, new_transform = slot_part, self.transforms[tab_part] @ tf @ np.linalg.inv(sf)
+        else:
+            _require_matching_frames(connection, self.transforms, self.mm_per_unit)
+        # Boolean construction attaches children; copies protect the saved trees
+        # (including their parent links) until BOTH mating geometries succeed.
         tab, cutter = parameters.geometry(self.mm_per_unit)
         tab, cutter = transform(tab, tf), transform(cutter, sf)
-        self.parts[tab_part] = boolean_union(self.parts[tab_part], tab)
-        self.parts[slot_part] = boolean_difference(self.parts[slot_part], cutter)
-        self.transforms[tab_part] = self.transforms[slot_part] @ sf @ np.linalg.inv(tf)
-        self.connections.append(dict(id=interface_id, tab_part=tab_part, slot_part=slot_part,
-            tab_port=tab_port, slot_port=slot_port, parameter_name=parameter_name,
-            parameters=asdict(parameters), tab_frame=tf.tolist(), slot_frame=sf.tolist(),
-            tab_solid=tab, slot_cutter=cutter))
+        tab_result = boolean_union(self.parts[tab_part].copy(), tab)
+        slot_result = boolean_difference(self.parts[slot_part].copy(), cutter)
+        connection.update(tab_solid=tab, slot_cutter=cutter)
+        self.parts[tab_part], self.parts[slot_part] = tab_result, slot_result
+        if new_part is not None:
+            self.transforms[new_part] = new_transform
+        self.connections.append(connection)
 
     def validate(self):
         for part_id in self.parts:
             _print_part_identifier(part_id)
-        if not self.parts or set(self.parts) != set(self.transforms):
-            raise ValueError("all print parts must be placed in one rooted tree")
-        if len(self.connections) != len(self.parts) - 1:
-            raise ValueError("placement must be a tree")
+        if self.root_id not in self.parts or set(self.parts) != set(self.transforms):
+            raise ValueError("root must be a print part and all print parts must have exactly one transform")
+        placed = {self.root_id}
+        for index, connection in enumerate(self.connections):
+            _validate_connection(connection, self.parts, self.connections[:index])
+            endpoints = {connection['tab_part'], connection['slot_part']}
+            if not endpoints & placed:
+                raise ValueError(f"connection {connection['id']}: tab={connection['tab_part']} slot={connection['slot_part']}: at least one endpoint must already be placed")
+            placed.update(endpoints)
+            _require_matching_frames(connection, self.transforms, self.mm_per_unit)
+        if placed != set(self.parts):
+            raise ValueError("all print parts must be reached by ordered connections from the root")
 
     def scene(self, *, exploded_mm: float = 0):
         self.validate()
