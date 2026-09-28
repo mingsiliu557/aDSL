@@ -4,7 +4,27 @@
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
 
-## 微裂缝修复与 rigid_flex 联合发布（2026-09-28，当前范围）
+## 全局打印件互穿检查（2026-09-28，当前范围）
+
+- 已实现 topology scope v2：检查装配坐标中全部打印件对，包含已连接部件；
+  与 geometry 导出复用 Manifold 材料求交、原有数值界限、同对局部负间隙豁免。
+- pair 证据含双方、体积、容差、装配区域和相关连接，进入现有 Engineering/Coder；
+  缺件/求交失败/超时保留未验证，旧范围缓存触发重测，不冒充已完成全局检查。
+- 分阶段提交 25f818b / 7747e98 / 533d22c / da1e51c；最终完整 topology+反馈测试 47 passed，
+  S1 几何 14 passed；真实 Blender 多连接 geometry/visual_only 3 passed，未新增误报。
+  详见 `reports/assembly_interference_20260929.md`（含 S2 既有测试冷启动问题及复测记录）。
+- SF16/SF10 已于 2026-09-28 16:45:43 UTC 提交后台 CPU 复测，用户要求不持续监督。
+  SF10 原始目标成功检出后自动运行人工定向减薄支承帽候选；不是 Agent 自主修复。
+  证据 `temp/assembly_interference_20260929/`；提交清单 `s5_jobs.json`、完成文件
+  `s5_SF16_completion.json` / `s5_SF10_completion.json`，各例 `summary.json` 保存实际体积/区域。
+  未完成结果不计为通过；未调用真实模型、未跑新 standing/FEA/overhang。
+- 用户要求先审查两例，暂不合并 master。当前实现分支 `feat/assembly-material-interference`。
+- SF16 original 已完成：topology FAIL；目标互穿 842681.3089759703 mm³（容差 6251.241398513488 mm³）。
+- SF10 original 已完成：topology FAIL；目标互穿 288000.0 mm³（容差 4982.854187435704 mm³）。
+- SF10 manual_candidate 已完成：topology PASS；目标互穿 0.0 mm³（容差 4978.390991634923 mm³）。
+- 本次未合入主工作区无关 FEA、GPU 脚本和历史删除；原有文件指纹核对保持。
+
+## 微裂缝修复与 rigid_flex 联合发布（2026-09-28，提交 3d047c5）
 
 - 用户明确要求将此前本地两项实现纳入 master；本轮包含公共导出局部焊接、rigid_flex碰撞后端、
   各自测试和使用说明。保留5c885b4的站立判据。此前报告中的“未纳入”仅描述历史5c885b4。
