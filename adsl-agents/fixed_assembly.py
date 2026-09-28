@@ -17,7 +17,7 @@ from .overhang_edit import version_record, version_assets, assert_version, file_
 from .prompts import object_prompt
 from .repair_controller import RepairController
 from .tools import PATCH_TOOLS, READ_TOOLS
-from .models import ImageCriticDecision, CodeCriticDecision
+from .models import GradedImageCriticDecision, GradedCodeCriticDecision
 from .utils.execution import execute_asset_source, AssetExecutionError, AssetInfrastructureError, ExecutionResult
 from .utils.io import read_json, write_json
 
@@ -89,7 +89,7 @@ def _assembly_context(source, report, *, version_role):
 
 async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, source_path, plan,
                                  initial_execution=None, initial_topology_run=None, evidence_files=()):
-    from .service import _asset_executor_timeout_seconds, _actionable_findings
+    from .service import _asset_executor_timeout_seconds, _actionable_findings, VISUAL_FEEDBACK_INSTRUCTION
     from .assembly_topology import NAME, run_assembly_topology, engineer, prepare_evidence, EVIDENCE_PATH_INSTRUCTION
     from .assembly_physics import NAMES, run_assembly_checks, orientation_only, area_comparison
     specs = [s for s in request.checker_specs if s.name in NAMES]
@@ -133,10 +133,10 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
     corrections = code_history[-1].get('image_critic_corrections', []) if code_history else []
     repairer = runtime.agent(name='object-coder', tools=PATCH_TOOLS,
         instructions=object_prompt('coder', articulation=False, fixed_assembly=True))
-    image_critic = runtime.agent(name='object-image-critic', output_type=ImageCriticDecision,
-        instructions=object_prompt('image_critic', articulation=False, fixed_assembly=True))
-    code_critic = runtime.agent(name='object-code-critic', tools=READ_TOOLS, output_type=CodeCriticDecision,
-        instructions=object_prompt('code_critic', articulation=False, fixed_assembly=True))
+    image_critic = runtime.agent(name='object-image-critic', output_type=GradedImageCriticDecision,
+        instructions=object_prompt('image_critic_review', articulation=False, fixed_assembly=True))
+    code_critic = runtime.agent(name='object-code-critic', tools=READ_TOOLS, output_type=GradedCodeCriticDecision,
+        instructions=object_prompt('code_critic_review', articulation=False, fixed_assembly=True))
     feedback = book.get('feedback', {})
     stop = book.get('stop_reason', 'round_budget_exhausted')
     for number in range(book['next_round'], book['max_rounds']+1):
@@ -186,7 +186,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                                          version_role='repair_starting_version'),
                     'current_repair_authorized':True,
                     'remaining_repairs_after_this_attempt':book['max_rounds']-number,
-                    'assignment':'This repair is already budget-reserved and may proceed even when remaining_repairs_after_this_attempt is 0; that count excludes the current attempt. Read the assigned source and repair the smallest relevant body/interface/assembly code. Combine current appearance and selected assembly-tool facts in this single edit; Engineering advice is optional, never a physical PASS. Unknown geometry is not confirmed disconnection. For overhang alone, only the requested print-orientation calls may change. Never change frozen physical specifications or checker configuration. If no reasonable edit exists, use NO_CHANGE. ' + EVIDENCE_PATH_INSTRUCTION})
+                    'assignment':'This repair is already budget-reserved and may proceed even when remaining_repairs_after_this_attempt is 0; that count excludes the current attempt. Read the assigned source and repair the smallest relevant body/interface/assembly code. Combine current appearance and selected assembly-tool facts in this single edit; Engineering advice is optional, never a physical PASS. Unknown geometry is not confirmed disconnection. For overhang alone, only the requested print-orientation calls may change. Never change frozen physical specifications or checker configuration. If no reasonable edit exists, use NO_CHANGE. ' + EVIDENCE_PATH_INSTRUCTION + ' Visual changes come from feedback.resolved_visual_feedback. ' + VISUAL_FEEDBACK_INSTRUCTION})
             write_json(candidate_root/'edit_outcome.json', outcome)
             if outcome['status'] != 'CHANGED':
                 book['versions'][version_id] = version_record(version_id, current, None,
@@ -214,7 +214,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     if file_hash(execution.output_root/'assembly'/name) != digest:
                         raise ValueError('cached initial assembly file changed')
             else:
-                execution = execute_asset_source(current, candidate_root/'asset', render=True,
+                execution = execute_asset_source(current, candidate_root/'asset', render=True, render_view_layout='review_eight',
                     export_urdf=False, timeout=_asset_executor_timeout_seconds(), fixed_assembly=config)
             try:
                 report = read_json(execution.output_root/'assembly'/'assembly_manifest.json')
@@ -394,7 +394,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             'source_version':version_id, 'source_sha256':file_hash(current),
             'appearance_approved':reviews.get('appearance_approved'),
             'render_issue':reviews.get('render_issue'),
-            'image_critic':reviews.get('image_critic'), 'code_critic':reviews.get('code_critic')}
+            'image_critic':reviews.get('image_critic'), 'code_critic':reviews.get('code_critic'),
+            'resolved_visual_feedback':workflow._resolved_visual_feedback(
+                reviews.get('image_critic'), reviews.get('code_critic'))}
         if runs:
             from .service import _checker_evidence
             feedback.update(_checker_evidence(runs,workspace=workspace))
@@ -462,8 +464,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                       else 'assembly_checks_unverified_no_executable_feedback');book['completed']=True
         # Export unavailability alone is not a reason to change shape. Keep
         # independent visual/topology defects repairable, in the same loop.
-        image_pending = bool(reviews.get('image_critic') and
-            not reviews['image_critic'].get('approved') and not reviews.get('render_issue'))
+        image_pending = bool(reviews.get('appearance_approved') is False
+            and feedback['resolved_visual_feedback']['required_changes']
+            and not reviews.get('render_issue'))
         if (not accepted and reason != 'FLOW_ERROR' and failure_feedback
                 and not any(f['geometry_repair_allowed'] for f in failure_feedback)
                 and not actionable and not image_pending

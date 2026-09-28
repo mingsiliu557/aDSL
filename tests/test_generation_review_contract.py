@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import pytest
 
 from adsl.agents import fixed_assembly as flow
-from adsl.agents.models import CodeCriticDecision, ImageCriticDecision
+from adsl.agents.models import GradedCodeCriticDecision as CodeCriticDecision, GradedImageCriticDecision as ImageCriticDecision
 from adsl.agents.prompts import object_prompt
 from adsl.agents.service import ObjectWorkflow
 from test_fixed_assembly import mock_flow, run_flow, plan_data, CONFIG
@@ -32,13 +32,13 @@ def real_review_state(tmp_path,monkeypatch,outcomes,*,code_pass=False):
         calls.append(kw)
         if kw['stage'].startswith('image_critic'):
             return SimpleNamespace(final_output=ImageCriticDecision(approved=mock_flow.appearance,
-                observations=['judge current generated object'],required_changes=[] if mock_flow.appearance else ['fix backrest']))
+                observations=['judge current generated object'],required_changes=[] if mock_flow.appearance else ['fix backrest'], issues=[] if mock_flow.appearance else [dict(severity='HIGH', target=None, problem='Visible discrepancy', suggested_fix='fix backrest')]))
         assert kw['stage'].startswith('code_critic')
         kw['context'].source_path.read_text()
         kw['context'].record('read_file',kw['context'].source_path)
         return SimpleNamespace(final_output=CodeCriticDecision(approved=code_pass,
             observations=['source reviewed'],required_changes=[] if code_pass else ['fix backrest'],
-            image_critic_corrections=['previous view note']))
+            image_critic_corrections=['previous view note'], issues=[] if code_pass else [dict(severity='HIGH', target=None, problem='Visible discrepancy', suggested_fix='fix backrest')]))
     runtime.run=run
     for name in ('_review_generation_image','_review_generation_code'):
         monkeypatch.setattr(w,name,getattr(ObjectWorkflow,name).__get__(w))
@@ -51,6 +51,8 @@ def real_review_state(tmp_path,monkeypatch,outcomes,*,code_pass=False):
         row.update(export_status='PASS',diagnostic={'display_available':True,'parts':[{'id':'back','shown':True}],
                                                   'semantic_completeness':'NOT_EVALUATED'})
         path.write_text(json.dumps(row))
+        (result.render_paths[0].parent/'meta.json').write_text(json.dumps({'locations':[
+            {'file':result.render_paths[0].name,'label':'front'}]}))
         return result
     monkeypatch.setattr(flow,'execute_asset_source',available)
     return state,calls
@@ -62,6 +64,7 @@ def test_generation_contract_current_images_plan_history_and_real_repair(tmp_pat
     assert result.approved and len(state[-1])==1
     assert [c['stage'] for c in calls]==['image_critic:1','code_critic:1','image_critic:2']
     image1,images1=unpack(calls[0]);code1,codeimages=unpack(calls[1]);image2,images2=unpack(calls[2])
+    assert image1['render_views']==code1['render_views']==[{'image_index':2,'file':'view.png','label':'front'}]
     assert images1==codeimages==[b'user reference',b'original']
     assert images2==[b'user reference',b'candidate1']  # No failed baseline image.
     assert image1['planner_checklist']==plan_data()['critic_checklist']

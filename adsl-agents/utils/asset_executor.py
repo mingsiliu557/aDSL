@@ -51,6 +51,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--render-view-count", type=int, default=8)
     parser.add_argument("--render-elevation", type=float, default=15.0)
+    parser.add_argument("--view-layout", choices=("orbit", "review_eight"), default="orbit")
     parser.add_argument("--urdf", action="store_true")
     parser.add_argument('--fixed-assembly-config', type=Path)
     parser.add_argument('--render-only', action='store_true')
@@ -64,7 +65,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.render_only:
         manifest = json.loads((output/'execution.json').read_text())
         render_video(output_dir=output/'render', glb_path=Path(manifest['glb_path']),
-            elevations=(args.render_elevation,), num_camera_per_layer=args.render_view_count)
+            elevations=(args.render_elevation,), num_camera_per_layer=args.render_view_count,
+            view_layout=args.view_layout)
         if (output/'assembly'/'exploded.glb').is_file():
             render_video(output_dir=output/'assembly'/'exploded_render', glb_path=output/'assembly'/'exploded.glb',
                 elevations=(-30.0,30.0), num_camera_per_layer=1)
@@ -176,6 +178,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 render_samples=_positive_env_int("ADSL_RENDER_SAMPLES", 256),
                 elevations=(args.render_elevation,),
                 num_camera_per_layer=args.render_view_count,
+                view_layout=args.view_layout,
                 wait_timeout=_positive_env_float(
                     "ADSL_GPU_RENDER_WAIT_TIMEOUT_SECONDS",
                     3600.0,
@@ -188,6 +191,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 glb_path=glb_path,
                 elevations=(args.render_elevation,),
                 num_camera_per_layer=args.render_view_count,
+                view_layout=args.view_layout,
             )
 
     manifest = {

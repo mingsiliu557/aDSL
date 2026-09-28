@@ -6,7 +6,7 @@ import pytest
 
 from adsl.agents.overhang_edit import review_images
 from adsl.agents.service import ObjectWorkflow
-from adsl.agents.models import ImageCriticDecision, CodeCriticDecision
+from adsl.agents.models import GradedImageCriticDecision as ImageCriticDecision, GradedCodeCriticDecision as CodeCriticDecision
 
 
 def views(tmp_path, name, contents):
@@ -50,6 +50,9 @@ def test_both_critics_use_same_mapping_and_normal_path_unchanged(tmp_path, exper
     baseline = views(tmp_path, 'baseline', [b'front', b'back'])
     candidate = views(tmp_path, 'candidate', [b'changed front', b'back'])
     reference = views(tmp_path, 'reference', [b'front'])
+    for paths in (baseline, candidate):
+        (paths[0].parent/'meta.json').write_text(json.dumps({'locations':[
+            {'file':p.name,'label':label} for p,label in zip(paths,('front','rear'))]}))
     source = tmp_path / 'source.py'
     source.write_text('scene = None\n')
     calls = []
@@ -58,15 +61,15 @@ def test_both_critics_use_same_mapping_and_normal_path_unchanged(tmp_path, exper
         payload = json.loads(content[0]['text'])
         calls.append((payload, content[1:]))
         if kw['role'].startswith('image-critic'):
-            output = ImageCriticDecision(approved=False, observations=['possible visual issue'])
+            output = ImageCriticDecision(approved=False, observations=['possible visual issue'], issues=[dict(severity='HIGH', target=None, problem='Visible discrepancy', suggested_fix='repair visual discrepancy')])
         else:
             kw['context'].record('read_file', source)
             output = CodeCriticDecision(approved=True, observations=['source inspected'],
-                                       image_critic_corrections=['visual issue not supported by source'])
+                                       image_critic_corrections=['visual issue not supported by source'], issues=[])
         return SimpleNamespace(final_output=output)
     approved, reviews = asyncio.run(ObjectWorkflow()._review_candidate_appearance(
         runtime=SimpleNamespace(run=run), request=SimpleNamespace(overhang_experiment=experiment,
-            image_paths=reference, requirement='preserve chair'), workspace=tmp_path,
+            articulation=False, image_paths=reference, requirement='preserve chair'), workspace=tmp_path,
         round_number=1, proposal_index=0, proposal=SimpleNamespace(model_dump=lambda: {}),
         baseline_execution=SimpleNamespace(render_paths=baseline),
         candidate_execution=SimpleNamespace(render_paths=candidate), candidate_source=source,
@@ -75,6 +78,8 @@ def test_both_critics_use_same_mapping_and_normal_path_unchanged(tmp_path, exper
     assert len(calls) == 2
     assert calls[0][1] == calls[1][1]
     assert calls[0][0]['image_order'] == calls[1][0]['image_order']
+    assert calls[0][0]['render_views'] == calls[1][0]['render_views']
+    assert [r['image_index'] for r in calls[0][0]['render_views']['candidate']] == ([3,2] if experiment else [4,5])
     if experiment:
         assert len(calls[0][1]) == 3
         assert calls[0][0]['image_order']['candidate_indices'] == [3, 2]

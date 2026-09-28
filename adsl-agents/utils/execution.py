@@ -71,6 +71,7 @@ def execute_asset_source(
     render: bool = True,
     render_view_count: int = 8,
     render_elevation: float = 15.0,
+    render_view_layout: str = "orbit",
     export_urdf: bool = True,
     timeout: float = 300.0,
     working_directory: str | Path | None = None,
@@ -87,6 +88,10 @@ def execute_asset_source(
         raise NotADirectoryError(workdir)
     if render and render_view_count < 1:
         raise ValueError("render_view_count must be at least 1")
+    if render_view_layout not in {"orbit", "review_eight"}:
+        raise ValueError("render_view_layout must be orbit or review_eight")
+    if render and render_view_layout == "review_eight" and render_view_count != 8:
+        raise ValueError("review_eight requires eight total views")
     output.mkdir(parents=True, exist_ok=False)
     command = [
         sys.executable,
@@ -108,6 +113,8 @@ def execute_asset_source(
                 str(render_view_count),
                 "--render-elevation",
                 str(render_elevation),
+                "--view-layout",
+                render_view_layout,
             ]
         )
     if export_urdf and not fixed_assembly:
@@ -162,7 +169,8 @@ def execute_asset_source(
         if render:
             render_command = [sys.executable, str(Path(__file__).with_name('asset_executor.py')),
                 '--source', str(source), '--output', str(output), '--render-only', '--render',
-                '--render-view-count', str(render_view_count), '--render-elevation', str(render_elevation)]
+                '--render-view-count', str(render_view_count), '--render-elevation', str(render_elevation),
+                '--view-layout', render_view_layout]
             render_process = subprocess.Popen(render_command, cwd=workdir, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE, text=True, start_new_session=True)
             try:

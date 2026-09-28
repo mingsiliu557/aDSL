@@ -1,8 +1,31 @@
 # aDSL 工作记忆
 
-更新时间：2026-09-22（UTC）
+更新时间：2026-09-28（UTC）
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
+
+## 静态视觉审查修正（2026-09-28，当前任务）
+
+- 已承接对话 `01a04d06-102b-73f2-8abe-ead93a99af1a` 的最小修复计划，在
+  `fix/visual-critic-review` 实施，基线 `54e7df1470c9829c5645d73067d39d3c75868ad1`。
+- 九个现有产品文件及两份新提示词：静态 Critic 必填 HIGH/MED/LOW issues；仅 HIGH 必修；
+  Code 撤销/降级需源码和当前图片证据，并保留成功读取 assigned_source 的门槛。
+  6 环绕 + 顶/底共 8 图，元数据映射实际附件；最终 resolved_visual_feedback 接入普通、
+  固定装配和 planned/overhang 共享修补；无 checker 末轮也审查，不产生未复核的额外补丁。
+- 相关最终回归 299 passed / 6 skipped（8.61 秒）；6 项是未显式开启的真实几何验证。
+  SDK schema、反馈接线、候选共享预算、末轮、恢复、新旧 CLI/chat 报告读取及视图链路均覆盖。
+  真实修补成功率没有测量；完整控制流采用 mock 验证。
+- 用户明确只用 CPU。真实 smoke 目录 `temp/visual_critic_review_20260928/`，三个手写椅子各
+  8 图，固定装配 T 支架 8 + 2 图；checker_specs=()，装配 visual_only，物理 checker 全关。
+  两个正例初始夹具有意外间隙，在任何真实模型调用前修正重渲染，原件及原因保留。
+- Stepcode 首次本地连接失败，44949 没有监听；改为代理与抽查同一长会话，健康检查后恢复。
+  用户也已允许 CLIProxy 后备，但目前未切换、未修改已有 CLIProxy 服务或 token。
+- 真实 Critic 每类各调用 Image 和 Code 一次，即使 Image 通过也额外读源码诊断：
+  未要求木纹的普通椅子两者通过；遮挡样例两者均保留前视投影对齐 HIGH，不能宣称消除了
+  遮挡误报，不改样例追求通过。错位靠背两者均判 HIGH，Code 定位 Backrest.__init__.panel 的 x=0.75，未凭类名存在放行。
+- 真实抽查已全部完成：6 次 Critic / 9 次 SDK 记账请求、68,625 tokens；三次 Code 均成功读取源码，样例源码哈希不变。
+- 实现与验证已完成，正式报告 `reports/visual_critic_review_20260928.md`；本次仅提交上述代码、测试、报告和 memory。
+  既有 FEA/standing 改动、实验文件、历史文件删除保持原样，不纳入本提交；不合并 master、不推送。
 
 ## EXACT + ASCII STL 与两例全新生成（2026-09-22）
 

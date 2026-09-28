@@ -10,7 +10,7 @@ import pytest
 import trimesh
 
 from adsl.agents import fixed_assembly as flow
-from adsl.agents.models import ImageCriticDecision, CodeCriticDecision, RepairProposal, RepairTarget
+from adsl.agents.models import GradedImageCriticDecision as ImageCriticDecision, GradedCodeCriticDecision as CodeCriticDecision, RepairProposal, RepairTarget
 from adsl.agents.service import ObjectWorkflow
 from adsl.agents.utils.execution import ExecutionResult
 from adsl.core.export import export_assembly as exporter
@@ -22,12 +22,12 @@ def critic_runtime(runtime):
     async def run(**kw):
         calls.append(kw)
         if kw['stage'].startswith('image_critic'):
-            return SimpleNamespace(final_output=ImageCriticDecision(approved=mock_flow.appearance, observations=['visible']))
+            return SimpleNamespace(final_output=ImageCriticDecision(approved=mock_flow.appearance, observations=['visible'], issues=[] if mock_flow.appearance else [dict(severity='HIGH',target=None,problem='Visible discrepancy',suggested_fix='inspect invalid part')]))
         context = kw['context']
         context.source_path.read_text()
         context.record('read_file', context.source_path)
         return SimpleNamespace(final_output=CodeCriticDecision(approved=False,
-            observations=['read assigned source'], required_changes=['inspect invalid part']))
+            observations=['read assigned source'], required_changes=['inspect invalid part'], issues=[dict(severity='HIGH',target=None,problem='Visible discrepancy',suggested_fix='inspect invalid part')]))
     runtime.run = run
     return calls
 

@@ -295,7 +295,9 @@ invented index IDs. Unresolved attribute hints must be verified by reading sourc
 You may minimally correct print grouping and connections, without a new Planner.
 Keep frozen units, fit allowance, dimensions and task requirements. No checker,
 configuration or mesh repair edits. Propose at most ONE coordinated source patch,
-including compatible pending Image/Code issues. Stop with no proposals if no
+including compatible resolved_visual_feedback.required_changes. Raw Image/Code
+reports are context; dismissed/downgraded Image issues are not mandatory edits.
+MED/LOW issues are advisory. Engineering advice does not change checker outcomes. Stop with no proposals if no
 reasonable edit follows from evidence. INDETERMINATE alone is not a shape defect.
 OPEN_PRINT_MESH with measured boundary locations permits a bounded local SOURCE
 repair attempt, but is NOT confirmed disconnection. Read the current source and
@@ -333,6 +335,7 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
         'assembly_item_statuses':[{k:r.get(k) for k in ('part_id','connection_id','status','code')}
             for result in runs for r in result.result.metrics.get('items',[])],
         'print_orientation_editable':request.repair_policy.print_orientation_editable,
+        'resolved_visual_feedback':feedback.get('resolved_visual_feedback'),
         'pending_reviews':{k:feedback.get(k) for k in ('image_critic','code_critic','render_issue','repair_history')},
         'remaining_repairs':remaining,'maximum_repair_proposals':1,
         'assignment':instruction + EVIDENCE_PATH_INSTRUCTION}

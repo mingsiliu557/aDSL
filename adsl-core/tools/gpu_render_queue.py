@@ -135,6 +135,7 @@ def enqueue_render_job(
     render_samples: int = 256,
     elevations: Sequence[float] = (15.0,),
     num_camera_per_layer: int = 8,
+    view_layout: str = "orbit",
     background: str = "transparent",
     material_mode: str = "native",
     require_worker: bool = True,
@@ -170,6 +171,10 @@ def enqueue_render_job(
     elevation_values = [float(value) for value in elevations]
     if not elevation_values:
         raise ValueError("elevations must not be empty")
+    if view_layout not in {"orbit", "review_eight"}:
+        raise ValueError("view_layout must be orbit or review_eight")
+    if view_layout == "review_eight" and (len(elevation_values) != 1 or num_camera_per_layer != 8):
+        raise ValueError("review_eight requires one elevation and eight total views")
     if background not in {"transparent", "white", "gray"}:
         raise ValueError("background must be transparent, white, or gray")
     if material_mode not in {"native", "neutral"}:
@@ -189,6 +194,7 @@ def enqueue_render_job(
         "render_samples": render_samples,
         "elevations": elevation_values,
         "num_camera_per_layer": num_camera_per_layer,
+        "view_layout": view_layout,
         "background": background,
         "material_mode": material_mode,
     }
@@ -376,6 +382,8 @@ def _render_command(
         *[str(value) for value in request["elevations"]],
         "--num-camera-per-layer",
         str(request["num_camera_per_layer"]),
+        "--view-layout",
+        str(request.get("view_layout", "orbit")),
         "--render-samples",
         str(request["render_samples"]),
         "--background",

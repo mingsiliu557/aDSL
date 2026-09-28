@@ -11,7 +11,7 @@ import pytest
 from adsl.agents.checkers import CheckerRun, run_checkers
 from adsl.agents.models import (
     AnalysisContext, CheckerFinding, CheckerResult, CheckerSpec,
-    EngineeringCriticDecision, ImageCriticDecision, MetricEvidence,
+    EngineeringCriticDecision, GradedImageCriticDecision as ImageCriticDecision, MetricEvidence,
     ObjectPlan, ObjectRequest, RepairPolicy,
 )
 from adsl.agents.repair_policy import assess_candidate
@@ -182,10 +182,10 @@ def workflow_fixture(tmp_path, monkeypatch, rows, *, appearance=True, proposals=
         if kwargs["role"].startswith("engineering-critic"):
             output = EngineeringCriticDecision(approved=False, observations=[], repair_proposals=proposals or [])
         elif kwargs["role"].startswith("code-critic"):
-            from adsl.agents.models import CodeCriticDecision
-            output = CodeCriticDecision(approved=appearance, observations=[], required_changes=["fix appearance"])
+            from adsl.agents.models import GradedCodeCriticDecision as CodeCriticDecision
+            output = CodeCriticDecision(approved=appearance, observations=[], required_changes=["fix appearance"], issues=[] if appearance else [dict(severity='HIGH', target=None, problem='Visible discrepancy', suggested_fix='fix appearance')])
         else:
-            output = ImageCriticDecision(approved=appearance, observations=[])
+            output = ImageCriticDecision(approved=appearance, observations=[], issues=[] if appearance else [dict(severity='HIGH', target=None, problem='Visible discrepancy', suggested_fix='repair visual discrepancy')])
         return SimpleNamespace(final_output=output)
 
     runtime = SimpleNamespace(agent=lambda **kwargs: None, run=AsyncMock(side_effect=fake_run),
@@ -298,11 +298,11 @@ def test_actual_candidate_path_only_copies_an_accepted_source(tmp_path, monkeypa
     context = AnalysisContext(source_sha256="a", geometry_sha256="b", checker_specs_sha256="c")
     monkeypatch.setattr(service, "build_analysis_context", lambda **kwargs: context)
     runtime = SimpleNamespace(run=AsyncMock(return_value=SimpleNamespace(
-        final_output=ImageCriticDecision(approved=True, observations=[]))))
+        final_output=ImageCriticDecision(approved=True, observations=[], issues=[]))))
     workflow = ObjectWorkflow()
     workflow._repair = AsyncMock()
     output = asyncio.run(workflow._attempt_engineering_candidates(
-        runtime=runtime, request=SimpleNamespace(requirement="chair", repair_policy=RepairPolicy(), checker_specs=(), image_paths=(), overhang_experiment={}),
+        runtime=runtime, request=SimpleNamespace(articulation=False, requirement="chair", repair_policy=RepairPolicy(), checker_specs=(), image_paths=(), overhang_experiment={}),
         workspace=tmp_path, source_path=source, round_root=root, round_number=1,
         plan=SimpleNamespace(model_dump=lambda: {}), repairer=None, image_critic=None, code_critic=None,
         baseline_execution=execution, baseline_runs=[run(root, "standing", "FAIL", 40), run(root, "fea", before, 100)],

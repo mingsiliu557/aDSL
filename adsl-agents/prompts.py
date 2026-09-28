@@ -14,6 +14,8 @@ ROLE_PROMPTS = {
     "debugger": "debugger.md",
     "image_critic": "critic_image.md",
     "code_critic": "critic_code_image.md",
+    "image_critic_review": "critic_image_review.md",
+    "code_critic_review": "critic_code_review.md",
     "engineering_critic": "critic_engineering.md",
 }
 
@@ -27,10 +29,10 @@ def object_prompt(role: str, *, articulation: bool, fixed_assembly: bool = False
         PROMPT_ROOT / filename,
         articulation=articulation,
     )
-    if fixed_assembly and role == 'code_critic':
+    if fixed_assembly and role in {'code_critic', 'code_critic_review'}:
         # API reference, not Planner/Coder assignments or manufacturing approval.
         prompt += '\n' + files('adsl.core').joinpath('docs/fixed_assembly.md').read_text(encoding='utf-8')
-    elif fixed_assembly and role != 'image_critic':
+    elif fixed_assembly and role not in {'image_critic', 'image_critic_review'}:
         prompt += '\n' + (PROMPT_ROOT / 'fixed_assembly.md').read_text(encoding='utf-8')
     return prompt
 

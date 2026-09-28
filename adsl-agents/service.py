@@ -24,6 +24,8 @@ from .models import (
     CheckerResult,
     CheckerSpec,
     CodeCriticDecision,
+    GradedCodeCriticDecision,
+    GradedImageCriticDecision,
     DebuggerDecision,
     EditKind,
     EditPlan,
@@ -66,6 +68,13 @@ from .utils.inputs import user_input
 from .utils.io import read_json, write_json
 from .utils.runner import AgentRuntime
 from .utils.usage import UsageRecorder
+
+
+VISUAL_FEEDBACK_INSTRUCTION = (
+    " Coordinate resolved_visual_feedback.required_changes with actionable tool findings in one repair. "
+    "Raw Image/Code reports are context; dismissed or downgraded Image issues are not mandatory edits. "
+    "MED/LOW issues are advisory. Engineering advice does not change measured checker outcomes. "
+)
 
 
 _CONTEXT_POLICY = {
@@ -628,22 +637,22 @@ class ObjectWorkflow:
         )
         image_critic = runtime.agent(
             name="object-image-critic",
-            instructions=object_prompt("image_critic", articulation=request.articulation),
-            output_type=ImageCriticDecision,
+            instructions=object_prompt("image_critic" if request.articulation else "image_critic_review", articulation=request.articulation),
+            output_type=ImageCriticDecision if request.articulation else GradedImageCriticDecision,
         )
         code_critic = runtime.agent(
             name="object-code-critic",
-            instructions=object_prompt("code_critic", articulation=request.articulation),
+            instructions=object_prompt("code_critic" if request.articulation else "code_critic_review", articulation=request.articulation),
             tools=READ_TOOLS,
-            output_type=CodeCriticDecision,
+            output_type=CodeCriticDecision if request.articulation else GradedCodeCriticDecision,
         )
         engineering_critic = runtime.agent(
             name="object-engineering-critic",
             instructions=object_prompt("engineering_critic", articulation=request.articulation) +
-                ("\n" + (PLANNED_LOCATION_INSTRUCTION if request.overhang_experiment.get('mode') == 'planned_checks'
-                          else MODEL_LOCATION_INSTRUCTION) if request.overhang_experiment.get("arm") == "feedback" else ""),
+                ("\n" + (PLANNED_LOCATION_INSTRUCTION if (request.overhang_experiment or {}).get('mode') == 'planned_checks'
+                          else MODEL_LOCATION_INSTRUCTION) if (request.overhang_experiment or {}).get("arm") == "feedback" else ""),
             tools=READ_TOOLS,
-            output_type=(PlannedEngineeringCriticDecision if request.overhang_experiment.get('mode') == 'planned_checks'
+            output_type=(PlannedEngineeringCriticDecision if (request.overhang_experiment or {}).get('mode') == 'planned_checks'
                          else EngineeringCriticDecision),
             strict_json_schema=False,
         )
@@ -653,7 +662,7 @@ class ObjectWorkflow:
                 mode=mode, plan=plan, repairer=repairer, image_critic=image_critic,
                 code_critic=code_critic, engineering_critic=engineering_critic)
         state = resume_state or {}
-        experiment = request.overhang_experiment
+        experiment = request.overhang_experiment or {}
         optimize = experiment.get("arm") == "feedback"
         retained_execution = None
         retained_runs: list[CheckerRun] = []
@@ -713,6 +722,7 @@ class ObjectWorkflow:
                     source_path,
                     round_root,
                     render=True,
+                    render_view_layout="orbit" if request.articulation else "review_eight",
                     export_urdf=True,
                     timeout=executor_timeout,
                 )
@@ -803,14 +813,13 @@ class ObjectWorkflow:
                 return await initialize(runtime=runtime, request=request, workspace=workspace,
                     source_path=source_path, execution=execution, round_number=round_number, plan=plan)
 
-            # Preserve the historical last-round fallback only when no engineering
-            # gates are configured. Mandatory checkers always inspect the final round.
+            # Static requests review every successful execution, including the final round.
             if experiment and not allowed_edit(workspace / "original_source.py", source_path, experiment):
                 shutil.copy2(workspace / "original_source.py", source_path)
                 final = (round_number, original_execution(experiment), False, "manual_source_scope_violation_original_retained")
                 checker_runs = []
                 break
-            if not request.checker_specs and not experiment and round_number == end_round:
+            if request.articulation and not request.checker_specs and not experiment and round_number == end_round:
                 final = (
                     round_number,
                     execution,
@@ -951,6 +960,8 @@ class ObjectWorkflow:
                 image_critic_corrections = code_decision.image_critic_corrections
                 appearance_approved = code_decision.approved
 
+            resolved_visual = self._resolved_visual_feedback(
+                image_decision.model_dump(), code_decision.model_dump() if code_decision else None)
             if not request.checker_specs:
                 if experiment:
                     protection = protection_check(Path(experiment["original_urdf"]), execution.urdf_path, experiment)
@@ -971,6 +982,9 @@ class ObjectWorkflow:
                     shutil.copy2(workspace / "original_source.py", source_path)
                     final = (round_number, original_execution(experiment), False, "edit_budget_exhausted_original_retained")
                     break
+                if round_number == end_round:
+                    final = (round_number, execution, False, "round_budget_exhausted_with_unmet_gates")
+                    break
                 assert code_decision is not None
                 await self._repair(
                     runtime=runtime,
@@ -982,7 +996,8 @@ class ObjectWorkflow:
                     payload={
                         "requirement": request.requirement,
                         "plan": plan.model_dump(),
-                        "assignment": "Patch every valid required change from the Code Critic.",
+                        "assignment": "Patch the final required visual changes." + VISUAL_FEEDBACK_INSTRUCTION,
+                        "resolved_visual_feedback": resolved_visual,
                         "code_critic": code_decision.model_dump(),
                     },
                 )
@@ -1026,6 +1041,9 @@ class ObjectWorkflow:
                                     history=self._read_repair_history(workspace),
                                     round_root=round_root, workspace=workspace,
                                 ),
+                                "image_critic": image_decision.model_dump(),
+                                "code_critic": code_decision.model_dump() if code_decision else None,
+                                "resolved_visual_feedback": resolved_visual,
                                 "maximum_repair_proposals": (
                                     request.repair_policy.max_candidates_per_round
                                 ),
@@ -1035,7 +1053,7 @@ class ObjectWorkflow:
                                     "Propose bounded source candidates supported by the "
                                     "typed findings and localization. Do not alter checker "
                                     "assumptions or claim a repair passes before regression."
-                                ),
+                                ) + VISUAL_FEEDBACK_INSTRUCTION,
                                 "protection_checklist": experiment.get("protection") if experiment else None,
                                 "remaining_edit_candidates": budget_remaining(workspace, experiment) if experiment else None,
                                 "overhang_measurements": ([{k: r.result.metrics.get(k) for k in (
@@ -1215,7 +1233,8 @@ class ObjectWorkflow:
                     "Apply one minimal patch covering every valid visual change "
                     "and every Engineering Critic change. Preserve unrelated appearance. "
                     "The next round will re-run the original checkers."
-                ),
+                ) + VISUAL_FEEDBACK_INSTRUCTION,
+                "resolved_visual_feedback": resolved_visual,
             }
             if experiment and not budget_remaining(workspace, experiment):
                 final = (round_number, execution, False, "edit_candidate_budget_exhausted")
@@ -1491,10 +1510,17 @@ class ObjectWorkflow:
                     book["versions"][book["retained"]] = version_record(book["retained"], current_source, execution, runs, reviews)
                     write_json(book_path, book)
                     payload = None
-                    if initial or not reviews.get("appearance_approved"):
+                    actionable = [f for run in runs for f in _actionable_findings(run)]
+                    tool_feedback_ready = bool(feedback) and (
+                        bool(actionable) if planned else bool(runs) and all(run.result.status == "PASS" for run in runs))
+                    use_engineering = (not initial and tool_feedback_ready
+                        and (not request.articulation or bool(reviews.get("appearance_approved"))))
+                    resolved_visual = self._resolved_visual_feedback(reviews.get("image_critic"), reviews.get("code_critic"))
+                    if initial or (not reviews.get("appearance_approved") and not use_engineering):
                         origin = "initial_edit" if initial else "gate_patch"
                         payload = {"requirement": request.requirement, "plan": plan.model_dump(),
-                                   "assignment": proposal.hypothesis,
+                                   "assignment": proposal.hypothesis + VISUAL_FEEDBACK_INSTRUCTION,
+                                   "resolved_visual_feedback": resolved_visual,
                                    "protection_checklist": options.get("protection"),
                                    "image_critic": reviews.get("image_critic"), "code_critic": reviews.get("code_critic"),
                                    "remaining_edit_candidates": budget_remaining(workspace, options)}
@@ -1506,8 +1532,7 @@ class ObjectWorkflow:
                     elif not feedback:
                         reason = "control_appearance_review_complete"
                         break
-                    elif (not any(_actionable_findings(r) for r in runs) if planned
-                          else not runs or any(r.result.status != "PASS" for r in runs)):
+                    elif not tool_feedback_ready:
                         reason = "overhang_measurement_unavailable"
                         break
                     else:
@@ -1521,7 +1546,9 @@ class ObjectWorkflow:
                                 "repair actionable hard physical failures before optional overhang reduction. "
                                 "Never trade a hard regression for less overhang. Unavailable checks are unverified, "
                                 "not physical failures; infrastructure errors are not geometry repair targets. "
-                                "You may decline to propose a change. ") if planned else "") + OVERHANG_OPTIMIZATION_INSTRUCTION,
+                                "You may decline to propose a change. ") if planned else "") + OVERHANG_OPTIMIZATION_INSTRUCTION + VISUAL_FEEDBACK_INSTRUCTION,
+                            "image_critic": reviews.get("image_critic"), "code_critic": reviews.get("code_critic"),
+                            "resolved_visual_feedback": resolved_visual,
                             "localization_mode": "model_inferred" if fallback else "index_assisted",
                             "localization_instruction": PLANNED_LOCATION_INSTRUCTION if planned else MODEL_LOCATION_INSTRUCTION,
                             **({"current_complete_source": current_source.read_text(),
@@ -1553,7 +1580,9 @@ class ObjectWorkflow:
                                 context = AgentToolContext(workspace=workspace, source_path=current_source)
                                 result = await runtime.run(agent=engineering_critic, input=user_input(json.dumps({
                                     'requirement':request.requirement, 'instruction':PLANNED_LOCATION_INSTRUCTION,
-                                    'assignment':'One supplemental source read and replan only. Related assembly code and helpers are allowed; no class whitelist or bridge_parent prerequisite. May still stop.',
+                                    'assignment':'One supplemental source read and replan only. Related assembly code and helpers are allowed; no class whitelist or bridge_parent prerequisite. May still stop.' + VISUAL_FEEDBACK_INSTRUCTION,
+                                    'image_critic':reviews.get('image_critic'), 'code_critic':reviews.get('code_critic'),
+                                    'resolved_visual_feedback':resolved_visual,
                                     'assigned_source':current_source.relative_to(workspace).as_posix(),
                                     'current_complete_source':current_source.read_text(),
                                     'previous_decision':decision.model_dump(),
@@ -1569,11 +1598,16 @@ class ObjectWorkflow:
                     if not decision.repair_proposals:
                         reason = "no_actionable_proposal"
                         break
+                    code_payload = reviews.get("code_critic")
+                    current_code_decision = None
+                    if code_payload is not None:
+                        decision_type = GradedCodeCriticDecision if "issues" in code_payload else CodeCriticDecision
+                        current_code_decision = decision_type.model_validate(code_payload)
                     outcome = await self._attempt_engineering_candidates(runtime=runtime, request=request,
                         workspace=workspace, source_path=current_source, round_root=round_root, round_number=round_number,
                         plan=plan, repairer=repairer, image_critic=image_critic, code_critic=code_critic,
                         baseline_execution=execution, baseline_runs=runs, baseline_analysis_context=analysis,
-                        source_index=index, engineering_decision=decision, code_decision=None,
+                        source_index=index, engineering_decision=decision, code_decision=current_code_decision,
                         edit_payload=payload, edit_origin=origin)
                     if not outcome.execution:
                         reason = str(outcome.attempts[-1].get("status", "candidate_rejected")) if outcome.attempts else "no_candidate"
@@ -1690,7 +1724,7 @@ class ObjectWorkflow:
         edit_origin: str = "engineering",
     ) -> _CandidateOutcome:
         attempts: list[dict[str, object]] = []
-        experiment = request.overhang_experiment
+        experiment = request.overhang_experiment or {}
         if experiment and (edit_payload is not None or experiment.get("arm") == "feedback") and source_index is None:
             source_index = SourceIndex(source_path=str(source_path), source_sha256=file_hash(source_path),
                                        index_sha256="", root_feature_id="manual_scope")
@@ -1836,9 +1870,11 @@ class ObjectWorkflow:
                             "Do not default to deleting decoration, filling gaps or changing physical conditions. "
                             "Never delete mesh elements or change tolerances, thresholds, "
                             "checker code, mesh generation or solver settings to obtain a pass."
-                        ),
+                        ) + VISUAL_FEEDBACK_INSTRUCTION,
+                        "resolved_visual_feedback": self._resolved_visual_feedback(
+                            None, code_decision.model_dump() if code_decision else None),
                         "repair_proposal": proposal.model_dump(),
-                        "protection_checklist": request.overhang_experiment.get("protection"),
+                        "protection_checklist": (request.overhang_experiment or {}).get("protection"),
                         "checker_evidence": _checker_evidence(
                             baseline_runs, workspace=workspace,
                             finding_ids=set(proposal.finding_ids),
@@ -1929,6 +1965,7 @@ class ObjectWorkflow:
                     candidate_source,
                     execution_root,
                     render=True,
+                    render_view_layout="orbit" if request.articulation else "review_eight",
                     export_urdf=True,
                     timeout=_asset_executor_timeout_seconds(),
                 )
@@ -2112,9 +2149,10 @@ class ObjectWorkflow:
             'round':round_number, 'max_rounds':max_rounds,
             'reference_image_count':len(request.image_paths), 'render_image_count':len(renders),
             'previous_image_decisions':image_history, 'code_critic_corrections':code_critic_corrections,
+            'render_views': self._review_view_labels(renders, start_index=len(request.image_paths) + 1),
         }
         if request.overhang_experiment:
-            payload['protection_checklist'] = request.overhang_experiment.get('protection')
+            payload['protection_checklist'] = (request.overhang_experiment or {}).get('protection')
         if request.fixed_assembly and assembly_context is not None:
             payload['assembly_context'] = assembly_context
         if render_issue:
@@ -2122,7 +2160,10 @@ class ObjectWorkflow:
         result = await runtime.run(agent=image_critic,
             input=user_input(json.dumps(payload, ensure_ascii=False), (*request.image_paths, *renders)),
             role=f'image-critic:round:{round_number}', stage=f'image_critic:{round_number}')
-        decision = self._typed_output(result.final_output, ImageCriticDecision)
+        decision = self._typed_output(
+            result.final_output, ImageCriticDecision if request.articulation else GradedImageCriticDecision)
+        if not request.articulation:
+            decision = self._normalize_visual_decision(decision)
         write_json(round_root/'image_critique.json', decision.model_dump())
         image_history.append(decision.model_dump())
         return decision
@@ -2147,11 +2188,14 @@ class ObjectWorkflow:
         if render_issue:
             payload['render_issue'] = render_issue
         renders = execution.render_paths if execution else ()
+        payload['reference_image_count'] = len(request.image_paths)
+        payload['render_image_count'] = len(renders)
+        payload['render_views'] = self._review_view_labels(renders, start_index=len(request.image_paths) + 1)
         result = await runtime.run(agent=code_critic,
             input=user_input(json.dumps(payload, ensure_ascii=False), (*request.image_paths, *renders)),
             role=f'code-critic:round:{round_number}', stage=f'code_critic:{round_number}', context=context)
         decision = self._normalize_code_critic_decision(
-            self._typed_output(result.final_output, CodeCriticDecision),
+            self._typed_output(result.final_output, CodeCriticDecision if request.articulation else GradedCodeCriticDecision),
             source_grounded=any(event.tool == 'read_file' and event.success
                 and event.path == context.source_path.relative_to(context.workspace).as_posix()
                 for event in context.events))
@@ -2166,7 +2210,7 @@ class ObjectWorkflow:
         candidate_relative = candidate_source.relative_to(workspace).as_posix()
         candidate_code_decision = None
         preservation_payload = {
-            "protection_checklist": request.overhang_experiment.get("protection"),
+            "protection_checklist": (request.overhang_experiment or {}).get("protection"),
             "requirement": request.requirement,
             "round": round_number,
             "proposal": proposal.model_dump(),
@@ -2195,13 +2239,24 @@ class ObjectWorkflow:
                 " it does not prove geometry or protected dimensions are unchanged."
             )
             write_json(candidate_root / "image_input_mapping.json", mapping)
+        baseline_indices = (mapping['baseline_indices'] if request.overhang_experiment else
+                            list(range(len(request.image_paths) + 1, len(request.image_paths) + len(baseline_images) + 1)))
+        candidate_indices = (mapping['candidate_indices'] if request.overhang_experiment else
+                             list(range(len(request.image_paths) + len(baseline_images) + 1, len(images) + 1)))
+        preservation_payload['render_views'] = {
+            'baseline': self._review_view_labels(baseline_images, indices=baseline_indices),
+            'candidate': self._review_view_labels(candidate_images, indices=candidate_indices),
+        }
         image_result = await runtime.run(
             agent=image_critic,
             input=user_input(json.dumps(preservation_payload, ensure_ascii=False), images),
             role=f"image-critic:candidate:{round_number}:{proposal_index}",
             stage=f"candidate_image_critic:{round_number}:{proposal_index}",
         )
-        candidate_image_decision = self._typed_output(image_result.final_output, ImageCriticDecision)
+        candidate_image_decision = self._typed_output(
+            image_result.final_output, ImageCriticDecision if request.articulation else GradedImageCriticDecision)
+        if not request.articulation:
+            candidate_image_decision = self._normalize_visual_decision(candidate_image_decision)
         image_payload = candidate_image_decision.model_dump()
         write_json(
             candidate_root / "image_critique.json",
@@ -2230,7 +2285,7 @@ class ObjectWorkflow:
                 context=code_context,
             )
             candidate_code_decision = self._normalize_code_critic_decision(
-                self._typed_output(candidate_code_result.final_output, CodeCriticDecision),
+                self._typed_output(candidate_code_result.final_output, CodeCriticDecision if request.articulation else GradedCodeCriticDecision),
                 source_grounded=any(
                     event.tool == "read_file" and event.success
                     and event.path == code_context.source_path.relative_to(code_context.workspace).as_posix()
@@ -2245,6 +2300,8 @@ class ObjectWorkflow:
 
         return candidate_appearance_approved, {
             "appearance_approved": candidate_appearance_approved,
+            "resolved_visual_feedback": self._resolved_visual_feedback(
+                image_payload, candidate_code_decision.model_dump() if candidate_code_decision else None),
             "image_critic": image_payload,
             "code_critic": candidate_code_decision.model_dump() if candidate_code_decision else None,
             **({"image_input_mapping": mapping} if request.overhang_experiment else {}),
@@ -2442,11 +2499,57 @@ class ObjectWorkflow:
         return value
 
     @staticmethod
+    def _review_view_labels(paths, *, start_index=1, indices=None):
+        """Bind labels to actual attachments; old unlabeled assets stay unlabeled."""
+        rows = []
+        metadata = {}
+        attachments = indices if indices is not None else range(start_index, start_index + len(paths))
+        for path, attached in zip(paths, attachments):
+            path = Path(path)
+            meta_path = path.parent / 'meta.json'
+            if meta_path not in metadata:
+                try:
+                    locations = read_json(meta_path).get('locations', [])
+                    metadata[meta_path] = {r['file']: r['label'] for r in locations
+                                          if isinstance(r, dict) and r.get('file') and r.get('label')}
+                except (OSError, ValueError, AttributeError, TypeError):
+                    metadata[meta_path] = {}
+            label = metadata[meta_path].get(path.name)
+            if label:
+                rows.append({'image_index': attached, 'file': path.name, 'label': label})
+        return rows
+
+    @staticmethod
+    def _normalize_visual_decision(decision):
+        issues = getattr(decision, "issues", None)
+        if issues is None:
+            required = list(decision.required_changes)
+            approved = decision.approved and not required
+        else:
+            required = [
+                f"{issue.target}: {issue.suggested_fix}" if issue.target else issue.suggested_fix
+                for issue in issues if issue.severity == "HIGH"
+            ]
+            approved = not required
+        return decision.model_copy(update={"approved": approved, "required_changes": required})
+
+    @staticmethod
+    def _resolved_visual_feedback(image_payload, code_payload):
+        current = code_payload if code_payload is not None else image_payload
+        return {
+            "reviewed_by": ("code_critic" if code_payload is not None else "image_critic")
+            if current is not None else None,
+            "required_changes": current.get("required_changes", []) if current else [],
+            "issues": current.get("issues", []) if current else [],
+        }
+
+    @staticmethod
     def _normalize_code_critic_decision(
         decision: CodeCriticDecision,
         *,
         source_grounded: bool = True,
     ) -> CodeCriticDecision:
+        decision = ObjectWorkflow._normalize_visual_decision(decision)
         observations = list(decision.observations)
         approved = decision.approved
         if not source_grounded:

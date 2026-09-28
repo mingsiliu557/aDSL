@@ -71,7 +71,7 @@ def test_code_review_requires_successful_assigned_source_read(tmp_path, monkeypa
     from pathlib import Path
     from types import SimpleNamespace
     from agents.tool_context import ToolContext
-    from adsl.agents.models import ObjectRequest, CodeCriticDecision, ImageCriticDecision, RepairProposal, RepairTarget
+    from adsl.agents.models import ObjectRequest, GradedCodeCriticDecision as CodeCriticDecision, GradedImageCriticDecision as ImageCriticDecision, RepairProposal, RepairTarget
     from adsl.agents.service import ObjectWorkflow
 
     source = tmp_path/'source.py'; source.write_text('value = 1')
@@ -81,7 +81,7 @@ def test_code_review_requires_successful_assigned_source_read(tmp_path, monkeypa
     events = []
     async def run(**kw):
         if kw['role'].startswith('image'):
-            return SimpleNamespace(final_output=ImageCriticDecision(approved=False, observations=[]))
+            return SimpleNamespace(final_output=ImageCriticDecision(approved=False, observations=[], issues=[dict(severity='HIGH', target=None, problem='Visible discrepancy', suggested_fix='repair visual discrepancy')]))
         ctx = kw['context']
         path = str(report if read_kind == 'other_report' else source)
         wire = json.dumps({'path':path})
@@ -94,7 +94,7 @@ def test_code_review_requires_successful_assigned_source_read(tmp_path, monkeypa
             if read_kind == 'failed_source': patch.setattr(Path, 'open', missing)
             await read_file.on_invoke_tool(wrapper, wire)
         events.extend(ctx.events)
-        return SimpleNamespace(final_output=CodeCriticDecision(approved=True, observations=[]))
+        return SimpleNamespace(final_output=CodeCriticDecision(approved=True, observations=[], issues=[]))
     runtime = SimpleNamespace(run=run)
     if review == 'generation':
         decision = asyncio.run(workflow._review_generation_code(runtime=runtime,request=request,

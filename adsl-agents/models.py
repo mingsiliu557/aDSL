@@ -119,6 +119,21 @@ class CodeCriticDecision(BaseModel):
     image_critic_corrections: list[str] = Field(default_factory=list)
 
 
+class VisualIssue(BaseModel):
+    severity: Literal["HIGH", "MED", "LOW"]
+    target: str | None
+    problem: str = Field(min_length=1)
+    suggested_fix: str = Field(min_length=1)
+
+
+class GradedImageCriticDecision(ImageCriticDecision):
+    issues: list[VisualIssue]
+
+
+class GradedCodeCriticDecision(CodeCriticDecision):
+    issues: list[VisualIssue]
+
+
 CheckerStatus = Literal["PASS", "FAIL", "INDETERMINATE", "ERROR"]
 FindingCategory = Literal[
     "geometry_failure",
@@ -337,6 +352,9 @@ EditKind = Literal["continue", "extend", "variant"]
 
 
 __all__ = [
+    "VisualIssue",
+    "GradedImageCriticDecision",
+    "GradedCodeCriticDecision",
     "CodeCriticDecision",
     "CheckerResult",
     "CheckerAnalysisContext",

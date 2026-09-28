@@ -12,7 +12,7 @@ import pytest
 
 from adsl.core import Asset, Cube, FixedAssembly, InterfaceFrame, TabSlot, shape_aabb
 from adsl.agents.models import (FixedAssemblyPlan, ObjectPlan, ObjectRequest, CheckerSpec,
-                                ImageCriticDecision, CodeCriticDecision)
+                                GradedImageCriticDecision as ImageCriticDecision, GradedCodeCriticDecision as CodeCriticDecision)
 from adsl.agents.prompts import object_prompt
 from adsl.agents import fixed_assembly as flow
 from adsl.agents.service import ObjectWorkflow
@@ -230,11 +230,11 @@ def mock_flow(tmp_path,monkeypatch, outcomes, patch_status='CHANGED'):
     async def image_review(**kw):
         if not kw['execution'] or not kw['execution'].render_paths:
             return None
-        decision=ImageCriticDecision(approved=mock_flow.appearance,observations=[])
+        decision=ImageCriticDecision(approved=mock_flow.appearance,observations=[], issues=[] if mock_flow.appearance else [dict(severity='HIGH', target=None, problem='Visible discrepancy', suggested_fix='repair visual discrepancy')])
         kw['image_history'].append(decision.model_dump())
         return decision
     async def code_review(**kw):
-        decision=CodeCriticDecision(approved=False,observations=['mock code review'],required_changes=['repair'])
+        decision=CodeCriticDecision(approved=False,observations=['mock code review'],required_changes=['repair'], issues=[dict(severity='HIGH', target=None, problem='Visible discrepancy', suggested_fix='repair')])
         kw['code_history'].append(decision.model_dump())
         return decision
     def execute(source,out,**kw):

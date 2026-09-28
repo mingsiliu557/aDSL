@@ -9,7 +9,7 @@ import pytest
 from adsl.agents import service
 from adsl.agents.checkers import CheckerRun
 from adsl.agents.models import (ObjectRequest, ObjectPlan, CheckerSpec, EngineeringCriticDecision,
-                                ImageCriticDecision, CodeCriticDecision, RepairProposal, RepairTarget)
+                                GradedImageCriticDecision as ImageCriticDecision, GradedCodeCriticDecision as CodeCriticDecision, RepairProposal, RepairTarget)
 from adsl.agents.overhang_edit import (budget_remaining, reserve_attempt, version_record, assert_version,
                                       edit_outcome, file_hash)
 from adsl.agents.source_index import SourceIndex
@@ -86,11 +86,11 @@ def fixture(tmp_path, monkeypatch, *, arm="feedback", actions=(90,), initial=Fal
                 target=RepairTarget(allowed_scopes=["Frame"]), action="reshape")])
         elif role.startswith("code"):
             kw["context"].record("read_file", kw["context"].source_path)
-            out = CodeCriticDecision(approved=False, observations=["frame appearance needs repair"], required_changes=["fix frame"])
+            out = CodeCriticDecision(approved=False, observations=["frame appearance needs repair"], required_changes=["fix frame"], issues=[dict(severity='HIGH', target=None, problem='Visible discrepancy', suggested_fix='fix frame')])
         else:
             original_review = kw["stage"].endswith(":0")
             out = ImageCriticDecision(approved=original_appearance if original_review else candidate_appearance,
-                                      observations=["mock visual review"])
+                                      observations=["mock visual review"], issues=[] if (original_appearance if original_review else candidate_appearance) else [dict(severity='HIGH', target=None, problem='Visible discrepancy', suggested_fix='repair visual discrepancy')])
         return SimpleNamespace(final_output=out)
 
     runtime = SimpleNamespace(agent=lambda **kw: kw["name"], run=run,
@@ -128,7 +128,7 @@ def test_sf03_gate_regression_keeps_original(tmp_path, monkeypatch):
                 original_appearance=False, budget=1)
     result, book = run_case(f)
     attempt = book["attempts"]["attempt_0001"]
-    assert attempt["origin"] == "gate_patch" and not attempt["accepted"]
+    assert attempt["origin"] == "engineering" and not attempt["accepted"]
     assert attempt["overhang_comparison"]["conclusion"] == "worsened"
     assert book["retained"] == "original"
     assert result.glb_path.read_text() == "GLB:0"
@@ -193,7 +193,7 @@ def test_control_noop_and_errors_keep_assets(tmp_path, monkeypatch, action, stat
 def test_initial_and_gate_use_shared_budget(tmp_path, monkeypatch):
     f = fixture(tmp_path, monkeypatch, initial=True, original_appearance=False, actions=(110, 90), budget=2)
     _, book = run_case(f)
-    assert [a["origin"] for a in book["attempts"].values()] == ["initial_edit", "gate_patch"]
+    assert [a["origin"] for a in book["attempts"].values()] == ["initial_edit", "engineering"]
     assert budget_remaining(f.workspace, f.options) == 0
     assert len([r for r, _ in f.calls if r.startswith("coder")]) == 2
     assert book["retained"] == "attempt_0002"
@@ -315,7 +315,7 @@ def test_control_acceptance_never_reads_area(tmp_path, monkeypatch):
 def test_initial_gate_engineering_one_ledger(tmp_path, monkeypatch):
     f = fixture(tmp_path, monkeypatch, initial=True, original_appearance=False, actions=(110, 90, 80), budget=3)
     _, book = run_case(f)
-    assert [a["origin"] for a in book["attempts"].values()] == ["initial_edit", "gate_patch", "engineering"]
+    assert [a["origin"] for a in book["attempts"].values()] == ["initial_edit", "engineering", "engineering"]
     assert [a["parent_version"] for a in book["attempts"].values()] == ["original", "original", "attempt_0002"]
     assert len((f.workspace / "edit_attempts.jsonl").read_text().splitlines()) == 3
 

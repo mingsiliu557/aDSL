@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Literal, Mapping, Sequence
 
@@ -152,6 +153,21 @@ def orbit_render_views(
         )
         for index in range(len(camera_matrices))
     )
+
+
+def review_eight_render_views(*, elevation: float = 15.0) -> tuple[RenderView, ...]:
+    ring = orbit_render_views(elevations=(elevation,), num_camera_per_layer=6)
+    ring = tuple(replace(view, label=f"orbit az={-90 + 60 * i}deg elev={elevation:g}deg")
+                 for i, view in enumerate(ring))
+    top = RenderView(index=6,
+        camera_matrix=((1., 0., 0., 0.), (0., 1., 0., 0.),
+                       (0., 0., 1., 1.5), (0., 0., 0., 1.)),
+        elevation=math.pi / 2, label="top: camera +Z, looking -Z; image up +Y")
+    bottom = RenderView(index=7,
+        camera_matrix=((1., 0., 0., 0.), (0., -1., 0., 0.),
+                       (0., 0., -1., -1.5), (0., 0., 0., 1.)),
+        elevation=-math.pi / 2, label="bottom: camera -Z, looking +Z; image up -Y")
+    return (*ring, top, bottom)
 
 
 def _mesh_objects() -> list[bpy.types.Object]:
@@ -361,9 +377,10 @@ def _write_metadata(
         "material_mode": material_mode,
         "locations": [],
     }
-    for camera, view in zip(cameras, views):
+    for frame, (camera, view) in enumerate(zip(cameras, views), start=1):
         record = {
             "index": f"{view.index:04d}",
+            "file": f"render_{frame:04d}.png",
             "projection_type": camera.data.type,
             "ortho_scale": camera.data.ortho_scale,
             "camera_angle_x": camera.data.angle_x,
@@ -468,8 +485,13 @@ def render_video(
     render_threads: int | None = None,
     background: Background = "transparent",
     material_mode: MaterialMode = "native",
+    view_layout: str = "orbit",
 ) -> None:
-    """Export an Asset when needed and render orbit-view PNG images."""
+    """Export an Asset when needed and render the selected view layout."""
+    if view_layout not in {"orbit", "review_eight"}:
+        raise ValueError("view_layout must be orbit or review_eight")
+    if view_layout == "review_eight" and (len(elevations) != 1 or num_camera_per_layer != 8):
+        raise ValueError("review_eight requires one elevation and eight total views")
     width = _positive_env_int("ADSL_RENDER_WIDTH", width)
     height = _positive_env_int("ADSL_RENDER_HEIGHT", height)
     render_samples = _positive_env_int("ADSL_RENDER_SAMPLES", render_samples)
@@ -489,7 +511,7 @@ def render_video(
             apply_modifiers=False,
         )
 
-    views = orbit_render_views(
+    views = review_eight_render_views(elevation=elevations[0]) if view_layout == "review_eight" else orbit_render_views(
         elevations=elevations,
         num_camera_per_layer=num_camera_per_layer,
     )
@@ -521,6 +543,7 @@ def _build_parser() -> argparse.ArgumentParser:
         default=list(DEFAULT_RENDER_ELEVATIONS),
     )
     parser.add_argument("--num-camera-per-layer", type=int, default=8)
+    parser.add_argument("--view-layout", choices=("orbit", "review_eight"), default="orbit")
     parser.add_argument("--render-samples", type=int, default=256)
     parser.add_argument("--render-threads", type=int, default=None)
     parser.add_argument(
@@ -552,12 +575,14 @@ def main(argv: Sequence[str] | None = None) -> None:
         render_threads=args.render_threads,
         background=args.background,
         material_mode=args.material_mode,
+        view_layout=args.view_layout,
     )
 
 
 __all__ = [
     "RenderView",
     "orbit_render_views",
+    "review_eight_render_views",
     "render_multiview",
     "render_video",
     "main",

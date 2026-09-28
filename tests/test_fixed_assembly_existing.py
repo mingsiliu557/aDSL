@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from adsl.agents.models import (
-    CodeCriticDecision, FixedAssemblyPlan, ImageCriticDecision, ObjectRequest,
+    GradedCodeCriticDecision as CodeCriticDecision, FixedAssemblyPlan, GradedImageCriticDecision as ImageCriticDecision, ObjectRequest,
 )
 from adsl.agents.overhang_edit import file_hash, version_assets, version_record
 from adsl.agents.service import ObjectWorkflow
@@ -138,7 +138,7 @@ def test_both_critics_receive_original_even_when_baseline_is_candidate(tmp_path,
     async def run(**kwargs):
         calls.append(kwargs)
         cls = ImageCriticDecision if kwargs['role'].startswith('image-critic') else CodeCriticDecision
-        return SimpleNamespace(final_output=cls(approved=False, observations=['preserve original']))
+        return SimpleNamespace(final_output=cls(approved=False, observations=['preserve original'], issues=[dict(severity='HIGH', target=None, problem='Visible discrepancy', suggested_fix='repair visual discrepancy')]))
 
     request = ObjectRequest('convert', tmp_path, 'test', fixed_assembly=CONFIG)
     approved, _ = asyncio.run(workflow._review_candidate_appearance(
