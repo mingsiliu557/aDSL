@@ -167,3 +167,46 @@ def test_part_feedback_repairs_geometry_not_file_errors(tmp_path,monkeypatch,def
     else:
         assert book['retained']=='original' and book['stop_reason']=='export_unassessed_no_geometry_repair'
         assert book['feedback']['failure_feedback'][0]['failure_kind']==('export' if defect=='unreadable' else kind)
+
+
+def test_mate_mismatch_source_execution_reaches_coder_diagnostic(tmp_path, monkeypatch):
+    # Real source execution fails in connect(), before evaluated CSG/export.
+    from adsl.agents.utils.execution import execute_asset_source
+    state = mock_flow(tmp_path, monkeypatch, [('PASS',True)])
+    state = (state[0], replace(state[1], checker_specs=(), max_rounds=2), *state[2:])
+    state[3].write_text('''from adsl.core import *
+assembly = FixedAssembly(root_id='crossbar', mm_per_unit=1)
+assembly.add_part('crossbar', Cube((60,20,12), center=(0,0,6)), components=('crossbar',))
+assembly.add_part('stem', Cube((40,12,50), center=(0,0,-25)), components=('stem',))
+joint = TabSlot(width_mm=8, thickness_mm=6, insertion_mm=6, slot_depth_mm=7, fit_offset_mm=.2)
+assembly.connect('first', tab_part='stem', slot_part='crossbar',
+    tab_frame=InterfaceFrame((-10,0,0)), slot_frame=InterfaceFrame((-10,0,0)),
+    parameters=joint, parameter_name='joint', tab_port='left', slot_port='left')
+assembly.connect('second', tab_part='stem', slot_part='crossbar',
+    tab_frame=InterfaceFrame((10,0,0)), slot_frame=InterfaceFrame((11,0,0)),
+    parameters=joint, parameter_name='joint', tab_port='right', slot_port='right')
+scene = assembly.scene()
+''')
+    execute = flow.execute_asset_source
+    attempts = []
+    def actual_initial(source, out, **kwargs):
+        attempts.append(source)
+        if len(attempts) == 1:
+            return execute_asset_source(source, out, render=False, export_urdf=False,
+                                        fixed_assembly=kwargs['fixed_assembly'])
+        return execute(source, out, **kwargs)
+    monkeypatch.setattr(flow, 'execute_asset_source', actual_initial)
+    repair = state[0]._repair
+    async def inspect_evidence(**kwargs):
+        feedback = kwargs['payload']['feedback']
+        diagnostic = json.loads(Path(feedback['report_path']).read_text())
+        assert diagnostic['type'] == 'AssetExecutionError'
+        assert 'MATE_FRAME_MISMATCH: interface=second tab=stem slot=crossbar' in diagnostic['error']
+        assert 'translation_error_mm=1 rotation_error_deg=0' in diagnostic['error']
+        assert 'MATE_FRAME_MISMATCH' in feedback['failures'][-1]['reason']
+        assert not list((tmp_path/'original').rglob('assembly_manifest.json'))
+        return await repair(**kwargs)
+    monkeypatch.setattr(state[0], '_repair', inspect_evidence)
+    result, book = run_flow(state)
+    assert result.approved and book['retained'] == 'attempt_0001'
+    assert len(attempts) == 2 and len(state[-1]) == 1

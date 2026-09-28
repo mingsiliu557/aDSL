@@ -18,3 +18,17 @@ units; translation diagnostics are millimetres and rotation diagnostics degrees.
 **63 passed, 6 deselected** (`stage1.log`). These are API/Plan tests, not evaluated
 Boolean geometry. Includes forward/reverse/closure failure atomicity, interleaved
 connections, same-pair interfaces, corrupted declarations and legacy tree/single-part behavior.
+
+## Stage 2 — Export and feedback
+
+The exporter shares the API world-frame predicate and records both residuals on
+mismatch. Four connections survive manifest serialization, plan deltas (three
+planned plus one added), generate/resume inputs, review/repair context, and retained
+version selection. The initial plan file remains unchanged.
+
+Stage 2 requested files plus `tests/test_fixed_assembly.py`, excluding `real_`:
+**101 passed, 8 deselected** (`stage2.log`). Manifest/selection tests use fake mesh
+export and are declaration/routing evidence only. The mismatch recovery test runs
+an actual source subprocess: `connect()` rejects `interface=second` with 1 mm
+translation error before CSG evaluation; `execution_error.json` and repair evidence
+carry that diagnostic. The repaired candidate export/review is mocked.

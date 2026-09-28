@@ -15,7 +15,7 @@ import time
 
 import numpy as np
 
-from ..assembly import FixedAssembly
+from ..assembly import FixedAssembly, _check_world_frames
 from .export_glb import export_glb
 
 
@@ -546,7 +546,11 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
         expected_solids[slot_id] = expected_solids[slot_id] - cutter
         tab_world = assembly.transforms[tab_id] @ np.asarray(connection['tab_frame'])
         slot_world = assembly.transforms[slot_id] @ np.asarray(connection['slot_frame'])
-        require(np.allclose(tab_world, slot_world, rtol=0, atol=1e-8), 'MATE_FRAME_MISMATCH', interface_id=cid)
+        residual = _check_world_frames(tab_world, slot_world, assembly.mm_per_unit)
+        require(residual['matched'], 'MATE_FRAME_MISMATCH', interface_id=cid,
+                tab_part=tab_id, slot_part=slot_id,
+                translation_error_mm=residual['translation_error_mm'],
+                rotation_error_deg=residual['rotation_error_deg'])
         world_matrix = np.array(assembly.transforms[tab_id], copy=True)
         world_matrix[:3, 3] *= assembly.mm_per_unit
         world_tabs[cid] = tab.transform(world_matrix[:3, :])

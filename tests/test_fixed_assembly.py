@@ -57,9 +57,13 @@ def test_old_schema_and_prompt_unchanged():
     assert FixedAssemblyPlan.model_validate(data).connections[0].tab_part=='stem'
 
 
-def test_actual_planner_and_initial_coder_inputs(tmp_path,monkeypatch):
+@pytest.mark.parametrize('multi', [False, True])
+def test_actual_planner_and_initial_coder_inputs(tmp_path,monkeypatch,multi):
+    from test_fixed_assembly_multi_mate import shelf_plan_data
+    data = shelf_plan_data() if multi else plan_data()
     calls=[]
-    request=ObjectRequest('make T',tmp_path/'new','test',max_rounds=3,fixed_assembly=CONFIG)
+    config = {**CONFIG, 'final_size_mm':data['final_size_mm']}
+    request=ObjectRequest('make T',tmp_path/'new','test',max_rounds=3,fixed_assembly=config)
     class Runtime:
         def agent(self,**kw):return kw
         async def run(self,**kw):
@@ -67,8 +71,9 @@ def test_actual_planner_and_initial_coder_inputs(tmp_path,monkeypatch):
             if kw['role']=='planner':
                 assert kw['agent']['output_type'] is FixedAssemblyPlan
                 assert 'fixed_assembly' in kw['input']
-                return SimpleNamespace(final_output=FixedAssemblyPlan.model_validate(plan_data()))
+                return SimpleNamespace(final_output=FixedAssemblyPlan.model_validate(data))
             assert 'print_parts' in kw['input'] and 'connections' in kw['input']
+            assert json.loads(kw['input'])['plan']['connections'] == data['connections']
             assert 'tab_part' in kw['input'] and 'slot_part' in kw['input']
             assert 'incoming' in kw['agent']['instructions']
             ctx=kw['context'];ctx.source_path.write_text('mock complete program')
@@ -77,7 +82,7 @@ def test_actual_planner_and_initial_coder_inputs(tmp_path,monkeypatch):
     w=ObjectWorkflow.__new__(ObjectWorkflow)
     monkeypatch.setattr(w,'_runtime',lambda *a,**kw:Runtime())
     async def stop(**kw):
-        assert kw['request'].fixed_assembly==CONFIG and not kw['request'].checker_specs
+        assert kw['request'].fixed_assembly==config and not kw['request'].checker_specs
         return 'entered assembly flow'
     monkeypatch.setattr(w,'_iterate',stop)
     assert asyncio.run(w.generate(request))=='entered assembly flow'
@@ -103,13 +108,16 @@ def test_geometry_timeout_uses_existing_process_group_cleanup(tmp_path,monkeypat
     assert (tmp_path/'out/geometry.stdout.log').read_text()=='stage:slot'
 
 
+@pytest.mark.parametrize('multi', [False, True])
 @pytest.mark.parametrize('fit_offset', [.35, -.1])
-def test_empty_source_resume_preserves_complete_initial_coder_payload(tmp_path,monkeypatch,fit_offset):
+def test_empty_source_resume_preserves_complete_initial_coder_payload(tmp_path,monkeypatch,fit_offset,multi):
+    from test_fixed_assembly_multi_mate import shelf_plan_data
+    data = shelf_plan_data() if multi else plan_data()
     from adsl.agents.cli import _resume_request
     from adsl.agents.utils.runner import _json_value
     config = dict(mm_per_unit=2., final_size_mm=[120.,40.,124.], fit_offset_mm=fit_offset)
     frozen = json.loads(json.dumps(config))
-    plan = FixedAssemblyPlan.model_validate({**plan_data(), **config})
+    plan = FixedAssemblyPlan.model_validate({**data, **config})
     calls = []
     request = ObjectRequest('make T',tmp_path/'case','test',max_rounds=3,fixed_assembly=config)
     class Runtime:
@@ -141,6 +149,7 @@ def test_empty_source_resume_preserves_complete_initial_coder_payload(tmp_path,m
     assert len(calls)==2 and calls[0]==calls[1]
     assert calls[1]['fixed_assembly']==frozen==config
     assert calls[1]['fixed_assembly']['fit_offset_mm']==fit_offset
+    assert calls[1]['plan']['connections'] == data['connections']
 
 
 @pytest.mark.parametrize('name',['scene','exploded'])

@@ -239,3 +239,54 @@ def test_optional_context_does_not_change_ordinary_generation(tmp_path, monkeypa
         code_critic={}, image_decision=None, code_history=[]))
     assert len(calls) == 2
     assert all('assembly_context' not in unpack(c)[0] for c in calls)
+
+
+def test_four_interface_manifest_and_added_closure_preserve_initial_plan(tmp_path, fake_export):
+    from test_fixed_assembly_multi_mate import shelves, shelf_plan_data
+    plan = shelf_plan_data(); plan['connections'] = plan['connections'][:3]
+    path = tmp_path/'plan.json'; path.write_text(json.dumps(plan))
+    before = path.read_bytes()
+    a = shelves()
+    report = exporter.export_assembly(a, tmp_path/'assembly', source_sha256='source',
+        expected={**fake_export, 'assembly_plan':plan})
+    assert report['export_status'] == 'PASS' and report['status'] == 'NOT_EVALUATED'
+    assert [c['id'] for c in report['connections']] == [c['id'] for c in a.connections]
+    assert len(report['connections']) == 4
+    for actual, saved in zip(a.connections, report['connections']):
+        assert saved == {k:v for k,v in actual.items() if k not in ('tab_solid','slot_cutter')}
+    assert [c['id'] for c in report['plan_changes']['connections']['added']] == ['lower_right']
+    assert report['plan_changes']['connections']['removed'] == []
+    assert path.read_bytes() == before and plan == json.loads(before)
+
+
+@pytest.mark.parametrize('approved', [False, True])
+def test_four_interface_manifest_reaches_next_review_and_failed_candidate_is_not_selected(tmp_path, monkeypatch, fake_export, approved):
+    from test_fixed_assembly_multi_mate import shelves, shelf_plan_data
+    state, calls = real_review_state(tmp_path, monkeypatch, [('NOT_EVALUATED',False), ('NOT_EVALUATED',approved)])
+    state = (state[0], replace(state[1], max_rounds=2), *state[2:])
+    plan = shelf_plan_data(); plan['connections'] = plan['connections'][:3]
+    path = tmp_path/'plan.json'; path.write_text(json.dumps(plan)); before = path.read_bytes()
+    execute = flow.execute_asset_source
+    def declared(source, *args, **kwargs):
+        result = execute(source, *args, **kwargs)
+        exporter.export_assembly(shelves(), result.output_root/'assembly', source_sha256=flow.file_hash(source),
+            expected={**fake_export, 'assembly_plan':plan})
+        return result
+    monkeypatch.setattr(flow, 'execute_asset_source', declared)
+    w, request, runtime, source, repairs = state
+    result = asyncio.run(flow.iterate_fixed_assembly(w, runtime=runtime, request=request,
+        workspace=tmp_path, source_path=source, plan=FixedAssemblyPlan.model_validate(plan)))
+    assert result.approved is approved and len(repairs) == 1
+    for call in calls:
+        context = unpack(call)[0]['assembly_context']
+        assert len(context['current_assembly']['connections']) == 4
+        assert [c['id'] for c in context['plan_changes']['connections']['added']] == ['lower_right']
+    assert len(repairs[0]['payload']['assembly_context']['current_assembly']['connections']) == 4
+    selected = 'candidate1' if approved else 'original'
+    assert source.read_text() == (tmp_path/'scene.glb').read_text() == selected
+    final = json.loads((tmp_path/'assembly_result.json').read_text())
+    manifest = json.loads((tmp_path/'assembly/assembly_manifest.json').read_text())
+    assert len(manifest['connections']) == 4
+    assert manifest['source_sha256'] == final['source_sha256'] == flow.file_hash(source)
+    assert final['reviews']['assembly_context']['current_assembly']['connections'] == manifest['connections']
+    assert path.read_bytes() == before
