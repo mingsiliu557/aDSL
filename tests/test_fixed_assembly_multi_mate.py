@@ -283,6 +283,11 @@ def export_and_check_topology(tmp_path, source_text, config, expected_ids, expec
     interfaces = [r for r in measurements['items'] if r['kind'] == 'interface']
     assert len(parts) == len(expected_parts) and {r['part_id'] for r in parts} == set(expected_parts)
     assert all(r['status'] == 'PASS' and r['component_count'] == 1 for r in parts)
+    pairs = [r for r in measurements['items'] if r['kind'] == 'pair']
+    from itertools import combinations
+    assert len(pairs) == len(expected_parts) * (len(expected_parts) - 1) // 2
+    assert {tuple(r['part_ids']) for r in pairs} == set(combinations(sorted(expected_parts), 2))
+    assert all(r['status'] == 'PASS' and r['undeclared_interference_mm3'] <= r['volume_tolerance_mm3'] for r in pairs)
     assert [r['connection_id'] for r in interfaces] == expected_ids
     for row in interfaces:
         assert row['status'] == 'PASS' and not row['failures']
