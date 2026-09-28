@@ -582,12 +582,16 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
         matrix = np.array(assembly.transforms[name], copy=True)
         matrix[:3, 3] *= assembly.mm_per_unit
         world[name] = solid.transform(matrix[:3, :])
+    # Local import: assembly_topology also reuses this module's mesh conversion.
+    from ..assembly_topology import material_interference
     for a, b in itertools.combinations(world, 2):
-        overlap = world[a] ^ world[b]
-        for c in assembly.connections:
-            if {c['tab_part'], c['slot_part']} == {a, b} and c['parameters']['fit_offset_mm'] < 0:
-                overlap = overlap - world_tabs[c['id']]
-        require(overlap.volume() <= volume_tol, 'UNDECLARED_PART_INTERFERENCE', parts=[a,b], volume_mm3=overlap.volume())
+        allowed = [world_tabs[c['id']] for c in assembly.connections
+            if {c['tab_part'],c['slot_part']} == {a,b} and c['parameters']['fit_offset_mm'] < 0]
+        measurement = material_interference(world[a],world[b],allowed,volume_tolerance_mm3=volume_tol)
+        require(measurement['status'] == 'PASS', 'UNDECLARED_PART_INTERFERENCE', parts=[a,b],
+            volume_mm3=measurement['undeclared_interference_mm3'],
+            raw_intersection_mm3=measurement['raw_intersection_mm3'],volume_tolerance_mm3=volume_tol,
+            bounds_mm=measurement['bounds_mm'],frame='assembly',method=measurement['method'])
     bounds = np.array([solid.bounding_box() for solid in world.values()])
     extent = np.max(bounds[:, 3:], axis=0) - np.min(bounds[:, :3], axis=0)
     require(np.all(np.abs(extent - np.asarray(expected['final_size_mm'])) <= length_tol*4),

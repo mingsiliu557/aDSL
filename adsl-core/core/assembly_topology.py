@@ -1,7 +1,7 @@
-"""Final print-mesh connectivity and local TabSlot evidence, not manufacture.
+"""Final print connectivity, local TabSlot pairing and global material overlap.
 
 No source execution, Blender/OCC, proximity welding, mesh repair or cross-part
-union. Inputs/outputs are local Z-up millimetres. Native calls run only in the
+union. Parts use local Z-up millimetres; pair evidence uses assembly millimetres. Native calls run only in the
 existing checker subprocess boundary (see agents.assembly_topology).
 """
 from __future__ import annotations
@@ -123,12 +123,14 @@ def read_print_mesh(path, print_transform):
 
 def part_measurement(mesh, part_id, face_groups=None):
     solid, components, tolerance = union_print_mesh(mesh, face_groups)
+    measured_mesh = solid_mesh(solid)
     boxes = [np.asarray(c.bounding_box()).reshape(2,3).tolist() for c in components]
     row = dict(kind='part', part_id=part_id, status='PASS' if len(components)==1 else 'FAIL',
         code='CONNECTED_PRINT_PART' if len(components)==1 else 'INTERNAL_PART_DISCONNECTED',
         component_count=len(components), component_bounds_mm=boxes,
         representative_points_mm=[np.mean(b,axis=0).tolist() for b in boxes],
-        bounds_mm=solid_mesh(solid).bounds.tolist(), length_tolerance_mm=tolerance,
+        bounds_mm=measured_mesh.bounds.tolist(), length_tolerance_mm=tolerance,
+        surface_area_mm2=float(measured_mesh.area),
         nearest_components=None)
     if len(components)>1:
         # Vertex-to-triangle witnesses, not an exact triangle-triangle minimum.
@@ -174,6 +176,58 @@ def mm_matrix(value, mm_per_unit):
         raise ValueError('non-rigid or reflected assembly transform')
     matrix[:3,3]*=mm_per_unit
     return matrix
+
+
+
+def material_interference(a_world, b_world, allowed_regions=(), *, volume_tolerance_mm3):
+    """Measure material overlap, subtracting only explicitly allowed local fits."""
+    if not np.isfinite(volume_tolerance_mm3) or volume_tolerance_mm3 < 0:
+        raise ValueError('invalid material-interference volume tolerance')
+    a, b = checked(a_world), checked(b_world)
+    boxes = [np.asarray(s.bounding_box()).reshape(2,3) for s in (a,b)]
+    disjoint = (a.is_empty() or b.is_empty() or
+                np.any(np.minimum(boxes[0][1],boxes[1][1]) <= np.maximum(boxes[0][0],boxes[1][0])))
+    if disjoint:
+        raw_volume = unexpected_volume = 0.0
+        bounds = None
+    else:
+        remaining = checked(a ^ b)
+        raw_volume = float(remaining.volume())
+        for region in allowed_regions:
+            remaining = checked(remaining - checked(region))
+        unexpected_volume = float(remaining.volume())
+        bounds = None if remaining.is_empty() else np.asarray(remaining.bounding_box()).reshape(2,3).tolist()
+        if not np.isfinite([raw_volume,unexpected_volume]).all():
+            raise ValueError('nonfinite material-interference volume')
+    return dict(status='FAIL' if unexpected_volume > volume_tolerance_mm3 else 'PASS',
+        raw_intersection_mm3=raw_volume, undeclared_interference_mm3=unexpected_volume,
+        bounds_mm=bounds, bounds_center_mm=np.mean(bounds,axis=0).tolist() if bounds else None,
+        method='aabb_disjoint' if disjoint else 'manifold_intersection')
+
+
+def pair_interference_measurement(part_a, part_b, parts, solids, connections, mm_per_unit,
+                                 *, length_tolerance_mm, volume_tolerance_mm3):
+    """Place final local-mm solids and declared negative-fit tabs in assembly space."""
+    a,b = sorted((part_a,part_b))
+    if a == b:
+        raise ValueError('material-interference pair requires different parts')
+    transforms = {n:mm_matrix(parts[n]['assembly_transform'],mm_per_unit) for n in (a,b)}
+    world = {n:checked(solids[n].transform(transforms[n][:3,:])) for n in (a,b)}
+    direct = [c for c in connections if {c['tab_part'],c['slot_part']} == {a,b}]
+    fits = [c for c in direct if c['parameters']['fit_offset_mm'] < 0]
+    allowed = []
+    for c in fits:
+        tab,_ = query_solids(TabSlot(**c['parameters']))
+        frame = transforms[c['tab_part']] @ mm_matrix(c['tab_frame'],mm_per_unit)
+        allowed.append(checked(tab.transform(frame[:3,:])))
+    row = material_interference(world[a],world[b],allowed,volume_tolerance_mm3=volume_tolerance_mm3)
+    row.update(kind='pair',pair_id=f'{a}:{b}',part_ids=[a,b],frame='assembly',unit='mm',
+        code='UNDECLARED_PART_INTERFERENCE' if row['status']=='FAIL' else 'NO_UNDECLARED_PART_INTERFERENCE',
+        length_tolerance_mm=float(length_tolerance_mm),volume_tolerance_mm3=float(volume_tolerance_mm3),
+        connection_ids=[c['id'] for c in direct],
+        related_connection_ids=[c['id'] for c in connections if {c['tab_part'],c['slot_part']} & {a,b}],
+        allowed_fit_connection_ids=[c['id'] for c in fits])
+    return row
 
 
 def interface_measurement(connection, parts, solids, mm_per_unit):
