@@ -358,6 +358,13 @@ boundary evidence; local body/decoration simplification may be proposed without
 assuming the connector is at fault. Preserve required visible features. The exact
 cause remains uncertain until re-export and recheck. Never fill holes in exported
 meshes, change tolerances/checker settings, or treat unavailable interfaces as FAIL.
+UNDECLARED_PART_INTERFERENCE identifies overlapping material between the named
+print parts in assembly coordinates. Inspect the reported region, current body
+geometry and the connections positioning those parts. Propose a minimal coordinated
+source correction to dimensions, local clearance or interface frames as supported
+by evidence. A declared connection does not excuse overlap elsewhere. Check mate
+alignment after any placement change. AABB location identifies the result, not its
+unique source cause. Re-export and re-run the selected checks.
 Engineering approval cannot override measured FAIL. Recheck assembly_topology.
 '''
 
@@ -385,7 +392,7 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
         **{k:feedback.get(k) for k in ('checker_summary','typed_findings','evidence_access',
                                      'evidence_files','evidence_path_instruction')},
         'source_sha256':sha256_file(source), 'source_version':feedback.get('source_version'),
-        'assembly_item_statuses':[{k:r.get(k) for k in ('part_id','connection_id','status','code')}
+        'assembly_item_statuses':[{k:r.get(k) for k in ('kind','part_id','connection_id','pair_id','part_ids','status','code')}
             for result in runs for r in result.result.metrics.get('items',[])],
         'print_orientation_editable':request.repair_policy.print_orientation_editable,
         'resolved_visual_feedback':feedback.get('resolved_visual_feedback'),

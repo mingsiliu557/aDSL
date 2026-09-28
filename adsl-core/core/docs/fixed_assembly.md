@@ -68,6 +68,22 @@ mesh remains for downstream checking. APPLIED/SKIPPED/REJECTED diagnostics inclu
 boundary counts and maximum displacement in mesh_normalizations. This handles
 eligible numerical cracks, not arbitrary holes or intentional fitting gaps.
 
+Independent `assembly_topology` measures all unordered print-part pairs in their
+assembled positions, including connected and multi-interface pairs. Final local-mm
+solids are placed by assembly transforms; printing orientation does not change the
+result. Numerical overlap within the existing float32 coordinate/surface-area bound
+is tolerated. Only explicitly declared negative-fit tab regions are exempt, and
+only for their own part pair; positive-fit slots are already empty material.
+
+Scope version 2 reports `kind="pair"`, `pair_id`, `part_ids`, overlap volumes,
+numerical bounds and an assembly-mm AABB. `UNDECLARED_PART_INTERFERENCE` means
+remaining material intersection exceeds that numerical bound. The AABB/its center
+locate the result, not an exact penetration depth, contact point or unique source
+cause. Unavailable queries remain INDETERMINATE. Inspect body dimensions, local
+clearance and related connection frames; after a coordinated source correction,
+re-export and recheck. Older topology results are remeasured before reuse. These
+checks do not establish assembly insertion paths, fastening retention or strength.
+
 See `examples/fixed_assembly/README.md` and `t_bracket.py` in the repository for the
 end-to-end opt-in config, validation and outputs. Dimensions and fit are geometric
 demonstrations until calibrated on a real printer/material. See also the four-part,
