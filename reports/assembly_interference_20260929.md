@@ -125,3 +125,20 @@ fit_offset_mm=0.2 和计划尺寸。每例 `provenance.json` 保存输入来源�
   实际报告：`temp/assembly_interference_20260929/cases/SF10/manual_candidate/verification/checkers/assembly_topology/report.json`。
 
 SF10 人工候选检查的是最终材料实体，接口本身也重新通过。零体积交集可能留下退化 AABB；不把该区域解释为正体积互穿。
+
+## 用户追加：SF16 真实 Agent 修复（2026-09-28 16:59:17 UTC 提交）
+
+用户追问自主修复能力后，另开 `temp/assembly_interference_20260929/cases/SF16/agent_repair/`，
+使用原始 SF16 source/plan，经现有 `ObjectWorkflow.resume()` / `iterate_fixed_assembly()` 执行。
+初始评价加最多一次源码修补（max_rounds=2），实际 CLIProxy/gpt-5.6-sol、CPU 八视图、
+仅 topology；未提供预制补丁，未调用 Planner 重新生成模型。保留正常 Image/Code 评审和接受规则。
+
+- 已确认现有代理直连预检 HTTP 200、runtime_config 创建、checker_specs 仅 assembly_topology。
+  先前预检误走环境代理返回 502；修正任务脚本为生产同样的 localhost 直连后启动。
+  该失败发生在创建工作流和模型调用之前，记录 `sf16_agent_preflight_failure.log`。
+- 实际 system prompt、输入输出和工具消息存入 `actual_model_calls/`；既有 session/tool/usage
+  记录保持，结束时备份 sessions。`completion.json` 记录各候选检查、源码 hash 和实际接受结果，
+  `attempt_*.diff` 保存模型补丁。
+- 后台清单 `sf16_agent_job.json`；日志 `sf16_agent.log`。按用户要求只确认启动，不持续监督。
+  本节为提交记录，不代表实际模型已修复成功；以 completion 和新 topology 报告为准。
+- 代码仍在独立分支，等待用户检查，未合并 master。

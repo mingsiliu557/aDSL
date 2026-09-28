@@ -18,6 +18,10 @@
   证据 `temp/assembly_interference_20260929/`；提交清单 `s5_jobs.json`、完成文件
   `s5_SF16_completion.json` / `s5_SF10_completion.json`，各例 `summary.json` 保存实际体积/区域。
   未完成结果不计为通过；未调用真实模型、未跑新 standing/FEA/overhang。
+- 用户随后要求确认自主修复能力，追加 SF16 真实 Agent 修补任务，2026-09-28 16:59:17 UTC 后台提交。
+  原 source/plan，CLIProxy/gpt-5.6-sol、CPU 八图、仅 topology；初评+最多一次源码修补，不给预制补丁。
+  使用现有 resume/固定装配循环，记录真实 prompts/tools/session。路径 `temp/assembly_interference_20260929/cases/SF16/agent_repair/`，
+  日志 `temp/assembly_interference_20260929/sf16_agent.log`，结束看 `completion.json`。已确认启动，未持续监督，尚不声称修复成功。
 - 用户要求先审查两例，暂不合并 master。当前实现分支 `feat/assembly-material-interference`。
 - SF16 original 已完成：topology FAIL；目标互穿 842681.3089759703 mm³（容差 6251.241398513488 mm³）。
 - SF10 original 已完成：topology FAIL；目标互穿 288000.0 mm³（容差 4982.854187435704 mm³）。
