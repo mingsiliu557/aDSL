@@ -4,6 +4,25 @@
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
 
+## 有序多接口连接（2026-09-28，已实现并验证）
+
+- 从 `334939c` 隔离实施，4 个阶段提交；功能分支 `feat/fixed-multi-mate`。
+  原工作区未提交的 FEA/standing、实验及报告改动不混入。
+- 同一 connect API 支持任一已定位端求另一端位姿；双已定位端检查世界接口帧，
+  生成补充接口而不移动已有部件。支持环、同一对部件多接口及交错连接。
+  两端都未定位、端口重复或帧矛盾均拒绝；Boolean 失败不改变保存的几何/parent/状态。
+- Plan/API 校验、导出共用帧判据、Planner/Coder/Code Critic 和两个真实任务入口已同步；
+  公共字段和 manifest 版本不变，旧冻结输入不改写。矩阵容差仍为场景单位 1e-8。
+- 新夹具 `examples/fixed_assembly/two_shelf_frame.py`：4 件、4 接口，132×60×100 mm。
+  四件 geometry、同对双接口 geometry、四件 visual_only 的独立 topology 全部 PASS；
+  visual_only 保持几何 NOT_EVALUATED。2 个真实错位负例与旧 T-bracket 正常/倾斜导出通过。
+- 全程 CPU；真实 smoke 共 7 passed；相关回归 287 passed、16 skipped，必需真实项另行开启运行。
+  standing 仅验证四独立 body/freejoint、无 weld 的 XML；缺 coacd/mujoco，仿真未运行。
+  可选实际模型调用未验证。未新增物理求解能力或装配路径/保持力结论。
+- 详情 `reports/fixed_multi_mate_20260928.md`；日志、source、manifest、STL/GLB 和 topology
+  在 `/tmp/adsl_multi_mate_results_20260928/`，`audit.json` 索引已验证的实际产物。
+  原 repo temp 仍只保留既有 SF03；本次没有改动该 case。
+
 ## temp 仅保留当前 SF03（2026-09-28，最新清理状态）
 
 - 用户随后明确要求 temp 下全部其他内容删除，仅保留当前 case；已执行，删除其他 50 个顶层项，

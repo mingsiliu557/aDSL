@@ -1,6 +1,5 @@
 """Ordered multi-interface API contracts; real CSG checks are explicitly opt-in."""
-from copy import deepcopy
-from dataclasses import asdict
+from dataclasses import asdict, replace
 import importlib
 import math
 from pathlib import Path
@@ -224,3 +223,109 @@ def test_shared_frame_tolerance_is_scene_matrix_tolerance_with_mm_diagnostics():
     assert _check_world_frames(tab, slot, 1)['rotation_error_deg'] == pytest.approx(90)
     tab[0,0] += 1e-15
     assert math.isfinite(_check_world_frames(tab, tab, 1)['rotation_error_deg'])
+
+
+def test_standing_xml_consumes_four_parts_as_independent_bodies():
+    # Manifest/body wiring only: XML builder does not read connections and these
+    # simple box proxies do not certify physical collision geometry or stability.
+    import xml.etree.ElementTree as ET
+    import trimesh
+    from adsl.agents.assembly_standing import xml_model
+    a = shelves()
+    report = dict(mm_per_unit=1, root_id=a.root_id,
+        parts=[dict(id=n, assembly_transform=a.transforms[n].tolist()) for n in PARTS],
+        connections=[{k:v for k,v in c.items() if k not in ('tab_solid','slot_cutter')} for c in a.connections])
+    meshes = {n:trimesh.creation.box((12,60,100) if n.endswith('side') else (108,50,8)) for n in PARTS}
+    xml = xml_model(report, meshes, {n:[m] for n,m in meshes.items()},
+        dict(timestep_seconds=.002, friction=[.5,.005,.0001]), 700)
+    model = ET.fromstring(xml)
+    assert {b.get('name') for b in model.findall('./worldbody/body')} == set(PARTS)
+    assert {j.get('name') for j in model.findall('./worldbody/body/freejoint')} == {f'free_{n}' for n in PARTS}
+    assert not model.findall('.//weld')
+
+
+real_geometry = pytest.mark.skipif(__import__('os').environ.get('ADSL_TEST_FIXED_REAL') != '1',
+    reason='explicit real Boolean export and topology validation only')
+
+
+def export_and_check_topology(tmp_path, source_text, config, expected_ids, expected_parts):
+    import json
+    from adsl.agents.utils.execution import execute_asset_source
+    from adsl.agents.assembly_topology import checker_spec, run_assembly_topology
+    source = tmp_path/'source.py'; source.write_text(source_text)
+    execution = execute_asset_source(source, tmp_path/'output', render=False, export_urdf=False, fixed_assembly=config)
+    assembly_dir = execution.output_root/'assembly'
+    report = json.loads((assembly_dir/'assembly_manifest.json').read_text())
+    assert len(report['parts']) == len(expected_parts) and {p['id'] for p in report['parts']} == set(expected_parts)
+    assert [c['id'] for c in report['connections']] == expected_ids
+    for part in report['parts']:
+        for field in ('stl', 'glb'):
+            assert (assembly_dir/part[field]).is_file()
+    assert (assembly_dir/'scene.glb').is_file() and (assembly_dir/'exploded.glb').is_file()
+    visual_only = config.get('validation_mode') == 'visual_only'
+    if visual_only:
+        assert report['status'] == report['geometry_validation'] == 'NOT_EVALUATED'
+        assert report['export_status'] == 'PASS'
+    else:
+        assert report['status'] == 'PASS', report['failures']
+        np.testing.assert_allclose(report['assembled_size_mm'], config['final_size_mm'], rtol=0, atol=1e-5)
+        assert [r['id'] for r in report['interfaces']] == expected_ids
+        # Actual evaluated geometry, including each supplemental tab and cutter.
+        for row in report['interfaces']:
+            assert min(row[k] for k in ('added_tab_mm3','removed_slot_mm3','embedded_root_mm3')) > 0
+        assert not report['failures']  # Includes final file/scene geometry consistency.
+    # Same asset_dir selection as iterate_fixed_assembly's checker invocation.
+    topology_execution = replace(execution, glb_path=assembly_dir/'scene.glb')
+    run = run_assembly_topology(checker_spec(), execution=topology_execution, source=source, root=tmp_path/'topology')
+    assert run.result.status == 'PASS', run.result.model_dump()
+    measurements = json.loads((run.output_dir/'report.json').read_text())
+    parts = [r for r in measurements['items'] if r['kind'] == 'part']
+    interfaces = [r for r in measurements['items'] if r['kind'] == 'interface']
+    assert len(parts) == len(expected_parts) and {r['part_id'] for r in parts} == set(expected_parts)
+    assert all(r['status'] == 'PASS' and r['component_count'] == 1 for r in parts)
+    assert [r['connection_id'] for r in interfaces] == expected_ids
+    for row in interfaces:
+        assert row['status'] == 'PASS' and not row['failures']
+        assert row['missing_tab_mm3'] <= row['volume_tolerance_mm3']
+        assert row['occupied_cavity_mm3'] <= row['volume_tolerance_mm3']
+        assert row['effective_insertion_interval_mm'][1] == pytest.approx(row['expected_insertion_mm'], abs=row['length_tolerance_mm'])
+        assert row['root_connection'] == 'CONNECTED_TO_SAME_MATERIAL_COMPONENT'
+    # Independent topology does not rewrite visual_only into geometric PASS.
+    assert json.loads((assembly_dir/'assembly_manifest.json').read_text()) == report
+    return report
+
+
+@real_geometry
+def test_real_four_part_cycle_geometry_and_topology(tmp_path):
+    export_and_check_topology(tmp_path, (REPO/'examples/fixed_assembly/two_shelf_frame.py').read_text(),
+        {**CONFIG, 'validation_mode':'geometry', 'assembly_plan':FixedAssemblyPlan.model_validate(shelf_plan_data()).model_dump()},
+        [c[0] for c in CONNECTIONS], PARTS)
+
+
+@real_geometry
+def test_real_same_pair_two_interfaces_geometry_and_topology(tmp_path):
+    import inspect
+    source = 'from adsl.core import *\n\n' + inspect.getsource(pair) + '\nassembly = pair()\nscene = assembly.scene()\n'
+    export_and_check_topology(tmp_path, source,
+        dict(mm_per_unit=1., fit_offset_mm=.2, final_size_mm=[60.,20.,62.], validation_mode='geometry'),
+        ['left','right'], ['crossbar','stem'])
+
+
+@real_geometry
+def test_real_four_part_cycle_visual_only_and_topology(tmp_path):
+    export_and_check_topology(tmp_path, (REPO/'examples/fixed_assembly/two_shelf_frame.py').read_text(),
+        {**CONFIG, 'validation_mode':'visual_only', 'assembly_plan':FixedAssemblyPlan.model_validate(shelf_plan_data()).model_dump()},
+        [c[0] for c in CONNECTIONS], PARTS)
+
+
+@real_geometry
+@pytest.mark.parametrize('frame', ['((-5,0,30), (0,1,0), (1,0,0))','((-6,0,30), (0,0,1), (1,0,0))'])
+def test_real_four_part_inconsistent_closure_rejected_before_export(tmp_path, frame):
+    from adsl.agents.utils.execution import execute_asset_source, AssetExecutionError
+    source = tmp_path/'source.py'
+    source.write_text((REPO/'examples/fixed_assembly/two_shelf_frame.py').read_text().replace(
+        '((-6,0,30), (0,1,0), (1,0,0))', frame))
+    with pytest.raises(AssetExecutionError, match='MATE_FRAME_MISMATCH: interface=lower_right'):
+        execute_asset_source(source, tmp_path/'output', render=False, export_urdf=False, fixed_assembly=CONFIG)
+    assert not list((tmp_path/'output').rglob('*.stl'))
+    assert not list((tmp_path/'output').rglob('assembly_manifest.json'))
