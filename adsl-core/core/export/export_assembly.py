@@ -2,7 +2,8 @@
 
 Called inside the existing isolated asset executor (120-second geometry budget).
 Blender evaluates aDSL CSG; Manifold unions shells WITHIN each print part only.
-No mesh repair, remeshing, solver checks or tolerance tuning is performed.
+The shared Blender exporter normalizes exact-zero polygon tessellation.
+No proximity welding, remeshing, solver checks or tolerance tuning is performed.
 """
 from __future__ import annotations
 
@@ -49,10 +50,17 @@ def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geomet
     export_glb(shape, path)
     shells, welded = [], 0
     materials, face_materials, display_meshes, omissions = [], [], [], []
-    face_groups = []
+    face_groups, normalizations = [], []
     for obj in bpy.context.scene.objects:
         if obj.type != 'MESH':
             continue
+        get = getattr(obj, 'get', lambda key, default=None: default)
+        if get('adsl_retriangulated_polygons', 0):
+            normalizations.append(dict(object=obj.name, method='planar_polygon_retriangulation',
+                polygons=get('adsl_retriangulated_polygons'),
+                zero_area_triangles_before=get('adsl_zero_area_triangles_before'),
+                zero_area_triangles_after=0, shell_components=get('adsl_mesh_shell_components'),
+                vertices_unchanged=True, closed=True, manifold=True, winding_consistent=True))
         obj.data.calc_loop_triangles()
         vertex_count, triangle_count = len(obj.data.vertices), len(obj.data.loop_triangles)
         if not vertex_count or not triangle_count:
@@ -109,7 +117,8 @@ def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geomet
         mesh.metadata['materials'] = materials
         return mesh, None, {'geometry_validation':'NOT_EVALUATED',
             'omitted_mesh_nodes':omissions, 'display_complete':not omissions,
-            'mesh_face_groups':face_groups}
+            'mesh_face_groups':face_groups,
+            **({'mesh_normalizations':normalizations} if normalizations else {})}
     if not shells:
         raise ValueError('empty evaluated part')
     merged = mf.Manifold.batch_boolean(shells, mf.OpType.Add)
@@ -122,7 +131,8 @@ def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geomet
             raise ValueError('missing source material for exported face')
         mesh.metadata['materials'] = materials
     return mesh, merged, {'input_shells': len(shells), 'exact_duplicate_vertices_merged': welded,
-                          'proximity_welding': False}
+                          'proximity_welding': False,
+                          **({'mesh_normalizations':normalizations} if normalizations else {})}
 
 
 def _write_mesh_glb(meshes, transforms, path, mm_per_unit):

@@ -419,6 +419,118 @@ def _build_shape(
 
     return objs
 
+def _mesh_triangles(data, matrix):
+    data.calc_loop_triangles()
+    vertices = np.asarray([tuple(matrix @ v.co) for v in data.vertices], dtype=float).reshape(-1, 3)
+    faces = np.asarray([tuple(t.vertices) for t in data.loop_triangles], dtype=np.int64).reshape(-1, 3)
+    triangles = vertices[faces]
+    crosses = np.cross(triangles[:, 1] - triangles[:, 0], triangles[:, 2] - triangles[:, 0])
+    return vertices, faces, crosses
+
+
+def _bmesh_component_count(mesh):
+    remaining = set(mesh.verts)
+    count = 0
+    while remaining:
+        stack = [remaining.pop()]
+        count += 1
+        while stack:
+            for edge in stack.pop().link_edges:
+                for vertex in edge.verts:
+                    if vertex in remaining:
+                        remaining.remove(vertex)
+                        stack.append(vertex)
+    return count
+
+
+def _normalize_zero_area_tessellation(obj):
+    """Retriangulate bad planar polygons, never delete faces or weld/move vertices.
+
+    Exact zero cross products trigger this pass; small positive faces are left
+    alone. Work on a copy and commit only a closed, manifold, consistently wound
+    result with the same vertices, components, area and signed volume. Genuine
+    degenerate triangles and unsuccessful normalization remain evaluation errors.
+    """
+    vertices, faces, crosses = _mesh_triangles(obj.data, obj.matrix_world)
+    bad = np.flatnonzero(np.all(crosses == 0, axis=1))
+    if not len(bad):
+        return
+    polygons = sorted({obj.data.loop_triangles[int(i)].polygon_index for i in bad})
+
+    def reject(reason):
+        raise ValueError(
+            f"EVALUATED_MESH_DEGENERATE: object={obj.name!r} "
+            f"zero_area_triangles={len(bad)} polygons={polygons} reason={reason}"
+        )
+
+    if not np.isfinite(vertices).all():
+        reject('nonfinite vertices')
+    # A nonplanar polygon can change its surface when its diagonal changes.
+    # Use only a floating-point arithmetic bound, never a small-face threshold.
+    for index in polygons:
+        ids = np.asarray(obj.data.polygons[index].vertices)
+        if len(ids) < 4:
+            reject('degenerate triangle has no alternate polygon tessellation')
+        offsets = vertices[ids] - vertices[ids[0]]
+        normals = np.cross(offsets[1:-1], offsets[2:])
+        normal = normals[np.argmax(np.linalg.norm(normals, axis=1))]
+        size = np.linalg.norm(normal)
+        bound = 64 * np.finfo(float).eps * np.max(np.abs(offsets)) * size
+        if size == 0 or np.any(np.abs(offsets @ normal) > bound):
+            reject('polygon is collinear or nonplanar')
+
+    import bmesh
+    candidate = obj.data.copy()
+    mesh = bmesh.new()
+    committed = False
+    try:
+        mesh.from_mesh(candidate)
+        mesh.faces.ensure_lookup_table()
+        components = _bmesh_component_count(mesh)
+        bmesh.ops.triangulate(mesh, faces=[mesh.faces[i] for i in polygons],
+                              quad_method='BEAUTY', ngon_method='EAR_CLIP')
+        if (not all(e.is_manifold and e.is_contiguous for e in mesh.edges)
+                or not all(v.is_manifold for v in mesh.verts)):
+            reject('retriangulation is not closed, manifold and consistently wound')
+        if _bmesh_component_count(mesh) != components:
+            reject('retriangulation changed connectivity')
+        mesh.to_mesh(candidate)
+        candidate.update()
+        new_vertices, new_faces, new_crosses = _mesh_triangles(candidate, obj.matrix_world)
+        if not np.array_equal(vertices, new_vertices):
+            reject('retriangulation changed vertices')
+        if np.any(np.all(new_crosses == 0, axis=1)) or not np.isfinite(new_crosses).all():
+            reject('retriangulation left degenerate triangles')
+        # Exact duplicates can become nonmanifold under downstream exact welding.
+        if len(np.unique(new_vertices, axis=0)) != len(new_vertices):
+            reject('coincident vertices require separate diagnosis')
+        area = np.linalg.norm(crosses, axis=1).sum()
+        new_area = np.linalg.norm(new_crosses, axis=1).sum()
+        volume_terms = np.einsum('ij,ij->i', vertices[faces[:, 0]] - vertices[0], crosses)
+        new_terms = np.einsum('ij,ij->i', new_vertices[new_faces[:, 0]] - vertices[0], new_crosses)
+        epsilon = 64 * np.finfo(float).eps
+        if (abs(new_area - area) > epsilon * area
+                or abs(new_terms.sum() - volume_terms.sum())
+                > epsilon * max(np.abs(volume_terms).sum(), np.abs(new_terms).sum())):
+            reject('retriangulation changed surface area or signed volume')
+        original = obj.data
+        obj.data = candidate
+        committed = True
+        obj['adsl_retriangulated_polygons'] = len(polygons)
+        obj['adsl_zero_area_triangles_before'] = len(bad)
+        obj['adsl_mesh_shell_components'] = components
+        if original.users == 0:
+            bpy.data.meshes.remove(original)
+    except (ValueError, RuntimeError) as error:
+        if str(error).startswith('EVALUATED_MESH_DEGENERATE:'):
+            raise
+        reject(str(error))
+    finally:
+        mesh.free()
+        if not committed:
+            bpy.data.meshes.remove(candidate)
+
+
 def export_glb(
     shape: Asset,
     filepath: str | Path,
@@ -434,6 +546,9 @@ def export_glb(
     if clear_scene:
         bpy.ops.wm.read_factory_settings(use_empty=True)
     _build_shape(shape, include_joint_children=include_joint_children)
+    for obj in bpy.context.scene.objects:
+        if obj.type == "MESH":
+            _normalize_zero_area_tessellation(obj)
     if not any(obj.type == "MESH" for obj in bpy.data.objects):
         raise RuntimeError("Nothing to export: scene has no objects.")
     bpy.ops.export_scene.gltf(

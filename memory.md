@@ -4,6 +4,48 @@
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
 
+## 零面积三角形的确定性处理（2026-09-28，已实现并验证）
+
+- 用户要求常规网格退化先由固定代码处理。公共 GLB 导出在 CSG 后、写出前检测严格
+  零叉积，仅局部重三角化问题平面多边形；不删面、不焊接/移动顶点、不滤除小而有效面。
+- 副本通过闭合、流形、朝向、分量数、顶点、面积/体积复核后才提交；失败保留原对象，
+  以 EVALUATED_MESH_DEGENERATE 报求值问题，不宣称源设计缺陷。manifest 保存处理诊断。
+- CPU 相关回归 156 passed（含 12 项新增原生测试及真实多接口/T 支架）；同一 SF13
+  源码独立重导出：两侧板零面积面均1→0，部件4/8→6/8 PASS、接口0/24→16/24 PASS。
+  8件顶点集合不变，64条STL/GLB/显示比较通过，原 source 与资产哈希不变。
+- 第五层板/顶盖仍12/36条开放边，整体topology INDETERMINATE；未启动Agent或standing。
+  原Agent账本不改；这是公共求值改动收益。已三角化的共线面等不能安全处理的情况仍报错。
+- 报告 `reports/zero_area_tessellation_20260928.md`；产物为 SF13 目录的
+  `zero_triangle_repair/`。未改旧 checker/物理后端/模型；本次同步主分支的范围仅含
+  此实现、文档、测试及 SF13 验证记录，既有 FEA/standing 等工作区改动不纳入。
+
+## SF13 实际 Agent + topology/standing（2026-09-28，未通过）
+
+- 用户确认仅 topology + standing，FEA/overhang 关闭；原始 SF13 prompt 从零调用
+  CLIProxy/gpt-5.6-sol，CPU，100×32×200 mm 演示尺寸，初稿+最多2次修复。
+- Planner 自主规划8件24接口：6条 tab 定位、1条反向 slot 定位、17条补充连接；
+  12对部件各有2个接口。修复候选保留完整24个ID，世界接口帧一致，未预填 transforms。
+- 初稿错误传入整个参数字典；Agent 第1次修复改用 TabSlot 后成功导出。
+  第2次修复调整木纹，但最终两侧板仍有零面积三角形，上层板/顶盖开放网格。
+- topology 枚举8件+24接口：4件PASS、4件不可测、24接口均因端件依赖不可测。
+  standing 在部件有效性前置条件处返回 INDETERMINATE，未生成 model/trajectory，
+  **未进入重力仿真，全部接口动态覆盖仍未验证**。外观评审也未通过木纹表现。
+- MuJoCo3.12既有运行环境在 `/jiigan-hp/lms/aDSL/experiment/runtime/mujoco-py310`，
+  设置 checker 的 PYTHONPATH 可用；当前工作区未提交 rigid_flex 实现通过既有
+  CPU稳定/脱离/倾倒控制预检。本次使用其源码快照，不代表 GitHub master 包含该后端。
+- 结束 approved=false、round_budget_exhausted、qualified=null，retained仍为original；
+  最新候选为attempt_0002，不是通过版本。21次API、437245tokens、824.77秒，修复2/2。
+- 全部记录 `local_experiment/sf13_multi_mate_20260928T111227Z/`；入口 `SUMMARY.md`，
+  `interface_coverage_audit.json` 保存接口对照，`latest_candidate_preview.png` 为未通过候选。
+  简报 `reports/sf13_multi_mate_agent_20260928.md`。未手动改模型、checker或追加生成。
+- 后续用户要求诊断：CPU 控制证实去木纹不消除缺陷；左侧板槽口多边形三个顶点共线，
+  三角化生成零面积面；顶盖单独板体/榫头均通过，第一次 UNION 已出现倒角微裂缝。
+  顶盖接缝差约4～8e-6 mm；关闭倒角仅在诊断副本中恢复顶盖，侧板仍退化。
+  无 GLB/STL 写出即可重现，已定位 CSG/三角化阶段，未证明内核具体舍入原因。
+- 旧开口反馈、EXACT、ASCII STL、float64 NPZ 都仍生效。本次 OPEN_PRINT_MESH 确送到
+  Engineering，但木纹假设/修补无效；零面积面仍不在自动几何修补入口（已有能力缺口）。
+  证据在本例 `mesh_diagnosis/README.md`；原件哈希复核相同，未修实现或重跑生成。
+
 ## 有序多接口连接（2026-09-28，已实现并验证）
 
 - 从 `334939c` 隔离实施，4 个阶段提交；功能分支 `feat/fixed-multi-mate`。

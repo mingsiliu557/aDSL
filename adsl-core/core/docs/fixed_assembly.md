@@ -48,6 +48,16 @@ nominal tab size plus twice the SINGLE-SIDED fit offset. Depth clearance is sepa
 Lead-in is a 45° tip chamfer, not a global numeric tolerance. Explicit mounting
 overlap must be real material; the geometry evaluator checks it.
 
+Before writing meshes, the shared exporter locally retriangulates planar polygons
+whose default tessellation contains exact-zero triangles. It preserves vertices,
+materials and connectivity, and commits only after closure, manifoldness, winding
+and geometric invariants are checked. Small positive faces are not filtered.
+The same evaluated mesh supplies STL, display and downstream checks; successful
+normalizations are recorded in each part's `mesh_normalizations`. An unresolved
+`EVALUATED_MESH_DEGENERATE` is an evaluation error, not established evidence of a
+source-design defect. This pass does not fill open boundaries or repair arbitrary
+degenerate triangle meshes.
+
 See `examples/fixed_assembly/README.md` and `t_bracket.py` in the repository for the
 end-to-end opt-in config, validation and outputs. Dimensions and fit are geometric
 demonstrations until calibrated on a real printer/material. See also the four-part,
