@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import List, Dict, Any
 
 from pathlib import Path
+import json
 import numpy as np
 
 from ..asset import Asset
@@ -531,6 +532,167 @@ def _normalize_zero_area_tessellation(obj):
             bpy.data.meshes.remove(candidate)
 
 
+def _normalize_numeric_microcracks(obj, mm_per_unit):
+    """Weld only roundoff-sized short edges in isolated triangular boundary loops.
+
+    Never search across loops, objects or disconnected shells. Two float32 ULPs
+    per local coordinate, 1e-4 of the loop's longest edge, and a hard 1e-4 mm
+    displacement ceiling must ALL hold. These are numerical bounds, not fit
+    allowances. A failed trial leaves the original mesh available to checkers.
+    """
+    import bmesh
+    if not np.isfinite(mm_per_unit) or mm_per_unit <= 0:
+        raise ValueError('microcrack normalization requires positive finite mm_per_unit')
+    mesh = bmesh.new()
+    candidate = None
+    committed = False
+    report = None
+    try:
+        mesh.from_mesh(obj.data)
+        mesh.verts.ensure_lookup_table()
+        mesh.edges.ensure_lookup_table()
+        boundary = {e for e in mesh.edges if e.is_boundary}
+        if not boundary:
+            return
+        report = dict(method='local_boundary_weld', status='SKIPPED',
+            boundary_edges_before=len(boundary), boundary_edges_after=len(boundary),
+            maximum_displacement_mm=0.0, displacement_limit_mm=1e-4,
+            merged_vertices=0, target_boundary_loops=0,
+            reason='no isolated triangular boundary with roundoff-sized short edge')
+        if any(not (e.is_boundary or e.is_manifold) for e in mesh.edges):
+            report['reason'] = 'pre-existing nonmanifold or wire edges'
+            return report
+        matrix = np.asarray(obj.matrix_world, dtype=float)
+        linear = matrix[:3, :3] * mm_per_unit
+        vertices, faces, crosses = _mesh_triangles(obj.data, obj.matrix_world)
+        if not np.isfinite(vertices).all() or not np.isfinite(linear).all():
+            report['reason'] = 'nonfinite geometry'
+            return report
+        components = _bmesh_component_count(mesh)
+        targetmap = {}
+        pairs = []
+        # Connected components of boundary edges are the only search regions.
+        while boundary:
+            edge = min(boundary, key=lambda e: e.index)
+            boundary.remove(edge)
+            loop_edges, loop_vertices, stack = {edge}, set(edge.verts), list(edge.verts)
+            while stack:
+                for adjacent in stack.pop().link_edges:
+                    if adjacent in boundary:
+                        boundary.remove(adjacent)
+                        loop_edges.add(adjacent)
+                        for v in adjacent.verts:
+                            if v not in loop_vertices:
+                                loop_vertices.add(v)
+                                stack.append(v)
+            if (len(loop_edges) != 3 or len(loop_vertices) != 3
+                    or any(sum(e.is_boundary for e in v.link_edges) != 2 for v in loop_vertices)):
+                continue
+            ordered = sorted(loop_vertices, key=lambda v: v.index)
+            coords = np.asarray([tuple(v.co) for v in ordered])
+            ulps = np.spacing(np.abs(coords).astype(np.float32)).astype(float)
+            distance = float(np.max(np.linalg.norm(2 * ulps, axis=1)))
+            found = bmesh.ops.find_doubles(mesh, verts=ordered, dist=distance)['targetmap']
+            longest = max(np.linalg.norm(linear @ (np.asarray(e.verts[0].co) -
+                                                   np.asarray(e.verts[1].co))) for e in loop_edges)
+            accepted = {}
+            for source, target in found.items():
+                if source not in loop_vertices or target not in loop_vertices:
+                    continue
+                a, b = np.asarray(source.co, dtype=float), np.asarray(target.co, dtype=float)
+                delta = a - b
+                bound = 2 * np.maximum(np.spacing(np.abs(a).astype(np.float32)),
+                                       np.spacing(np.abs(b).astype(np.float32))).astype(float)
+                displacement = max(float(np.linalg.norm(linear @ delta)),
+                    float(np.linalg.norm(vertices[source.index] - vertices[target.index]) * mm_per_unit))
+                shared = set(source.link_faces) & set(target.link_faces)
+                # Do not collapse a real triangle or remove a face/material patch.
+                if (np.all(np.abs(delta) <= bound) and displacement <= 1e-4
+                        and displacement <= longest * 1e-4 and longest > 0
+                        and len(shared) == 1 and all(len(f.verts) > 3 for f in shared)):
+                    accepted[source] = target
+            if len(accepted) != 1:
+                continue
+            source, target = next(iter(accepted.items()))
+            targetmap[source] = target
+            pairs.append(dict(source_local=list(source.co), target_local=list(target.co),
+                displacement_mm=max(float(np.linalg.norm(linear @ (np.asarray(source.co) -
+                                                                   np.asarray(target.co)))),
+                    float(np.linalg.norm(vertices[source.index] - vertices[target.index]) * mm_per_unit))))
+        if not targetmap:
+            return report
+        report.update(status='REJECTED', target_boundary_loops=len(pairs),
+            attempted_maximum_displacement_mm=max(p['displacement_mm'] for p in pairs))
+        original_positions = {v: tuple(v.co) for v in mesh.verts if v not in targetmap}
+        original_faces = {f: f.material_index for f in mesh.faces}
+        candidate = obj.data.copy()
+        bmesh.ops.weld_verts(mesh, targetmap=targetmap)
+        report['attempted_boundary_edges_after'] = sum(e.is_boundary for e in mesh.edges)
+        if (not all(e.is_manifold and e.is_contiguous for e in mesh.edges)
+                or not all(v.is_manifold for v in mesh.verts)):
+            raise ValueError('weld result is not closed, manifold and consistently wound')
+        if _bmesh_component_count(mesh) != components:
+            raise ValueError('weld changed shell connectivity')
+        if (len(mesh.faces) != len(original_faces)
+                or any(not f.is_valid or f.material_index != material for f, material in original_faces.items())):
+            raise ValueError('weld removed faces or changed material assignment')
+        if (len(mesh.verts) != len(original_positions)
+                or any(not v.is_valid or tuple(v.co) != position for v, position in original_positions.items())):
+            raise ValueError('weld moved vertices outside the accepted targetmap')
+        mesh.to_mesh(candidate)
+        candidate.update()
+        new_vertices, new_faces, new_crosses = _mesh_triangles(candidate, obj.matrix_world)
+        if not np.isfinite(new_crosses).all() or np.any(np.all(new_crosses == 0, axis=1)):
+            raise ValueError('weld left nonfinite or degenerate triangles')
+        if len(np.unique(new_vertices, axis=0)) != len(new_vertices):
+            raise ValueError('coincident vertices remain after weld')
+        # Bound changes in the actual triangulated surface, not just BMVert moves.
+        before = vertices * mm_per_unit
+        after = new_vertices * mm_per_unit
+        triangles = before[faces]
+        new_triangles = after[new_faces]
+        old_cross = crosses * mm_per_unit**2
+        new_cross = new_crosses * mm_per_unit**2
+        area = np.linalg.norm(old_cross, axis=1).sum() / 2
+        new_area = np.linalg.norm(new_cross, axis=1).sum() / 2
+        center = before.mean(axis=0)
+        volume = np.einsum('ij,ij->i', triangles[:, 0] - center, old_cross).sum() / 6
+        new_volume = np.einsum('ij,ij->i', new_triangles[:, 0] - center, new_cross).sum() / 6
+        displacement = report['attempted_maximum_displacement_mm']
+        lengths = np.linalg.norm(triangles - np.roll(triangles, 1, axis=1), axis=2).sum()
+        eps = 64 * np.finfo(float).eps
+        area_bound = 2 * displacement * lengths + eps * area
+        volume_bound = 2 * displacement * max(area, new_area) + eps * max(abs(volume), abs(new_volume))
+        if (abs(new_area - area) > area_bound or abs(new_volume - volume) > volume_bound
+                or volume * new_volume <= 0
+                or np.max(np.abs(np.array([before.min(axis=0), before.max(axis=0)]) -
+                                    np.array([after.min(axis=0), after.max(axis=0)]))) > displacement + eps):
+            raise ValueError('weld changed bounds, surface area or volume beyond displacement bounds')
+        report.update(status='APPLIED', reason='validated local roundoff boundary weld',
+            boundary_edges_after=0, maximum_displacement_mm=displacement,
+            merged_vertices=len(pairs), shell_components=components, closed=True,
+            manifold=True, winding_consistent=True, zero_area_triangles_after=0,
+            surface_area_change_mm2=float(new_area-area), signed_volume_change_mm3=float(new_volume-volume),
+            welded_pairs=pairs)
+        original = obj.data
+        obj.data = candidate
+        committed = True
+        if original.users == 0:
+            bpy.data.meshes.remove(original)
+        return report
+    except (ValueError, RuntimeError) as error:
+        if report is None:
+            raise
+        report.update(status='REJECTED', reason=str(error))
+        return report
+    finally:
+        mesh.free()
+        if candidate is not None and not committed:
+            bpy.data.meshes.remove(candidate)
+        if report is not None:
+            obj['adsl_microcrack_normalization'] = json.dumps(report)
+
+
 def export_glb(
     shape: Asset,
     filepath: str | Path,
@@ -539,6 +701,7 @@ def export_glb(
     apply_modifiers: bool = True,
     draco: bool = False,
     include_joint_children: bool = True,
+    mm_per_unit: float | None = None,
 ):
     _require_blender()
     export_path = Path(filepath)
@@ -549,6 +712,8 @@ def export_glb(
     for obj in bpy.context.scene.objects:
         if obj.type == "MESH":
             _normalize_zero_area_tessellation(obj)
+            if mm_per_unit is not None:
+                _normalize_numeric_microcracks(obj, mm_per_unit)
     if not any(obj.type == "MESH" for obj in bpy.data.objects):
         raise RuntimeError("Nothing to export: scene has no objects.")
     bpy.ops.export_scene.gltf(

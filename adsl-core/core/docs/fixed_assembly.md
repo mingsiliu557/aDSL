@@ -58,6 +58,16 @@ normalizations are recorded in each part's `mesh_normalizations`. An unresolved
 source-design defect. This pass does not fill open boundaries or repair arbitrary
 degenerate triangle meshes.
 
+For fixed-part exports with known mm_per_unit, a second bounded pass uses BMesh
+find_doubles/weld_verts only inside individual triangular boundary loops. A pair
+must be within two float32 ULPs per coordinate, 1e-4 of the loop's longest edge,
+and 1e-4 mm displacement. No cross-loop, cross-shell or cross-part search occurs.
+Only a closed, manifold, consistently wound copy with preserved faces/materials,
+connectivity and bounded geometric deviation is committed. Otherwise the original
+mesh remains for downstream checking. APPLIED/SKIPPED/REJECTED diagnostics include
+boundary counts and maximum displacement in mesh_normalizations. This handles
+eligible numerical cracks, not arbitrary holes or intentional fitting gaps.
+
 See `examples/fixed_assembly/README.md` and `t_bracket.py` in the repository for the
 end-to-end opt-in config, validation and outputs. Dimensions and fit are geometric
 demonstrations until calibrated on a real printer/material. See also the four-part,

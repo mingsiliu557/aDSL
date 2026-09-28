@@ -25,7 +25,7 @@ def _scene(monkeypatch, vertices, faces):
     obj = SimpleNamespace(name='evaluated_fixture', type='MESH', data=data, matrix_world=np.eye(3))
     monkeypatch.setitem(sys.modules, 'bpy', SimpleNamespace(
         context=SimpleNamespace(scene=SimpleNamespace(objects=[obj]))))
-    monkeypatch.setattr(exporter, 'export_glb', lambda *args: None)
+    monkeypatch.setattr(exporter, 'export_glb', lambda *args, **kwargs: None)
 
 
 @pytest.mark.parametrize('vertices,faces', [([], []), ([], [(0, 1, 2)]), ([(0., 0., 0.)], [])])

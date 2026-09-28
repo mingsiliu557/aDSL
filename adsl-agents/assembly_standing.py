@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict
 import importlib.metadata
 import math
+import time
 from pathlib import Path
 import xml.etree.ElementTree as ET
 import numpy as np
@@ -56,6 +57,31 @@ def verify_proxies(mesh, proxies, clearance_mm):
         convex_count=len(proxies)),approx
 
 
+def flex_contact_settings(report, config):
+    """Explicit shell thickness; never consume a declared positive fit clearance.
+
+    Both mating surfaces have radius r. Use r = gap/20 (at most 0.01 mm)
+    unless explicitly configured, with zero margin/gap. No geometry changes.
+    Zero/negative clearance cannot be represented without shell interference.
+    """
+    clearances=[float(c['parameters']['fit_offset_mm']) for c in report['connections']]
+    if clearances and min(clearances)<=0:
+        raise ValueError('RIGID_FLEX_CONTACT_UNVERIFIED: positive clearance required for finite shell radius')
+    options=config.get('rigid_flex',{})
+    radius=float(options.get('radius_mm',min(.01,min(clearances)/20) if clearances else .01))
+    margin=float(options.get('margin_mm',0.))
+    if not math.isfinite(radius) or radius<=0 or not math.isfinite(margin) or margin!=0:
+        raise ValueError('RIGID_FLEX_CONTACT_UNVERIFIED: finite positive radius and zero margin required')
+    if clearances and 2*radius>=min(clearances):
+        raise ValueError('RIGID_FLEX_CONTACT_UNVERIFIED: paired shell radii consume fit clearance')
+    return dict(radius_mm=radius,margin_mm=margin,gap_mm=0.,
+        paired_shell_thickness_mm=2*radius,
+        minimum_fit_clearance_mm=min(clearances) if clearances else None,
+        remaining_minimum_clearance_mm=min(clearances)-2*radius if clearances else None,
+        choice='min(0.01 mm, minimum positive single-sided fit / 20), or explicit radius_mm',
+        representation='rigid dim=2 surface flex; not volumetric FEM; no remeshing')
+
+
 def xml_model(report,meshes,proxies,config,density):
     from adsl.core.assembly_topology import mm_matrix
     from scipy.spatial.transform import Rotation
@@ -66,6 +92,9 @@ def xml_model(report,meshes,proxies,config,density):
     ET.SubElement(default,'geom',friction=' '.join(map(str,config['friction'])),margin='0',gap='0')
     assets=ET.SubElement(root,'asset');world=ET.SubElement(root,'worldbody')
     ET.SubElement(world,'geom',name='floor',type='plane',size='10 10 .1',rgba='.8 .8 .8 1')
+    rigid_flex=config.get('collision_backend','coacd')=='rigid_flex'
+    contact=flex_contact_settings(report,config) if rigid_flex else None
+    deformable=ET.SubElement(root,'deformable') if rigid_flex else None
     parts={p['id']:p for p in report['parts']}
     transforms={n:mm_matrix(parts[n]['assembly_transform'],report['mm_per_unit']) for n in meshes}
     lowest=min(float((m.vertices@transforms[n][:3,:3].T+transforms[n][:3,3])[:,2].min()) for n,m in meshes.items())
@@ -80,6 +109,21 @@ def xml_model(report,meshes,proxies,config,density):
         inertia=physical.moment_inertia
         ET.SubElement(body,'inertial',pos=values(physical.center_mass),mass=str(physical.mass),
             fullinertia=values([inertia[0,0],inertia[1,1],inertia[2,2],inertia[0,1],inertia[0,2],inertia[1,2]]))
+        if rigid_flex:
+            # Body-local vertices remain float64 text. Display geoms cannot
+            # collide: ordinary MuJoCo mesh collisions would convexify slots.
+            pid=f'display_{i}'
+            ET.SubElement(assets,'mesh',name=pid,vertex=values(mesh.vertices*.001),
+                face=' '.join(map(str,np.asarray(mesh.faces).ravel())))
+            ET.SubElement(body,'geom',type='mesh',mesh=pid,contype='0',conaffinity='0',
+                density='0',rgba=values([.25+.1*(i%4),.45,.7,1]))
+            flex=ET.SubElement(deformable,'flex',name=f'contact_{i}',body=name,dim='2',
+                radius=str(contact['radius_mm']*.001),vertex=values(mesh.vertices*.001),
+                element=' '.join(map(str,np.asarray(mesh.faces).ravel())),rgba='0 0 0 0')
+            ET.SubElement(flex,'contact',contype='1',conaffinity='1',condim='3',
+                internal='false',selfcollide='none',margin='0',gap='0',
+                friction=values(config['friction']))
+            continue
         for j,proxy in enumerate(proxies[name]):
             pid=f'proxy_{i}_{j}'
             ET.SubElement(assets,'mesh',name=pid,vertex=values(proxy.vertices*.001),
@@ -93,7 +137,24 @@ def simulate(xml,report,config,output):
     import manifold3d as mf
     from adsl.core.assembly_topology import mm_matrix,query_solids,solid_mesh,length_bound,checked
     from adsl.core.assembly import TabSlot
-    model=mujoco.MjModel.from_xml_string(xml);data=mujoco.MjData(model);mujoco.mj_forward(model,data)
+    started=time.monotonic()
+    try:
+        model=mujoco.MjModel.from_xml_string(xml);data=mujoco.MjData(model);mujoco.mj_forward(model,data)
+    except mujoco.FatalError as error:
+        raise ValueError(f'SIMULATION_UNVERIFIED: MuJoCo execution error: {error}') from error
+    flex_parts={i:mujoco.mj_id2name(model,mujoco.mjtObj.mjOBJ_BODY,
+        int(model.flex_vertbodyid[model.flex_vertadr[i]])) for i in range(model.nflex)}
+    def contacts():
+        rows=[]
+        for c in data.contact:
+            rows.append(dict(distance_mm=float(c.dist)*1000,position_mm=(c.pos*1000).tolist(),
+                geom_ids=c.geom.tolist(),flex_ids=c.flex.tolist(),element_ids=c.elem.tolist(),
+                part_ids=[flex_parts.get(int(i),'static_or_geom') for i in c.flex]))
+        return dict(count=len(rows),minimum_distance_mm=min((r['distance_mm'] for r in rows),default=None),
+            flex_flex_count=sum(all(i>=0 for i in r['flex_ids']) for r in rows),
+            flex_geom_count=sum(sum(i>=0 for i in r['flex_ids'])==1 for r in rows),contacts=rows)
+    initial_contacts=contacts();write_json(output/'initial_contacts.json',initial_contacts)
+    max_contacts=int(data.ncon);max_flex_contacts=initial_contacts['flex_flex_count']
     ids={p['id']:mujoco.mj_name2id(model,mujoco.mjtObj.mjOBJ_BODY,p['id']) for p in report['parts']}
     root_id=ids[report['root_id']];initial=data.xmat[root_id].reshape(3,3).copy()
     frames={c['id']:(mm_matrix(c['tab_frame'],report['mm_per_unit']),
@@ -110,8 +171,17 @@ def simulate(xml,report,config,output):
     steps=math.ceil(config['duration_seconds']/model.opt.timestep)
     stride=max(1,round(.02/model.opt.timestep))
     for k in range(steps+1):
-        if k: mujoco.mj_step(model,data)
+        if k:
+            previous_time=float(data.time)
+            try:
+                mujoco.mj_step(model,data)
+            except mujoco.FatalError as error:
+                raise ValueError(f'SIMULATION_UNVERIFIED: MuJoCo execution error: {error}') from error
+            if data.time<=previous_time or not np.isfinite(data.qpos).all() or not np.isfinite(data.qvel).all():
+                raise ValueError('SIMULATION_UNVERIFIED: nonfinite state or MuJoCo time reset')
         if k%stride and k!=steps: continue
+        max_contacts=max(max_contacts,int(data.ncon))
+        max_flex_contacts=max(max_flex_contacts,sum(bool(np.all(c.flex>=0)) for c in data.contact))
         current=data.xmat[root_id].reshape(3,3)
         tilt=math.degrees(math.acos(np.clip((current@initial.T)[2,2],-1,1)))
         peak=max(peak,tilt);joints=[]
@@ -137,12 +207,18 @@ def simulate(xml,report,config,output):
         if data.time>=config['duration_seconds']-config['settle_window_seconds']:last.append((linear,angular))
         trajectory.append(dict(time_seconds=float(data.time),tilt_deg=tilt,linear_speed_m_s=linear,
             angular_speed_rad_s=angular,interfaces=joints,qpos=data.qpos.tolist()))
+        write_json(output/'stage.json',dict(stage='self_weight_simulation',status='RUNNING',
+            simulated_seconds=float(data.time),wall_seconds=time.monotonic()-started,contacts=int(data.ncon)))
     np.savez(output/'trajectory.npz',time=np.array([r['time_seconds'] for r in trajectory]),
         qpos=np.array([r['qpos'] for r in trajectory],dtype=np.float64))
     write_json(output/'trajectory.json',trajectory)
     settled=bool(last) and max(v[0] for v in last)<=config['settle_linear_m_s'] and max(v[1] for v in last)<=config['settle_angular_rad_s']
     final=trajectory[-1]
+    write_json(output/'final_contacts.json',contacts())
     return dict(observation_duration_seconds=config['duration_seconds'],
+        simulation_wall_seconds=time.monotonic()-started,initial_contact_count=initial_contacts['count'],
+        initial_minimum_contact_distance_mm=initial_contacts['minimum_distance_mm'],
+        max_contact_count=max_contacts,max_interpart_flex_contacts=max_flex_contacts,
         simulated_duration_seconds=round(float(data.time),10),
         assessment_time_seconds=round(final['time_seconds'],10),
         assessment_scope='Full gravity-only observation; final state at the end, first events are not early stops',
@@ -191,7 +267,10 @@ def save_frames(report,meshes,trajectory,output):
 def analyze(args,physics):
     config=physics.get('standing',{});density=physics.get('material',{}).get('density_kg_m3')
     required=('duration_seconds','timestep_seconds','friction','tilt_threshold_deg','settle_window_seconds',
-              'settle_linear_m_s','settle_angular_rad_s','coacd')
+              'settle_linear_m_s','settle_angular_rad_s')
+    backend=config.get('collision_backend','coacd')
+    if backend not in ('coacd','rigid_flex'): raise ValueError('unsupported standing collision_backend')
+    if backend=='coacd': required+=('coacd',)
     if density is None or any(k not in config for k in required):
         return CheckerResult(checker=NAME,status='INDETERMINATE',summary='NEEDS_SPEC: density/contact/settling settings')
     if density<=0 or config['timestep_seconds']<=0 or not 0<config['settle_window_seconds']<=config['duration_seconds']:
@@ -207,16 +286,20 @@ def analyze(args,physics):
     if any(c['parameters']['fit_offset_mm']<0 for c in report['connections']):
         return CheckerResult(checker=NAME,status='INDETERMINATE',summary='RIGID_CONTACT_INTERFERENCE_UNSUPPORTED: elastic press fit not simulated')
     proxies={};checks={};proxy_solids={}
-    for n,m in meshes.items():
+    contact=flex_contact_settings(report,config) if backend=='rigid_flex' else None
+    if contact:
+        write_json(args.output/'rigid_flex_contact.json',contact)
+    for n,m in meshes.items() if backend=='coacd' else ():
         write_json(args.output/'stage.json',{'stage':'collision_decomposition','part_id':n,'status':'RUNNING'})
         proxies[n]=collision_proxies(m,config['coacd'])
         gaps=[c['parameters']['fit_offset_mm'] for c in report['connections'] if n in (c['tab_part'],c['slot_part'])]
         checks[n],proxy_solids[n]=verify_proxies(m,proxies[n],min(gaps) if gaps else None)
         for i,p in enumerate(proxies[n]): p.export(args.output/f'{n}.proxy_{i}.obj')
-    proxy_interfaces=[interface_measurement(c,parts,proxy_solids,report['mm_per_unit']) for c in report['connections']]
-    write_json(args.output/'collision_proxy_validation.json',{'parts':checks,'interfaces':proxy_interfaces})
-    if not all(c['accepted'] for c in checks.values()) or any(r['status']!='PASS' for r in proxy_interfaces):
-        return CheckerResult(checker=NAME,status='INDETERMINATE',summary='COLLISION_PROXY_UNVERIFIED',metrics={'proxy_checks':checks,'items':proxy_interfaces})
+    if backend=='coacd':
+        proxy_interfaces=[interface_measurement(c,parts,proxy_solids,report['mm_per_unit']) for c in report['connections']]
+        write_json(args.output/'collision_proxy_validation.json',{'parts':checks,'interfaces':proxy_interfaces})
+        if not all(c['accepted'] for c in checks.values()) or any(r['status']!='PASS' for r in proxy_interfaces):
+            return CheckerResult(checker=NAME,status='INDETERMINATE',summary='COLLISION_PROXY_UNVERIFIED',metrics={'proxy_checks':checks,'items':proxy_interfaces})
     write_json(args.output/'stage.json',{'stage':'self_weight_simulation','status':'RUNNING'})
     xml=xml_model(report,meshes,proxies,config,density);(args.output/'model.xml').write_text(xml)
     result,trajectory=simulate(xml,report,config,args.output)
@@ -238,17 +321,32 @@ def analyze(args,physics):
     capture_verified=result['interface_retention_verified']
     # Settling is diagnostic only; standing requires no tipping or interface exit.
     status='FAIL' if findings else 'PASS' if capture_verified else 'INDETERMINATE'
+    if contact:
+        from adsl.core.assembly_topology import length_bound
+        # Distinguish touching surfaces' intentional shell overlap from deep
+        # initial material intersection. No new model geometry/tolerance rule:
+        # use the configured paired radii and existing mesh precision bound.
+        limit=contact['paired_shell_thickness_mm']+2*max(length_bound(m) for m in meshes.values())
+        depth=max(0.,-(result['initial_minimum_contact_distance_mm'] or 0.))
+        result['initial_contact_check']=dict(verified=depth<=limit,
+            maximum_penetration_mm=depth,shell_plus_numeric_bound_mm=limit)
+        if depth>limit:
+            status='INDETERMINATE';findings=[]
+            result['diagnostic_only_reason']='INITIAL_CONTACT_INTERPENETRATION: initial depth exceeds shell thickness and mesh precision; dynamic verdict unverified'
     write_json(args.output/'stage.json',{'stage':'completed','status':status})
     result['simulation_frames']=save_frames(report,meshes,trajectory,args.output)
     return CheckerResult(checker=NAME,status=status,
-        summary=f'After {result["assessment_time_seconds"]:g} s self-weight: final tilt {result["final_tilt_deg"]:.4g} deg; '
+        summary=result.get('diagnostic_only_reason','')+(' | ' if result.get('diagnostic_only_reason') else '')+
+            f'After {result["assessment_time_seconds"]:g} s self-weight: final tilt {result["final_tilt_deg"]:.4g} deg; '
             f'{len(result["final_exited_interfaces"])} interfaces outside; '+
             f'standing observation {status}; settling diagnostic: '+
             ('settled' if result['settled'] else 'motion not settled')+' (not a pass requirement)',
         metrics=result,findings=findings,assumptions={'uniform_density_kg_m3':density,'external_load_stability':'NOT_EVALUATED',
             'standing_criterion':'No sampled root tilt above the configured limit and no interface exit during the full observation; settling is diagnostic only',
-            'contact':'independent bodies, no weld; CoACD proxies verified locally by sampling/queries',
-            'mujoco_version':importlib.metadata.version('mujoco'),'coacd_version':importlib.metadata.version('coacd'),
+            'contact':'independent bodies, no weld; '+('rigid surface flex, display mesh collision disabled' if contact else 'CoACD proxies verified locally by sampling/queries'),
+            'collision_backend':backend,'rigid_flex_contact':contact,
+            'mujoco_version':importlib.metadata.version('mujoco'),
+            'coacd_version':importlib.metadata.version('coacd') if backend=='coacd' else None,
             'configuration':config},artifacts={'trajectory':str(args.output/'trajectory.json'),'simulation':str(args.output/'model.xml')})
 
 if __name__=='__main__':cli(NAME,analyze)

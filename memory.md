@@ -4,7 +4,16 @@
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
 
-## Standing 站立判据调整（2026-09-28，当前发布范围）
+## 微裂缝修复与 rigid_flex 联合发布（2026-09-28，当前范围）
+
+- 用户明确要求将此前本地两项实现纳入 master；本轮包含公共导出局部焊接、rigid_flex碰撞后端、
+  各自测试和使用说明。保留5c885b4的站立判据。此前报告中的“未纳入”仅描述历史5c885b4。
+- 待发布实现与SF13实际验证代码SHA256完全一致；最新SF13复查PASS、8件24接口、峰倾角0.15634°。
+  rigid_flex仍通过standing.collision_backend显式开启，默认coacd未改；未追加Agent或参数调优。
+- 在独立干净基线上核对本次完整提交的CPU原生几何与standing回归：151 passed，结果见
+  `reports/contact_mesh_publication_20260928.md`。FEA、GPU脚本、历史删除等无关内容未纳入。
+
+## Standing 站立判据调整（2026-09-28，历史提交 5c885b4）
 
 - 用户同意并要求推送：有效仿真在整个观察期内无采样根件倾角超限、无接口脱离即PASS；
   本例5秒/25°。settled、速度及原settle配置继续记录，仅作诊断，不再阻止PASS。
@@ -17,6 +26,42 @@
   SF13原生复核使用本机既有rigid_flex，不能称该后端已随本提交发布；未重跑远程CoACD端到端。
   详见 `reports/standing_observation_criterion_20260928.md`。
 
+## SF13 temp 副本、运动图与静止诊断（2026-09-28）
+
+- 副本在 `temp/sf13_microcrack_standing_20260928/`，含 source/plan/physics、最终网格、
+  topology/standing 原报告和轨迹。CPU渲染28帧、26帧GIF及关键帧；速度曲线复用已有matplotlib环境。
+- 同配置回放qpos完全一致。末0.5s的25采样中线速度14次、角速度11次超限，主要为第五层板。
+- 发现当前线速度取freejoint部件原点：第五层板原点距质心约158.2mm，4.56s读数2.854mm/s，
+  同时刻质心仅0.16469mm/s；末段全部质心线速度低于1mm/s。原点取法有坐标依赖性。
+- 角速度仍真正在仿真中超限，第五层板峰0.018059rad/s（阈值0.01）；二、三层板也少量超限。
+  左端接触数12→6→12伴随峰值，右端动态负接触距离约−0.1724mm。
+- 同模型CPU短对照：仅dt为2/1/0.5ms时，第五层板末段角速度峰分别0.018059/0.001465/0.059501rad/s；
+  更硬接触(timeconst20→5ms，dt2ms)反增至0.308868。非单调、尚未收敛，不能选1ms宣称解决；
+  1ms下第二层板仍0.014205rad/s超限。原配置初始净向下力0.001759N，装配非精确静力平衡，
+  正间隙允许落座；第五层板采样最大下移0.7374mm包含软接触穿入，非仅0.2mm几何余量。
+  证据 `temp/sf13_microcrack_standing_20260928/analysis/motion_cause_20260928/README.md`。
+  具体软接触/摩擦/接触集合切换贡献未隔离，不认定真实结构失稳。对照未重跑全接口验收。
+  原INDETERMINATE保持；未改生产代码、阈值、模型或原物理配置，未新增Agent调用。
+
+## SF13 修复后 standing（2026-09-28）
+
+- 已完成修复后同一 SF13 的 CPU standing；原配置5秒自重、rigid_flex、无weld，未重导出或调用Agent。
+- checker=INDETERMINATE；After 5 s self-weight: final tilt 0.004636 deg; 0 interfaces outside; motion not settled; observation verdict INDETERMINATE
+- 接口覆盖：每个轨迹采样覆盖全部24条=True；最终24条=True。
+- 任务目录 `local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/standing_20260928T141743Z`；完成后查看 summary.json 和 interface_coverage.json。
+
+## SF13 数值微裂缝局部焊接（2026-09-28，纳入本轮 master 发布）
+
+- 公共固定装配导出在既有零面积处理后，对单件单个三边边界环执行 BMesh find_doubles /
+  weld_verts；每坐标最多2个float32 ULP、环最长边1e-4、位移1e-4mm三重限制。
+  副本通过闭合/流形/朝向/连通/材质/位移和面积体积验证后提交；不通过回滚并记录诊断。
+- 同一 SF13 最新候选源码未变：顶盖开放边36→0，最大位移7.62939453125e-6mm；
+  第五层板12→0，最大位移3.814697265625e-6mm。8/8件、24/24接口topology PASS。
+  64项STL/GLB/显示比较通过；139项相关回归通过。visual_only几何状态仍NOT_EVALUATED。
+- 原运行账本/旧产物不改；该几何验证未重跑Agent或物理工具，后续standing已验证，见上节。
+  产物 `local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/`；
+  报告 `reports/numeric_microcrack_welding_20260928.md`。既有无关工作区改动保持原样。
+
 ## 零面积三角形的确定性处理（2026-09-28，已实现并验证）
 
 - 用户要求常规网格退化先由固定代码处理。公共 GLB 导出在 CSG 后、写出前检测严格
@@ -26,7 +71,8 @@
 - CPU 相关回归 156 passed（含 12 项新增原生测试及真实多接口/T 支架）；同一 SF13
   源码独立重导出：两侧板零面积面均1→0，部件4/8→6/8 PASS、接口0/24→16/24 PASS。
   8件顶点集合不变，64条STL/GLB/显示比较通过，原 source 与资产哈希不变。
-- 第五层板/顶盖仍12/36条开放边，整体topology INDETERMINATE；未启动Agent或standing。
+- 仅零面积处理当时第五层板/顶盖仍12/36条开放边、topology INDETERMINATE；
+  后续局部焊接结果见上节。两次独立代码验证均未启动Agent或standing。
   原Agent账本不改；这是公共求值改动收益。已三角化的共线面等不能安全处理的情况仍报错。
 - 报告 `reports/zero_area_tessellation_20260928.md`；产物为 SF13 目录的
   `zero_triangle_repair/`。未改旧 checker/物理后端/模型；本次同步主分支的范围仅含

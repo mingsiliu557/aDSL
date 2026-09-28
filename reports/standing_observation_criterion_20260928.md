@@ -2,6 +2,14 @@
 
 Date: 2026-09-28. Baseline: `377dc44f5dd723cefdf42f46f8691d1e063f7e3d`.
 
+**Publication update (2026-09-28):** The report below describes the verdict-only
+commit `5c885b4`. The subsequent publication now includes both the previously local
+microcrack repair and rigid_flex backend, with their tests and documentation.
+The exclusions described below apply to `5c885b4`, not to current master.
+The native SF13 PASS used these same implementations; source-file hashes were
+checked before publishing. Current verification is recorded in
+[`contact_mesh_publication_20260928.md`](contact_mesh_publication_20260928.md).
+
 Residual motion previously made an otherwise valid standing observation
 INDETERMINATE. Per the agreed acceptance rule, a valid run now passes when no
 sampled root tilt exceeds the configured limit and no interface exits during

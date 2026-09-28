@@ -2,8 +2,9 @@
 
 Called inside the existing isolated asset executor (120-second geometry budget).
 Blender evaluates aDSL CSG; Manifold unions shells WITHIN each print part only.
-The shared Blender exporter normalizes exact-zero polygon tessellation.
-No proximity welding, remeshing, solver checks or tolerance tuning is performed.
+The shared Blender exporter normalizes exact-zero polygon tessellation and
+validated local numerical boundary cracks within each evaluated object.
+No cross-part welding, remeshing, solver checks or fit-tolerance tuning is performed.
 """
 from __future__ import annotations
 
@@ -47,7 +48,7 @@ def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geomet
     import trimesh
     if validate_geometry:
         import manifold3d as mf
-    export_glb(shape, path)
+    export_glb(shape, path, mm_per_unit=mm_per_unit)
     shells, welded = [], 0
     materials, face_materials, display_meshes, omissions = [], [], [], []
     face_groups, normalizations = [], []
@@ -61,6 +62,9 @@ def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geomet
                 zero_area_triangles_before=get('adsl_zero_area_triangles_before'),
                 zero_area_triangles_after=0, shell_components=get('adsl_mesh_shell_components'),
                 vertices_unchanged=True, closed=True, manifold=True, winding_consistent=True))
+        if get('adsl_microcrack_normalization'):
+            normalizations.append(dict(object=obj.name,
+                **json.loads(get('adsl_microcrack_normalization'))))
         obj.data.calc_loop_triangles()
         vertex_count, triangle_count = len(obj.data.vertices), len(obj.data.loop_triangles)
         if not vertex_count or not triangle_count:
@@ -76,7 +80,7 @@ def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geomet
         if not validate_geometry and not np.isfinite(vertices).all():
             omissions.append(dict(object=obj.name, reason='nonfinite coordinates'))
             continue
-        # Only exact duplicates within this object, never proximity welding.
+        # Local crack normalization is already complete; deduplicate exact seams only.
         unique, inverse = np.unique(vertices, axis=0, return_inverse=True)
         welded += len(vertices) - len(unique)
         mesh = trimesh.Trimesh(unique, inverse[faces], process=False)
@@ -131,7 +135,8 @@ def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geomet
             raise ValueError('missing source material for exported face')
         mesh.metadata['materials'] = materials
     return mesh, merged, {'input_shells': len(shells), 'exact_duplicate_vertices_merged': welded,
-                          'proximity_welding': False,
+                          'proximity_welding': any(n.get('method') == 'local_boundary_weld'
+                              and n.get('status') == 'APPLIED' for n in normalizations),
                           **({'mesh_normalizations':normalizations} if normalizations else {})}
 
 

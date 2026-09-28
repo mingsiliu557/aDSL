@@ -6,9 +6,11 @@ Physical checks remain off by default. Explicit `assembly_topology`,
 `assembly_standing`, `assembly_overhang`, and `assembly_fea` adapters now use the
 same fixed-assembly repair loop; the old whole-object tools remain unsupported
 here, not PASS. This is not the `planned_checks` or old overhang experiment mode.
-Native standing validation is **not complete**; see
-[`reports/assembly_physics_v1.md`](../../reports/assembly_physics_v1.md) for tested
-scope, historical CoACD/settling blockers, and the FEA numerical limitations.
+Native CPU standing controls and SF13 have been validated with the opt-in
+`rigid_flex` backend; see
+[`reports/assembly_standing_rigid_flex_20260922.md`](../../reports/assembly_standing_rigid_flex_20260922.md).
+The earlier [`physics report`](../../reports/assembly_physics_v1.md) records the
+historical CoACD/settling blockers and FEA numerical limitations.
 
 `t_bracket.py` is the hand-written geometry fixture; it is NOT provided to the
 prompt-to-3D smoke agent. The smoke prompt specifies dimensions and interface
@@ -49,6 +51,18 @@ remain diagnostics; residual motion alone does not block PASS. Geometry/proxy
 validation and simulation availability remain prerequisites. This is a finite
 self-weight standing observation, not proof of static equilibrium or long-term
 stability. Existing settling settings remain supported for diagnostic reporting.
+
+Set `standing.collision_backend` to `"rigid_flex"` to use the final surface mesh
+as rigid contact geometry for each independent part. This path was validated on
+MuJoCo 3.12.0, preserves slots without convex decomposition, and needs no CoACD.
+Default backend remains `coacd`; there is no automatic fallback. Keep the other
+physics settings (density, friction, duration, timestep, tilt and diagnostics).
+Initial deep interpenetration remains unverified even when no tipping is observed.
+
+Fixed-part exports also apply bounded local numerical-crack welding after the
+existing zero-area tessellation pass. Only validated copies are committed; STL,
+GLB and checkers consume the same repaired geometry. See
+[`mesh repair validation`](../../reports/numeric_microcrack_welding_20260928.md).
 
 ```bash
 # Small tests, no API:
