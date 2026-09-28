@@ -20,6 +20,19 @@ def test_static_review_prompts_grade_current_evidence_and_only_append_connector_
     assert object_prompt('image_critic_review', articulation=False, fixed_assembly=True) == image
     assembly_code = object_prompt('code_critic_review', articulation=False, fixed_assembly=True)
     assert assembly_code.startswith(code)
-    assert 'M_child = M_receiver @ F_slot @ inverse(F_tab)' in assembly_code
+    assert 'T_tab = T_slot @ F_slot @ inverse(F_tab)' in assembly_code
     assert 'Planner: return FixedAssemblyPlan' not in assembly_code
     assert 'Generate one complete program' not in assembly_code
+
+
+def test_fixed_plan_coder_and_code_critic_share_multi_interface_contract():
+    for role in ('planner', 'coder', 'code_critic_review'):
+        prompt = object_prompt(role, articulation=False, fixed_assembly=True)
+        assert 'at least one endpoint' in prompt.lower()
+        assert 'T_tab = T_slot @ F_slot @ inverse(F_tab)' in prompt
+        assert 'T_slot = T_tab @ F_tab @ inverse(F_slot)' in prompt
+        assert 'T_tab @ F_tab == T_slot @ F_slot' in prompt
+        assert 'without moving either part' in prompt
+        assert 'multiple interfaces using distinct ports' in prompt
+        assert 'MATE_FRAME_MISMATCH' in prompt
+        assert 'receiver-first tree' not in prompt

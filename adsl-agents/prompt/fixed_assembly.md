@@ -8,9 +8,20 @@ Planner: return FixedAssemblyPlan. Partition EVERY named semantic component into
 explicit print_parts (id, components); a print part can contain several semantic
 components. Provide root_part and ordered connections (id, tab_part, slot_part,
 tab_port, slot_port, parameter_name, interface_type='tab_slot', insertion_direction,
-fit_intent). Receiver is already placed, tab is a new child. No cycles, multiple
-placement mates or unknown IDs. Copy mm_per_unit and final_size_mm from the frozen
-request, not from a guessed bounding box. Keep natural-language relations.
+fit_intent). Each physical interface must have its own connection ID and endpoint
+ports. Process connections in order, starting from root_part. At least one endpoint
+must already be placed. If exactly one endpoint is placed, connect() computes
+the other endpoint's pose, whether that endpoint is the tab or the slot.
+If both endpoints are placed, connect() checks that their world interface
+frames agree, then creates both mating geometries without moving either part.
+The same pair of parts may have multiple interfaces using distinct ports.
+Plan all required interfaces, including those beyond the edges used to place
+the parts. Build mounting material for every declared tab and slot.
+Use meaningful port names, unique per (part, tab/slot role, port name); different
+names do not prove different geometric locations. No unknown IDs or self connections.
+Copy mm_per_unit and final_size_mm from the frozen request, not from a guessed
+bounding box. Keep natural-language relations. Connection evaluation order is not
+a physical assembly insertion sequence.
 Use the request's fixed fit_offset_mm; repairs must not change it to pass geometry.
 Print-part IDs MUST NOT be `scene` or `exploded`: these names are reserved for
 whole-assembly export files. Choose names such as `top_plate` or `leg_left`.
@@ -38,8 +49,13 @@ Coder API (all imported by `from adsl.core import *`):
   than insertion. Explicit overlaps are real dimensions, not numeric tolerances.
 - `assembly.connect(id, tab_part=..., slot_part=..., tab_frame=..., slot_frame=...,
   parameters=shared_parameters, parameter_name=..., tab_port=..., slot_port=...)`:
-  generates BOTH sides with union/difference and places the tab child by frames.
-  Build sufficient material at each mount; DO NOT draw the tab or cut the slot
+  generates BOTH sides with union/difference. Tab/slot identify geometric roles,
+  not parent/child or placement order. With only the slot placed, compute
+  `T_tab = T_slot @ F_slot @ inverse(F_tab)`; with only the tab placed, compute
+  `T_slot = T_tab @ F_tab @ inverse(F_slot)`. With both placed, require
+  `T_tab @ F_tab == T_slot @ F_slot` and keep both transforms unchanged.
+  With neither placed, the call fails. Build sufficient material at each mount;
+  DO NOT draw the tab or cut the slot
   yourself. Reuse the same parameter value for every use of its shared name.
 - Finish with global `assembly` and `scene = assembly.scene()`; do not add material
   or transforms to scene afterwards. Root's placement may use root_frame. Local
@@ -53,7 +69,9 @@ Coder API (all imported by `from adsl.core import *`):
 
 Read the connection list in both directions before designing bodies: a receiver
 must reserve material for every incoming slot, while tab bodies reserve a shoulder
-and embedded root. Derive incoming requirements from that list, not another plan.
+and embedded root for every tab. Include all adjacent connections, not just the
+connection that first places a part. Derive incoming requirements from that list,
+not another plan.
 The exporter writes STL coordinates in mm, whole-assembly and exploded GLBs, and
 an assembly_manifest. The exploded view is not the assembled target shape.
 
@@ -64,7 +82,13 @@ container need not be a continuous print piece: select its independent children
 as separate print instances when needed, preserving their semantic hierarchy and
 required visible components. Repeated pieces may reuse a class, but each separate
 print piece needs its own instance and connection. Explain the changed locations
-and reasons; do not rewrite the initial plan.json. Change relevant bodies AND
+and reasons; do not rewrite the initial plan.json. Repairs may add supplemental
+connections. MATE_FRAME_MISMATCH identifies the interface, endpoints, translation
+error in mm and rotation error in degrees. Correct the relevant frames, dimensions
+or connection arrangement and re-execute the entire candidate; connect() never
+moves already placed parts to resolve a contradiction. The shared matrix tolerance
+is 1e-8 in scene units (rtol=0), not a fit clearance or a millimetre threshold.
+Change relevant bodies AND
 assembly/helpers in the SAME isolated candidate if necessary. Preserve the root,
 frozen scale, fit allowance, requested dimensions and budget. Do not delete required
 parts, cancel connection requirements or change checker/config files. Image/Code Critic

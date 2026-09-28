@@ -20,8 +20,14 @@ See `adsl-agents/prompt/fixed_assembly.md` for the API/frame convention.
 The millimetre conversion, fit_offset_mm and final assembled XYZ extent are frozen by config.
 Slots get one single-sided clearance adjustment. An interface's local +Z points
 from the tab body into the receiver on BOTH sides. The stop planes coincide.
-Incoming slots are derived from the single connection list. Receiver-first tree
-placement only; cycles, duplicate ports and multiple locating mates are errors.
+All tabs and incoming slots are derived from the single ordered connection list.
+At least one endpoint must already be placed. Either placed endpoint can locate the
+other; when both are placed, connect checks world interface frames and generates
+the extra interface without moving either part. Cycles and multiple interfaces
+between the same pair are supported. Each interface needs a unique ID and each
+endpoint port may be used once per part and tab/slot role. Inconsistent frames
+raise MATE_FRAME_MISMATCH with translation/rotation diagnostics. Evaluation order
+is not a physical assembly insertion sequence.
 
 An explicit print part may contain many semantic children. Never select a subtree
 twice or select both ancestor and descendant. Copies are independent instances.
@@ -44,6 +50,9 @@ the first exit time is an event timestamp, never an early simulation stop.
 # Same fixture with real Boolean/export parameter variants (120 s each maximum):
 ADSL_TEST_FIXED_REAL=1 /vepfs_default/chanxueyan/lhp/lms/envs/adsl/bin/python -m pytest -q tests/test_fixed_assembly.py -k real_boolean_export
 
+# Four-part cycle and same-pair double interface: real CSG export + independent topology.
+ADSL_TEST_FIXED_REAL=1 python -m pytest -q tests/test_fixed_assembly_multi_mate.py -k real_
+
 # One new API run: capture both terminal and log; use a new output directory.
 set -o pipefail
 bash examples/fixed_assembly/run_smoke.sh local_experiment/fixed_assembly_smoke_NEW 2>&1 | tee local_experiment/fixed_assembly_smoke_NEW.log
@@ -56,6 +65,15 @@ bash experiments/tmux_session.sh adsl_fixed_NEW "$PWD" bash -o pipefail -c \
   'bash examples/fixed_assembly/run_smoke.sh local_experiment/fixed_assembly_smoke_NEW 2>&1 | tee local_experiment/fixed_assembly_smoke_NEW.log'
 tmux attach -t adsl_fixed_NEW
 ```
+
+`two_shelf_frame.py` is a hand-written API fixture: left/right side panels and
+upper/lower shelves, 132 × 60 × 100 mm. Its four interfaces first place the upper
+shelf, reverse-place the right panel, place the lower shelf, then check and build
+the fourth interface. No poses are prefilled; the last connection preserves all
+existing transforms. The tests also export a two-interface stem/crossbar fixture.
+Geometry mode checks evaluated solids, dimensions and file consistency. The same
+four-part fixture is exported in visual_only mode and measured by independent
+topology; its NOT_EVALUATED geometry status remains unchanged.
 
 Use a fresh session/output name. The session stays interactive after success,
 failure or Ctrl-C and prints the actual task exit code; a live pane alone is not

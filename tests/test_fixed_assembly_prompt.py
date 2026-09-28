@@ -56,6 +56,10 @@ def test_prepare_uses_original_prompt_only_and_freezes_dimensions(tmp_path, monk
         inputs = read_json(root/cid/'input.json')
         assert inputs['original_task'] == {'prompt': case['prompt'], 'image_paths': []}
         assert inputs['manufacturing_requirements'].startswith(prompt.MANUFACTURING)
+        assert 'at least one endpoint must already be placed' in inputs['manufacturing_requirements']
+        assert 'with both endpoints placed' in inputs['manufacturing_requirements']
+        assert 'multiple interfaces between the same pair' in inputs['manufacturing_requirements']
+        assert 'receiver-first rooted tree' not in inputs['manufacturing_requirements']
         assert 'there must be at least two distinct print parts' not in inputs['manufacturing_requirements']
         assert "Use the existing Planner's component and connection plan" in inputs['manufacturing_requirements']
         assert f'at most {expected_rounds} evaluation rounds' in inputs['manufacturing_requirements']
@@ -77,6 +81,7 @@ def test_prepare_preserves_old_frozen_mode(tmp_path, old_multiple_parts):
     # Existing directories retain their original geometry default; a new visual
     # experiment must use a new directory, not rewrite frozen inputs or hashes.
     inputs = frozen_input()
+    inputs['manufacturing_requirements'] = 'Historical receiver-first rooted tree input'
     inputs['fixed_assembly'].pop('validation_mode')
     if old_multiple_parts is None:
         inputs['fixed_assembly'].pop('require_multiple_parts')

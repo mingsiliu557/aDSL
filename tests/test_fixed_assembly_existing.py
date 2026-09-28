@@ -82,7 +82,7 @@ def saved_version(root, name, *, accepted=False):
 def test_conversion_planner_receives_original_source_frozen_config_and_images(tmp_path):
     original = saved_version(tmp_path, 'original')
     source, execution, _ = version_assets(original)
-    request = ObjectRequest('convert this original', tmp_path, 'test', fixed_assembly=CONFIG)
+    request = ObjectRequest(adapter.requirement('SF13'), tmp_path, 'test', fixed_assembly=CONFIG)
     calls = []
 
     class Runtime:
@@ -102,6 +102,10 @@ def test_conversion_planner_receives_original_source_frozen_config_and_images(tm
     payload = json.loads(content[0]['text'])
     assert payload['original_source'] == source.read_text()
     assert payload['requirement'] == request.requirement
+    assert 'at least one endpoint must already be placed' in payload['requirement']
+    assert 'with both endpoints placed' in payload['requirement']
+    assert 'multiple interfaces between the same pair' in payload['requirement']
+    assert 'receiver-first' not in payload['requirement']
     assert payload['fixed_assembly'] == CONFIG
     assert base64.b64decode(content[1]['image_url'].split(',', 1)[1]) == b'original image'
     assert read_json(tmp_path/'planner_input.json') == payload

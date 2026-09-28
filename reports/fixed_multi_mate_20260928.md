@@ -32,3 +32,14 @@ export and are declaration/routing evidence only. The mismatch recovery test run
 an actual source subprocess: `connect()` rejects `interface=second` with 1 mm
 translation error before CSG evaluation; `execution_error.json` and repair evidence
 carry that diagnostic. The repaired candidate export/review is mocked.
+
+## Stage 3 — Agent instructions and real task entries
+
+Planner/Coder, the Code Critic API reference, both task requirement templates and
+example documentation now describe all three successful connect behaviors, full
+interface coverage and geometric roles. Frozen historical input bytes are preserved.
+
+Requested prompt/entry tests plus `tests/test_generation_review_contract.py`:
+**73 passed** (`stage3.log`). Runtime/docs search found only the existing
+`three_parts_prompt.txt` describing its particular tree fixture; it is not a general
+API restriction and is unchanged. No model API was called.

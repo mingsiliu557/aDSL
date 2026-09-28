@@ -116,6 +116,6 @@ def test_fixed_assembly_does_not_reassign_critic_roles():
     assert object_prompt('image_critic',articulation=False,fixed_assembly=True)==image
     code=object_prompt('code_critic',articulation=False,fixed_assembly=True)
     assert code.startswith(object_prompt('code_critic',articulation=False))
-    assert 'M_child = M_receiver @ F_slot @ inverse(F_tab)' in code
+    assert 'T_tab = T_slot @ F_slot @ inverse(F_tab)' in code
     assert 'Planner: return FixedAssemblyPlan' not in code
     assert 'Generate one complete program' not in code
