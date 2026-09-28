@@ -6,8 +6,9 @@
 
 ## 全局互穿与零长度边处理（2026-09-28，当前范围）
 
-- 用户要求先审查案例，暂不合并 master。实现保留在 `/tmp/adsl_interference_20260929`、
-  分支 `feat/assembly-material-interference`；主工作区无关 FEA/GPU/历史删除未纳入。
+- 用户现要求将已有互穿与零面积修复一起提交远程，暂不继续扩充实现；仍保留此前不合并 master 的约定。
+  实现位于 `/tmp/adsl_interference_20260929`，发布到 `feat/assembly-material-interference`；
+  主工作区无关 FEA/GPU/历史删除未纳入。
 - topology scope v2 已覆盖全部装配部件对（含已连接部件），与 geometry 导出复用实体求交、
   原数值容差和同对局部负间隙豁免。pair 证据进入 Engineering/Coder；旧范围缓存重测。
   阶段提交 25f818b / 7747e98 / 533d22c / da1e51c；完整 topology+反馈 47 passed，
@@ -30,6 +31,11 @@
   零长度边与微裂缝并存、额外非轴向旋转的有限精度退化（局部2个→当前世界计算6个零面积面，
   float64对照2个）；开口/非流形/纯共线面也不自动修补。本轮只验证，不扩充生产修复范围。
   结果和输入/输出网格 `temp/assembly_interference_20260929/mesh_degeneracy_samples/README.md`。
+- 最新副本试验：按精确零长度边连通关系局部焊接可使连续重合链4→0零面积面、位移0；
+  先保留已有边界完成零长度清理、再调用既有微裂缝处理，可使组合样本零面积2→0、开放边3→0，
+  最大位移1.0789593218788873e-5mm；两例实际part检查PASS。额外删除有效面的负例仍拒绝。
+  这是工具副本可行性验证，**未接入生产导出**；本次发布保持现有实现，未扩充组合/链式/旋转处理。
+  证据 `temp/assembly_interference_20260929/mesh_degeneracy_tool_trials/README.md`。
 - 证据根目录 `temp/assembly_interference_20260929/`；真实Agent记录位于
   `cases/SF16/agent_repair/`，原始一轮结果已备份在 `before_extra_repair/`，
   最终结果 `extra_repair_completion.json`，历史prompts/tools/session均保留。
