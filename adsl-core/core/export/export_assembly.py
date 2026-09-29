@@ -65,6 +65,8 @@ def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geomet
         if get('adsl_zero_length_normalization'):
             normalizations.append(dict(object=obj.name,
                 **json.loads(get('adsl_zero_length_normalization'))))
+        if get('adsl_boolean_recovery'):
+            normalizations.append(dict(object=obj.name, **json.loads(get('adsl_boolean_recovery'))))
         if get('adsl_microcrack_normalization'):
             normalizations.append(dict(object=obj.name,
                 **json.loads(get('adsl_microcrack_normalization'))))

@@ -1,0 +1,258 @@
+{
+  "reference": {
+    "repository": "https://huggingface.co/datasets/Yang2001/toys4k_meshes",
+    "revision": "c497d6ab69c2c38a7795315e23a5e65fb0b192b9",
+    "mesh_url": "https://huggingface.co/datasets/Yang2001/toys4k_meshes/resolve/c497d6ab69c2c38a7795315e23a5e65fb0b192b9/elephant/elephant_000/mesh.ply",
+    "mesh_sha256": "1e5292c5ce4ce24b8f970e12d7281801cb20148e975835f4c84559eeb5befdc8",
+    "metadata": {
+      "sha256": "878891c52a789f7e71606286ceb56f6c13758e87512f8ac86cdecedf3a2c9835",
+      "file_identifier": "elephant/elephant_000/elephant_000.blend",
+      "aesthetic_score": "5.931257247924805",
+      "captions": "[\"A stylized, minimalist white elephant with a smooth surface, large curved ears, a long slender trunk curving upwards, nearly non-existent tusks, a robust oval body, thick cylindrical legs, and a small pointed tail.\", \"A simplistic white elephant with large ears, a slender upward-curving trunk, thick legs, and a small tail.\", \"A minimalistic white elephant with large, curved ears, an upward-curving trunk, and robust body.\", \"A white elephant with rounded ears, slender trunk, sturdy body.\", \"An elephant with broad ears, slender trunk, minimalistic design.\", \"A minimalistic elephant, with big ears and upward-curved trunk.\", \"Minimalistic white elephant with tubby body and tapered trunk.\", \"A stylized white elephant with thick legs.\", \"White elephant with curved trunk.\", \"Stylized elephant with large ears.\", \"White elephant.\"]"
+    },
+    "original_blend_available": false,
+    "original_adsl_input_available": false,
+    "source_type": "public third-party triangle mesh exported from Toys4K; not original blend",
+    "reference_image": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/reference/input.png",
+    "reference_image_sha256": "39c4dfd1d8393a40ee197e19581710acc7b215219eef6cdbb10a3fc649b53fa8",
+    "selected_view": 2,
+    "selection_reason": "Before generation, choose a front three-quarter reference showing the upturned trunk, ear outline, body and legs.",
+    "original_adsl_exact_case_verified": false
+  },
+  "results": {
+    "A": {
+      "case_id": "elephant_000",
+      "arm": "A",
+      "status": "rendered",
+      "started_at": "2026-09-29T09:34:37.558331+00:00",
+      "commit": "8943a8306ddcce69ad0c043f0079c0a14f0518f1",
+      "core_path": "/tmp/adsl_master_merge_20260929/adsl-core/core/__init__.py",
+      "agents_path": "/tmp/adsl_master_merge_20260929/adsl-agents/models.py",
+      "runner_sha256": "bcf7df70a02cf0ee9382af02380a9a576afce1389898af44f0088fae6b301f7e",
+      "input_sha256": "660ea9b8e9c4dde4acc5705ede96856c608ae483a8e6810512b5b1ce73eefadc",
+      "reference_images": [
+        {
+          "path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/A/reference/00_input.png",
+          "original_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/reference/input.png",
+          "sha256": "39c4dfd1d8393a40ee197e19581710acc7b215219eef6cdbb10a3fc649b53fa8"
+        }
+      ],
+      "input_bundle_sha256": "3cd3d25c78247e873323b55ca0276cbf1957643998e33fc5946b059ca834f6e2",
+      "render_config": {
+        "width": 512,
+        "height": 512,
+        "samples": 32,
+        "threads": 4,
+        "view_layout": "review_eight",
+        "views": 8,
+        "material": "neutral",
+        "background": "gray",
+        "engine": "CYCLES"
+      },
+      "execution_timeout_seconds": 300.0,
+      "render_timeout_seconds": 300.0,
+      "initial_generations": 1,
+      "execution_patches": 0,
+      "execution_attempts": [
+        {
+          "attempt": 0,
+          "source_sha256": "3dedebf442ced645dedd7477d56fb49275549d0756de8d21d73122c5860570cf",
+          "seconds": 16.98634810000658,
+          "status": "exported"
+        }
+      ],
+      "render_seconds": 36.63436755537987,
+      "critics": [],
+      "checkers": [],
+      "export_urdf": false,
+      "fixed_assembly": null,
+      "glb": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/A/exec_0/render/scene.glb",
+      "source_index": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/A/exec_0/source_index.json",
+      "analysis_geometry": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/A/exec_0/analysis_geometry.json",
+      "vertices": 84281,
+      "triangles": 42150,
+      "glb_bounds": [
+        [
+          -2.363999843597412,
+          0.0,
+          -0.5199999809265137
+        ],
+        [
+          1.6449999809265137,
+          2.669999837875366,
+          0.5438499450683594
+        ]
+      ],
+      "glb_extents": [
+        4.008999824523926,
+        2.669999837875366,
+        1.063849925994873
+      ],
+      "glb_coordinate_frame": "glTF Y-up",
+      "images": [
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/A/views/render_0001.png",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/A/views/render_0002.png",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/A/views/render_0003.png",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/A/views/render_0004.png",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/A/views/render_0005.png",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/A/views/render_0006.png",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/A/views/render_0007.png",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/A/views/render_0008.png"
+      ],
+      "source_sha256": "3dedebf442ced645dedd7477d56fb49275549d0756de8d21d73122c5860570cf",
+      "source": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/A/source.py",
+      "source_lines": 180,
+      "new_api_call_sites": {
+        "Polygon": 0,
+        "linear_extrude": 0,
+        "rotate_extrude": 0,
+        "hull": 0
+      },
+      "finished_at": "2026-09-29T09:37:27.412918+00:00",
+      "usage": {
+        "requests": 3,
+        "input_tokens": 18195,
+        "output_tokens": 5313,
+        "reasoning_tokens": 1236,
+        "cached_tokens": 5632,
+        "cache_write_tokens": 0,
+        "total_tokens": 23508,
+        "cost": null
+      }
+    },
+    "B": {
+      "case_id": "elephant_000",
+      "arm": "B",
+      "status": "rendered",
+      "started_at": "2026-09-29T09:34:37.654481+00:00",
+      "commit": "0efaceb921526398ba8a8b8494109baeaa2d41f8",
+      "core_path": "/tmp/adsl_geometry_20260929/adsl-core/core/__init__.py",
+      "agents_path": "/tmp/adsl_geometry_20260929/adsl-agents/models.py",
+      "runner_sha256": "bcf7df70a02cf0ee9382af02380a9a576afce1389898af44f0088fae6b301f7e",
+      "input_sha256": "660ea9b8e9c4dde4acc5705ede96856c608ae483a8e6810512b5b1ce73eefadc",
+      "reference_images": [
+        {
+          "path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/reference/00_input.png",
+          "original_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/reference/input.png",
+          "sha256": "39c4dfd1d8393a40ee197e19581710acc7b215219eef6cdbb10a3fc649b53fa8"
+        }
+      ],
+      "input_bundle_sha256": "3cd3d25c78247e873323b55ca0276cbf1957643998e33fc5946b059ca834f6e2",
+      "render_config": {
+        "width": 512,
+        "height": 512,
+        "samples": 32,
+        "threads": 4,
+        "view_layout": "review_eight",
+        "views": 8,
+        "material": "neutral",
+        "background": "gray",
+        "engine": "CYCLES"
+      },
+      "execution_timeout_seconds": 300.0,
+      "render_timeout_seconds": 300.0,
+      "initial_generations": 1,
+      "execution_patches": 1,
+      "execution_attempts": [
+        {
+          "attempt": 0,
+          "source_sha256": "8cc4fd570a9be86d941bc6e1fc20512089a76078b3f45f994c9c764ef4deb9d7",
+          "seconds": 16.520695436745882,
+          "error": "Generated source exited with code 1.\nSTDOUT:\n\nSTDERR:\ncould not get a list of mounted file-systems\nTraceback (most recent call last):\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/B/adsl/agents/utils/asset_executor.py\", line 217, in <module>\n    raise SystemExit(main())\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/B/adsl/agents/utils/asset_executor.py\", line 149, in main\n    export_glb(\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/B/adsl/core/__init__.py\", line 67, in export_glb\n    return _export_glb(*args, **kwargs)\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/B/adsl/core/export/export_glb.py\", line 853, in export_glb\n    _normalize_zero_area_tessellation(obj)\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/B/adsl/core/export/export_glb.py\", line 619, in _normalize_zero_area_tessellation\n    reject(f'polygon {index} is nonplanar: max_plane_distance_scene_units={distance:.9g} '\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/B/adsl/core/export/export_glb.py\", line 591, in reject\n    raise ValueError(\nValueError: EVALUATED_MESH_DEGENERATE: object='geometry_0_hull.002' zero_area_triangles=7 polygons=[796, 1210, 1466, 1619, 1710, 1809] coincident_vertices=0 reason=polygon 796 is nonplanar: max_plane_distance_scene_units=8.14094918e-08 planarity_bound_scene_units=3.89704612e-15\n",
+          "exception": "AssetExecutionError"
+        },
+        {
+          "attempt": 1,
+          "source_sha256": "8214009f19a423f017ff4eb716e0ede9338862d0550c7f47b710170b1dd78f9f",
+          "seconds": 9.847585851326585,
+          "status": "exported"
+        }
+      ],
+      "render_seconds": 30.8357051089406,
+      "critics": [],
+      "checkers": [],
+      "export_urdf": false,
+      "fixed_assembly": null,
+      "glb": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/exec_1/render/scene.glb",
+      "source_index": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/exec_1/source_index.json",
+      "analysis_geometry": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/exec_1/analysis_geometry.json",
+      "vertices": 15438,
+      "triangles": 7365,
+      "glb_bounds": [
+        [
+          -1.459999442100525,
+          0.0,
+          -0.6000000238418579
+        ],
+        [
+          2.0799999237060547,
+          3.6000001430511475,
+          0.604999840259552
+        ]
+      ],
+      "glb_extents": [
+        3.5399993658065796,
+        3.6000001430511475,
+        1.20499986410141
+      ],
+      "glb_coordinate_frame": "glTF Y-up",
+      "images": [
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/views/render_0001.png",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/views/render_0002.png",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/views/render_0003.png",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/views/render_0004.png",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/views/render_0005.png",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/views/render_0006.png",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/views/render_0007.png",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/views/render_0008.png"
+      ],
+      "source_sha256": "8214009f19a423f017ff4eb716e0ede9338862d0550c7f47b710170b1dd78f9f",
+      "source": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/source.py",
+      "source_lines": 220,
+      "new_api_call_sites": {
+        "Polygon": 2,
+        "linear_extrude": 2,
+        "rotate_extrude": 0,
+        "hull": 3
+      },
+      "finished_at": "2026-09-29T09:39:08.029382+00:00",
+      "usage": {
+        "requests": 6,
+        "input_tokens": 53722,
+        "output_tokens": 9097,
+        "reasoning_tokens": 3859,
+        "cached_tokens": 18432,
+        "cache_write_tokens": 0,
+        "total_tokens": 62819,
+        "cost": null
+      }
+    }
+  },
+  "actual_reference_inputs": [
+    {
+      "arm": "A",
+      "role": "planner",
+      "reference_sha256": "39c4dfd1d8393a40ee197e19581710acc7b215219eef6cdbb10a3fc649b53fa8"
+    },
+    {
+      "arm": "A",
+      "role": "coder_initial",
+      "reference_sha256": "39c4dfd1d8393a40ee197e19581710acc7b215219eef6cdbb10a3fc649b53fa8"
+    },
+    {
+      "arm": "B",
+      "role": "planner",
+      "reference_sha256": "39c4dfd1d8393a40ee197e19581710acc7b215219eef6cdbb10a3fc649b53fa8"
+    },
+    {
+      "arm": "B",
+      "role": "coder_initial",
+      "reference_sha256": "39c4dfd1d8393a40ee197e19581710acc7b215219eef6cdbb10a3fc649b53fa8"
+    },
+    {
+      "arm": "B",
+      "role": "coder_execution_patch",
+      "reference_sha256": "39c4dfd1d8393a40ee197e19581710acc7b215219eef6cdbb10a3fc649b53fa8"
+    }
+  ]
+}

@@ -201,9 +201,219 @@ def _apply_boolean(
             except Exception:
                 pass
 
-    bpy.data.objects.remove(other_obj, do_unlink=True)
     if last_exc is not None:
         raise last_exc
+
+def _mesh_defects(data):
+    """Validate actual float32 triangles, including exact export seam welding."""
+    vertices, faces, crosses = _mesh_triangles(data, mathutils.Matrix.Identity(4))
+    if not len(faces) or not np.isfinite(vertices).all():
+        return {'empty_or_nonfinite': True}
+    _, inverse = np.unique(vertices, axis=0, return_inverse=True)
+    faces = inverse[faces]
+    edges = np.concatenate([faces[:, [0, 1]], faces[:, [1, 2]], faces[:, [2, 0]]])
+    _, ids, counts = np.unique(np.sort(edges, axis=1), axis=0,
+                               return_inverse=True, return_counts=True)
+    winding = np.bincount(ids, weights=np.where(edges[:, 0] < edges[:, 1], 1, -1))
+    issues = dict(zero_area_triangles=int(np.all(crosses == 0, axis=1).sum()),
+                  duplicate_faces=len(faces)-len(np.unique(np.sort(faces, axis=1), axis=0)),
+                  boundary_edges=int((counts == 1).sum()),
+                  nonmanifold_edges=int((counts > 2).sum()),
+                  inconsistent_edges=int(((counts == 2) & (winding != 0)).sum()))
+    issues = {key: value for key, value in issues.items() if value}
+    if not issues:
+        import bmesh
+        bm = bmesh.new()
+        try:
+            bm.from_mesh(data)
+            # Coordinate duplicates have already been checked for edge incidence;
+            # exact weld additionally exposes pinched vertices across shells.
+            if len(np.unique(vertices, axis=0)) != len(vertices):
+                first, mapping = {}, {}
+                for v in bm.verts:
+                    key = tuple(v.co)
+                    if key in first:
+                        mapping[v] = first[key]
+                    else:
+                        first[key] = v
+                bmesh.ops.weld_verts(bm, targetmap=mapping)
+            if not all(v.is_manifold for v in bm.verts):
+                issues['nonmanifold_vertices'] = True
+        finally:
+            bm.free()
+    return issues
+
+
+def _remove_mesh_object(obj):
+    data = obj.data
+    bpy.data.objects.remove(obj, do_unlink=True)
+    if data.users == 0:
+        bpy.data.meshes.remove(data)
+
+
+def _recover_boolean(base, operands, operation):
+    """Recompute from valid operands, then validate target-precision geometry.
+
+    All edits are on a temporary object. No hole filling, proximity welding or
+    repair of invalid input solids. Tolerances derive from float32 coordinate
+    precision; simplification is bounded independently by measured displacement.
+    """
+    import bmesh
+    from mathutils.bvhtree import BVHTree
+    from ..constructive import _manifold
+    mf = _manifold()
+    solids, source_vertices, source_faces, face_materials, materials = [], [], [], [], []
+    bpy.context.view_layer.update()
+    for operand in operands:
+        if _mesh_defects(operand.data):
+            raise ValueError(f'BOOLEAN_RECOVERY_INVALID_OPERAND: object={operand.name!r}')
+        v, f, _ = _mesh_triangles(operand.data, operand.matrix_world)
+        # Deduplicate only exact coordinate copies (e.g. attribute seams).
+        unique, inverse = np.unique(v, axis=0, return_inverse=True)
+        solid = mf.Manifold(mf.Mesh64(unique, inverse[f].astype(np.uint64)))
+        if solid.status() != mf.Error.NoError or solid.is_empty():
+            raise ValueError(f'BOOLEAN_RECOVERY_INVALID_OPERAND: {solid.status()}')
+        solids.append(solid)
+        slots = []
+        for material in operand.data.materials:
+            if material not in materials:
+                materials.append(material)
+            slots.append(materials.index(material))
+        face_materials.extend(slots[min(operand.data.polygons[t.polygon_index].material_index,
+                                       len(slots)-1)] if slots else 0
+                              for t in operand.data.loop_triangles)
+        source_faces.extend((f + len(source_vertices)).tolist())
+        source_vertices.extend(v.tolist())
+    op = {'UNION': mf.OpType.Add, 'DIFFERENCE': mf.OpType.Subtract,
+          'INTERSECT': mf.OpType.Intersect}[operation]
+    reference = mf.Manifold.batch_boolean(solids, op)
+    if reference.status() != mf.Error.NoError or reference.is_empty():
+        raise ValueError(f'BOOLEAN_RECOVERY_UNAVAILABLE: operation={operation} status={reference.status()} empty={reference.is_empty()}')
+    raw = reference.to_mesh64()
+    rv, rf = np.asarray(raw.vert_properties[:, :3]), np.asarray(raw.tri_verts)
+    scale = max(1., float(np.abs(rv).max()))
+    quantum = float(np.spacing(np.float32(scale)))
+    displacement_bound = float(16 * np.finfo(np.float32).eps * scale)
+    reference_tree = BVHTree.FromPolygons(rv.tolist(), rf.tolist(), all_triangles=True)
+    material_tree = BVHTree.FromPolygons(source_vertices, source_faces, all_triangles=True)
+    components = len(reference.decompose())
+    failures = []
+    # A small fixed attempt budget, never an unbounded tolerance escalation.
+    for tolerance in (0., quantum, 2 * quantum):
+        candidate = None
+        try:
+            solid = reference if tolerance == 0 else reference.simplify(tolerance)
+            if solid.status() != mf.Error.NoError:
+                raise ValueError(str(solid.status()))
+            raw = solid.to_mesh64()
+            world = np.asarray(raw.vert_properties[:, :3])
+            inverse = np.linalg.inv(np.asarray(base.matrix_world))
+            local = world @ inverse[:3, :3].T + inverse[:3, 3]
+            data = bpy.data.meshes.new('boolean_recomputed')
+            data.from_pydata(local.tolist(), [], np.asarray(raw.tri_verts).tolist())
+            candidate = bpy.data.objects.new('boolean_recovery_candidate', data)
+            bpy.context.collection.objects.link(candidate)
+            candidate.matrix_world = base.matrix_world.copy()
+            bm = bmesh.new()
+            try:
+                bm.from_mesh(data)
+                by_coordinate, targetmap = {}, {}
+                for vert in bm.verts:
+                    key = tuple(vert.co)
+                    if key in by_coordinate:
+                        targetmap[vert] = by_coordinate[key]
+                    else:
+                        by_coordinate[key] = vert
+                bmesh.ops.weld_verts(bm, targetmap=targetmap)
+                bmesh.ops.dissolve_degenerate(bm, dist=0, edges=list(bm.edges))
+                welded = len(targetmap)
+                if (not all(e.is_manifold and e.is_contiguous for e in bm.edges)
+                        or not all(v.is_manifold for v in bm.verts)):
+                    raise ValueError('target precision weld is not manifold')
+                bm.to_mesh(data)
+            finally:
+                bm.free()
+            data.update()
+            _normalize_zero_area_tessellation(candidate)
+            defects = _mesh_defects(candidate.data)
+            if defects:
+                raise ValueError(str(defects))
+            v, f, _ = _mesh_triangles(candidate.data, candidate.matrix_world)
+            measured = mf.Manifold(mf.Mesh64(v, f.astype(np.uint64)))
+            if (measured.status() != mf.Error.NoError or measured.is_empty()
+                    or len(measured.decompose()) != components):
+                raise ValueError('target precision changed shell connectivity')
+            tree = BVHTree.FromPolygons(v.tolist(), f.tolist(), all_triangles=True)
+            distance = max(max(reference_tree.find_nearest(tuple(p))[3] for p in v),
+                           max(tree.find_nearest(tuple(p))[3] for p in rv))
+            volume_change = abs(measured.volume() - reference.volume())
+            bounds_change = float(np.max(np.abs(np.array(measured.bounding_box()) -
+                                                  np.array(reference.bounding_box()))))
+            if (distance > displacement_bound or bounds_change > displacement_bound
+                    or volume_change > reference.surface_area() * displacement_bound):
+                raise ValueError('target precision geometry displacement exceeds numerical bound')
+            for material in materials:
+                candidate.data.materials.append(material)
+            for polygon, triangle in zip(candidate.data.polygons, v[f]):
+                hit = material_tree.find_nearest(tuple(triangle.mean(axis=0)))
+                polygon.material_index = face_materials[hit[2]]
+            report = dict(method='manifold_boolean_recompute', operation=operation,
+                          operand_count=len(operands), simplify_tolerance_scene_units=tolerance,
+                          exact_vertices_welded=welded, shell_components=components,
+                          max_vertex_to_surface_sample_distance_scene_units=distance,
+                          displacement_bound_scene_units=displacement_bound,
+                          volume_change_scene_units3=volume_change,
+                          bounds_change_scene_units=bounds_change,
+                          zero_area_triangles_after=0, boundary_edges_after=0,
+                          nonmanifold_edges_after=0, status='APPLIED')
+            encoded_report = json.dumps(report)
+            old = base.data
+            base.data = candidate.data
+            base['adsl_boolean_recovery'] = encoded_report
+            if old.users == 0:
+                bpy.data.meshes.remove(old)
+            return
+        except (ValueError, RuntimeError) as error:
+            failures.append(str(error))
+        finally:
+            if candidate is not None:
+                _remove_mesh_object(candidate)
+    raise ValueError(f'BOOLEAN_RECOVERY_FAILED: object={base.name!r} attempts={failures}')
+
+
+def _apply_boolean_group(base, others, operation):
+    """Keep original operands until the complete Boolean node is validated."""
+    if not others:
+        return
+    candidate = _duplicate_object(base)
+    pending = []
+    try:
+        try:
+            for other in others:
+                duplicate = _duplicate_object(other)
+                pending.append(duplicate)
+                _apply_boolean(candidate, duplicate, operation)
+                pending.pop()
+            _normalize_zero_area_tessellation(candidate)
+            defects = _mesh_defects(candidate.data)
+            if defects:
+                raise ValueError(f'invalid Boolean output: {defects}')
+        except (ValueError, RuntimeError) as error:
+            _recover_boolean(candidate, [base, *others], operation)
+            candidate['adsl_boolean_recovery_trigger'] = str(error)
+        old = base.data
+        base.data = candidate.data
+        for key in candidate.keys():
+            if key.startswith('adsl_'):
+                base[key] = candidate[key]
+        if old.users == 0:
+            bpy.data.meshes.remove(old)
+    finally:
+        for obj in pending:
+            if obj.name in bpy.data.objects:
+                _remove_mesh_object(obj)
+        _remove_mesh_object(candidate)
+
 
 def _new_asset_node(
     name: str,
@@ -356,11 +566,9 @@ def _build_shape(
                     if not built_children:
                         continue
                     base = built_children[0]
+                    _apply_boolean_group(base, built_children[1:], mode)
                     for other in built_children[1:]:
-                        _apply_boolean(
-                            base, other,
-                            "UNION" if mode == "UNION" else "INTERSECT"
-                        )
+                        _remove_mesh_object(other)
                     objs.append(base)
                 elif mode == "DIFFERENCE":
                     base_objs = []
@@ -410,9 +618,7 @@ def _build_shape(
                         continue
                     results = []
                     for base_obj in base_objs:
-                        for other in other_objs:
-                            dup = _duplicate_object(other)
-                            _apply_boolean(base_obj, dup, "DIFFERENCE")
+                        _apply_boolean_group(base_obj, other_objs, "DIFFERENCE")
                         results.append(base_obj)
                     for other in other_objs:
                         try:
@@ -848,11 +1054,16 @@ def export_glb(
     if clear_scene:
         bpy.ops.wm.read_factory_settings(use_empty=True)
     _build_shape(shape, include_joint_children=include_joint_children)
+    expected_meshes = {}
     for obj in bpy.context.scene.objects:
         if obj.type == "MESH":
             _normalize_zero_area_tessellation(obj)
             if mm_per_unit is not None:
                 _normalize_numeric_microcracks(obj, mm_per_unit)
+            defects = _mesh_defects(obj.data)
+            if defects:
+                raise ValueError(f"EVALUATED_MESH_INVALID: object={obj.name!r} defects={defects}")
+            expected_meshes[obj.name] = len(obj.data.loop_triangles)
     if not any(obj.type == "MESH" for obj in bpy.data.objects):
         raise RuntimeError("Nothing to export: scene has no objects.")
     bpy.ops.export_scene.gltf(
@@ -863,6 +1074,28 @@ def export_glb(
         export_draco_mesh_compression_enable=bool(draco),
         export_extras=True,
     )
+    _verify_glb_meshes(export_path, expected_meshes)
     return export_path
+
+
+def _verify_glb_meshes(path, expected):
+    """A successful exporter return must not hide an omitted required mesh."""
+    import struct
+    with Path(path).open('rb') as stream:
+        header = stream.read(20)
+        if len(header) != 20 or header[:4] != b'glTF' or header[16:20] != b'JSON':
+            raise ValueError('GLB_EXPORT_INCOMPLETE: invalid GLB header')
+        document = json.loads(stream.read(struct.unpack('<I', header[12:16])[0]))
+    nodes = {node.get('name'): node for node in document.get('nodes', [])}
+    for name, triangle_count in expected.items():
+        node = nodes.get(name, {})
+        if 'mesh' not in node:
+            raise ValueError(f'GLB_EXPORT_INCOMPLETE: missing mesh object={name!r}')
+        primitives = document['meshes'][node['mesh']].get('primitives', [])
+        triangles = sum(document['accessors'][p['indices']]['count'] // 3
+                        for p in primitives if p.get('mode', 4) == 4 and 'indices' in p
+                        and 'POSITION' in p.get('attributes', {}))
+        if triangles != triangle_count:
+            raise ValueError(f'GLB_EXPORT_INCOMPLETE: object={name!r} expected_triangles={triangle_count} actual={triangles}')
 
 __all__ = ["export_glb"]

@@ -1,0 +1,1316 @@
+{
+  "status": "rendered",
+  "kind": "same_source_export_recovery_no_model_call",
+  "source": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/source.py",
+  "source_sha256": "8214009f19a423f017ff4eb716e0ede9338862d0550c7f47b710170b1dd78f9f",
+  "glb": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B_reexport_recovery/exec_final/render/scene.glb",
+  "images": [
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B_reexport_recovery/views_final/render_0001.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B_reexport_recovery/views_final/render_0002.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B_reexport_recovery/views_final/render_0003.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B_reexport_recovery/views_final/render_0004.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B_reexport_recovery/views_final/render_0005.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B_reexport_recovery/views_final/render_0006.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B_reexport_recovery/views_final/render_0007.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B_reexport_recovery/views_final/render_0008.png"
+  ],
+  "render_config": {
+    "width": 512,
+    "height": 512,
+    "samples": 32,
+    "threads": 4,
+    "view_layout": "review_eight",
+    "views": 8,
+    "material": "neutral",
+    "background": "gray",
+    "engine": "CYCLES"
+  },
+  "export_seconds": 8.160969210788608,
+  "render_seconds": 22.5961205214262,
+  "triangles": 16712,
+  "vertices": 36284,
+  "recovery_reports": [
+    {
+      "node": "geometry_0_hull.002",
+      "report": {
+        "method": "manifold_boolean_recompute",
+        "operation": "UNION",
+        "operand_count": 5,
+        "simplify_tolerance_scene_units": 0.0,
+        "exact_vertices_welded": 1,
+        "shell_components": 1,
+        "max_vertex_to_surface_sample_distance_scene_units": 1.862645149230957e-09,
+        "displacement_bound_scene_units": 2.9754637580481358e-06,
+        "volume_change_scene_units3": 2.3113355673842761e-10,
+        "bounds_change_scene_units": 0.0,
+        "zero_area_triangles_after": 0,
+        "boundary_edges_after": 0,
+        "nonmanifold_edges_after": 0,
+        "status": "APPLIED"
+      },
+      "trigger": "invalid Boolean output: {'boundary_edges': 3}"
+    },
+    {
+      "node": "geometry_0_hull.004",
+      "report": {
+        "method": "manifold_boolean_recompute",
+        "operation": "UNION",
+        "operand_count": 5,
+        "simplify_tolerance_scene_units": 0.0,
+        "exact_vertices_welded": 1,
+        "shell_components": 1,
+        "max_vertex_to_surface_sample_distance_scene_units": 1.862645149230957e-09,
+        "displacement_bound_scene_units": 2.9754637580481358e-06,
+        "volume_change_scene_units3": 1.409141692221283e-10,
+        "bounds_change_scene_units": 0.0,
+        "zero_area_triangles_after": 0,
+        "boundary_edges_after": 0,
+        "nonmanifold_edges_after": 0,
+        "status": "APPLIED"
+      },
+      "trigger": "invalid Boolean output: {'boundary_edges': 4}"
+    },
+    {
+      "node": "geometry_0_hull.003",
+      "report": {
+        "method": "manifold_boolean_recompute",
+        "operation": "UNION",
+        "operand_count": 5,
+        "simplify_tolerance_scene_units": 0.0,
+        "exact_vertices_welded": 0,
+        "shell_components": 1,
+        "max_vertex_to_surface_sample_distance_scene_units": 0.0,
+        "displacement_bound_scene_units": 2.9754637580481358e-06,
+        "volume_change_scene_units3": 1.4098679168572659e-09,
+        "bounds_change_scene_units": 0.0,
+        "zero_area_triangles_after": 0,
+        "boundary_edges_after": 0,
+        "nonmanifold_edges_after": 0,
+        "status": "APPLIED"
+      },
+      "trigger": "invalid Boolean output: {'boundary_edges': 3}"
+    },
+    {
+      "node": "geometry_0_hull.005",
+      "report": {
+        "method": "manifold_boolean_recompute",
+        "operation": "UNION",
+        "operand_count": 5,
+        "simplify_tolerance_scene_units": 0.0,
+        "exact_vertices_welded": 0,
+        "shell_components": 1,
+        "max_vertex_to_surface_sample_distance_scene_units": 0.0,
+        "displacement_bound_scene_units": 2.9754637580481358e-06,
+        "volume_change_scene_units3": 1.4644514489958738e-09,
+        "bounds_change_scene_units": 0.0,
+        "zero_area_triangles_after": 0,
+        "boundary_edges_after": 0,
+        "nonmanifold_edges_after": 0,
+        "status": "APPLIED"
+      },
+      "trigger": "invalid Boolean output: {'boundary_edges': 3}"
+    },
+    {
+      "node": "geometry_0_mesh.002",
+      "report": {
+        "method": "manifold_boolean_recompute",
+        "operation": "UNION",
+        "operand_count": 19,
+        "simplify_tolerance_scene_units": 2.384185791015625e-07,
+        "exact_vertices_welded": 6,
+        "shell_components": 1,
+        "max_vertex_to_surface_sample_distance_scene_units": 2.528810796320613e-07,
+        "displacement_bound_scene_units": 5.33103957423009e-06,
+        "volume_change_scene_units3": 3.534110837311033e-09,
+        "bounds_change_scene_units": 0.0,
+        "zero_area_triangles_after": 0,
+        "boundary_edges_after": 0,
+        "nonmanifold_edges_after": 0,
+        "status": "APPLIED"
+      },
+      "trigger": "invalid Boolean output: {'duplicate_faces': 4, 'boundary_edges': 51, 'nonmanifold_edges': 132}"
+    }
+  ],
+  "trunk_hierarchy": [
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/body/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/body/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/body/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/body/op_1"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_2",
+        "adsl_path": "StylizedUpwardTrunkElephant/body/op_2",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/body/op_2"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_3",
+        "adsl_path": "StylizedUpwardTrunkElephant/body/op_3",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/body/op_3"
+    },
+    {
+      "children": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "body",
+        "adsl_path": "StylizedUpwardTrunkElephant/body",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/body"
+    },
+    {
+      "children": [
+        6
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "panel",
+        "adsl_path": "StylizedUpwardTrunkElephant/far_ear/panel",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/far_ear/panel"
+    },
+    {
+      "children": [
+        7
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "far_ear",
+        "adsl_path": "StylizedUpwardTrunkElephant/far_ear",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/far_ear"
+    },
+    {
+      "children": [
+        9
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "far_eye",
+        "adsl_path": "StylizedUpwardTrunkElephant/far_eye",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/far_eye"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_0/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_0/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_0/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_0/op_1"
+    },
+    {
+      "children": [
+        11,
+        12,
+        13
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_1/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_1/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_1/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_1/op_1"
+    },
+    {
+      "children": [
+        15,
+        16
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_1"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_2/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_2/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_2/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_2/op_1"
+    },
+    {
+      "children": [
+        18,
+        19
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_2",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_2",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_2"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_3/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_3/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_3/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_3/op_1"
+    },
+    {
+      "children": [
+        21,
+        22
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_3",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_3",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_3"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_4/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_4/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_4/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_4/op_1"
+    },
+    {
+      "children": [
+        24,
+        25
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_4",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_4",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form/op_4"
+    },
+    {
+      "children": [
+        14,
+        17,
+        20,
+        23,
+        26
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "form",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg/form",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg/form"
+    },
+    {
+      "children": [
+        27
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "front_far_leg",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_far_leg",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_far_leg"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_0/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_0/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_0/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_0/op_1"
+    },
+    {
+      "children": [
+        29,
+        30,
+        31
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_1/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_1/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_1/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_1/op_1"
+    },
+    {
+      "children": [
+        33,
+        34
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_1"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_2/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_2/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_2/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_2/op_1"
+    },
+    {
+      "children": [
+        36,
+        37
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_2",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_2",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_2"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_3/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_3/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_3/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_3/op_1"
+    },
+    {
+      "children": [
+        39,
+        40
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_3",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_3",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_3"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_4/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_4/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_4/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_4/op_1"
+    },
+    {
+      "children": [
+        42,
+        43
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_4",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_4",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form/op_4"
+    },
+    {
+      "children": [
+        32,
+        35,
+        38,
+        41,
+        44
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "form",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg/form",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg/form"
+    },
+    {
+      "children": [
+        45
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "front_near_leg",
+        "adsl_path": "StylizedUpwardTrunkElephant/front_near_leg",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/front_near_leg"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/head/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/head/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/head/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/head/op_1"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_2",
+        "adsl_path": "StylizedUpwardTrunkElephant/head/op_2",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/head/op_2"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_3",
+        "adsl_path": "StylizedUpwardTrunkElephant/head/op_3",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/head/op_3"
+    },
+    {
+      "children": [
+        47,
+        48,
+        49,
+        50,
+        51
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "head",
+        "adsl_path": "StylizedUpwardTrunkElephant/head",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/head"
+    },
+    {
+      "children": [
+        53
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "panel",
+        "adsl_path": "StylizedUpwardTrunkElephant/near_ear/panel",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/near_ear/panel"
+    },
+    {
+      "children": [
+        54
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "near_ear",
+        "adsl_path": "StylizedUpwardTrunkElephant/near_ear",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/near_ear"
+    },
+    {
+      "children": [
+        56
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "near_eye",
+        "adsl_path": "StylizedUpwardTrunkElephant/near_eye",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/near_eye"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_0/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_0/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_0/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_0/op_1"
+    },
+    {
+      "children": [
+        58,
+        59,
+        60
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_1/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_1/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_1/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_1/op_1"
+    },
+    {
+      "children": [
+        62,
+        63
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_1"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_2/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_2/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_2/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_2/op_1"
+    },
+    {
+      "children": [
+        65,
+        66
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_2",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_2",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_2"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_3/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_3/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_3/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_3/op_1"
+    },
+    {
+      "children": [
+        68,
+        69
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_3",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_3",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_3"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_4/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_4/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_4/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_4/op_1"
+    },
+    {
+      "children": [
+        71,
+        72
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_4",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_4",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_4"
+    },
+    {
+      "children": [
+        61,
+        64,
+        67,
+        70,
+        73
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "form",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg/form",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg/form"
+    },
+    {
+      "children": [
+        74
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "rear_far_leg",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_far_leg",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_far_leg"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_0/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_0/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_0/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_0/op_1"
+    },
+    {
+      "children": [
+        76,
+        77,
+        78
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_1/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_1/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_1/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_1/op_1"
+    },
+    {
+      "children": [
+        80,
+        81
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_1"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_2/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_2/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_2/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_2/op_1"
+    },
+    {
+      "children": [
+        83,
+        84
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_2",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_2",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_2"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_3/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_3/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_3/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_3/op_1"
+    },
+    {
+      "children": [
+        86,
+        87
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_3",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_3",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_3"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_4/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_4/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_4/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_4/op_1"
+    },
+    {
+      "children": [
+        89,
+        90
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_4",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_4",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_4"
+    },
+    {
+      "children": [
+        79,
+        82,
+        85,
+        88,
+        91
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "form",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg/form",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg/form"
+    },
+    {
+      "children": [
+        92
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "rear_near_leg",
+        "adsl_path": "StylizedUpwardTrunkElephant/rear_near_leg",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/rear_near_leg"
+    },
+    {
+      "children": [
+        94
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_1"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_10",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_10",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_10"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_11",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_11",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_11"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_12",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_12",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_12"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_13",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_13",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_13"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_14",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_14",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_14"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_15",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_15",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_15"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_16",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_16",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_16"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_17",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_17",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_17"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_18",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_18",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_18"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_2",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_2",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_2"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_3",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_3",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_3"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_4",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_4",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_4"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_5",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_5",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_5"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_6",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_6",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_6"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_7",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_7",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_7"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_8",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_8",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_8"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_9",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_9",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_9"
+    },
+    {
+      "children": [
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_0",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_0",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_0"
+    },
+    {
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "op_1",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form/op_1",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form/op_1"
+    },
+    {
+      "children": [
+        114,
+        115
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "form",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk/form",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk/form"
+    },
+    {
+      "children": [
+        116
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "trunk",
+        "adsl_path": "StylizedUpwardTrunkElephant/trunk",
+        "adsl_attach_mode": "part"
+      },
+      "name": "StylizedUpwardTrunkElephant/trunk"
+    },
+    {
+      "children": [
+        5,
+        8,
+        10,
+        28,
+        46,
+        52,
+        55,
+        57,
+        75,
+        93,
+        117
+      ],
+      "extras": {
+        "adsl_kind": "asset",
+        "adsl_name": "StylizedUpwardTrunkElephant",
+        "adsl_path": "StylizedUpwardTrunkElephant",
+        "adsl_attach_mode": "root"
+      },
+      "name": "StylizedUpwardTrunkElephant"
+    }
+  ],
+  "model_calls": 0,
+  "checkers": [],
+  "fea": false,
+  "implementation_base_commit": "c9396a2",
+  "implementation_files_sha256": {
+    "adsl-core/core/export/export_glb.py": "0e08f41c45be7ef06dd35861a982720f0145e5cb0e9a97f12598189bf0641494",
+    "adsl-core/core/export/export_assembly.py": "71187749baa696253e4e60ac347e20193d0f02d717d11c3296f3ddd2c93ae3ee"
+  }
+}

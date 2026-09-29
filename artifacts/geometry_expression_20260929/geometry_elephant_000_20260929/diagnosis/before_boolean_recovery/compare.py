@@ -4,7 +4,6 @@ import base64,hashlib,json
 from PIL import Image,ImageDraw,ImageFont
 root=Path(__file__).parent
 results={a:json.loads((root/a/'demo_result.json').read_text()) for a in ('A','B')}
-reexport=json.loads((root/'B_reexport_recovery/reexport_result.json').read_text())
 ref=json.loads((root/'reference/provenance.json').read_text())
 expected=ref['reference_image_sha256'];calls=[]
 for arm,r in results.items():
@@ -20,15 +19,14 @@ for arm,r in results.items():
 assert results['A']['input_bundle_sha256']==results['B']['input_bundle_sha256']
 assert results['A']['runner_sha256']==results['B']['runner_sha256']
 assert results['A']['render_config']==results['B']['render_config']
-(root/'comparison_data.json').write_text(json.dumps(dict(reference=ref,results=results,actual_reference_inputs=calls,display_reexport=reexport),indent=2))
+(root/'comparison_data.json').write_text(json.dumps(dict(reference=ref,results=results,actual_reference_inputs=calls),indent=2))
 try:font=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',18)
 except OSError:font=ImageFont.load_default()
 for name,views in (('comparison',[2,1,3,7]),('all_views',list(range(1,9)))):
     rows_per=len(views)//4
     canvas=Image.new('RGB',(1600,3*rows_per*434),(245,245,245));draw=ImageDraw.Draw(canvas)
-    for row,label in enumerate(('Reference','A original','B enhanced - recovered export')):
+    for row,label in enumerate(('Reference','A original','B enhanced')):
         folder=root/'reference/views' if row==0 else root/('A' if row==1 else 'B')/'views'
-        if row==2:folder=root/'B_reexport_recovery/views_final'
         for j,view in enumerate(views):
             x=(j%4)*400;y=(row*rows_per+j//4)*434
             p=folder/f'render_{view:04d}.png'
@@ -46,7 +44,7 @@ lines=['# elephant_000: one-image A/B display','',
 for a,r in results.items():
     lines.append(f"| {a} | {r['status']} | {r.get('source_lines')} | {r.get('triangles')} | {r['execution_patches']} | {sum(x.get('seconds',0) for x in r['execution_attempts']):.2f} | {r.get('render_seconds')} | {r.get('new_api_call_sites')} |")
     if r.get('error'):lines.extend(['',f"{a} error: `{r.get('exception')}`. See {a}/demo_result.json and execution logs."])
-lines.extend(['', '**Current display update:** B images now use `B_reexport_recovery/exec_final/render/scene.glb` and `B_reexport_recovery/views_final/`. The exact original B source was re-executed with deterministic Boolean recovery; no new Agent call or source edit. The table above preserves original generation statistics, including its incomplete export. Current asset statistics and recovery evidence are in [reexport_result.json](B_reexport_recovery/reexport_result.json). Old images remain in `diagnosis/before_boolean_recovery/`; original B logs/assets remain unchanged.', '', '[Selected views: reference / A / B](comparison.jpg), [all eight views](all_views.jpg).',
+lines.extend(['','[Selected views: reference / A / B](comparison.jpg), [all eight views](all_views.jpg).',
     '', 'Folders A/ and B/ contain exact prompts, inputs, outputs, tool call messages, source snapshots, GLB, eight images, source_index, analysis_geometry, usage and session snapshots. comparison_data.json records matching input bundles, image hashes and statuses. Geometry API use is not by itself proof of better shape fidelity. No manufacturing/physical conclusions are drawn.'])
 (root/'README.md').write_text('\n'.join(lines)+'\n')
 print('COMPARISON_COMPLETE', {a:r['status'] for a,r in results.items()}, flush=True)

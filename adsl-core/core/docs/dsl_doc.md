@@ -132,6 +132,16 @@ boolean_xor(*shapes: Asset) -> Asset
 ```
 
 Boolean results retain their operand hierarchy for inspection.
+The Blender export path checks complete Boolean results for degenerate triangles,
+duplicate faces and invalid connectivity. If conservative cleanup fails, it can
+recompute that operation from the original valid operands with Manifold (the
+`geometry` extra). Recovery is checked at Blender's float32 precision, with a
+coordinate-derived displacement bound and unchanged shell connectivity; invalid
+inputs are not filled or repaired by this fallback. Failed recovery is an
+execution error. Export also rejects missing mesh nodes or incomplete triangle
+output instead of silently displaying a partial model. Assembly reports preserve
+recovery measurements under `mesh_normalizations`; scene-unit tolerances are
+numerical precision bounds, not manufacturing clearances.
 
 ## Transformations
 

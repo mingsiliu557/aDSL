@@ -11,8 +11,6 @@ A: pre-enhancement local master 8943a83. B: enhanced constructive API and prompt
 | A | rendered | 180 | 42150 | 0 | 16.99 | 36.63436755537987 | {'Polygon': 0, 'linear_extrude': 0, 'rotate_extrude': 0, 'hull': 0} |
 | B | rendered | 220 | 7365 | 1 | 26.37 | 30.8357051089406 | {'Polygon': 2, 'linear_extrude': 2, 'rotate_extrude': 0, 'hull': 3} |
 
-**Current display update:** B images now use `B_reexport_recovery/exec_final/render/scene.glb` and `B_reexport_recovery/views_final/`. The exact original B source was re-executed with deterministic Boolean recovery; no new Agent call or source edit. The table above preserves original generation statistics, including its incomplete export. Current asset statistics and recovery evidence are in [reexport_result.json](B_reexport_recovery/reexport_result.json). Old images remain in `diagnosis/before_boolean_recovery/`; original B logs/assets remain unchanged.
-
 [Selected views: reference / A / B](comparison.jpg), [all eight views](all_views.jpg).
 
 Folders A/ and B/ contain exact prompts, inputs, outputs, tool call messages, source snapshots, GLB, eight images, source_index, analysis_geometry, usage and session snapshots. comparison_data.json records matching input bundles, image hashes and statuses. Geometry API use is not by itself proof of better shape fidelity. No manufacturing/physical conclusions are drawn.

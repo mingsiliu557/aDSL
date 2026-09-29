@@ -7,7 +7,7 @@
 | 文件夹 | 对应实验 | 组别与检查范围 | 已知结果 |
 |---|---|---|---|
 | [geometry_expression_20260929/](geometry_expression_20260929/) | SF06 扶手椅、SF21 落地灯、T02-bookshelf 曲边书架，三个文本输入的形状表达 A/B | A 增强前；B 新 API + prompt；所有正式 critic/checker 关闭 | 六组均完成八视图；局部形状改善，不能推断制造通过 |
-| [geometry_elephant_000_20260929/](geometry_elephant_000_20260929/) | Toys4K `elephant_000`，同一张参考图的 A/B | A 增强前；B 新 API + prompt；所有正式 critic/checker 关闭 | 两组有渲染文件，但 **B 象鼻在 GLB 导出时被遗漏**；不算完整形状生成成功 |
+| [geometry_elephant_000_20260929/](geometry_elephant_000_20260929/) | Toys4K `elephant_000`，同一张参考图的 A/B | A 增强前；B 新 API + prompt；所有正式 critic/checker 关闭 | 原 B 导出曾遗漏象鼻；现已用相同源码经确定性 Boolean 回退重新导出，当前展示图已恢复象鼻 |
 | [geometry_sf06_no_fea_20260929/](geometry_sf06_no_fea_20260929/) | SF06 使用增强版的完整 Agent 流程，独立重新生成 | Image/Code、Topology、Overhang、Standing、Engineering/Coder；**FEA 关闭** | 已结束，`approved=false`；三项物理 checker 均 `INDETERMINATE`，详见下文 |
 | [geometry_sf06_full_20260929/](geometry_sf06_full_20260929/) | SF06 最早提交、随后取消的旧配置 | 输入曾包含 FEA，但用户要求关闭后停止 | 在初始 Coder 返回源码前取消；**FEA 没有执行**。仅保留中断证据，不作为有效实验结果 |
 
@@ -44,9 +44,11 @@ A/SF06 最终资产来自 `exec_1`；其余五组来自 `exec_0`。`native_smoke
 
 `reference/` 保存用户同意使用的公开同名 PLY、CPU 渲染、上游 README 及 [provenance.json](geometry_elephant_000_20260929/reference/provenance.json)。来源为 [Yang2001/toys4k_meshes](https://huggingface.co/datasets/Yang2001/toys4k_meshes)，原始 `.blend` 与原 aDSL 对应运行没有取得，不能称为原论文样本的精确复现。除输入图外，其余参考视图只用于展示。参考模型与生成模型的朝向不同，同编号相机不等于语义对齐的侧面。
 
-`A/`、`B/` 的文件意义同上一节。A 最终为 `A/exec_0/render/scene.glb`，B 最终为 `B/exec_1/render/scene.glb`。两组各一次初始生成；A 无执行修补，B 一次执行修补。
+`A/`、`B/` 的文件意义同上一节。A 展示资产为 `A/exec_0/render/scene.glb`；B 当前展示资产为 `B_reexport_recovery/exec_final/render/scene.glb`。`B/exec_1/render/scene.glb` 保留为原始缺失象鼻的失败记录。两组各一次初始生成；A 无执行修补，B 一次执行修补。
 
-### B 象鼻缺失：已确认的失败证据
+### B 象鼻恢复与原始失败证据
+
+当前对照图的 B 已替换为修复后八视图。没有重新调用 Agent，也没有修改其源码；公共导出路径在 Boolean 无效时用原操作数重算，并验证 float32 网格和 GLB 部件完整性。见 [重新导出记录](geometry_elephant_000_20260929/B_reexport_recovery/reexport_result.json) 与 [实际 GLB](geometry_elephant_000_20260929/B_reexport_recovery/exec_final/render/scene.glb)。旧对照图保存在 `diagnosis/before_boolean_recovery/`，以下仍为原始失败证据。
 
 源码包含 `CurvedTrunk`。首次执行遇到退化面错误，Coder 将局部 hull 链改成渐缩拉伸段与球体的 Boolean 合并。修补后 glTF 导出仍出现网格无效及数组长度不匹配，并明确跳过该 mesh：
 
