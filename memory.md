@@ -4,6 +4,18 @@
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
 
+## 检查反馈与分件优化协调（2026-09-29，本轮）
+
+- 用户要求按 ffc55df 的 A/B/C 最小计划实施，不改材质 API、超时或 mesh/Topology/Standing 算法；仅最新 SF10 五件基线的一次真实分件尝试，不追加其他 case。
+- 工作树 `/tmp/adsl_partition_20260929`，分支 `feat/fixed-assembly-partition-score`；分阶段提交 `366cb8a`（VisualIssue.aspect）、`334b8f1`（收益边界）、`082b374`（可比分件基线/采用/完整批准/回退协调）。本轮未推送、未合并 master；远端此前为 ffc55df。
+- A 15 passed；B 15 passed；C 44 passed；受影响旧流程 84 passed/6 skipped（旧 opt-in 原生 Boolean 测试）。不同集合有重复，不相加作为独立总数。
+- 只有明确非空 HIGH 且全部 surface 的视觉拒绝，才可在显示/几何/必要检查通过时作为优化基线；分件采用仍保持 accepted/approved=false。旧 issue 默认 geometry；已有 qualified 不被未批准的候选替换。
+- SF10 输入来自原完整流程 attempt_0001，source SHA256 `661c5a12b2971ba430b00c034338a0140cba6dd79936fbfba28e45757113b309`；5 件/8 接口/lead_in=0，assert_version 与主体参考 MATCH 已核对。
+- 真实 smoke 在 `temp/partition_coordination_20260929/SF10_one_attempt`，代码冻结 082b374；基线+一个候选最多2次评估、一个结构化 Engineering 分组建议；CPU/FEA off/Topology→Overhang→Standing。没有建议则实验 runner 不调用额外表面 Coder；原 completed book 不改。
+- 本次真实 smoke 已完成（06:40:56Z，784.32s）：Engineering 主动建议左支脚+下横梁合并，Coder 实际完成5件8接口→4件7接口；主体对称差/AABB差为0，三工具全部PASS，同参考G0→38、O380.092859→381.337786（+0.328%）。只执行一个建议/一个候选。
+- `partition_adopted=true`，保留 attempt_0001（source SHA256 `35909286dcb68a4e03f7140446d9f8d541c4d78877ebc8995abdd1a741c12acb`），光泽HIGH surface仍未满足，所以 accepted/approved=false、qualified=null；没有退回旧五件几何。
+- 四个推荐STL实际读回PASS，G/床面/闭合性及版本/hash绑定通过；最终打印入口 `SF10_one_attempt/print_parts/attempt_0001/print_layout.json`。完整实际prompt/tool记录在actual_model_calls；报告 `reports/partition_coordination_20260929.md`。不再追加候选或case。
+
 ## 分件评分与反馈接入（2026-09-29，已实施）
 
 - 独立工作树 `/tmp/adsl_partition_20260929`，分支 `feat/fixed-assembly-partition-score`，基线 f264f35；未合并 master，未推送新分支。
