@@ -89,3 +89,24 @@ def test_saved_reports_remain_readable_by_chat_and_cli(tmp_path, graded):
     resumed = _resume_request(args)
     assert resumed.requirement == request["requirement"]
     assert resumed.max_rounds == 1 and resumed.checker_specs == ()
+
+
+@pytest.mark.parametrize("kind", [GradedImageCriticDecision, GradedCodeCriticDecision])
+def test_surface_issue_schema_round_trip_and_full_approval(kind):
+    surface=issue("HIGH").model_copy(update={"aspect":"surface"})
+    original=kind(approved=True,observations=[],issues=[surface])
+    schema=AgentOutputSchema(kind)
+    parsed=schema.validate_json(original.model_dump_json())
+    assert parsed.issues[0].aspect=="surface"
+    normalized=ObjectWorkflow._normalize_visual_decision(parsed)
+    assert not normalized.approved and normalized.required_changes
+    assert json.loads(normalized.model_dump_json())["issues"][0]["aspect"]=="surface"
+
+
+def test_old_issue_defaults_to_geometry_and_code_corrects_aspect():
+    old=issue("HIGH").model_dump();old.pop("aspect")
+    assert VisualIssue.model_validate(old).aspect=="geometry"
+    image=dict(required_changes=["x"],issues=[old])
+    surface={**old,"aspect":"surface"}
+    code=dict(required_changes=["x"],issues=[surface])
+    assert ObjectWorkflow._resolved_visual_feedback(image,code)["issues"]==[surface]

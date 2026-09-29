@@ -122,6 +122,7 @@ class CodeCriticDecision(BaseModel):
 
 
 class VisualIssue(BaseModel):
+    aspect: Literal["geometry", "surface"] = "geometry"
     severity: Literal["HIGH", "MED", "LOW"]
     target: str | None
     problem: str = Field(min_length=1)

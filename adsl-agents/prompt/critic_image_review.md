@@ -29,3 +29,14 @@ after deduplication; identical pixels do not prove unchanged geometry.
 Return approved, observations, required_changes and issues. issues is required;
 return [] if no issue exists. Each issue has severity (HIGH/MED/LOW), target,
 problem and suggested_fix. Do not repeat MED/LOW advice as mandatory changes.
+
+
+Classify every issue with aspect="geometry" or "surface", independently of
+severity. geometry covers missing parts, shape, proportions, placement and solid
+features. surface covers only color, shader texture or gloss. Wood grain modeled
+by grooves, relief or Boolean operations is geometry. Split mixed issues or use
+geometry. HIGH + surface still blocks full appearance approval; never downgrade
+an explicit unmet finish requirement merely to permit partition optimization.
+The public appearance controls are color/alpha, with default Principled shading;
+there is no public roughness/specular setter. Do not invent material methods.
+Report an unsupported explicit finish as a capability limitation.

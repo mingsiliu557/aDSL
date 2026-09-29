@@ -39,3 +39,15 @@ for legacy images without labels.
 [DSL_DOC]
 
 [DSL_EXAMPLE]
+
+
+Classify every issue with aspect="geometry" or "surface", independently of
+severity. geometry covers missing parts, shape, proportions, placement and solid
+features. surface covers only color, shader texture or gloss. Wood grain modeled
+by grooves, relief or Boolean operations is geometry. Split mixed issues or use
+geometry. HIGH + surface still blocks full appearance approval; never downgrade
+an explicit unmet finish requirement merely to permit partition optimization.
+The public appearance controls are color/alpha, with default Principled shading;
+there is no public roughness/specular setter. Do not invent material methods.
+Report an unsupported explicit finish as a capability limitation.
+Recheck the Image aspect against the source and views. Determine whether the proposed change alters the solid; output your final corrected aspect in every issue.
