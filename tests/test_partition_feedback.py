@@ -103,3 +103,20 @@ def test_zero_gap_still_has_grouping_opportunity_and_missing_piece_unknown(tmp_p
     assert result.status=='INDETERMINATE'
     assert result.metrics['partition_objective']['score'] is None
     assert result.metrics['partition_objective']['print_part_count']==2
+
+
+def test_split_ownership_root_and_merge_connectivity_guards():
+    assembly={'root_id':'frame','parts':[dict(id='frame',components=['left','right','front']),
+        dict(id='top',components=['top'])], 'connections':[]}
+    split=PrintGroupingChange(operation='split',source_part_ids=['frame'],target_print_parts=[
+        {'id':'frame','components':['left','right']},{'id':'front','components':['front']}],connection_changes=['new brace mates'])
+    split.validate_current_assembly(assembly)
+    for targets in ([{'id':'frame','components':['left','right']}],
+                    [{'id':'renamed','components':['left','right']},{'id':'front','components':['front']}],
+                    [{'id':'frame','components':['left','right']},{'id':'top','components':['front']}],
+                    [{'id':'frame','components':['left','right']},{'id':'front','components':['right','front']}]):
+        bad=split.model_copy(update={'target_print_parts':[type(split.target_print_parts[0])(**x) for x in targets]})
+        with pytest.raises(ValueError):bad.validate_current_assembly(assembly)
+    merge=PrintGroupingChange(operation='merge',source_part_ids=['frame','top'],target_print_parts=[
+        {'id':'frame','components':['left','right','front','top']}])
+    with pytest.raises(ValueError,match='must be connected'):merge.validate_current_assembly(assembly)

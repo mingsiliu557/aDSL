@@ -4,19 +4,18 @@
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
 
-## 分件评分与反馈接入（2026-09-29，当前实施）
+## 分件评分与反馈接入（2026-09-29，已实施）
 
-- 独立工作树 `/tmp/adsl_partition_20260929`，分支 `feat/fixed-assembly-partition-score`，基线 f264f35；未合并 master。
-- S1 243201d：Dapper 原式、alpha=.3、Rvox=.1、真实实体体素、24旋转；7项通过。
-- S2 47677a5：pre-connector body NPZ、不可变reference、最终件评分、推荐print_layout/STL；21项通过。
-- S3 ce80156：topology→overhang→standing顺序、授权分组proposal、真实测量进Engineering；19通过/1skip。
-- S4 d87c9d9：用途与基线比较、主体/root/归属保护、必要修复新reference、版本恢复和最终打印资产；101通过/1skip，最终原生14通过。
-- 全程CPU；FEA关闭；沿用5秒/25° rigid_flex与1240 kg/m³实验密度。新评分默认关闭；旧朝向/面积模式保留。
-- S5/S6已提交顺序任务（2026-09-29 03:44:08 UTC，PID3649557）：先SF07，再SF10，再从首个合格基线做一次真实Engineering/Coder。
-  S5仅调用Image/Code评审，人工固定源码；S6最多一次源码修改，无额外预算。基线不合格则停止该组比较。
-- 证据根目录 `temp/partition_score_20260929`，`case_job.json`、`cases.log`、`cases_completion.json`（完成才出现）。
-  每例completion/实际prompts/tools/checkers/推荐STL均保留；未完成不能计为通过。
-- 交付报告 `reports/partition_score_20260929.md`。环境 `/tmp/adsl_partition_env_20260929.sh`。
+- 独立工作树 `/tmp/adsl_partition_20260929`，分支 `feat/fixed-assembly-partition-score`，基线 f264f35；未合并 master，未推送新分支。
+- 阶段提交 243201d / 47677a5 / ce80156 / d87c9d9 / 98f1576：Dapper 原式、alpha=.3/Rvox=.1、真实实体占据、24旋转、冻结主体参考、推荐打印 STL、授权分组、评分采用/回退和resume。
+- S1 7通过；S2 21通过；S3 19通过/1skip；S4 101通过/1skip；最终原生14通过；停止原因12通过；split归属守卫1通过。测试集合有重复，不相加宣称独立测试总数。
+- 全程 CPU；FEA 关闭；新功能默认关闭，旧面积/朝向路径保留。
+- 实际任务已于03:56:23 UTC完成：SF07 P0三件G0/O143.8446，P1人工合并两件G28/O139.7074；两者Image/Code及三工具通过，保留P0。
+- SF10修复基线两件G62/O527.9641，Topology/Overhang/Standing均PASS，但Image/Code拒绝桌面光泽表现，故P1拆分未执行。
+- S6实际Engineering读源码和完整测量后NO_PROPOSAL；未调用Coder，未证明自主分件改进，不追加预算。模型/工具原始记录已存。
+- 四组10个推荐STL全部读回验证G、闭合性、床面与source/reference/hash一致。真实案例是visual_only，geometry仍NOT_EVALUATED。
+- 证据根目录 `temp/partition_score_20260929`：summary.json、各case结果/实际prompts/tools/checkers/推荐STL。
+- 报告 `/tmp/adsl_partition_20260929/reports/partition_score_20260929.md`，证据副本README同内容。环境 `/tmp/adsl_partition_env_20260929.sh`。
 
 ## 全局互穿与零长度边处理（2026-09-28，当前范围）
 
