@@ -67,6 +67,17 @@ async def run_demo(case, output, model_profile, *, arm, timeout=300.0, session_r
     output=Path(output).resolve()
     output.mkdir(parents=True,exist_ok=False)
     source=output/'source.py';source.touch()
+    # Snapshot the exact conditioning images once; all roles use the same bytes.
+    references=[]
+    for i,value in enumerate(case.get('reference_images',())):
+        original=Path(value).expanduser().resolve()
+        destination=output/'reference'/f'{i:02d}_{original.name}'
+        destination.parent.mkdir(exist_ok=True)
+        shutil.copyfile(original,destination)
+        references.append(dict(path=str(destination),original_path=str(original),sha256=sha(destination)))
+    image_paths=tuple(Path(r['path']) for r in references)
+    case={**case,'reference_images':[str(p) for p in image_paths]}
+
     import adsl.core, adsl.agents.models
     core_path=Path(adsl.core.__file__).resolve()
     checkout=core_path.parents[2]
@@ -74,6 +85,9 @@ async def run_demo(case, output, model_profile, *, arm, timeout=300.0, session_r
     result=dict(case_id=case['id'],arm=arm,status='execution_failed',started_at=datetime.now(timezone.utc).isoformat(),
         commit=commit,core_path=str(core_path),agents_path=str(Path(adsl.agents.models.__file__).resolve()),
         runner_sha256=sha(Path(__file__)),input_sha256=hashlib.sha256(case['requirement'].encode()).hexdigest(),
+        reference_images=references,
+        input_bundle_sha256=hashlib.sha256(json.dumps(dict(requirement=case['requirement'],
+            images=[r['sha256'] for r in references]),sort_keys=True).encode()).hexdigest(),
         render_config=RENDER,execution_timeout_seconds=timeout,render_timeout_seconds=timeout,
         initial_generations=0,execution_patches=0,execution_attempts=[],render_seconds=None,
         critics=[],checkers=[],export_urdf=False,fixed_assembly=None)
@@ -102,13 +116,13 @@ async def run_demo(case, output, model_profile, *, arm, timeout=300.0, session_r
             if context is not None:write_json(folder/'tool_events.json',[asdict(e) for e in context.events])
 
     try:
-        plan=await call('planner',user_input(case['requirement']),output_type=ObjectPlan)
+        plan=await call('planner',user_input(case['requirement'],image_paths),output_type=ObjectPlan)
         if not isinstance(plan,ObjectPlan):plan=ObjectPlan.model_validate(plan)
         write_json(output/'plan.json',plan.model_dump())
         context=AgentToolContext(workspace=output,source_path=source)
         result['initial_generations']=1
         await call('coder_initial',user_input(json.dumps(dict(requirement=case['requirement'],
-            articulation_required=False,plan=plan.model_dump(),assignment='Write source.py with the complete initial implementation.'),ensure_ascii=False)),
+            articulation_required=False,plan=plan.model_dump(),assignment='Write source.py with the complete initial implementation.'),ensure_ascii=False),image_paths),
             tools=WRITE_TOOLS,context=context)
         if not any(e.tool=='write_file' and e.success for e in context.events):
             raise RuntimeError('Initial Coder did not write the assigned source.py')
@@ -129,7 +143,7 @@ async def run_demo(case, output, model_profile, *, arm, timeout=300.0, session_r
                 context=AgentToolContext(workspace=output,source_path=source)
                 await call('coder_execution_patch',user_input(json.dumps(dict(requirement=case['requirement'],
                     plan=plan.model_dump(),execution_error=str(error),source_path=str(source),
-                    assignment='Read source.py and apply the smallest correction for this execution error. Preserve the requested object.'),ensure_ascii=False)),
+                    assignment='Read source.py and apply the smallest correction for this execution error. Preserve the requested object.'),ensure_ascii=False),image_paths),
                     tools=PATCH_TOOLS,context=context)
                 if not any(e.tool=='read_file' and e.success for e in context.events) or not any(e.tool=='apply_patch' and e.success for e in context.events):
                     raise RuntimeError('Execution correction did not read and patch source.py')

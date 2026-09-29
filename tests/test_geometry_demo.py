@@ -1,5 +1,7 @@
 """Call-boundary smoke; LLM/execution/render mocked, public prompt parsing real."""
 import asyncio
+import base64
+import hashlib
 from dataclasses import dataclass
 import importlib.util
 import json
@@ -34,6 +36,12 @@ def test_constructive_prompts_and_source_index():
 @pytest.mark.parametrize('failure',[None,'source','infra','render'])
 def test_demo_stops_at_render_and_limits_source_patch(monkeypatch,tmp_path,failure):
     events=[];attempts=[]
+    reference=tmp_path/'elephant.png'
+    # Valid tiny PNG; exercise actual data-URL encoding through user_input.
+    from PIL import Image
+    Image.new('RGB',(4,4),'white').save(reference)
+    with_image=failure in (None,'source')
+
     @dataclass
     class Usage:
         requests:int=2
@@ -46,6 +54,14 @@ def test_demo_stops_at_render_and_limits_source_patch(monkeypatch,tmp_path,failu
         def agent(self,**kw):return SimpleNamespace(**kw)
         async def run(self,**kw):
             events.append(('agent',kw['role']))
+            if with_image:
+                content=kw['input'][0]['content']
+                images=[c for c in content if c['type']=='input_image']
+                assert len(images)==1
+                assert base64.b64decode(images[0]['image_url'].split(',',1)[1])==reference.read_bytes()
+            else:
+                assert isinstance(kw['input'],str)
+
             if kw['role']=='planner':
                 out=ObjectPlan(object_name='sample',components=[],relations=[],critic_checklist=[])
             else:
@@ -72,7 +88,7 @@ def test_demo_stops_at_render_and_limits_source_patch(monkeypatch,tmp_path,failu
     monkeypatch.setattr(demo,'execute_asset_source',execute)
     monkeypatch.setattr(demo,'render_glb',render)
     monkeypatch.setattr(trimesh,'load',lambda *a,**k:SimpleNamespace(geometry={'box':trimesh.creation.box()},bounds=np.zeros((2,3)),extents=np.ones(3)))
-    result=asyncio.run(demo.run_demo(dict(id='small',requirement='A box.'),tmp_path/'demo','profile',arm='B'))
+    result=asyncio.run(demo.run_demo(dict(id='small',requirement='A box.',reference_images=[str(reference)] if with_image else []),tmp_path/'demo','profile',arm='B'))
     roles=[v for k,v in events if k=='agent']
     assert roles==['planner','coder_initial']+(['coder_execution_patch'] if failure=='source' else [])
     assert result['checkers']==[] and result['critics']==[] and 'approved' not in result
@@ -81,3 +97,7 @@ def test_demo_stops_at_render_and_limits_source_patch(monkeypatch,tmp_path,failu
     assert result['execution_patches']==int(failure=='source')
     assert (tmp_path/'demo'/'planner'/'system_prompt.md').is_file()
     assert (tmp_path/'demo'/'demo_result.json').is_file()
+    if with_image:
+        assert result['reference_images'][0]['sha256']==hashlib.sha256(reference.read_bytes()).hexdigest()
+        assert Path(result['reference_images'][0]['path']).read_bytes()==reference.read_bytes()
+    else:assert result['reference_images']==[]

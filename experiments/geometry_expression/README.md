@@ -55,3 +55,10 @@ manufacturing checks. A skipped native test is not proof of rendering support.
 
 Implementation references: [Manifold 3.5.2 Python bindings](https://github.com/elalish/manifold/blob/v3.5.2/bindings/python/manifold3d.cpp),
 [Blender Mesh.from_pydata](https://docs.blender.org/api/4.0/bpy.types.Mesh.html#bpy.types.Mesh.from_pydata).
+
+For an image-conditioned comparison, pass a separate `--cases` JSON whose case
+contains `reference_images: ["/absolute/path/reference.png"]`. The runner copies
+and hashes those images, supplies the same bytes to Planner, initial Coder and
+any execution-error patch, and records a text+image hash. Freeze the reference
+view before either arm generates. Keep reference meshes outside the Agent
+workspace: only images, not target mesh/code, are conditioning inputs.
