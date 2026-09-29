@@ -13,6 +13,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+geometry = ["manifold3d==3.5.2"]
 mesh = [
     "trimesh",
     "scikit-image",

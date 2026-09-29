@@ -27,6 +27,7 @@ from .layout import (
     shape_anchor,
     stack_shapes,
 )
+from .constructive import Polygon, linear_extrude, rotate_extrude, hull
 from .joints import Joint
 from .math_utils import P, T
 from .primitives import (
@@ -87,6 +88,7 @@ def export_urdf(*args, **kwargs):  # pragma: no cover
     return _export_urdf(*args, **kwargs)
 
 __all__ = [
+    "Polygon", "linear_extrude", "rotate_extrude", "hull",
     "FixedAssembly", "InterfaceFrame", "TabSlot",
     "Asset",
     "Joint",

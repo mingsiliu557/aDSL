@@ -31,6 +31,12 @@ def _aabb_of_primitive(prim: dict) -> Tuple[P, P]:
     t = prim["type"]
     p = prim["params"]
     
+    if t == "mesh":
+        vertices = np.asarray(p["vertices"], dtype=float)
+        matrix = _as_mat4(prim.get("xform"))
+        world = vertices @ matrix[:3,:3].T + matrix[:3,3]
+        return _as_vec3(world.min(axis=0)), _as_vec3(world.max(axis=0))
+    # Boolean/hull markers have no geometry; their children supply bounds.
     # Local AABBs
     if t == "sphere":
         cx, cy, cz = _as_vec3(p.get("center", (0, 0, 0)))
@@ -101,7 +107,7 @@ def _aabb_support_point(vmin: P, vmax: P, direction: P) -> P:
 
 
 def _support_of_primitive(prim: dict, direction: P) -> Tuple[float, P] | None:
-    if prim["type"] == "boolean":
+    if prim["type"] in {"boolean", "hull"}:
         return None
 
     M = _as_mat4(prim.get("xform", None))
@@ -111,7 +117,10 @@ def _support_of_primitive(prim: dict, direction: P) -> Tuple[float, P] | None:
 
     params = prim["params"]
     local_point: P
-    if prim["type"] == "sphere":
+    if prim["type"] == "mesh":
+        vertices = np.asarray(params["vertices"], dtype=float)
+        local_point = vertices[np.argmax(vertices @ local_direction)]
+    elif prim["type"] == "sphere":
         center = _as_vec3(params.get("center", (0, 0, 0)))
         radius = float(params["radius"])
         local_norm = float(np.linalg.norm(local_direction))
