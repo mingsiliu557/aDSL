@@ -7,7 +7,7 @@
 ## 检查反馈与分件优化协调（2026-09-29，本轮）
 
 - 用户要求按 ffc55df 的 A/B/C 最小计划实施，不改材质 API、超时或 mesh/Topology/Standing 算法；仅最新 SF10 五件基线的一次真实分件尝试，不追加其他 case。
-- 工作树 `/tmp/adsl_partition_20260929`，分支 `feat/fixed-assembly-partition-score`；分阶段提交 `366cb8a`（VisualIssue.aspect）、`334b8f1`（收益边界）、`082b374`（可比分件基线/采用/完整批准/回退协调）。本轮未推送、未合并 master；远端此前为 ffc55df。
+- 工作树 `/tmp/adsl_partition_20260929`，分支 `feat/fixed-assembly-partition-score`；分阶段提交 `366cb8a`（VisualIssue.aspect）、`334b8f1`（收益边界）、`082b374`（可比分件基线/采用/完整批准/回退协调）。用户已批准合入 master；本次发布包含截至 2d96637 的分件与其依赖改动。
 - A 15 passed；B 15 passed；C 44 passed；受影响旧流程 84 passed/6 skipped（旧 opt-in 原生 Boolean 测试）。不同集合有重复，不相加作为独立总数。
 - 只有明确非空 HIGH 且全部 surface 的视觉拒绝，才可在显示/几何/必要检查通过时作为优化基线；分件采用仍保持 accepted/approved=false。旧 issue 默认 geometry；已有 qualified 不被未批准的候选替换。
 - SF10 输入来自原完整流程 attempt_0001，source SHA256 `661c5a12b2971ba430b00c034338a0140cba6dd79936fbfba28e45757113b309`；5 件/8 接口/lead_in=0，assert_version 与主体参考 MATCH 已核对。
@@ -18,7 +18,7 @@
 
 ## 分件评分与反馈接入（2026-09-29，已实施）
 
-- 独立工作树 `/tmp/adsl_partition_20260929`，分支 `feat/fixed-assembly-partition-score`，基线 f264f35；未合并 master，未推送新分支。
+- 独立工作树 `/tmp/adsl_partition_20260929`，分支 `feat/fixed-assembly-partition-score`，基线 f264f35；已随分件分支纳入本次 master 发布。
 - 阶段提交 243201d / 47677a5 / ce80156 / d87c9d9 / 98f1576：Dapper 原式、alpha=.3/Rvox=.1、真实实体占据、24旋转、冻结主体参考、推荐打印 STL、授权分组、评分采用/回退和resume。
 - S1 7通过；S2 21通过；S3 19通过/1skip；S4 101通过/1skip；最终原生14通过；停止原因12通过；split归属守卫1通过。测试集合有重复，不相加宣称独立测试总数。
 - 全程 CPU；FEA 关闭；新功能默认关闭，旧面积/朝向路径保留。
@@ -31,7 +31,7 @@
 
 ## 全局互穿与零长度边处理（2026-09-28，当前范围）
 
-- 用户现要求将已有互穿与零面积修复一起提交远程，暂不继续扩充实现；仍保留此前不合并 master 的约定。
+- 互穿与零面积修复此前已发布分支；用户现已批准将其与分件功能一起合入 master，不扩充实现。
   实现位于 `/tmp/adsl_interference_20260929`，发布到 `feat/assembly-material-interference`；
   主工作区无关 FEA/GPU/历史删除未纳入。
 - topology scope v2 已覆盖全部装配部件对（含已连接部件），与 geometry 导出复用实体求交、

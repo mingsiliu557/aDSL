@@ -1,7 +1,7 @@
 # 检查反馈与分件优化协调（2026-09-29）
 
 基线：`feat/fixed-assembly-partition-score` / `ffc55df023337cd63cd3ce69480dd9957c456b68`。
-实施工作树：`/tmp/adsl_partition_20260929`。本轮未合并 master。
+实施工作树：`/tmp/adsl_partition_20260929`。用户随后已授权合入 master；本次发布覆盖实现和报告提交至 `2d96637`。
 
 ## A / B / C 实际修改
 
@@ -83,4 +83,4 @@ A 覆盖 SDK structured-output schema、往返、历史默认值、HIGH surface 
 - 发布一致性和真实 STL 读回：`selected_asset_verification.json`、`selected_asset_verification.log`、`verify_selected.py`。
 - 运行脚本：`run_sf10.py` / `run_sf10.sh`；没有手工候选、修改旧预算或改 checker 阈值。实际渲染图在两轮各自 `asset/render/`。
 
-本轮完成计划规定的一次实际尝试，未追加 SF07/SF16 或新的模型候选。代码提交及本报告留在分件分支，未合并 master。
+本轮完成计划规定的一次实际尝试，未追加 SF07/SF16 或新的模型候选。代码提交及本报告已纳入本次 master 发布；没有新增模型运行。
