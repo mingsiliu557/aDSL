@@ -12,6 +12,10 @@ from .feedback_schema import sha256_file, stable_hash
 
 
 _DSL_CALLS = {
+    "Polygon",
+    "linear_extrude",
+    "rotate_extrude",
+    "hull",
     "Cube",
     "Cylinder",
     "RoundedCube",

@@ -84,3 +84,29 @@ class TableWithBooks(Asset):
 
 scene = TableWithBooks()
 ```
+
+
+## Sampled curved profile with a cutout
+
+This generic example combines a sampled surface of revolution, a custom plate
+and an existing Boolean. Choose dimensions and sampling locally for your object.
+
+```python
+from adsl.core import *
+import math
+
+class CurvedHousing(Asset):
+    def __init__(self):
+        super().__init__()
+        height, base_radius, bulge, samples = 6.0, 2.0, 0.8, 24
+        outer = [(base_radius + bulge*math.sin(math.pi*i/samples),
+                  height*i/samples) for i in range(samples+1)]
+        profile = Polygon([(0,0)] + outer + [(0,height)])
+        shell = rotate_extrude(profile, segments=64)
+        bore = Cylinder(1.2, height=height+1, center=(0,0,height/2+0.5))
+        self.attach_part("housing", boolean_difference(shell, bore))
+        plate = linear_extrude(Polygon([(-3,-2),(3,-2),(3,1),(0,3),(-3,1)]),0.4)
+        self.attach_part("plate", align_anchors(plate, shell, "top", "bottom"))
+
+scene = CurvedHousing()
+```

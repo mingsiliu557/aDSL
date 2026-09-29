@@ -77,6 +77,51 @@ cardinal `axis`. Endpoints are the centers of the circular end caps. A cylinder
 is symmetric along its length, so negating `axis` only swaps which end is
 considered `p0` versus `p1`; it does not change the visible geometry.
 
+## Sampled profiles and constructive geometry
+
+```python
+Polygon(points, *, holes=())
+linear_extrude(profile, height, *, scale_top=(1.0, 1.0), center=False, color=(1,1,1), alpha=None) -> Asset
+rotate_extrude(profile, *, angle=360.0, segments=64, color=(1,1,1), alpha=None) -> Asset
+hull(*shapes, color=(1,1,1), alpha=None) -> Asset
+```
+
+`Polygon` is immutable 2D profile data, not an Asset; extrude it before attaching
+it to a scene. Provide one simple outer ring and optional disjoint holes strictly
+inside it. Each ring needs at least three distinct finite points and nonzero
+area. Winding and an optional repeated closing point are normalized. Self-crossing
+or touching rings, intersecting/nested holes and negative revolve radii are errors.
+Use `math` and ordinary Python helpers to sample curves into polygon points.
+
+`linear_extrude` extrudes XY along +Z over `[0,height]`, or `[-height/2,height/2]`
+when centered. Height and the scalar or two-component `scale_top` must be positive.
+Top scaling is around the profile's origin, not its centroid. Concavity and holes
+are preserved, with closed end caps.
+
+`rotate_extrude` interprets each point as `(r,z)`, with `r>=0` (axis contact is
+allowed). It rotates from the XZ plane (`x=r,y=0`) positively around +Z through
+`0<angle<=360` degrees. Partial arcs are capped and a full turn has no duplicate
+seam. `segments` is integer full-circle resolution (at least three); a partial
+arc uses `max(3, ceil(segments*angle/360))` slices. This is a sampled mesh, not NURBS.
+
+`hull` copies one or more Asset operands and encloses their evaluated geometry
+in a convex solid. It supports transformed shapes and Boolean results, assigns
+the supplied material, and displays only the result. A hull fills all concavities
+and holes. Local hull segments can approximate curved forms but do not guarantee
+smooth tangents or implement general loft/sweep. Mesh bounds and support use
+actual transformed vertices. Hull queries aggregate operand extrema; Boolean
+operands retain the existing approximate bounds rules.
+
+These operations require the optional `adsl-core[geometry]` dependency
+(`manifold3d==3.5.2`) when constructing geometry, and support Blender GLB export.
+They are not connected to the legacy URDF primitive exporter.
+
+```python
+plate = linear_extrude(Polygon([(0,0),(4,0),(4,1),(1,1),(1,3),(0,3)]), 0.5)
+tube = rotate_extrude(Polygon([(1,0),(2,0),(2,3),(1,3)]), segments=64)
+transition = hull(Cube((1,1,1)), translate_shape(Sphere(0.5), (2,0,1)))
+```
+
 ## Boolean operations
 
 ```python

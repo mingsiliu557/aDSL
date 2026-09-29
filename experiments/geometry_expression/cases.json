@@ -1,0 +1,49 @@
+{
+  "baseline_commit": "8943a8306ddcce69ad0c043f0079c0a14f0518f1",
+  "scope": "API + prompt comparison against local pre-enhancement master, not a reproduction of the upstream paper. Original text only; no historical geometry is supplied to the model.",
+  "cases": [
+    {
+      "id": "SF06",
+      "requirement": "The modern armchair has a rounded, ergonomic design with a slightly depressed seat cushion for comfort. The backrest curves smoothly for support, and the armrests are short and curved, positioned for elbow rest. Four straight, square wooden legs provide a stable base. The chair features nailhead trim along the bottom front edge, adding a decorative and functional element. The upholstery is a smooth, durable fabric, likely tweed or linen, in a solid gray color. The chair is symmetrical and presented against a plain black background.",
+      "reference_images": [],
+      "provenance": {
+        "manifest": "experiments/standing_fea_30/case_manifest.json",
+        "manifest_sha256": "d36c67c234813db65c125671f11417f2ce0d44ea44f2c293cabbc25fa97e763c",
+        "dataset": "abo",
+        "object_id": "B07DBHCKJ5",
+        "caption_source": "marvel",
+        "historical_assets": "/jiigan-hp/lms/aDSL/experiment/planned12_no_case_cap_20260915T035726Z/SF06/original",
+        "history_is_input": false
+      },
+      "focus": "rounded cushion, curved back and arms"
+    },
+    {
+      "id": "SF21",
+      "requirement": "A tall floor lamp featuring a slender black metal stand with a decorative twist in the middle, supported by three curved legs. Topped with a soft, light beige fabric lampshade, it exudes a classic and elegant aesthetic, ideal for enhancing ambiance in any room.",
+      "reference_images": [],
+      "provenance": {
+        "manifest": "experiments/standing_fea_30/case_manifest.json",
+        "manifest_sha256": "d36c67c234813db65c125671f11417f2ce0d44ea44f2c293cabbc25fa97e763c",
+        "dataset": "shapenet",
+        "object_id": "7b39100755e9578799284d844aba7576",
+        "caption_source": "cap3d",
+        "historical_assets": "/jiigan-hp/lms/aDSL/experiment/planned12_no_case_cap_20260915T035726Z/SF21/original",
+        "history_is_input": false
+      },
+      "focus": "twisted stem, three curved feet, hollow lampshade"
+    },
+    {
+      "id": "T02-bookshelf",
+      "requirement": "Build a freestanding bookshelf with exactly four deep-red shelves. Each shelf should have a visibly curved front edge, and the top shelf must be smaller in width and depth than the three lower shelves. Add supporting side structure and place several distinct books or storage boxes on the shelves.",
+      "reference_images": [],
+      "provenance": {
+        "manifest": "experiments/adsl_audit_20260830/case_manifest.json",
+        "manifest_sha256": "df95f93ec17c402093ce307657aa6299daf56960cbb61e6ca00316aa5b761c7d",
+        "dataset": "local aDSL audit",
+        "historical_assets": "/jiigan-hp/lms/aDSL/experiment/audit_20260830/T02-bookshelf",
+        "history_is_input": false
+      },
+      "focus": "four shelves with curved front edges; reduced upper shelf"
+    }
+  ]
+}
