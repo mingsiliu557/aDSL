@@ -141,3 +141,12 @@ def test_repairing_optimization_candidate_keeps_original_score_baseline(tmp_path
     assert last['comparison_baseline_version']=='original'
     assert last['partition_change_vs_baseline']['conclusion']=='IMPROVED'
     assert result.approved and book['retained']=='attempt_0002'
+
+
+def test_no_grouping_proposal_stops_without_source_edit(tmp_path,monkeypatch):
+    state,checks=setup(tmp_path,monkeypatch,'improved')
+    async def no_proposal(*a,**kw):return None
+    monkeypatch.setattr(topology,'engineer',no_proposal)
+    result,book=run_flow(state)
+    assert result.approved and len(checks)==1 and not state[-1]
+    assert book['retained']=='original' and book['stop_reason']=='no_reasonable_partition_proposal'

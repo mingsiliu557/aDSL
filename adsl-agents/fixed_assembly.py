@@ -594,7 +594,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         book.update(feedback=feedback, next_round=number+1)
         write_json(book_path, book)
         if accepted and not optimize or reason == 'FLOW_ERROR':
-            stop = reason
+            if not book['completed'] or reason == 'FLOW_ERROR':
+                stop = reason
             break
     book.update(completed=True, stop_reason=stop)
     write_json(book_path, book)

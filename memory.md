@@ -1,8 +1,22 @@
 # aDSL 工作记忆
 
-更新时间：2026-09-28（UTC）
+更新时间：2026-09-29（UTC）
 
 本文是滚动的当前摘要，不是追加式日志。修改项目、环境或实验状态后，应替换过期内容。
+
+## 分件评分与反馈接入（2026-09-29，当前实施）
+
+- 独立工作树 `/tmp/adsl_partition_20260929`，分支 `feat/fixed-assembly-partition-score`，基线 f264f35；未合并 master。
+- S1 243201d：Dapper 原式、alpha=.3、Rvox=.1、真实实体体素、24旋转；7项通过。
+- S2 47677a5：pre-connector body NPZ、不可变reference、最终件评分、推荐print_layout/STL；21项通过。
+- S3 ce80156：topology→overhang→standing顺序、授权分组proposal、真实测量进Engineering；19通过/1skip。
+- S4 d87c9d9：用途与基线比较、主体/root/归属保护、必要修复新reference、版本恢复和最终打印资产；101通过/1skip，最终原生14通过。
+- 全程CPU；FEA关闭；沿用5秒/25° rigid_flex与1240 kg/m³实验密度。新评分默认关闭；旧朝向/面积模式保留。
+- S5/S6已提交顺序任务（2026-09-29 03:44:08 UTC，PID3649557）：先SF07，再SF10，再从首个合格基线做一次真实Engineering/Coder。
+  S5仅调用Image/Code评审，人工固定源码；S6最多一次源码修改，无额外预算。基线不合格则停止该组比较。
+- 证据根目录 `temp/partition_score_20260929`，`case_job.json`、`cases.log`、`cases_completion.json`（完成才出现）。
+  每例completion/实际prompts/tools/checkers/推荐STL均保留；未完成不能计为通过。
+- 交付报告 `reports/partition_score_20260929.md`。环境 `/tmp/adsl_partition_env_20260929.sh`。
 
 ## 全局互穿与零长度边处理（2026-09-28，当前范围）
 
