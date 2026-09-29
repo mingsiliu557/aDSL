@@ -130,3 +130,96 @@ def compare_partition_scores(previous, candidate):
     tolerance = 64*np.finfo(float).eps*max(1, abs(a['score']), abs(b['score']))
     return dict(conclusion='IMPROVED' if delta > tolerance else 'WORSE' if delta < -tolerance else 'UNCHANGED',
                 delta=delta, rounding_tolerance=tolerance)
+
+
+def _file_hash(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def _npz_bytes(**arrays):
+    import io
+    stream = io.BytesIO(); np.savez(stream, **arrays)
+    return stream.getvalue()
+
+
+def body_union(manifest_path):
+    """Verified pre-connector bodies in assembly millimetres, with no rescaling."""
+    import manifold3d as mf
+    import trimesh
+    from adsl.core.assembly_topology import checked, mesh_solid, solid_mesh, mm_matrix
+    path = Path(manifest_path); manifest = json.loads(path.read_text())
+    declarations = {p['id']:p for p in manifest['part_declarations']}
+    inputs = manifest.get('partition_reference_inputs', [])
+    if len(inputs) != len(declarations) or {r['part_id'] for r in inputs} != set(declarations):
+        raise ValueError('complete pre-connector body inputs unavailable; re-export required')
+    solids = []
+    for row in inputs:
+        file = path.parent/row.get('npz', '')
+        if row['status'] != 'PASS' or row.get('frame') != 'part_local_mm' or _file_hash(file) != row['sha256']:
+            raise ValueError(f"body input unavailable or changed: {row['part_id']}")
+        if row['source_sha256'] != manifest['source_sha256']:
+            raise ValueError('body/source mismatch')
+        with np.load(file, allow_pickle=False) as data:
+            mesh = trimesh.Trimesh(data['vertices'], data['faces'], process=False)
+        transform = mm_matrix(declarations[row['part_id']]['assembly_transform'], manifest['mm_per_unit'])
+        solids.append(checked(mesh_solid(mesh).transform(transform[:3])))
+    return solid_mesh(checked(mf.Manifold.batch_boolean(solids, mf.OpType.Add))), manifest
+
+
+def create_reference(manifest_path, directory, config=OBJECTIVE):
+    mesh, manifest = body_union(manifest_path)
+    h = float(OBJECTIVE['r_vox']*np.min(mesh.extents))
+    cells = occupied_voxels(mesh, h, mesh.bounds[0])
+    if not len(cells):
+        raise ValueError('reference has no occupied voxels')
+    files = {'body.npz':_npz_bytes(vertices=mesh.vertices, faces=mesh.faces),
+             'occupied.npz':_npz_bytes(cells=cells)}
+    data = dict(schema=SCHEMA, source_sha256=manifest['source_sha256'],
+        body_inputs=manifest['partition_reference_inputs'],
+        assembly_transforms={p['id']:p['assembly_transform'] for p in manifest['part_declarations']},
+        bounds_mm=mesh.bounds.tolist(), grid_origin_mm=mesh.bounds[0].tolist(),
+        voxel_pitch_mm=h, reference_voxels=len(cells),
+        evaluation_config_sha256=evaluation_hash(config),
+        files_sha256={name:hashlib.sha256(content).hexdigest() for name,content in files.items()})
+    reference_hash = digest(data)
+    directory = Path(directory)/reference_hash
+    path = directory/'partition_reference.json'
+    if path.exists():
+        load_reference(path, config)
+        return path
+    directory.mkdir(parents=True, exist_ok=True)
+    for name, content in files.items():
+        (directory/name).write_bytes(content)
+    path.write_text(json.dumps(dict(data, reference_sha256=reference_hash), indent=2))
+    return path
+
+
+def load_reference(path, config=OBJECTIVE):
+    path = Path(path); data = json.loads(path.read_text())
+    if (data.get('schema') != SCHEMA or
+        data.get('reference_sha256') != digest({k:v for k,v in data.items() if k != 'reference_sha256'}) or
+        data['evaluation_config_sha256'] != evaluation_hash(config)):
+        raise ValueError('partition reference/configuration changed')
+    for name, expected in data['files_sha256'].items():
+        if _file_hash(path.parent/name) != expected:
+            raise ValueError('partition reference geometry/occupancy changed')
+    return data
+
+
+def reference_shape_comparison(manifest_path, reference_path):
+    import trimesh
+    from adsl.core.assembly_topology import checked, mesh_solid, length_bound
+    current, _ = body_union(manifest_path)
+    reference = load_reference(reference_path)
+    with np.load(Path(reference_path).parent/'body.npz', allow_pickle=False) as data:
+        previous = trimesh.Trimesh(data['vertices'], data['faces'], process=False)
+    a,b = mesh_solid(previous),mesh_solid(current)
+    difference = float(checked(a-b).volume()+checked(b-a).volume())
+    length = max(length_bound(previous), length_bound(current))
+    volume = max(previous.area,current.area)*length
+    bounds = float(np.max(np.abs(previous.bounds-current.bounds)))
+    return dict(status='MATCH' if difference <= volume and bounds <= length else 'CHANGED',
+        symmetric_difference_mm3=difference, volume_tolerance_mm3=float(volume),
+        bounds_change_mm=bounds, length_tolerance_mm=length,
+        previous_volume_mm3=float(previous.volume), candidate_volume_mm3=float(current.volume),
+        candidate_bounds_mm=current.bounds.tolist(), reference_sha256=reference['reference_sha256'])

@@ -65,3 +65,38 @@ def test_missing_parts_and_incomparable_references():
         other=score(100,0,2);other['metrics']['partition_objective'][key]=value
         assert compare_partition_scores(score(100,0,2),other)['conclusion']=='NOT_COMPARABLE'
     with pytest.raises(ValueError):objective_config({**OBJECTIVE,'alpha':.4})
+
+
+def reference_fixture(tmp_path, *, scale=2., split=False):
+    import json
+    import hashlib
+    mesh=solid_mesh(mf.Manifold.cube((4,3,2)))
+    rows=[];declarations=[]
+    solids=[mf.Manifold.cube((2,3,2)),mf.Manifold.cube((2,3,2)).translate((2,0,0))] if split else [mf.Manifold.cube((4,3,2))]
+    for i,solid in enumerate(solids):
+        body=solid_mesh(solid);path=tmp_path/f'part{i}.body.npz'
+        np.savez(path,vertices=body.vertices,faces=body.faces)
+        rows.append(dict(part_id=f'part{i}',status='PASS',frame='part_local_mm',npz=path.name,
+            sha256=hashlib.sha256(path.read_bytes()).hexdigest(),source_sha256='source'))
+        transform=np.eye(4);transform[:3,3]=[5,2,1]
+        declarations.append(dict(id=f'part{i}',assembly_transform=transform.tolist()))
+    path=tmp_path/'manifest.json'
+    path.write_text(json.dumps(dict(source_sha256='source',mm_per_unit=scale,
+        part_declarations=declarations,partition_reference_inputs=rows)))
+    return path
+
+
+def test_reference_units_immutability_and_regrouped_shape(tmp_path):
+    from adsl.agents.partition_score import create_reference,load_reference,reference_shape_comparison
+    manifest=reference_fixture(tmp_path)
+    path=create_reference(manifest,tmp_path/'references')
+    ref=load_reference(path)
+    assert ref['voxel_pitch_mm']==pytest.approx(.2)
+    np.testing.assert_allclose(ref['bounds_mm'],[[10,4,2],[14,7,4]])
+    assert ref['reference_voxels']==20*15*10
+    reference_fixture(tmp_path,split=True)
+    comparison=reference_shape_comparison(manifest,path)
+    assert comparison['status']=='MATCH'
+    assert comparison['symmetric_difference_mm3']==0
+    (path.parent/'occupied.npz').write_bytes(b'changed')
+    with pytest.raises(ValueError,match='changed'):load_reference(path)

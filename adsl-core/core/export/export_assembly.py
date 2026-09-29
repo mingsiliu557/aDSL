@@ -487,6 +487,25 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
             manifest['failures'].append(dict(code='PART_EXPORT_FAILED' if kind == 'export' else
                 'PART_DISPLAY_UNAVAILABLE' if visual_only else 'PART_GEOMETRY_INVALID',
                 part_id=name, stage=part_stage, failure_kind=kind, reason=str(error)[:300]))
+    if expected.get('physics', {}).get('overhang', {}).get('partition_objective') is not None:
+        # Reference availability is separate from display/export success.
+        manifest['partition_reference_inputs'] = []
+        for name in assembly.parts:
+            row = dict(part_id=name, status='INDETERMINATE', frame='part_local_mm',
+                       source_sha256=source_sha256)
+            try:
+                body = bodies.get(name)
+                if body is None:
+                    _, body, _ = evaluated(assembly.bodies[name], output/f'{name}.body.glb', assembly.mm_per_unit)
+                reference_mesh = solid_mesh(body)
+                path = output/f'{name}.body.npz'
+                np.savez(path, vertices=np.asarray(reference_mesh.vertices, dtype=np.float64),
+                         faces=np.asarray(reference_mesh.faces, dtype=np.int64))
+                row.update(status='PASS', npz=path.name,
+                    sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+            except (ValueError, RuntimeError, OSError, ImportError) as error:
+                row['reason'] = f'{type(error).__name__}: {str(error)[:240]}'
+            manifest['partition_reference_inputs'].append(row)
     # A failed part must not prevent visual feedback about available geometry.
     try:
         _diagnostic_view(assembly, output, meshes, manifest)
