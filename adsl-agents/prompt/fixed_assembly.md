@@ -20,7 +20,7 @@ the parts. Build mounting material for every declared tab and slot.
 Use meaningful port names, unique per (part, tab/slot role, port name); different
 names do not prove different geometric locations. No unknown IDs or self connections.
 Copy mm_per_unit and final_size_mm from the frozen request, not from a guessed
-bounding box. Keep natural-language relations. Connection evaluation order is not
+bounding box. In relations, explain initial print-group choices (bed faces, cantilevers, continuous appearance); do not invent voxel scores. Keep natural-language relations. Connection evaluation order is not
 a physical assembly insertion sequence.
 Use the request's fixed fit_offset_mm; repairs must not change it to pass geometry.
 Print-part IDs MUST NOT be `scene` or `exploded`: these names are reserved for
@@ -64,8 +64,10 @@ Coder API (all imported by `from adsl.core import *`):
 - `assembly.set_print_orientation(part_id, rotation_deg=(x,y,z))`: optional PRINT
   rotation in degrees, column-vector Rz @ Ry @ Rx; only use when the request allows
   print-orientation edits. STL is rotated then grounded. Local geometry, assembly
-  pose and connector frames do not change. Overhang optimization permits only this
-  direction change, not deleting material or changing measurement settings.
+  pose and connector frames do not change. Legacy overhang optimization permits only
+  this direction change. With partition_objective and print_partition_editable enabled,
+  a structured regroup_print_parts proposal may also change grouping and affected
+  interfaces. Never delete required body material or change measurement settings.
 
 Read the connection list in both directions before designing bodies: a receiver
 must reserve material for every incoming slot, while tab bodies reserve a shoulder
@@ -104,3 +106,14 @@ do not infer geometric failure from NOT_EVALUATED. Missing display geometry must
 remain explicit and cannot pass complete appearance review.
 If no appropriate repair exists, explicitly return
 {"edit_action":"NO_CHANGE","reason":"..."}; do not make a dummy patch.
+
+When partition_objective is enabled, the checker searches 24 print rotations and
+publishes recommended print_layout/STL assets. Do not spend an extra edit writing
+those rotations into source. Follow an authorized grouping_change using original
+pre-connector bodies/children. On merge, remove internal connectors. On split,
+assign overlapping child material to exactly one piece with local Boolean cuts,
+retain mounting shoulders and other unnamed body details, then generate every
+cross-part connector using connect(). Keep root ID/frame, full body union, frozen
+scale/fit/dimensions and all visible requirements. Explain expected G/N tradeoff;
+measured same-reference Dapper score decides benefit only after required checks.
+Initial plan.json remains historical; selected manifest is the actual grouping.

@@ -167,6 +167,7 @@ def body_union(manifest_path):
 
 
 def create_reference(manifest_path, directory, config=OBJECTIVE):
+    objective_config(config)
     mesh, manifest = body_union(manifest_path)
     h = float(OBJECTIVE['r_vox']*np.min(mesh.extents))
     cells = occupied_voxels(mesh, h, mesh.bounds[0])
@@ -176,6 +177,7 @@ def create_reference(manifest_path, directory, config=OBJECTIVE):
              'occupied.npz':_npz_bytes(cells=cells)}
     data = dict(schema=SCHEMA, source_sha256=manifest['source_sha256'],
         body_inputs=manifest['partition_reference_inputs'],
+        root_id=manifest['root_id'], part_declarations=manifest['part_declarations'],
         assembly_transforms={p['id']:p['assembly_transform'] for p in manifest['part_declarations']},
         bounds_mm=mesh.bounds.tolist(), grid_origin_mm=mesh.bounds[0].tolist(),
         voxel_pitch_mm=h, reference_voxels=len(cells),
@@ -218,8 +220,44 @@ def reference_shape_comparison(manifest_path, reference_path):
     length = max(length_bound(previous), length_bound(current))
     volume = max(previous.area,current.area)*length
     bounds = float(np.max(np.abs(previous.bounds-current.bounds)))
-    return dict(status='MATCH' if difference <= volume and bounds <= length else 'CHANGED',
+    actual = json.loads(Path(manifest_path).read_text())
+    old_parts = {p['id']:p for p in reference['part_declarations']}
+    new_parts = {p['id']:p for p in actual['part_declarations']}
+    old_members = sorted(c for p in old_parts.values() for c in p['components'])
+    new_members = sorted(c for p in new_parts.values() for c in p['components'])
+    ownership = old_members == new_members and len(new_members)==len(set(new_members))
+    root = reference['root_id']
+    root_same = (actual['root_id']==root and root in new_parts and np.allclose(
+        old_parts[root]['assembly_transform'],new_parts[root]['assembly_transform'],rtol=0,atol=1e-8))
+    return dict(status='MATCH' if difference <= volume and bounds <= length and ownership and root_same else 'CHANGED',
+        semantic_ownership_preserved=ownership, root_frame_preserved=bool(root_same),
         symmetric_difference_mm3=difference, volume_tolerance_mm3=float(volume),
         bounds_change_mm=bounds, length_tolerance_mm=length,
         previous_volume_mm3=float(previous.volume), candidate_volume_mm3=float(current.volume),
         candidate_bounds_mm=current.bounds.tolist(), reference_sha256=reference['reference_sha256'])
+
+
+def publish_print_layout(result, workspace, source_sha256, version_id):
+    """Publish only the selected version's complete, hash-checked print bundle."""
+    import shutil
+    path = result.get('artifacts',{}).get('print_layout')
+    if result.get('status') != 'PASS' or not path:
+        return None, []
+    layout = json.loads(Path(path).read_text())
+    score = result['metrics']['partition_objective']
+    if (layout['status'] != 'PASS' or layout['source_sha256'] != source_sha256 or
+            layout['reference_sha256'] != score['reference_sha256'] or
+            layout['evaluation_config_sha256'] != score['evaluation_config_sha256'] or
+            len(layout['parts']) != score['print_part_count']):
+        raise ValueError('selected print layout/source/score mismatch')
+    directory = Path(workspace)/'print_parts'/version_id
+    directory.mkdir(parents=True, exist_ok=True)
+    for row in layout['parts']:
+        if _file_hash(row['stl']) != row['stl_sha256']:
+            raise ValueError('selected recommended STL changed')
+        dest = directory/f"{row['part_id']}.stl"
+        shutil.copy2(row['stl'], dest)
+        row['stl'] = str(dest.resolve())
+    path = directory/'print_layout.json'
+    path.write_text(json.dumps(layout,indent=2))
+    return str(path.resolve()), layout['parts']

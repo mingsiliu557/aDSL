@@ -79,9 +79,9 @@ def reference_fixture(tmp_path, *, scale=2., split=False):
         rows.append(dict(part_id=f'part{i}',status='PASS',frame='part_local_mm',npz=path.name,
             sha256=hashlib.sha256(path.read_bytes()).hexdigest(),source_sha256='source'))
         transform=np.eye(4);transform[:3,3]=[5,2,1]
-        declarations.append(dict(id=f'part{i}',assembly_transform=transform.tolist()))
+        declarations.append(dict(id=f'part{i}',components=[['left','right'][i]] if split else ['left','right'],assembly_transform=transform.tolist()))
     path=tmp_path/'manifest.json'
-    path.write_text(json.dumps(dict(source_sha256='source',mm_per_unit=scale,
+    path.write_text(json.dumps(dict(source_sha256='source',mm_per_unit=scale,root_id='part0',
         part_declarations=declarations,partition_reference_inputs=rows)))
     return path
 

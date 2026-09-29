@@ -99,3 +99,27 @@ demonstrations until calibrated on a real printer/material. See also the four-pa
 four-interface `two_shelf_frame.py` fixture. Cycles are consistency checked, not
 solved by moving existing parts. Articulation and automatic print-part segmentation
 remain unsupported.
+
+
+## Optional partition objective
+
+`physics.overhang.partition_objective` enables `dapper_fdm_2015` with alpha=0.3,
+r_vox=0.1, orientation_set=axis_aligned_24 and layout=independent_bed. Each final
+print solid, including connectors, is evaluated against one immutable body reference.
+Score `(reference_voxels - gap_voxels) / print_part_count**0.3` is maximized; negative
+numerators are preserved and do not universally penalize extra pieces. This adopts
+Dapper's objective, not its packing algorithm or a slicer's material/time estimate.
+Report `voxel_pitch_mm`; coarse cells can hide connector details. Missing inputs
+produce null scores, never zero. Original overhang area remains at the authored pose.
+
+`RepairPolicy.print_partition_editable` defaults to false. When enabled, Engineering
+may propose one local `regroup_print_parts` split/merge, preserving body shape/root
+and updating every affected connector. Necessary physical/appearance repair remains
+separate from soft optimization. Unknown, equal, worse or different-reference
+scores cannot replace a qualified baseline for optimization.
+
+The selected manifest's part_declarations/connections describe actual grouping;
+initial plan.json is not rewritten. Use assembly_result.json.print_layout and
+print_parts for the recommended print orientation/STL, not the authored-pose STL.
+The layout, score, body reference, source and all checker results are bound to the
+same selected version. Assembly/use transforms and Standing inputs are unchanged.

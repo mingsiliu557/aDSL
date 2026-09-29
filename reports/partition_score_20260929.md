@@ -20,3 +20,9 @@
 `python -m pytest -q -p no:cacheprovider tests/test_partition_feedback.py tests/test_assembly_physics.py tests/test_assembly_feedback_recovery.py -k 'not real_ and not fea'`：19 passed，1 skipped，13 deselected，30.39s。
 真实实体分件测量进入现有 Engineering 适配器（语言模型 mock）；授权、未知件拒绝、G=0机会、缺件unknown和Topology失败后的执行顺序通过。
 旧顺序断言同步为 topology→overhang→standing→fea；skip/deselected未计入通过。
+
+## S4
+
+`python -m pytest -q -p no:cacheprovider tests/test_partition_score.py tests/test_partition_selection.py tests/test_partition_feedback.py tests/test_fixed_assembly.py tests/test_fixed_assembly_recovery.py tests/test_fixed_assembly_plan_revision.py tests/test_assembly_physics.py tests/test_prompts.py -k 'not real_'`：101 passed，1 skipped，14 deselected，36.04s。
+候选选择使用真实原式算术、mock模型/物理门槛，验证收益、回退、必要修复、参考切换、优化修复链和resume不重置预算；打印输出逐文件核对选中source。
+最后原生复核 `ADSL_TEST_FIXED_REAL=1 python -m pytest -q -p no:cacheprovider tests/test_partition_exports.py tests/test_partition_selection.py`：14 passed，13.47s。
