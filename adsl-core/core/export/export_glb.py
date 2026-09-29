@@ -152,6 +152,17 @@ def _make_cylinder(prim):
         obj.data.materials.append(mat)
     return obj
 
+def _make_mesh(prim):
+    data = bpy.data.meshes.new("constructive_mesh")
+    data.from_pydata(prim["params"]["vertices"], [], prim["params"]["triangles"])
+    data.update()
+    obj = bpy.data.objects.new("constructive_mesh", data)
+    bpy.context.collection.objects.link(obj)
+    _apply_xform_matrix(obj, prim.get("xform"))
+    data.materials.append(_make_material("mat_mesh", prim["color"], prim["alpha"]))
+    return obj
+
+
 def _duplicate_object(
     obj: "bpy.types.Object"
 ) -> "bpy.types.Object":
@@ -290,6 +301,39 @@ def _build_shape(
                 _parent_geometry(cur_obj, hierarchy_node, name=f"geometry_{primitive_index}_cylinder")
                 cur_obj.data.name = f"{resolved_name}_cylinder_mesh"
                 objs.append(cur_obj)
+            elif t == "mesh":
+                cur_obj = _make_mesh(prim)
+                _parent_geometry(cur_obj, hierarchy_node, name=f"geometry_{primitive_index}_mesh")
+                objs.append(cur_obj)
+            elif t == "hull":
+                from ..constructive import _manifold, _mesh_data
+                child_names = list(shape._parts)
+                consumed_children.update(child_names)
+                operands = []
+                try:
+                    for name in child_names:
+                        operands.extend(_build_shape(
+                            shape._parts[name], world_xform,
+                            include_joint_children=include_joint_children,
+                            parent_node=hierarchy_node, node_name=name,
+                            path=f"{resolved_path}/{name}", attach_mode="part"))
+                    bpy.context.view_layer.update()
+                    points = [tuple(obj.matrix_world @ v.co)
+                              for obj in operands for v in obj.data.vertices]
+                    if not points:
+                        raise ValueError("hull: operands contain no mesh vertices")
+                    params = _mesh_data(_manifold().Manifold.hull_points(points), "hull")
+                    # Operand vertices already include parent/operand transforms.
+                    cur_obj = _make_mesh(dict(params=params, xform=None,
+                                              color=prim["color"], alpha=prim["alpha"]))
+                    _parent_geometry(cur_obj, hierarchy_node, name=f"geometry_{primitive_index}_hull")
+                    objs.append(cur_obj)
+                finally:
+                    for obj in operands:
+                        data = obj.data
+                        bpy.data.objects.remove(obj, do_unlink=True)
+                        if data.users == 0:
+                            bpy.data.meshes.remove(data)
             elif t == "boolean":
                 mode = prim["params"]["mode"]
                 child_names = sorted(shape._parts.keys())
