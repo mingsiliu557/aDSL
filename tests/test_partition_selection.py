@@ -33,7 +33,7 @@ def setup(tmp_path,monkeypatch,mode):
         write_json(manifest,raw);ref2=scoring.create_reference(manifest,tmp_path/'references')
     monkeypatch.setattr(scoring,'create_reference',lambda *a,**kw:ref2 if calls else reference)
     def shape(*a):
-        return {'status':'CHANGED' if mode in ('changed_shape','reference_repair') and len(calls)>0 else 'MATCH'}
+        return {'status':'CHANGED' if len(calls)>0 and (mode=='changed_shape' or (mode=='reference_repair' and str(a[1])==str(reference))) else 'MATCH'}
     monkeypatch.setattr(scoring,'reference_shape_comparison',shape)
     async def code(**kw):
         return GradedCodeCriticDecision(approved=len(calls)>0 or mode not in ('required_repair','reference_repair'),observations=[],issues=[])
@@ -50,7 +50,7 @@ def setup(tmp_path,monkeypatch,mode):
                 ref=scoring.load_reference(kw.get('partition_reference') or reference)
                 objective=scoring.score_partition([dict(status='PASS',gap_voxels=0) for _ in range(n)],ref,part_count=n)
                 if mode=='unknown' and round_number: objective['score']=None;status='INDETERMINATE'
-                metrics={'partition_objective':objective,'items':[]}
+                metrics={'partition_objective':objective,'partition_guidance':scoring.partition_score_guidance(objective),'items':[]}
                 stls=[]
                 for i in range(n):
                     stl=out/f'piece{i}.stl';stl.write_text(source.read_text())
@@ -60,7 +60,10 @@ def setup(tmp_path,monkeypatch,mode):
                 artifacts={'print_layout':str(layout),'partition_reference':str(reference)}
                 findings=[physics.finding('assembly_overhang','PRINT_PARTITION_OPPORTUNITY','Consider a local regroup',
                     category='optimization_opportunity',repairability='design_variable',required=False)]
-            if round_number==1 and mode=='topology_fail' and spec.name=='assembly_topology':status='FAIL'
+            if round_number==1 and mode=='topology_fail' and spec.name=='assembly_topology':
+                status='FAIL'
+                findings=[physics.finding(spec.name,'UNDECLARED_PART_INTERFERENCE','Measured overlap in candidate',
+                    category='geometry_failure',repairability='geometry',required=True)]
             if round_number and mode=='standing_unknown' and spec.name=='assembly_standing':status='INDETERMINATE'
             result=CheckerResult(checker=spec.name,status=status,summary='mock gate',metrics=metrics,artifacts=artifacts,
                 findings=findings,assumptions={'source_sha256':flow.file_hash(source)})
@@ -117,8 +120,10 @@ def test_accepted_body_repair_references_and_rescores_without_model_edit(tmp_pat
     assert len(state[-1])==1 and len(checks)==3
 
 
-def test_repairing_optimization_candidate_keeps_original_score_baseline(tmp_path,monkeypatch):
+@pytest.mark.parametrize('surface',[False,True])
+def test_repairing_optimization_candidate_keeps_original_score_baseline(tmp_path,monkeypatch,surface):
     state,checks=setup(tmp_path,monkeypatch,'topology_fail')
+    if surface:visual_aspects(state,monkeypatch,['surface'])
     w,req,rt,source,calls=state
     req=replace(req,max_rounds=3)
     execute=flow.execute_asset_source
@@ -140,7 +145,8 @@ def test_repairing_optimization_candidate_keeps_original_score_baseline(tmp_path
     assert last['edit_purpose']=='partition_optimization'
     assert last['comparison_baseline_version']=='original'
     assert last['partition_change_vs_baseline']['conclusion']=='IMPROVED'
-    assert result.approved and book['retained']=='attempt_0002'
+    assert result.approved==(not surface) and book['retained']=='attempt_0002'
+    assert last['partition_adopted']
 
 
 def test_no_grouping_proposal_stops_without_source_edit(tmp_path,monkeypatch):
@@ -150,3 +156,165 @@ def test_no_grouping_proposal_stops_without_source_edit(tmp_path,monkeypatch):
     result,book=run_flow(state)
     assert result.approved and len(checks)==1 and not state[-1]
     assert book['retained']=='original' and book['stop_reason']=='no_reasonable_partition_proposal'
+
+
+def visual_aspects(state,monkeypatch,aspects):
+    w,req,rt,source,calls=state
+    async def code(**kw):
+        aspect=aspects[min(len(calls),len(aspects)-1)]
+        return GradedCodeCriticDecision(approved=aspect is None,observations=[],
+            required_changes=['Unresolved explicit appearance requirement'] if aspect else [],
+            issues=[dict(severity='HIGH',aspect=aspect,target='body',problem='Current appearance requirement unresolved',
+                         suggested_fix='Use supported controls or report limitation')] if aspect else [])
+    monkeypatch.setattr(w,'_review_generation_code',code)
+
+
+@pytest.mark.parametrize('mode,selected',[('improved','attempt_0001'),('worse','original'),('equal','original'),('changed_shape','original')])
+def test_surface_only_partition_selection_and_bound_outputs(tmp_path,monkeypatch,mode,selected):
+    state,checks=setup(tmp_path,monkeypatch,mode)
+    visual_aspects(state,monkeypatch,['surface','surface'])
+    result,book=run_flow(state)
+    original=book['versions']['original']['reviews'];candidate=book['versions']['attempt_0001']['reviews']
+    assert original['partition_ready'] and not original['accepted']
+    assert candidate['edit_purpose']=='partition_optimization'
+    assert candidate['comparison_baseline_version']=='original'
+    assert candidate['partition_adopted']==(mode=='improved')
+    assert not result.approved and book['qualified'] is None and book['retained']==selected
+    payload=state[-1][0]['payload']
+    assert payload['edit_purpose']=='partition_optimization'
+    assert payload['partition_guidance']==original['assembly_overhang']['metrics']['partition_guidance']
+    assert payload['source_version']=='original' and 'deferred' in payload['assignment']
+    final=json.loads((tmp_path/'assembly_result.json').read_text())
+    assert final['source_sha256']==flow.file_hash(state[3])==final['reviews']['checker_source_sha256']
+    assert final['version_id']==selected and final['print_parts']
+    assert Path(final['print_layout']).parent.name==selected
+    for row in final['print_parts']:assert Path(row['stl']).read_text()==state[3].read_text()
+    assert final['reviews']['accepted'] is False
+    if mode!='improved':
+        assert book['working']=='original' and book['feedback']['source_version']=='original'
+        assert book['partition_stop_reference']==original['assembly_overhang']['metrics']['partition_objective']['reference_sha256']
+    assert not run_flow(state)[0].approved and len(checks)==2
+
+
+@pytest.mark.parametrize('missing_render',[False,True])
+def test_geometry_issue_or_missing_display_is_not_partition_ready(tmp_path,monkeypatch,missing_render):
+    state,checks=setup(tmp_path,monkeypatch,'improved')
+    visual_aspects(state,monkeypatch,['surface' if missing_render else 'geometry'])
+    w,req,rt,source,calls=state;req=replace(req,max_rounds=1)
+    if missing_render:
+        execute=flow.execute_asset_source
+        def no_views(*a,**kw):return replace(execute(*a,**kw),render_paths=())
+        monkeypatch.setattr(flow,'execute_asset_source',no_views)
+    result,book=run_flow((w,req,rt,source,calls))
+    assert not result.approved and not book['versions']['original']['reviews']['partition_ready']
+    assert book['qualified'] is None
+
+
+def test_geometry_visual_helper_requires_explicit_classified_highs():
+    for issues in ([],[dict(severity='LOW',aspect='surface')],[dict(severity='HIGH')],
+                   [dict(severity='HIGH',aspect='surface'),dict(severity='HIGH',aspect='geometry')]):
+        assert not flow._geometry_visual_ready(dict(appearance_approved=False,code_critic={'issues':issues}),True)
+    assert not flow._geometry_visual_ready(dict(appearance_approved=None,code_critic={'issues':[dict(severity='HIGH',aspect='surface')]}),True)
+
+
+def test_required_physical_regroup_may_lower_score_with_surface_pending(tmp_path,monkeypatch):
+    state,checks=setup(tmp_path,monkeypatch,'required_repair')
+    visual_aspects(state,monkeypatch,['surface','surface'])
+    run=physics.run_assembly_checks
+    def fail_initial(*a,**kw):
+        results=run(*a,**kw)
+        if len(checks)==1:
+            target=results[0].result;target.status='FAIL'
+            target.findings=[physics.finding('assembly_topology','UNDECLARED_PART_INTERFERENCE','Measured body overlap',
+                category='geometry_failure',repairability='geometry',required=True)]
+        return results
+    monkeypatch.setattr(physics,'run_assembly_checks',fail_initial)
+    result,book=run_flow(state)
+    original=book['versions']['original']['reviews'];candidate=book['versions']['attempt_0001']['reviews']
+    assert not original['partition_ready'] and candidate['partition_ready']
+    assert candidate['edit_purpose']=='required_repair' and not candidate['partition_adopted']
+    assert scoring.compare_partition_scores(original['assembly_overhang'],candidate['assembly_overhang'])['conclusion']=='WORSE'
+    assert not result.approved and book['retained']=='attempt_0001' and book['qualified'] is None
+    assert state[-1][0]['payload']['grouping_change']['operation']=='merge'
+
+
+def test_required_body_repair_with_surface_pending_refreshes_reference(tmp_path,monkeypatch):
+    state,checks=setup(tmp_path,monkeypatch,'reference_repair')
+    visual_aspects(state,monkeypatch,['geometry','surface'])
+    result,book=run_flow(state)
+    old=book['versions']['original']['reviews'];new=book['versions']['attempt_0001']['reviews']
+    assert new['reference_shape_changed'] and new['partition_ready']
+    assert new['partition_reference']!=old['partition_reference']
+    assert new['body_reference_comparison']['status']=='MATCH'
+    assert len(checks)==3 and len(state[-1])==1
+    assert book['retained']=='attempt_0001' and book['qualified'] is None and not result.approved
+
+
+@pytest.mark.parametrize('unavailable',[False,True])
+def test_optional_no_proposal_or_unavailable_never_blindly_regroups(tmp_path,monkeypatch,unavailable):
+    state,checks=setup(tmp_path,monkeypatch,'improved')
+    visual_aspects(state,monkeypatch,['surface'])
+    w,req,rt,source,calls=state;engineering=[]
+    async def no_proposal(*a,**kw):
+        engineering.append(True)
+        if unavailable:raise ValueError('malformed model response')
+        return None
+    async def surface_no_change(**kw):
+        calls.append(kw)
+        assert kw['payload']['edit_purpose']=='required_repair'
+        assert kw['payload']['source_version']=='original'
+        return dict(status='NO_CHANGE',reason='surface API unavailable')
+    monkeypatch.setattr(topology,'engineer',no_proposal);monkeypatch.setattr(w,'_repair',surface_no_change)
+    result,book=run_flow(state)
+    assert len(engineering)==1 and len(calls)==1 and len(checks)==1
+    assert ('partition_stop_reference' in book)==(not unavailable)
+    assert book['feedback']['engineering']['status']==('UNAVAILABLE' if unavailable else 'NO_PROPOSAL')
+    assert book['retained']=='original' and not result.approved
+    run_flow(state)
+    assert len(engineering)==len(calls)==len(checks)==1
+
+
+def test_existing_full_approval_not_replaced_by_surface_regression(tmp_path,monkeypatch):
+    state,checks=setup(tmp_path,monkeypatch,'improved')
+    visual_aspects(state,monkeypatch,[None,'surface'])
+    result,book=run_flow(state)
+    assert result.approved and book['retained']==book['qualified']==book['working']=='original'
+    candidate=book['versions']['attempt_0001']['reviews']
+    assert candidate['partition_adopted'] and not candidate['accepted']
+
+
+def test_losing_surface_candidate_restores_feedback_before_surface_repair(tmp_path,monkeypatch):
+    state,checks=setup(tmp_path,monkeypatch,'worse')
+    visual_aspects(state,monkeypatch,['surface'])
+    w,req,rt,source,calls=state;req=replace(req,max_rounds=3)
+    repair=w._repair
+    async def bounded(**kw):
+        if calls:
+            calls.append(kw)
+            assert kw['payload']['source_version']=='original'
+            assert kw['payload']['feedback']['source_sha256']==flow.file_hash(tmp_path/'original/source.py')
+            assert kw['payload']['edit_purpose']=='required_repair'
+            assert kw['source_path'].read_text()=='original'
+            return dict(status='NO_CHANGE',reason='surface API unavailable')
+        return await repair(**kw)
+    monkeypatch.setattr(w,'_repair',bounded)
+    result,book=run_flow((w,req,rt,source,calls))
+    assert len(calls)==2 and len(checks)==2 and not result.approved
+    assert book['working']==book['retained']=='original'
+
+
+def test_same_reference_not_reopened_after_surface_repair(tmp_path,monkeypatch):
+    state,checks=setup(tmp_path,monkeypatch,'equal');visual_aspects(state,monkeypatch,['surface'])
+    w,req,rt,source,calls=state;req=replace(req,max_rounds=3);advice=[]
+    async def no_proposal(*a,**kw):advice.append(True);return None
+    repair=w._repair
+    async def bounded(**kw):
+        assert kw['payload']['edit_purpose']=='required_repair'
+        if calls:
+            calls.append(kw);return dict(status='NO_CHANGE',reason='unsupported remaining surface finish')
+        return await repair(**kw)
+    monkeypatch.setattr(topology,'engineer',no_proposal);monkeypatch.setattr(w,'_repair',bounded)
+    result,book=run_flow((w,req,rt,source,calls))
+    assert len(advice)==1 and len(checks)==2 and len(calls)==2
+    assert book['versions']['attempt_0001']['reviews']['partition_ready']
+    assert not result.approved

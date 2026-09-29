@@ -62,7 +62,9 @@ def test_measured_partition_reaches_engineering(tmp_path,monkeypatch,permission,
     # Evidence is physically measured; only the language model is mocked.
     request=replace(request,workspace=tmp_path,repair_policy=RepairPolicy(print_partition_editable=permission),
         fixed_assembly={**request.fixed_assembly,'physics':{'overhang':{'partition_objective':OBJECTIVE}}})
-    feedback=dict(source_version='original',checker_summary=[],typed_findings=[],evidence_files=[])
+    feedback=dict(source_version='original',checker_summary=[],typed_findings=[],evidence_files=[],
+        next_edit_purpose='partition_optimization',primary_objective='Evaluate one grouping hypothesis',
+        comparison_baseline_version='original',partition_guidance=result.metrics['partition_guidance'])
     context={'current_assembly':{'root_id':'base','parts':manifest['part_declarations'],
                                  'connections':manifest['connections']}}
     async def model(**kw):
@@ -74,6 +76,10 @@ def test_measured_partition_reaches_engineering(tmp_path,monkeypatch,permission,
         assert data['partition_measurement'][0]['partition_guidance']==result.metrics['partition_guidance']
         assert all(x['gap_voxels'] is not None for x in data['partition_measurement'][0]['items'])
         assert data['assembly_context']['current_assembly']['connections']==manifest['connections']
+        assert data['next_edit_purpose']=='partition_optimization'
+        assert data['comparison_baseline_version']==data['source_version']=='original'
+        assert data['primary_objective']==feedback['primary_objective']
+        assert data['partition_guidance']==result.metrics['partition_guidance']
         await tool(read_file,kw['context'],'read_source',path=str(args.source))
         proposal=RepairProposal(proposal_id='merge',finding_ids=[result.findings[0].finding_id],
             hypothesis='One fewer piece may improve the measured objective',target=RepairTarget(),

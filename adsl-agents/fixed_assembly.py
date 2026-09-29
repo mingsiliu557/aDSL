@@ -87,6 +87,20 @@ def _assembly_context(source, report, *, version_role):
     }
 
 
+def _geometry_visual_ready(reviews, display_available):
+    """An explicit surface-only rejection permits comparison, never approval."""
+    if not display_available:
+        return False
+    if reviews.get('appearance_approved') is True:
+        return True
+    if reviews.get('appearance_approved') is not False:
+        return False
+    from .service import ObjectWorkflow
+    resolved=ObjectWorkflow._resolved_visual_feedback(reviews.get('image_critic'),reviews.get('code_critic'))
+    high=[issue for issue in resolved['issues'] if issue.get('severity')=='HIGH']
+    return bool(high and all(issue.get('aspect','geometry')=='surface' for issue in high))
+
+
 async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, source_path, plan,
                                  initial_execution=None, initial_topology_run=None, evidence_files=()):
     from .service import _asset_executor_timeout_seconds, _actionable_findings, VISUAL_FEEDBACK_INSTRUCTION
@@ -176,7 +190,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         edit_purpose = feedback.get('next_edit_purpose','required_repair') if number > 1 else 'required_repair'
         comparison_baseline = feedback.get('comparison_baseline_version') if number > 1 else None
         if edit_purpose.endswith('_optimization') and not comparison_baseline:
-            comparison_baseline = book['qualified']
+            comparison_baseline = book['retained'] if retained['reviews'].get('partition_ready') else book['qualified']
         if number > 1:
             # Select afresh from this version's feedback. Engineering is advice,
             # not a second candidate controller or permission to repair.
@@ -211,9 +225,13 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     'assembly_context':_assembly_context(parent, working['reviews'].get('geometry'),
                                                          version_role='repair_starting_version'),
                     'current_repair_authorized':True,
-                    'edit_purpose':edit_purpose, 'grouping_change':proposal.grouping_change.model_dump() if proposal.grouping_change else None,
+                    'edit_purpose':edit_purpose, 'primary_objective':feedback.get('primary_objective'),
+                    'partition_guidance':feedback.get('partition_guidance'), 'grouping_change':proposal.grouping_change.model_dump() if proposal.grouping_change else None,
                     'remaining_repairs_after_this_attempt':book['max_rounds']-number,
-                    'assignment':'This repair is already budget-reserved and may proceed even when remaining_repairs_after_this_attempt is 0; that count excludes the current attempt. Read the assigned source and repair the smallest relevant body/interface/assembly code. Combine current appearance and selected assembly-tool facts in this single edit; Engineering advice is optional, never a physical PASS. Unknown geometry is not confirmed disconnection. Follow feedback.edit_restriction: legacy overhang allows only requested print-orientation calls; authorized partition optimization may change add_part grouping and every affected connect/frame using the original bodies. Preserve all body material and root frame, remove internal connectors, and resolve split-child overlap. Never merge historical STL meshes. Never change frozen physical specifications or checker configuration. If no reasonable edit exists, use NO_CHANGE. ' + EVIDENCE_PATH_INSTRUCTION + ' Visual changes come from feedback.resolved_visual_feedback. ' + VISUAL_FEEDBACK_INSTRUCTION})
+                    'assignment':('This repair is already budget-reserved and may proceed even when remaining_repairs_after_this_attempt is 0; that count excludes the current attempt. Read the assigned source. Never change frozen physical specifications, checker configuration or measurement reference. ' + EVIDENCE_PATH_INSTRUCTION +
+                        (' Primary objective: partition optimization, including repair of interfaces introduced by this same candidate. Preserve the entire original body and root frame; regroup add_part and every affected connect/frame, remove internal connectors and resolve split-child overlap. Never merge historical STL meshes. Pending HIGH surface issues remain unresolved requirements, deferred from this candidate; do not invent material APIs or modify the body to simulate gloss. Geometric visual defects and physical failures introduced by this candidate must be repaired before adoption. Keep the original comparison baseline.'
+                         if edit_purpose.endswith('_optimization') else
+                         ' Primary objective: necessary repair from current localized geometry/physical or reviewed appearance evidence. Regrouping may repair a real failure without requiring a score increase. Follow feedback.edit_restriction. Use only supported public APIs; if only an unsupported surface requirement remains, report NO_CHANGE. Visual changes come from feedback.resolved_visual_feedback. '+VISUAL_FEEDBACK_INSTRUCTION))})
             write_json(candidate_root/'edit_outcome.json', outcome)
             if outcome['status'] != 'CHANGED':
                 book['versions'][version_id] = version_record(version_id, current, None,
@@ -231,6 +249,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         report = {'status':'ERROR', 'failures':[]}
         report_path = candidate_root/'asset'/'assembly'/'assembly_manifest.json'
         accepted, reason = False, 'interface_or_appearance_rejected'
+        gate_passed = display_available = False
+        check_regressed = False
         try:
             if number == 1 and initial_execution is not None:
                 execution = initial_execution
@@ -407,7 +427,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 old = retained['reviews'].get(r.spec.name)
                 if (old and old['status']=='PASS' and r.result.status!='PASS' and
                     not (partition is not None and r.spec.name=='assembly_overhang' and not r.spec.required)):
-                    accepted=False; reason='previously_valid_check_regressed'
+                    accepted=False; check_regressed=True; reason='previously_valid_check_regressed'
             overhang = next((r for r in runs if r.spec.name=='assembly_overhang'),None)
             prior_area=retained['reviews'].get('assembly_overhang')
             if partition is None and number>1 and overhang and prior_area:
@@ -417,24 +437,47 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 reviews['edit_kind']='print_orientation_only' if pure else 'structural'
                 if pure and comparison['conclusion']!='IMPROVED':
                     accepted=False;reason='print_orientation_not_reliably_improved'
-        feasible = accepted
         optimization_finished = False
+        partition_restore = None
+        partition_stop_reason = None
+        partition_mark_stopped = False
+        partition_ready = partition_adopted = False
         if partition is not None:
+            necessary_passed = all(r.result.status=='PASS' for r in runs if r.spec.required) and not any(
+                spec.required and spec.name not in NAMES for spec in request.checker_specs)
+            feasible_without_surface = bool(gate_passed and reason!='FLOW_ERROR' and
+                _geometry_visual_ready(reviews,display_available) and necessary_passed and not check_regressed)
             reviews.update(edit_purpose=edit_purpose, comparison_baseline_version=comparison_baseline,
-                body_reference_comparison=shape_comparison, partition_reference=reference_path)
+                body_reference_comparison=shape_comparison, partition_reference=reference_path,
+                feasible_without_surface=feasible_without_surface)
             overhang = next((r for r in runs if r.spec.name=='assembly_overhang'),None)
-            if edit_purpose.endswith('_optimization'):
+            pure_optimization = edit_purpose.endswith('_optimization')
+            if pure_optimization:
                 baseline = book['versions'].get(comparison_baseline, {})
                 comparison = compare_partition_scores(baseline.get('reviews',{}).get('assembly_overhang',{}),
                                                       overhang.result.model_dump() if overhang else {})
                 reviews['partition_change_vs_baseline'] = comparison
-                if not shape_comparison or shape_comparison['status'] != 'MATCH':
-                    accepted=False; reason='partition_reference_shape_changed_or_unavailable'
+                shape_matches=bool(shape_comparison and shape_comparison['status']=='MATCH')
+                partition_adopted = bool(feasible_without_surface and shape_matches and comparison['conclusion']=='IMPROVED')
+                accepted = bool(accepted and partition_adopted)
+                if not shape_matches:
+                    reason='partition_reference_shape_changed_or_unavailable'
                 elif comparison['conclusion'] != 'IMPROVED':
-                    accepted=False; reason='partition_score_'+comparison['conclusion'].lower()
-                optimization_finished = feasible and not accepted
-            elif accepted and shape_comparison and shape_comparison['status']=='CHANGED':
-                # An accepted necessary repair starts a new comparison series.
+                    reason='partition_score_'+comparison['conclusion'].lower()
+                elif partition_adopted and not accepted:
+                    reason='partition_improved_surface_unresolved'
+                # A known shape violation or completed losing comparison needs no
+                # speculative candidate repair. Preserve an existing full approval.
+                optimization_finished = bool((feasible_without_surface and not partition_adopted) or
+                    (shape_comparison and shape_comparison['status']=='CHANGED') or
+                    (partition_adopted and book['qualified'] and not accepted))
+                if optimization_finished:
+                    partition_restore=comparison_baseline
+                    partition_stop_reason=reason
+                    partition_mark_stopped=True
+            elif feasible_without_surface and shape_comparison and shape_comparison['status']=='CHANGED':
+                # A necessary body repair may be geometrically ready while a
+                # surface requirement is still unresolved. Start a new reference.
                 try:
                     new_reference = str(create_reference(candidate_root/'asset/assembly/assembly_manifest.json',
                         workspace/'partition_references',partition))
@@ -444,26 +487,36 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     reviews['assembly_overhang'] = refreshed.result.model_dump()
                     reference_path = new_reference
                     book['partition_reference'] = new_reference
-                    reviews.update(reference_shape_changed=True,partition_reference=new_reference)
+                    reviews['previous_body_reference_comparison']=shape_comparison
+                    shape_comparison=reference_shape_comparison(candidate_root/'asset/assembly/assembly_manifest.json',new_reference)
+                    reviews.update(reference_shape_changed=True,partition_reference=new_reference,
+                                   body_reference_comparison=shape_comparison)
+                    overhang=refreshed
                     if refreshed.spec.required and refreshed.result.status!='PASS':
-                        accepted=False;reason='assembly_required_checks_not_passed'
+                        accepted=False; feasible_without_surface=False; reason='assembly_required_checks_not_passed'
                 except (ValueError,KeyError,OSError,RuntimeError) as error:
-                    # Preserve required repair acceptance, but forbid stale score comparisons.
                     reviews['partition_reference_error'] = str(error)[:240]
                     from .checkers import CheckerRun
                     unavailable = overhang.result.model_copy(deep=True)
                     unavailable.status='INDETERMINATE'
-                    unavailable.summary='Required repair accepted; new partition reference unavailable'
+                    unavailable.summary='Required repair measured; new partition reference unavailable'
                     unavailable.metrics['partition_objective'].update(score=None,gap_voxels=None,reference_sha256=None)
+                    unavailable.metrics['partition_guidance']={'status':'UNAVAILABLE','reason':'new reference unavailable'}
                     unavailable.findings=[]; unavailable.artifacts.pop('print_layout',None)
                     write_json(overhang.output_dir/'result.json',unavailable.model_dump())
                     write_json(overhang.output_dir/'report.json',unavailable.model_dump())
                     replacement=CheckerRun(overhang.spec,unavailable,overhang.output_dir,overhang.command)
                     runs=[replacement if r.spec.name=='assembly_overhang' else r for r in runs]
                     reviews['assembly_overhang']=unavailable.model_dump()
-                    book['partition_reference'] = None
+                    overhang=replacement
+                    book['partition_reference'] = reference_path = None
                     if overhang.spec.required:
-                        accepted=False;reason='assembly_required_checks_not_passed'
+                        accepted=False; feasible_without_surface=False; reason='assembly_required_checks_not_passed'
+            measured=overhang.result.model_dump() if overhang else {}
+            partition_ready=bool(feasible_without_surface and shape_comparison and shape_comparison['status']=='MATCH'
+                and compare_partition_scores(measured,measured)['conclusion']=='UNCHANGED')
+            reviews.update(partition_ready=partition_ready,partition_adopted=partition_adopted,
+                           feasible_without_surface=feasible_without_surface)
         reviews.update(geometry=report, accepted=accepted, reason=reason)
         extra = sorted((candidate_root/'asset'/'assembly').rglob('*'))
         if specs:
@@ -478,10 +531,13 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             'source_sha256':file_hash(current), 'accepted':accepted, 'reason':reason,
             'geometry_status':report['status'], 'appearance_approved':reviews.get('appearance_approved'),
             **({k:reviews.get(k) for k in ('edit_purpose','comparison_baseline_version','partition_reference',
-                'body_reference_comparison','partition_change_vs_baseline')} if partition is not None else {})})
+                'body_reference_comparison','partition_change_vs_baseline','partition_ready','partition_adopted')} if partition is not None else {})})
         if accepted:
             book['retained'] = version_id
             book['qualified'] = version_id
+        elif partition is not None and not book['qualified'] and (
+                partition_adopted or (edit_purpose=='required_repair' and partition_ready)):
+            book['retained'] = version_id
         failure_feedback = _failure_feedback(report)
         feedback = {'geometry_status':report['status'], 'failures':report.get('failures',[])[:6],
             'failure_feedback':failure_feedback[:6], 'failure_instruction':FAILURE_INSTRUCTION,
@@ -521,9 +577,12 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         actionable = []
         optimize = False
         if runs:
+            objective=reviews.get('assembly_overhang',{}).get('metrics',{}).get('partition_objective',{})
+            reference_id=objective.get('reference_sha256')
+            optional_allowed=bool(partition_ready and reference_id and book.get('partition_stop_reference')!=reference_id)
             actionable = [f for r in runs for f in _actionable_findings(r)
                           if f.category!='optimization_opportunity' or
-                          (request.repair_policy.print_partition_editable if f.rule_id=='PRINT_PARTITION_OPPORTUNITY'
+                          (request.repair_policy.print_partition_editable and optional_allowed if partition is not None
                            else request.repair_policy.print_orientation_editable)]
             optimize = any(f.category=='optimization_opportunity' for f in actionable)
             feedback['orientation_only_edit'] = bool(partition is None and actionable and reviews.get('appearance_approved') and
@@ -531,13 +590,24 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             if feedback['orientation_only_edit']:
                 feedback['edit_restriction']='Only literal set_print_orientation(part_id, rotation_deg=(x,y,z)) calls; keep all geometry and assembly unchanged.'
             if partition is not None:
-                if edit_purpose.endswith('_optimization') and not accepted:
+                continuing_optimization=edit_purpose.endswith('_optimization') and not partition_adopted
+                if continuing_optimization:
                     feedback.update(next_edit_purpose=edit_purpose,comparison_baseline_version=comparison_baseline)
-                elif accepted and optimize:
+                elif partition_ready and optimize:
                     feedback.update(next_edit_purpose='partition_optimization',comparison_baseline_version=version_id)
                 else:
                     feedback.update(next_edit_purpose='required_repair',comparison_baseline_version=None)
-                feedback['edit_restriction']='Preserve the entire pre-connector body shape and root frame. Only authorized grouping/related interface edits may optimize the Dapper objective; necessary repairs follow their measured evidence.'
+                feedback['primary_objective']=(
+                    'Repair this partition candidate using localized geometry/physical evidence; preserve the original comparison baseline.'
+                    if continuing_optimization else
+                    'Evaluate one local grouping hypothesis; preserve the body and defer unresolved surface-only requirements.'
+                    if feedback['next_edit_purpose']=='partition_optimization' else
+                    'Resolve localized necessary geometry/physical or HIGH geometry visual defects first; otherwise use supported surface controls or NO_CHANGE.')
+                feedback['edit_restriction']='Preserve the entire pre-connector body shape and root frame for partition optimization. Necessary repairs follow their measured evidence. Unsupported surface controls must not be invented.'
+                if partition_ready and not optimization_finished:
+                    # Save before attaching a proposal; a rollback must not replay
+                    # the rejected candidate's advice against a different source.
+                    book.setdefault('partition_baseline_feedback',{})[version_id]=json.loads(json.dumps(feedback))
             feedback['actionable_finding_ids']=[f.finding_id for f in actionable]
             remaining = book['max_rounds']-number
             if (not accepted or optimize) and not optimization_finished and reason != 'FLOW_ERROR' and actionable and remaining > 0:
@@ -546,6 +616,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     policy=request.repair_policy.model_copy(update={'max_total_candidates':book['max_rounds']-1}))
                 budget.started_at=book['started_at']
                 if not budget.budget_error():
+                    next_proposal=None
                     try:
                         next_proposal = await engineer(workflow,runtime,request,plan,current,execution,
                             candidate_root,runs if len(runs)>1 or not topology_run else topology_run,_assembly_context(current,report,version_role='current_candidate'),
@@ -556,21 +627,26 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                         elif feedback['engineering']['status']=='NOT_REQUESTED':
                             feedback['engineering']={'status':'NO_PROPOSAL',
                                 'reason':'No structured advice; use trustworthy current feedback or NO_CHANGE.'}
-                        if accepted and optimize and not next_proposal:
-                            optimize=False;stop='no_reasonable_partition_proposal' if partition is not None else 'no_reasonable_orientation_proposal';book['completed']=True
                     except Exception as error:
                         write_json(candidate_root/'engineering_error.json',
                             {'type':type(error).__name__,'reason':str(error)[:300]})
-                        # Keep invalid/unparsed output only in the diagnostic.
-                        # Coder still receives the already collected facts.
                         feedback['engineering']={'status':'UNAVAILABLE','reason':type(error).__name__,
                             'report_path':str((candidate_root/'engineering_error.json').resolve())}
+                    if partition is not None and feedback['next_edit_purpose'].endswith('_optimization') and not next_proposal:
+                        partition_restore=feedback['comparison_baseline_version']
+                        unavailable=feedback['engineering']['status']!='NO_PROPOSAL'
+                        partition_stop_reason='partition_engineering_unavailable' if unavailable else 'no_reasonable_partition_proposal'
+                        partition_mark_stopped=not unavailable
+                    elif partition is None and accepted and optimize and not next_proposal:
+                        optimize=False;stop='no_reasonable_orientation_proposal';book['completed']=True
                 else:
                     stop='repair_budget_exhausted';book['completed']=True
+            elif partition is not None and continuing_optimization and not optimization_finished and not actionable:
+                partition_restore=comparison_baseline
+                partition_stop_reason='partition_candidate_unverified_no_executable_feedback'
             elif (not accepted and reviews.get('appearance_approved') and not actionable
                   and not report.get('failures') and report.get('export_status') != 'FAIL'
                   and not (not visual_only and report['status']=='FAIL')):
-                # No infrastructure-driven blind source edits.
                 stop=('topology_unverified_no_executable_feedback' if len(specs)==1 and topology_spec
                       else 'assembly_checks_unverified_no_executable_feedback');book['completed']=True
         # Export unavailability alone is not a reason to change shape. Keep
@@ -583,15 +659,27 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 and not actionable and not image_pending
                 and not any(f.get('code') == 'EXECUTION_UNAVAILABLE' for f in failure_feedback)):
             stop='export_unassessed_no_geometry_repair';book['completed']=True
-        if partition is not None:
-            if accepted and optimize:
-                book.setdefault('partition_baseline_feedback',{})[version_id]=feedback
-            if optimization_finished:
-                book['working']=book['retained']
-                feedback=book.get('partition_baseline_feedback',{}).get(book['retained'],
-                    {'source_version':book['retained'],'source_sha256':file_hash(Path(book['versions'][book['retained']]['source']))})
-                book['completed']=True
-                stop=reason
+        if partition_restore is not None:
+            baseline=book['versions'][partition_restore]
+            book['working']=partition_restore
+            if not book['qualified'] or baseline['reviews'].get('accepted'):
+                book['retained']=partition_restore
+            if partition_mark_stopped:
+                book['partition_stop_reference']=baseline['reviews'].get('assembly_overhang',{}).get('metrics',{}).get('partition_objective',{}).get('reference_sha256')
+            previous_engineering=feedback.get('engineering',{})
+            feedback=json.loads(json.dumps(book.get('partition_baseline_feedback',{}).get(partition_restore,{})))
+            feedback.update(source_version=partition_restore,source_sha256=file_hash(Path(baseline['source'])),
+                next_edit_purpose='required_repair',comparison_baseline_version=None,
+                primary_objective='Address remaining required baseline appearance using supported APIs, or NO_CHANGE.',
+                partition_stop_reason=partition_stop_reason)
+            feedback.pop('engineering_proposal',None)
+            # Preserve UNAVAILABLE as such, but never reuse candidate localization.
+            if partition_restore==version_id:
+                feedback['engineering']=previous_engineering
+            optimize=False
+            pending=feedback.get('resolved_visual_feedback',{}).get('required_changes')
+            book['completed']=bool(baseline['reviews'].get('accepted') or not pending)
+            stop=partition_stop_reason
         book.update(feedback=feedback, next_round=number+1)
         write_json(book_path, book)
         if accepted and not optimize or reason == 'FLOW_ERROR':

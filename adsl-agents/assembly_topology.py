@@ -387,6 +387,13 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
     partition_enabled = bool(request.fixed_assembly.get('physics',{}).get('overhang',{}).get('partition_objective'))
     if partition_enabled and request.repair_policy.print_partition_editable:
         instruction = ENGINEERING_INSTRUCTION + '''
+Follow next_edit_purpose and primary_objective. Necessary localized geometry or
+physical failures have priority and may justify regrouping without a score gain.
+An existing partition candidate's interface repair retains its original comparison
+baseline. For partition_optimization, preserve all bodies and defer pending HIGH
+surface-only requirements; they still block full approval. Do not require a
+simultaneous unsupported material repair. Arithmetic partition_guidance gives
+strict theoretical bounds, not measured candidate scores or a restriction to N±1.
 Partition objective enabled: use the measured frozen-reference Dapper score (maximize),
 not overhang area, to evaluate ONE local split or merge. Even G=0 may admit a useful
 merge; NO_PROPOSAL is valid. A proposal is a falsifiable hypothesis, not a measured
@@ -423,6 +430,10 @@ visual failures remain necessary repairs; a high score cannot excuse them.
                 'recommended_pose_area_mm2')} for item in r.result.metrics.get('items',[])]}
             for r in runs if r.spec.name=='assembly_overhang'],
         'partition_change_vs_baseline':feedback.get('partition_change_vs_baseline'),
+        'next_edit_purpose':feedback.get('next_edit_purpose'),
+        'primary_objective':feedback.get('primary_objective'),
+        'comparison_baseline_version':feedback.get('comparison_baseline_version'),
+        'partition_guidance':feedback.get('partition_guidance'),
         'resolved_visual_feedback':feedback.get('resolved_visual_feedback'),
         'pending_reviews':{k:feedback.get(k) for k in ('image_critic','code_critic','render_issue','repair_history')},
         'remaining_repairs':remaining,'maximum_repair_proposals':1,
