@@ -67,6 +67,9 @@ def test_measured_partition_reaches_engineering(tmp_path,monkeypatch,permission,
                                  'connections':manifest['connections']}}
     async def model(**kw):
         data=payload(kw)
+        if permission:
+            assert 'alternative score is not required' in data['assignment']
+            assert 'do not invent the candidate score' in data['assignment']
         assert data['partition_measurement'][0]['partition_objective']['reference_sha256']
         assert data['assembly_context']['current_assembly']['connections']==manifest['connections']
         await tool(read_file,kw['context'],'read_source',path=str(args.source))

@@ -123,3 +123,14 @@ initial plan.json is not rewritten. Use assembly_result.json.print_layout and
 print_parts for the recommended print orientation/STL, not the authored-pose STL.
 The layout, score, body reference, source and all checker results are bound to the
 same selected version. Assembly/use transforms and Standing inputs are unchanged.
+
+### Appearance controls
+
+The current public appearance controls are color and alpha. The GLB exporter
+creates a Principled material with default shader settings; the source API has no
+roughness/specular setter. Do not invent such methods or replace required geometry
+with decorative geometry to simulate gloss. A missing unsupported material call
+alone does not establish a visible finish failure. Judge the rendered evidence;
+if an essential finish is visibly unmet and cannot be expressed, report that
+limitation honestly rather than claiming it was repaired or automatically approved.
+Optional wood grain must not become a mandatory feature.

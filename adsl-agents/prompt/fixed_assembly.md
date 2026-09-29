@@ -117,3 +117,14 @@ cross-part connector using connect(). Keep root ID/frame, full body union, froze
 scale/fit/dimensions and all visible requirements. Explain expected G/N tradeoff;
 measured same-reference Dapper score decides benefit only after required checks.
 Initial plan.json remains historical; selected manifest is the actual grouping.
+
+Appearance API limits for generated source and repair:
+
+The current public appearance controls are color and alpha. The GLB exporter
+creates a Principled material with default shader settings; the source API has no
+roughness/specular setter. Do not invent such methods or replace required geometry
+with decorative geometry to simulate gloss. A missing unsupported material call
+alone does not establish a visible finish failure. Judge the rendered evidence;
+if an essential finish is visibly unmet and cannot be expressed, report that
+limitation honestly rather than claiming it was repaired or automatically approved.
+Optional wood grain must not become a mandatory feature.

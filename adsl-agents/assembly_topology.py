@@ -389,7 +389,13 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
         instruction = ENGINEERING_INSTRUCTION + '''
 Partition objective enabled: use the measured frozen-reference Dapper score (maximize),
 not overhang area, to evaluate ONE local split or merge. Even G=0 may admit a useful
-merge; NO_PROPOSAL is valid. Use action regroup_print_parts with grouping_change
+merge; NO_PROPOSAL is valid. A proposal is a falsifiable hypothesis, not a measured
+improvement: an alternative score is not required before proposing it. Use current
+body structure, per-part G and N to explain the expected gap/count tradeoff and its
+risks; do not invent the candidate score. Measurement after the edit determines
+adoption. Decline when no reasonable local change follows from this evidence,
+not solely because no alternative has been measured yet.
+Use action regroup_print_parts with grouping_change
 (operation, source_part_ids, target_print_parts, connection_changes). Preserve all
 pre-connector body material, appearance, root ID/frame and required features.
 Build from original bodies/children, remove internal connectors and recreate every
