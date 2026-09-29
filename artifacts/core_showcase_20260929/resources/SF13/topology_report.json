@@ -1,0 +1,2601 @@
+{
+  "source_sha256": "a4212de6738c3c598eb53286bcb10036ef26cad5c7eeb6fbd5d5c5a8e43eb6f2",
+  "manifest_sha256": "9b5512563cae48c8039029b7dc3e288c5ffa75bb72918b85f8b76bf493efc77d",
+  "items": [
+    {
+      "kind": "part",
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART",
+      "part_id": "side_left",
+      "component_count": 1,
+      "component_bounds_mm": [
+        [
+          [
+            -50.0,
+            -16.0,
+            0.0
+          ],
+          [
+            -44.0,
+            16.0,
+            200.0
+          ]
+        ]
+      ],
+      "representative_points_mm": [
+        [
+          -47.0,
+          0.0,
+          100.0
+        ]
+      ],
+      "bounds_mm": [
+        [
+          -50.0,
+          -16.0,
+          0.0
+        ],
+        [
+          -44.0,
+          16.0,
+          200.0
+        ]
+      ],
+      "length_tolerance_mm": 0.0003814697265625,
+      "nearest_components": null,
+      "solid_sha256": "010f751c21cbfebbb3d11c8b9b065e5c19fb544795d5a92ca979944ce19c1a66",
+      "elapsed_seconds": 3.0507621988654137,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/part_side_left/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "part",
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART",
+      "part_id": "side_right",
+      "component_count": 1,
+      "component_bounds_mm": [
+        [
+          [
+            44.0,
+            -16.0,
+            0.0
+          ],
+          [
+            50.0,
+            16.0,
+            200.0
+          ]
+        ]
+      ],
+      "representative_points_mm": [
+        [
+          47.0,
+          0.0,
+          100.0
+        ]
+      ],
+      "bounds_mm": [
+        [
+          44.0,
+          -16.0,
+          0.0
+        ],
+        [
+          50.0,
+          16.0,
+          200.0
+        ]
+      ],
+      "length_tolerance_mm": 0.0003814697265625,
+      "nearest_components": null,
+      "solid_sha256": "5cc0cf6ce8966d473c0e7fd5eb6fb7050a7d275e27af38e8d47ddea021e0f1b4",
+      "elapsed_seconds": 3.136011563241482,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/part_side_right/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "part",
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART",
+      "part_id": "shelf_bottom",
+      "component_count": 1,
+      "component_bounds_mm": [
+        [
+          [
+            -48.0,
+            -16.0,
+            0.0
+          ],
+          [
+            48.0,
+            16.0,
+            6.0
+          ]
+        ]
+      ],
+      "representative_points_mm": [
+        [
+          0.0,
+          0.0,
+          3.0
+        ]
+      ],
+      "bounds_mm": [
+        [
+          -48.0,
+          -16.0,
+          0.0
+        ],
+        [
+          48.0,
+          16.0,
+          6.0
+        ]
+      ],
+      "length_tolerance_mm": 9.1552734375e-05,
+      "nearest_components": null,
+      "solid_sha256": "1af805bf39f4f2b01cd81685fe8a3a206f91b61adfa58bc02df6bd1291aa877f",
+      "elapsed_seconds": 3.110530700534582,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/part_shelf_bottom/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "part",
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART",
+      "part_id": "shelf_level_2",
+      "component_count": 1,
+      "component_bounds_mm": [
+        [
+          [
+            -48.0,
+            -16.0,
+            38.79999923706055
+          ],
+          [
+            48.0,
+            16.0,
+            44.79999923706055
+          ]
+        ]
+      ],
+      "representative_points_mm": [
+        [
+          0.0,
+          0.0,
+          41.79999923706055
+        ]
+      ],
+      "bounds_mm": [
+        [
+          -48.0,
+          -16.0,
+          38.79999923706055
+        ],
+        [
+          48.0,
+          16.0,
+          44.79999923706055
+        ]
+      ],
+      "length_tolerance_mm": 9.1552734375e-05,
+      "nearest_components": null,
+      "solid_sha256": "35c1954caacbeba9c57fbaad7468c1bd6dd5163a99c4d62085e8fd4834481ed8",
+      "elapsed_seconds": 3.123788457363844,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/part_shelf_level_2/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "part",
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART",
+      "part_id": "shelf_level_3",
+      "component_count": 1,
+      "component_bounds_mm": [
+        [
+          [
+            -48.0,
+            -16.0,
+            77.5999984741211
+          ],
+          [
+            48.0,
+            16.0,
+            83.60000610351562
+          ]
+        ]
+      ],
+      "representative_points_mm": [
+        [
+          0.0,
+          0.0,
+          80.60000228881836
+        ]
+      ],
+      "bounds_mm": [
+        [
+          -48.0,
+          -16.0,
+          77.5999984741211
+        ],
+        [
+          48.0,
+          16.0,
+          83.60000610351562
+        ]
+      ],
+      "length_tolerance_mm": 0.00015945435734465718,
+      "nearest_components": null,
+      "solid_sha256": "deea9f53d64d46d561f21e2fee1bf1cc709c366fd543fde8e2b757aef12886d5",
+      "elapsed_seconds": 3.105076326057315,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/part_shelf_level_3/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "part",
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART",
+      "part_id": "shelf_level_4",
+      "component_count": 1,
+      "component_bounds_mm": [
+        [
+          [
+            -48.0,
+            -16.0,
+            116.4000015258789
+          ],
+          [
+            48.0,
+            16.0,
+            122.4000015258789
+          ]
+        ]
+      ],
+      "representative_points_mm": [
+        [
+          0.0,
+          0.0,
+          119.4000015258789
+        ]
+      ],
+      "bounds_mm": [
+        [
+          -48.0,
+          -16.0,
+          116.4000015258789
+        ],
+        [
+          48.0,
+          16.0,
+          122.4000015258789
+        ]
+      ],
+      "length_tolerance_mm": 0.00023345947556663305,
+      "nearest_components": null,
+      "solid_sha256": "ffc1f2c36a06c4620dda4d692bf69cc27818246ae9b67a4e0a14b6755ea1d9df",
+      "elapsed_seconds": 3.231035152450204,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/part_shelf_level_4/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "part",
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART",
+      "part_id": "shelf_level_5",
+      "component_count": 1,
+      "component_bounds_mm": [
+        [
+          [
+            -48.0,
+            -16.0,
+            155.1999969482422
+          ],
+          [
+            48.0,
+            16.0,
+            161.1999969482422
+          ]
+        ]
+      ],
+      "representative_points_mm": [
+        [
+          0.0,
+          0.0,
+          158.1999969482422
+        ]
+      ],
+      "bounds_mm": [
+        [
+          -48.0,
+          -16.0,
+          155.1999969482422
+        ],
+        [
+          48.0,
+          16.0,
+          161.1999969482422
+        ]
+      ],
+      "length_tolerance_mm": 0.0003074645937886089,
+      "nearest_components": null,
+      "solid_sha256": "8eed2410dab7b54265643e79431fc8b9676ed2bbd0cdeb78b09382925f6b37d6",
+      "elapsed_seconds": 3.1518079955130816,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/part_shelf_level_5/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "part",
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART",
+      "part_id": "cap_top",
+      "component_count": 1,
+      "component_bounds_mm": [
+        [
+          [
+            -48.0,
+            -16.0,
+            194.0
+          ],
+          [
+            48.0,
+            16.0,
+            200.0
+          ]
+        ]
+      ],
+      "representative_points_mm": [
+        [
+          0.0,
+          0.0,
+          197.0
+        ]
+      ],
+      "bounds_mm": [
+        [
+          -48.0,
+          -16.0,
+          194.0
+        ],
+        [
+          48.0,
+          16.0,
+          200.0
+        ]
+      ],
+      "length_tolerance_mm": 0.0003814697265625,
+      "nearest_components": null,
+      "solid_sha256": "1f0757993dc1bd4c4db9125fd473c7ad9790de1bcfa721e719520dcbef6c743e",
+      "elapsed_seconds": 3.190189465880394,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/part_cap_top/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_bottom",
+      "slot_part": "side_left",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_1_front_slot",
+      "connection_id": "s1_left_front",
+      "id": "s1_left_front",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 2.9007568828271216e-06,
+      "occupied_cavity_mm3": 1.026535021737196e-05,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003757476806640625,
+      "volume_tolerance_mm3": 0.08421257019042969,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252174716534957,
+          "equivalent_band_area_mm2": 41.59822560637918,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252039718642485,
+          "equivalent_band_area_mm2": 41.59732741126436,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.1588373798877,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s1_left_front/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_bottom",
+      "slot_part": "side_left",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_1_rear_slot",
+      "connection_id": "s1_left_rear",
+      "id": "s1_left_rear",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 2.9007568828271216e-06,
+      "occupied_cavity_mm3": 1.026535021737196e-05,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003757476806640625,
+      "volume_tolerance_mm3": 0.08421257019042969,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252174716534957,
+          "equivalent_band_area_mm2": 41.59822560637918,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252039718642485,
+          "equivalent_band_area_mm2": 41.59732741126436,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.1910312436521053,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s1_left_rear/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_bottom",
+      "slot_part": "side_right",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_1_front_slot",
+      "connection_id": "s1_right_front",
+      "id": "s1_right_front",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 2.9007511774119355e-06,
+      "occupied_cavity_mm3": 1.0265350213604752e-05,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003757476806640625,
+      "volume_tolerance_mm3": 0.08421257019042969,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252039718642466,
+          "equivalent_band_area_mm2": 41.597327411264224,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252174716535079,
+          "equivalent_band_area_mm2": 41.59822560637999,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.0890223998576403,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s1_right_front/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_bottom",
+      "slot_part": "side_right",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_1_rear_slot",
+      "connection_id": "s1_right_rear",
+      "id": "s1_right_rear",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 2.9007511774119355e-06,
+      "occupied_cavity_mm3": 1.0265350213604752e-05,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003757476806640625,
+      "volume_tolerance_mm3": 0.08421257019042969,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252039718642466,
+          "equivalent_band_area_mm2": 41.597327411264224,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252174716535079,
+          "equivalent_band_area_mm2": 41.59822560637999,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.1060892306268215,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s1_right_rear/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_2",
+      "slot_part": "side_left",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_2_front_slot",
+      "connection_id": "s2_left_front",
+      "id": "s2_left_front",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 2.7847292845168656e-05,
+      "occupied_cavity_mm3": 6.69479371090409e-06,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003017425537109375,
+      "volume_tolerance_mm3": 0.06762654113769531,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351552515,
+          "equivalent_band_area_mm2": 15.599999999991729,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351552515,
+          "equivalent_band_area_mm2": 15.599999999991729,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.050209960937479876,
+          "equivalent_band_area_mm2": 41.59999999998333,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.05014648437744259,
+          "equivalent_band_area_mm2": 41.54740834589226,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.126774501055479,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s2_left_front/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_2",
+      "slot_part": "side_left",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_2_rear_slot",
+      "connection_id": "s2_left_rear",
+      "id": "s2_left_rear",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 2.7847292845168656e-05,
+      "occupied_cavity_mm3": 6.69479371090409e-06,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003017425537109375,
+      "volume_tolerance_mm3": 0.06762654113769531,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351552515,
+          "equivalent_band_area_mm2": 15.599999999991729,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351552515,
+          "equivalent_band_area_mm2": 15.599999999991729,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.050209960937480175,
+          "equivalent_band_area_mm2": 41.59999999998358,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.05014648437744259,
+          "equivalent_band_area_mm2": 41.54740834589226,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.1429309360682964,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s2_left_rear/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_2",
+      "slot_part": "side_right",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_2_front_slot",
+      "connection_id": "s2_right_front",
+      "id": "s2_right_front",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 2.784729284423194e-05,
+      "occupied_cavity_mm3": 6.694793670474207e-06,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003017425537109375,
+      "volume_tolerance_mm3": 0.06762654113769531,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351552515,
+          "equivalent_band_area_mm2": 15.599999999991729,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351552515,
+          "equivalent_band_area_mm2": 15.599999999991729,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.05014648437744275,
+          "equivalent_band_area_mm2": 41.54740834589239,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.05020996093747989,
+          "equivalent_band_area_mm2": 41.59999999998334,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.1344551108777523,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s2_right_front/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_2",
+      "slot_part": "side_right",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_2_rear_slot",
+      "connection_id": "s2_right_rear",
+      "id": "s2_right_rear",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 2.784729284423194e-05,
+      "occupied_cavity_mm3": 6.694793711330415e-06,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003017425537109375,
+      "volume_tolerance_mm3": 0.06762654113769531,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351552515,
+          "equivalent_band_area_mm2": 15.599999999991729,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351552515,
+          "equivalent_band_area_mm2": 15.599999999991729,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.05014648437744275,
+          "equivalent_band_area_mm2": 41.54740834589239,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.05020996093744146,
+          "equivalent_band_area_mm2": 41.59999999995151,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.0894472878426313,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s2_right_rear/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_3",
+      "slot_part": "side_left",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_3_front_slot",
+      "connection_id": "s3_left_front",
+      "id": "s3_left_front",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 5.569459151251498e-05,
+      "occupied_cavity_mm3": 0.0002923393144840247,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0002277374267578125,
+      "volume_tolerance_mm3": 0.051040512084960944,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.2789956592023373,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s3_left_front/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_3",
+      "slot_part": "side_left",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_3_rear_slot",
+      "connection_id": "s3_left_rear",
+      "id": "s3_left_rear",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 5.569459151251498e-05,
+      "occupied_cavity_mm3": 0.0002923393144840247,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0002277374267578125,
+      "volume_tolerance_mm3": 0.051040512084960944,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.1630931571125984,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s3_left_rear/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_3",
+      "slot_part": "side_right",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_3_front_slot",
+      "connection_id": "s3_right_front",
+      "id": "s3_right_front",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 5.569459151251497e-05,
+      "occupied_cavity_mm3": 0.0002923393144840247,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0002277374267578125,
+      "volume_tolerance_mm3": 0.051040512084960944,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.10668932646513,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s3_right_front/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_3",
+      "slot_part": "side_right",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_3_rear_slot",
+      "connection_id": "s3_right_rear",
+      "id": "s3_right_rear",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 5.569459151251497e-05,
+      "occupied_cavity_mm3": 0.0002923393144840247,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0002277374267578125,
+      "volume_tolerance_mm3": 0.051040512084960944,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.067932538688183,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s3_right_rear/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_4",
+      "slot_part": "side_left",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_4_front_slot",
+      "connection_id": "s4_left_front",
+      "id": "s4_left_front",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 5.569459151251497e-05,
+      "occupied_cavity_mm3": 0.0002923393144840247,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0002277374267578125,
+      "volume_tolerance_mm3": 0.051040512084960944,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.1201799642294645,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s4_left_front/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_4",
+      "slot_part": "side_left",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_4_rear_slot",
+      "connection_id": "s4_left_rear",
+      "id": "s4_left_rear",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 5.569459151251497e-05,
+      "occupied_cavity_mm3": 0.0002923393144840247,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0002277374267578125,
+      "volume_tolerance_mm3": 0.051040512084960944,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.106768114492297,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s4_left_rear/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_4",
+      "slot_part": "side_right",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_4_front_slot",
+      "connection_id": "s4_right_front",
+      "id": "s4_right_front",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 5.569459151251498e-05,
+      "occupied_cavity_mm3": 0.0002923393144840247,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0002277374267578125,
+      "volume_tolerance_mm3": 0.051040512084960944,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.0751819033175707,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s4_right_front/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_4",
+      "slot_part": "side_right",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_4_rear_slot",
+      "connection_id": "s4_right_rear",
+      "id": "s4_right_rear",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 5.569459151251498e-05,
+      "occupied_cavity_mm3": 0.0002923393144840247,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0002277374267578125,
+      "volume_tolerance_mm3": 0.051040512084960944,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.014210815429676416,
+          "equivalent_band_area_mm2": 15.599999999987832,
+          "uncertainty_mm3": 0.007108685540850271,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00091094970703125,
+          "intersection_mm3": 0.0378955078125068,
+          "equivalent_band_area_mm2": 41.60000000000746,
+          "uncertainty_mm3": 0.018953728677704937,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.103470917791128,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s4_right_rear/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_5",
+      "slot_part": "side_left",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_5_front_slot",
+      "connection_id": "s5_left_front",
+      "id": "s5_left_front",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 0.00011339582997813615,
+      "occupied_cavity_mm3": 0.00029233931422822934,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003017425537109375,
+      "volume_tolerance_mm3": 0.06762654113769531,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351552515,
+          "equivalent_band_area_mm2": 15.599999999991729,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.01882873535155447,
+          "equivalent_band_area_mm2": 15.599999999993347,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.05020996093749837,
+          "equivalent_band_area_mm2": 41.59999999999865,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.05020996093749837,
+          "equivalent_band_area_mm2": 41.59999999999865,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.0887174382805824,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s5_left_front/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_5",
+      "slot_part": "side_left",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_5_rear_slot",
+      "connection_id": "s5_left_rear",
+      "id": "s5_left_rear",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 0.0001133958299783582,
+      "occupied_cavity_mm3": 0.0002923393142213127,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003017425537109375,
+      "volume_tolerance_mm3": 0.06762654113769531,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351554104,
+          "equivalent_band_area_mm2": 15.599999999993045,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351552515,
+          "equivalent_band_area_mm2": 15.599999999991729,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.05020996093749837,
+          "equivalent_band_area_mm2": 41.59999999999865,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.05020996093749837,
+          "equivalent_band_area_mm2": 41.59999999999865,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.135743260383606,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s5_left_rear/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_5",
+      "slot_part": "side_right",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_5_front_slot",
+      "connection_id": "s5_right_front",
+      "id": "s5_right_front",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 0.00012377487884679335,
+      "occupied_cavity_mm3": 0.00029233931422290027,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003017425537109375,
+      "volume_tolerance_mm3": 0.06762654113769531,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351552515,
+          "equivalent_band_area_mm2": 15.599999999991729,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351554292,
+          "equivalent_band_area_mm2": 15.5999999999932,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.05020996093749837,
+          "equivalent_band_area_mm2": 41.59999999999865,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.05020996093749837,
+          "equivalent_band_area_mm2": 41.59999999999865,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.1599430944770575,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s5_right_front/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "shelf_level_5",
+      "slot_part": "side_right",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_5_rear_slot",
+      "connection_id": "s5_right_rear",
+      "id": "s5_right_rear",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 0.00012377487884520158,
+      "occupied_cavity_mm3": 0.0002923393142332031,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003017425537109375,
+      "volume_tolerance_mm3": 0.06762654113769531,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351554292,
+          "equivalent_band_area_mm2": 15.5999999999932,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.018828735351552515,
+          "equivalent_band_area_mm2": 15.599999999991729,
+          "uncertainty_mm3": 0.009420121945324352,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.05020996093749837,
+          "equivalent_band_area_mm2": 41.59999999999865,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00120697021484375,
+          "intersection_mm3": 0.05020996093749837,
+          "equivalent_band_area_mm2": 41.59999999999865,
+          "uncertainty_mm3": 0.025115469263866545,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.118921648710966,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_s5_right_rear/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "cap_top",
+      "slot_part": "side_left",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "left_front_tab",
+      "slot_port": "top_cap_front_slot",
+      "connection_id": "cap_left_front",
+      "id": "cap_left_front",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 2.0046916159948274e-05,
+      "occupied_cavity_mm3": 0.0002923393144840247,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003757476806640625,
+      "volume_tolerance_mm3": 0.08421257019042969,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252441406249704,
+          "equivalent_band_area_mm2": 41.599999999998026,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252441406249704,
+          "equivalent_band_area_mm2": 41.599999999998026,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.077708950266242,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_cap_left_front/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "cap_top",
+      "slot_part": "side_left",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "left_rear_tab",
+      "slot_port": "top_cap_rear_slot",
+      "connection_id": "cap_left_rear",
+      "id": "cap_left_rear",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 2.0046915952558616e-05,
+      "occupied_cavity_mm3": 0.0002923393144840247,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003757476806640625,
+      "volume_tolerance_mm3": 0.08421257019042969,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252441406249704,
+          "equivalent_band_area_mm2": 41.599999999998026,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252441406249704,
+          "equivalent_band_area_mm2": 41.599999999998026,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.091887293383479,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_cap_left_rear/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "cap_top",
+      "slot_part": "side_right",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "right_front_tab",
+      "slot_port": "top_cap_front_slot",
+      "connection_id": "cap_right_front",
+      "id": "cap_right_front",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 2.9164015588563156e-05,
+      "occupied_cavity_mm3": 0.0002923393144840247,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003757476806640625,
+      "volume_tolerance_mm3": 0.08421257019042969,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252441406249704,
+          "equivalent_band_area_mm2": 41.599999999998026,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252441406249704,
+          "equivalent_band_area_mm2": 41.599999999998026,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.0394216775894165,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_cap_right_front/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED",
+      "tab_part": "cap_top",
+      "slot_part": "side_right",
+      "parameter_name": "shelf_side_tabslot",
+      "tab_port": "right_rear_tab",
+      "slot_port": "top_cap_rear_slot",
+      "connection_id": "cap_right_rear",
+      "id": "cap_right_rear",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "bounds_mm": [
+        [
+          -5.2,
+          -1.95,
+          -0.5
+        ],
+        [
+          5.2,
+          1.95,
+          4.5
+        ]
+      ],
+      "frame": "slot_interface",
+      "unit": "mm",
+      "frame_offset_mm": 0.0,
+      "frame_angle_radians": 0.0,
+      "missing_tab_mm3": 2.91640155888857e-05,
+      "occupied_cavity_mm3": 0.0002923393144840247,
+      "local_interference_mm3": 0.0,
+      "undeclared_local_interference_mm3": 0.0,
+      "effective_insertion_interval_mm": [
+        0.0,
+        4.0
+      ],
+      "expected_insertion_mm": 4.0,
+      "length_tolerance_mm": 0.0003757476806640625,
+      "volume_tolerance_mm3": 0.08421257019042969,
+      "fit_kind": "clearance",
+      "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+      "local_wall_evidence": [
+        {
+          "axis": 0,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 0,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.023446655273433946,
+          "equivalent_band_area_mm2": 15.599999999997635,
+          "uncertainty_mm3": 0.011732250612112693,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": -1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252441406249704,
+          "equivalent_band_area_mm2": 41.599999999998026,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        },
+        {
+          "axis": 1,
+          "side": 1,
+          "band_mm": 0.00150299072265625,
+          "intersection_mm3": 0.06252441406249704,
+          "equivalent_band_area_mm2": 41.599999999998026,
+          "uncertainty_mm3": 0.03127847169525921,
+          "note": "local precision-band proximity above representation bound, NOT exact contact area"
+        }
+      ],
+      "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+      "failures": [],
+      "elapsed_seconds": 3.065346824005246,
+      "report_path": "/jiigan-hp/lms/aDSL/experiment/local_experiment/sf13_multi_mate_20260928T111227Z/microcrack_repair_20260928/topology/checkers/assembly_topology/items/interface_cap_right_rear/checkers/assembly_topology/result.json"
+    }
+  ],
+  "elapsed_seconds": 108.65315701812506,
+  "single_operation_timeout_seconds": 120,
+  "checker_budget_seconds": 900.0
+}

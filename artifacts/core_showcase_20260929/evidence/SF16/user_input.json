@@ -1,0 +1,39 @@
+{
+  "requirement": "Repair the existing SF16 FixedAssembly model using the selected checker evidence. Preserve the modern matte-black bookcase, both full-height side panels, three usable shelves, and the visibly slanted upper back panel. Preserve all six separate print parts and all five existing physical interfaces; do not globally fuse parts or delete features to pass. Keep root_part, mm_per_unit=1, final_size_mm=[1125,450,1800], and fit_offset_mm=0.2 frozen. Make the smallest coordinated source correction supported by actual geometry evidence; maintain mate frames and check any related interfaces after changing bodies or placement. Only assembly_topology is selected. Standing, FEA and overhang are not evaluated in this run. This is an existing-source repair, with one initial evaluation and at most one source repair followed by re-export and re-evaluation. Do not regenerate or re-plan the object. If no reasonable repair exists, report NO_CHANGE.",
+  "image_paths": [],
+  "articulation": false,
+  "max_rounds": 2,
+  "checker_specs": [
+    {
+      "name": "assembly_topology",
+      "command": [
+        "{python}",
+        "-m",
+        "adsl.agents.assembly_topology",
+        "--manifest",
+        "{asset_dir}/assembly_manifest.json",
+        "--source",
+        "{source}",
+        "--output",
+        "{output_dir}",
+        "--source-index",
+        "{source_index}",
+        "--budget-seconds",
+        "900"
+      ],
+      "required": true,
+      "timeout_seconds": 900.0,
+      "prepend_environment": {}
+    }
+  ],
+  "check_first": false,
+  "repair_policy": {
+    "max_candidates_per_round": 1,
+    "max_total_candidates": 5,
+    "time_budget_seconds": 7200.0,
+    "print_orientation_editable": false,
+    "default_relative_tolerance": 0.01,
+    "default_absolute_tolerance": 1e-09
+  },
+  "overhang_experiment": {}
+}

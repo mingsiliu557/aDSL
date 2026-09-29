@@ -1,0 +1,51 @@
+--- attempt_0001/source.py
++++ attempt_0002/source.py
+@@ -33,13 +33,14 @@
+ class SlantedBackPanel(Asset):
+     def __init__(self):
+         super().__init__(label="slanted_back_panel")
+-        panel = Cube(
+-            (1045.0, 24.0, 260.0),
+-            center=(0.0, 0.0, 0.0),
+-            color=MATTE_BLACK,
++        self.panel = self.attach_part(
++            "panel_body",
++            Cube(
++                (1045.0, 24.0, 260.0),
++                center=(0.0, 0.0, 0.0),
++                color=MATTE_BLACK,
++            ),
+         )
+-        panel = rotate_shape(panel, axis="+x", angle=-8.0, center=(0.0, 0.0, 0.0))
+-        self.panel = self.attach_part("panel_body", panel)
+ 
+ 
+ # Root geometry is authored directly in assembly coordinates.  Every other body
+@@ -202,8 +203,9 @@
+ )
+ 
+ 
+-# The upper rear panel leans eight degrees toward +Y as it rises.  Its connector
+-# frame follows the panel's tilted vertical direction while insertion remains +X.
++# The upper rear panel leans eight degrees toward +Y as it rises.  Its local
++# body stays axis-aligned; the mismatch between the local and receiver frames
++# applies the rigid tilt during placement while insertion remains +X.
+ tilted_vertical = (0.0, 0.1391731010, 0.9902680687)
+ assembly.connect(
+     "connect_back_panel_to_right_side",
+@@ -211,7 +213,7 @@
+     slot_part="right_side_panel",
+     tab_frame=InterfaceFrame(
+         origin=(522.5, 0.0, 0.0),
+-        x_axis=tilted_vertical,
++        x_axis=(0.0, 0.0, 1.0),
+         insert_axis=(1.0, 0.0, 0.0),
+     ),
+     slot_frame=InterfaceFrame(
+@@ -229,6 +231,5 @@
+ # Print orientations affect only exported individual pieces, never assembly pose.
+ assembly.set_print_orientation("left_side_panel", rotation_deg=(0.0, 90.0, 0.0))
+ assembly.set_print_orientation("right_side_panel", rotation_deg=(0.0, 90.0, 0.0))
+-assembly.set_print_orientation("slanted_back_panel", rotation_deg=(8.0, 0.0, 0.0))
+ 
+ scene = assembly.scene()

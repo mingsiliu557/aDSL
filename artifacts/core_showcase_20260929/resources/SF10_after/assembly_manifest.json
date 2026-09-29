@@ -1,0 +1,1363 @@
+{
+  "source_sha256": "35909286dcb68a4e03f7140446d9f8d541c4d78877ebc8995abdd1a741c12acb",
+  "mm_per_unit": 1.0,
+  "stl_vertex_unit": "mm",
+  "root_id": "tabletop",
+  "parts": [
+    {
+      "id": "tabletop",
+      "components": [
+        "tabletop"
+      ],
+      "stl": "tabletop.stl",
+      "glb": "tabletop.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -695.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          84
+        ]
+      ],
+      "exploded_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "left_pedestal_lower_brace",
+      "components": [
+        "left_leg_upright",
+        "left_leg_foot",
+        "lower_brace"
+      ],
+      "stl": "left_pedestal_lower_brace.stl",
+      "glb": "left_pedestal_lower_brace.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          108
+        ]
+      ],
+      "exploded_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1875.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "right_pedestal",
+      "components": [
+        "right_leg_upright",
+        "right_leg_foot"
+      ],
+      "stl": "right_pedestal.stl",
+      "glb": "right_pedestal.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          92
+        ]
+      ],
+      "exploded_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          3750.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "upper_brace",
+      "components": [
+        "upper_brace"
+      ],
+      "stl": "upper_brace.stl",
+      "glb": "upper_brace.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -560.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          44
+        ]
+      ],
+      "exploded_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          5625.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "interfaces": [],
+  "failures": [],
+  "part_declarations": [
+    {
+      "id": "tabletop",
+      "components": [
+        "tabletop"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "left_pedestal_lower_brace",
+      "components": [
+        "left_leg_upright",
+        "left_leg_foot",
+        "lower_brace"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "right_pedestal",
+      "components": [
+        "right_leg_upright",
+        "right_leg_foot"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "upper_brace",
+      "components": [
+        "upper_brace"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "left_leg_front_mount",
+      "tab_part": "left_pedestal_lower_brace",
+      "slot_part": "tabletop",
+      "tab_port": "top_front_tab",
+      "slot_port": "left_front_leg_slot",
+      "parameter_name": "tabletop_leg_joint",
+      "parameters": {
+        "width_mm": 36.0,
+        "thickness_mm": 50.0,
+        "insertion_mm": 20.0,
+        "slot_depth_mm": 20.0,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 5.0,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.0
+      },
+      "tab_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -430.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -150.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          695.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -430.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -150.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          695.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "left_leg_rear_mount",
+      "tab_part": "left_pedestal_lower_brace",
+      "slot_part": "tabletop",
+      "tab_port": "top_rear_tab",
+      "slot_port": "left_rear_leg_slot",
+      "parameter_name": "tabletop_leg_joint",
+      "parameters": {
+        "width_mm": 36.0,
+        "thickness_mm": 50.0,
+        "insertion_mm": 20.0,
+        "slot_depth_mm": 20.0,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 5.0,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.0
+      },
+      "tab_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -430.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          150.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          695.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -430.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          150.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          695.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "right_leg_front_mount",
+      "tab_part": "right_pedestal",
+      "slot_part": "tabletop",
+      "tab_port": "top_front_tab",
+      "slot_port": "right_front_leg_slot",
+      "parameter_name": "tabletop_leg_joint",
+      "parameters": {
+        "width_mm": 36.0,
+        "thickness_mm": 50.0,
+        "insertion_mm": 20.0,
+        "slot_depth_mm": 20.0,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 5.0,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.0
+      },
+      "tab_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          430.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -150.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          695.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          430.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -150.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          695.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "right_leg_rear_mount",
+      "tab_part": "right_pedestal",
+      "slot_part": "tabletop",
+      "tab_port": "top_rear_tab",
+      "slot_port": "right_rear_leg_slot",
+      "parameter_name": "tabletop_leg_joint",
+      "parameters": {
+        "width_mm": 36.0,
+        "thickness_mm": 50.0,
+        "insertion_mm": 20.0,
+        "slot_depth_mm": 20.0,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 5.0,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.0
+      },
+      "tab_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          430.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          150.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          695.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          430.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          150.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          695.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "upper_brace_left_mount",
+      "tab_part": "upper_brace",
+      "slot_part": "left_pedestal_lower_brace",
+      "tab_port": "left_end_tab",
+      "slot_port": "upper_brace_inner_slot",
+      "parameter_name": "brace_leg_joint",
+      "parameters": {
+        "width_mm": 50.0,
+        "thickness_mm": 55.0,
+        "insertion_mm": 25.0,
+        "slot_depth_mm": 25.0,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 5.0,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.0
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -385.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          595.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -385.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          595.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "upper_brace_right_mount",
+      "tab_part": "upper_brace",
+      "slot_part": "right_pedestal",
+      "tab_port": "right_end_tab",
+      "slot_port": "upper_brace_inner_slot",
+      "parameter_name": "brace_leg_joint",
+      "parameters": {
+        "width_mm": 50.0,
+        "thickness_mm": 55.0,
+        "insertion_mm": 25.0,
+        "slot_depth_mm": 25.0,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 5.0,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.0
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          385.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          595.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          385.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          595.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "lower_brace_right_mount",
+      "tab_part": "left_pedestal_lower_brace",
+      "slot_part": "right_pedestal",
+      "tab_port": "right_end_tab",
+      "slot_port": "lower_brace_inner_slot",
+      "parameter_name": "brace_leg_joint",
+      "parameters": {
+        "width_mm": 50.0,
+        "thickness_mm": 55.0,
+        "insertion_mm": 25.0,
+        "slot_depth_mm": 25.0,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 5.0,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.0
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          385.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          250.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          385.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          250.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "status": "NOT_EVALUATED",
+  "verification_scope": "visual_code_only",
+  "unverified": [
+    "insertion_path",
+    "press_fit_retention",
+    "load_bearing",
+    "printability",
+    "closedness",
+    "connectivity",
+    "interface_geometry",
+    "interference",
+    "dimensions"
+  ],
+  "physical_checkers": {
+    "topology": "NOT_EXECUTED",
+    "standing": "NOT_EXECUTED",
+    "overhang": "NOT_EXECUTED",
+    "fea": "NOT_EXECUTED"
+  },
+  "backend": {
+    "boolean": "Blender",
+    "within_part_union": "NOT_EXECUTED"
+  },
+  "geometry_validation": "NOT_EVALUATED",
+  "plan_changes": {
+    "status": "CHANGED",
+    "codes": [
+      "PART_MEMBERSHIP_CHANGED",
+      "CONNECTION_PLAN_CHANGED"
+    ],
+    "parts": {
+      "added": [
+        {
+          "id": "left_pedestal_lower_brace",
+          "components": [
+            "left_leg_foot",
+            "left_leg_upright",
+            "lower_brace"
+          ]
+        }
+      ],
+      "removed": [
+        {
+          "id": "left_pedestal",
+          "components": [
+            "left_leg_foot",
+            "left_leg_upright"
+          ]
+        },
+        {
+          "id": "lower_brace",
+          "components": [
+            "lower_brace"
+          ]
+        }
+      ],
+      "changed": []
+    },
+    "connections": {
+      "added": [],
+      "removed": [
+        {
+          "id": "lower_brace_left_mount",
+          "tab_part": "lower_brace",
+          "slot_part": "left_pedestal",
+          "tab_port": "left_end_tab",
+          "slot_port": "lower_brace_inner_slot",
+          "parameter_name": "brace_leg_joint"
+        }
+      ],
+      "changed": [
+        {
+          "id": "left_leg_front_mount",
+          "initial": {
+            "id": "left_leg_front_mount",
+            "tab_part": "left_pedestal",
+            "slot_part": "tabletop",
+            "tab_port": "top_front_tab",
+            "slot_port": "left_front_leg_slot",
+            "parameter_name": "tabletop_leg_joint"
+          },
+          "actual": {
+            "id": "left_leg_front_mount",
+            "tab_part": "left_pedestal_lower_brace",
+            "slot_part": "tabletop",
+            "tab_port": "top_front_tab",
+            "slot_port": "left_front_leg_slot",
+            "parameter_name": "tabletop_leg_joint"
+          }
+        },
+        {
+          "id": "left_leg_rear_mount",
+          "initial": {
+            "id": "left_leg_rear_mount",
+            "tab_part": "left_pedestal",
+            "slot_part": "tabletop",
+            "tab_port": "top_rear_tab",
+            "slot_port": "left_rear_leg_slot",
+            "parameter_name": "tabletop_leg_joint"
+          },
+          "actual": {
+            "id": "left_leg_rear_mount",
+            "tab_part": "left_pedestal_lower_brace",
+            "slot_part": "tabletop",
+            "tab_port": "top_rear_tab",
+            "slot_port": "left_rear_leg_slot",
+            "parameter_name": "tabletop_leg_joint"
+          }
+        },
+        {
+          "id": "lower_brace_right_mount",
+          "initial": {
+            "id": "lower_brace_right_mount",
+            "tab_part": "lower_brace",
+            "slot_part": "right_pedestal",
+            "tab_port": "right_end_tab",
+            "slot_port": "lower_brace_inner_slot",
+            "parameter_name": "brace_leg_joint"
+          },
+          "actual": {
+            "id": "lower_brace_right_mount",
+            "tab_part": "left_pedestal_lower_brace",
+            "slot_part": "right_pedestal",
+            "tab_port": "right_end_tab",
+            "slot_port": "lower_brace_inner_slot",
+            "parameter_name": "brace_leg_joint"
+          }
+        },
+        {
+          "id": "upper_brace_left_mount",
+          "initial": {
+            "id": "upper_brace_left_mount",
+            "tab_part": "upper_brace",
+            "slot_part": "left_pedestal",
+            "tab_port": "left_end_tab",
+            "slot_port": "upper_brace_inner_slot",
+            "parameter_name": "brace_leg_joint"
+          },
+          "actual": {
+            "id": "upper_brace_left_mount",
+            "tab_part": "upper_brace",
+            "slot_part": "left_pedestal_lower_brace",
+            "tab_port": "left_end_tab",
+            "slot_port": "upper_brace_inner_slot",
+            "parameter_name": "brace_leg_joint"
+          }
+        }
+      ]
+    },
+    "connection_order_changed": true
+  },
+  "initial_plan_sha256": "ccdaf14eb86b5fb4838cb3eaf41f15a583b9347a3a268163f43756a41456fef4",
+  "stage": "complete",
+  "partition_reference_inputs": [
+    {
+      "part_id": "tabletop",
+      "status": "PASS",
+      "frame": "part_local_mm",
+      "source_sha256": "35909286dcb68a4e03f7140446d9f8d541c4d78877ebc8995abdd1a741c12acb",
+      "npz": "tabletop.body.npz",
+      "sha256": "ecd6936fee5253144a49d030529f1124f6d3a1bf0b63b9efccfd0ffbb05380ec"
+    },
+    {
+      "part_id": "left_pedestal_lower_brace",
+      "status": "PASS",
+      "frame": "part_local_mm",
+      "source_sha256": "35909286dcb68a4e03f7140446d9f8d541c4d78877ebc8995abdd1a741c12acb",
+      "npz": "left_pedestal_lower_brace.body.npz",
+      "sha256": "7037ccfc256204e6c70d12d44e2e96ce83b8e53bf42d1d9030a2d43dad560320"
+    },
+    {
+      "part_id": "right_pedestal",
+      "status": "PASS",
+      "frame": "part_local_mm",
+      "source_sha256": "35909286dcb68a4e03f7140446d9f8d541c4d78877ebc8995abdd1a741c12acb",
+      "npz": "right_pedestal.body.npz",
+      "sha256": "a9b6f5eaebd7bda1018b37f3475caf1fd50c14f67561d75c0bc9ff73b986e55c"
+    },
+    {
+      "part_id": "upper_brace",
+      "status": "PASS",
+      "frame": "part_local_mm",
+      "source_sha256": "35909286dcb68a4e03f7140446d9f8d541c4d78877ebc8995abdd1a741c12acb",
+      "npz": "upper_brace.body.npz",
+      "sha256": "909c16545f3ae5f5c75a2cdd162a34ecebd9eb3aee4ec3d0e37c2fbfb68698bc"
+    }
+  ],
+  "diagnostic": {
+    "diagnostic_only": true,
+    "parts": [
+      {
+        "id": "tabletop",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "left_pedestal_lower_brace",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "right_pedestal",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "upper_brace",
+        "geometry_valid": null,
+        "shown": true
+      }
+    ],
+    "invalid_parts": [],
+    "missing_parts": [],
+    "display_available": true,
+    "semantic_completeness": "NOT_EVALUATED",
+    "glb": "diagnostic_scene.glb",
+    "omitted_mesh_nodes": []
+  },
+  "numeric_tolerance": {
+    "length_mm": 0.001430511474609375,
+    "source": "16 * float32 epsilon * max local coordinate; serialization only"
+  },
+  "export_consistency": [
+    {
+      "file": "tabletop.stl",
+      "part_id": "tabletop",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "left_pedestal_lower_brace.stl",
+      "part_id": "left_pedestal_lower_brace",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "right_pedestal.stl",
+      "part_id": "right_pedestal",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "upper_brace.stl",
+      "part_id": "upper_brace",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "tabletop.glb",
+      "part_id": "tabletop",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "left_pedestal_lower_brace.glb",
+      "part_id": "left_pedestal_lower_brace",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "right_pedestal.glb",
+      "part_id": "right_pedestal",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "upper_brace.glb",
+      "part_id": "upper_brace",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "scene.glb",
+      "part_id": "tabletop",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "scene.glb",
+      "part_id": "left_pedestal_lower_brace",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "scene.glb",
+      "part_id": "right_pedestal",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "scene.glb",
+      "part_id": "upper_brace",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "exploded.glb",
+      "part_id": "tabletop",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "exploded.glb",
+      "part_id": "left_pedestal_lower_brace",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "exploded.glb",
+      "part_id": "right_pedestal",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "exploded.glb",
+      "part_id": "upper_brace",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    }
+  ],
+  "triangle_comparison": "NOT_EXECUTED",
+  "placement_comparison": "NOT_EXECUTED",
+  "export_status": "PASS",
+  "elapsed_seconds": 1.4538986273109913,
+  "files_sha256": {
+    "upper_brace.diagnostic.glb": "39003f718a6688ae78be7530cc35e2201b19cf07f82a399993353babc2763e46",
+    "exploded.glb": "cbdf37af8bd8ff5c1cd2fcd3d7928b2669fb4fadcebf28603f89308e3186bc7e",
+    "right_pedestal.glb": "fd2d92825700d7db053d27611c426f9d665b48979666cc366fc59d41ba26775a",
+    "left_pedestal_lower_brace.stl": "8a2f6afeea71aa4ef4472610be819f1876064395a81b633a4999d7be9b7653ff",
+    "left_pedestal_lower_brace.diagnostic.glb": "73743eeb76ed055e397baa7fd199f6e6a05c94c03618e854e85526a9eb19aafe",
+    "upper_brace.stl": "34841b7646a118a154392ad0ef7d86427cdcfe6531bbee91959c74ceeac736b6",
+    "tabletop.stl": "bd4540c6430deb9c01238072966fb1dfdc6c9ef28ffb114219d0bb02bded3509",
+    "upper_brace.glb": "39003f718a6688ae78be7530cc35e2201b19cf07f82a399993353babc2763e46",
+    "diagnostic_scene.glb": "f1208c28a8dc18b3ad6de6615a115f2b4bd42ed49ddc39cccb03eee54a3fc763",
+    "left_pedestal_lower_brace.body.glb": "29bcf138eae9ab00b9d8985af211a2e3f5d773d7856ea8f218c1c8b3fad9ffb1",
+    "tabletop.diagnostic.glb": "1cdd4748a047b4ba53f14a0ec2021785ba44fcf821c370b6d3c16b0a0907851a",
+    "tabletop.body.glb": "cc5be6f050268550842b9e9b3bbf16172ee0848d42667a8e3e7fb1d7152483da",
+    "right_pedestal.stl": "09a61649cddad84c9c20bcb1c21c1d07a1801f4c14d095f5cde03a5f8fa5430c",
+    "right_pedestal.diagnostic.glb": "fd2d92825700d7db053d27611c426f9d665b48979666cc366fc59d41ba26775a",
+    "upper_brace.body.glb": "e799e3d3fb40fb1450daaed39174cda887686fadd8d38f1c5dad22a98e77f7c7",
+    "left_pedestal_lower_brace.glb": "73743eeb76ed055e397baa7fd199f6e6a05c94c03618e854e85526a9eb19aafe",
+    "right_pedestal.body.glb": "97b0de24da16b1a75b8ad6f67170443dbf886caa6e71406cf73408a7b887a1b1",
+    "scene.glb": "cdb909f9654fedd79e1becd81301e823a14e9d1dde89dd80eaddea455318ccf7",
+    "tabletop.glb": "1cdd4748a047b4ba53f14a0ec2021785ba44fcf821c370b6d3c16b0a0907851a"
+  }
+}

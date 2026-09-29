@@ -1,0 +1,203 @@
+{
+  "object_name": "Tapered Rectangular Conference Table",
+  "components": [
+    {
+      "name": "tabletop",
+      "description": "Single straight-edged tabletop with a subtly trapezoidal plan: 1500 mm wide at the front edge (y=-375 mm), tapering symmetrically to 1420 mm at the back edge (y=+375 mm). It is 750 mm deep and 55 mm thick, with its underside at z=695 mm and top surface at z=750 mm. Use clean planar geometry, a warm medium-brown wood-like color, and smooth-looking surfaces. Wood grain is optional and must not be represented by added relief geometry."
+    },
+    {
+      "name": "left_leg_upright",
+      "description": "Left central pedestal upright centered near x=-430 mm and y=0, approximately 90 mm thick along x and 500 mm deep along y. It rises from the left foot at z=45 mm to contact the tabletop underside at z=695 mm. Use a black or dark-gray matte-looking color."
+    },
+    {
+      "name": "left_leg_foot",
+      "description": "Broad floor-contacting foot integrated with the left upright, centered near x=-430 mm and y=0. Approximate dimensions are 320 mm along x, 600 mm along y, and 45 mm along z, with its bottom exactly at z=0. Use the same dark color as the upright."
+    },
+    {
+      "name": "right_leg_upright",
+      "description": "Right central pedestal upright mirrored from the left upright across x=0, centered near x=+430 mm and y=0. It is approximately 90 mm thick along x and 500 mm deep along y, extending from z=45 mm to the tabletop underside at z=695 mm. Use a black or dark-gray matte-looking color."
+    },
+    {
+      "name": "right_leg_foot",
+      "description": "Broad floor-contacting foot integrated with the right upright and mirrored from the left foot, centered near x=+430 mm and y=0. Approximate dimensions are 320 mm along x, 600 mm along y, and 45 mm along z, with its bottom exactly at z=0. Use the same dark color as the upright."
+    },
+    {
+      "name": "upper_brace",
+      "description": "Horizontal rectangular brace running along x between the inward-facing sides of the two pedestal uprights. Its visible body spans approximately x=-385 mm to x=+385 mm, is centered at y=0, and has an approximately 70 by 70 mm cross-section centered near z=595 mm. Use the same dark matte-looking appearance as the legs."
+    },
+    {
+      "name": "lower_brace",
+      "description": "Second horizontal rectangular brace running along x between the inward-facing sides of the pedestal uprights. Its visible body spans approximately x=-385 mm to x=+385 mm, is centered at y=0, and has an approximately 90 mm y-depth by 80 mm z-height cross-section centered near z=250 mm. Use the same dark matte-looking appearance as the legs."
+    }
+  ],
+  "relations": [
+    "Use world coordinates with x across the 1500 mm table length, y from front to back, and z upward. The assembled table must have exact overall bounds of 1500 by 750 by 750 mm.",
+    "The tabletop is centered on x=0 and y=0. Its front edge reaches x=±750 mm at y=-375 mm, while its back edge reaches approximately x=±710 mm at y=+375 mm. The taper must be bilateral and visually symmetric about x=0.",
+    "The tabletop is the root print part. Its top is at z=750 mm and its underside is at z=695 mm.",
+    "The two pedestal legs are mirrored across x=0 and remain centered along y=0. Their broad feet contact the floor at z=0, while their uprights meet the tabletop underside without a visible vertical gap.",
+    "Each leg connects independently to the tabletop through two tab-slot interfaces located toward the front and rear portions of the upright top. The separated interfaces resist visible rotation and must use distinct ports.",
+    "The tabletop-mount tabs belong to the leg print parts and insert upward into slots generated in the tabletop. Use a shared TabSlot parameter named tabletop_leg_joint with fit_offset_mm fixed at 0.2 mm. A suitable common specification is approximately 36 mm tab width, 50 mm tab thickness, 20 mm insertion, at least 20 mm slot depth, and sufficient root overlap to embed the tab in the upright.",
+    "The upper and lower braces meet the inward-facing vertical surfaces of both leg uprights. Their unconnected body ends terminate at the upright inner faces, with assembly.connect generating the embedded end tabs and receiving slots.",
+    "Each brace is first located from the already placed left leg and then checked and connected against the already placed right leg. Both ends of each brace use separate port names.",
+    "Brace tabs insert horizontally: toward -x at the left end and toward +x at the right end. Use a shared TabSlot parameter named brace_leg_joint with fit_offset_mm fixed at 0.2 mm. A suitable common specification is approximately 50 mm tab width, 55 mm tab thickness, 25 mm insertion, at least 25 mm slot depth, and sufficient root overlap for a continuous shoulder.",
+    "The leg uprights and their corresponding feet are grouped into continuous left and right print parts to preserve the uninterrupted pedestal silhouette, eliminate an unnecessary foot-to-upright seam, and provide substantial mounting material for both tabletop and brace interfaces.",
+    "The tabletop remains a separate print part because its large planar body, contrasting appearance, and broad usable bed face differ from the dark support structure. Each brace remains separate because it spans between two already distinct pedestal parts.",
+    "For print-layout evaluation, the tabletop has a broad planar face, each pedestal assembly has broad slab and foot faces, and each brace has long rectangular faces suitable for grounding. Do not alter the frozen assembled dimensions or connector fit allowance merely to improve overhang scoring.",
+    "All tabletop-to-leg and brace-to-leg joints must be produced only through FixedAssembly.connect with TabSlot parameters; do not manually model tabs or slot cutters and do not union separate print parts globally.",
+    "The model contains only the conference table. Do not add chairs, floor slabs, room geometry, decor, fasteners, or other environmental context.",
+    "Use color contrast to distinguish the warm brown tabletop from the black or dark-gray base. The public appearance API does not provide explicit roughness or specular controls, so preserve clean smooth geometry and appropriate colors without inventing unsupported finish methods."
+  ],
+  "critic_checklist": [
+    "The assembled world-space size is exactly 1500.0 mm along x, 750.0 mm along y, and 750.0 mm along z.",
+    "The front tabletop edge is 1500 mm wide and the back edge is visibly but subtly narrower, approximately 1420 mm, with equal taper on the left and right sides.",
+    "The tabletop has straight, symmetric edges and does not appear skewed, bowed, rounded into an oval, or asymmetrically cut.",
+    "The tabletop occupies z=695 to z=750 mm and is the only geometry defining the maximum x, y, and z bounds.",
+    "Both feet have their lowest surfaces at z=0 and provide two broad, coplanar floor-contact regions.",
+    "The left and right pedestal assemblies are mirrored across x=0 and have matching dimensions, heights, colors, and offsets.",
+    "Both uprights visibly contact and support the tabletop underside without gaps or unintended penetration beyond the generated connector geometry.",
+    "Exactly two distinct horizontal braces are visibly present between the pedestal uprights: one upper brace and one lower brace.",
+    "Neither brace floats, stops short of a leg, protrudes through the exterior side of a leg, or extends beyond the tabletop footprint.",
+    "The tabletop is warm brown and visually contrasts strongly with the black or dark-gray legs and braces.",
+    "Surfaces are clean and smooth-looking. No mandatory wood grain should be inferred, and no decorative relief should be added to fake unsupported material properties.",
+    "Every named semantic component appears in exactly one print part.",
+    "The assembly retains five print parts: tabletop, left pedestal, right pedestal, upper brace, and lower brace.",
+    "All eight declared interfaces exist with unique connection IDs and unique endpoint ports: four tabletop-to-leg interfaces and four brace-to-leg interfaces.",
+    "Connection processing begins from the tabletop root; every subsequent connection has at least one endpoint already placed.",
+    "All connectors use interface_type tab_slot and preserve the frozen single-sided fit_offset_mm of 0.2 mm.",
+    "The second tabletop connection on each leg and the second end connection on each brace agree with the already established assembled pose rather than moving an already placed part.",
+    "There are no unsupported extra objects, articulation, joints, environmental context, or post-assembly transforms added to scene.",
+    "The structure remains standing-oriented with feet below the tabletop and no part visibly detached in the assembled scene.",
+    "The final program uses mm_per_unit=1.0, root_part=tabletop, and finishes with the FixedAssembly scene without globally unioning distinct print parts."
+  ],
+  "print_parts": [
+    {
+      "id": "tabletop",
+      "components": [
+        "tabletop"
+      ]
+    },
+    {
+      "id": "left_pedestal",
+      "components": [
+        "left_leg_upright",
+        "left_leg_foot"
+      ]
+    },
+    {
+      "id": "right_pedestal",
+      "components": [
+        "right_leg_upright",
+        "right_leg_foot"
+      ]
+    },
+    {
+      "id": "upper_brace",
+      "components": [
+        "upper_brace"
+      ]
+    },
+    {
+      "id": "lower_brace",
+      "components": [
+        "lower_brace"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "left_leg_front_mount",
+      "tab_part": "left_pedestal",
+      "slot_part": "tabletop",
+      "tab_port": "top_front_tab",
+      "slot_port": "left_front_leg_slot",
+      "parameter_name": "tabletop_leg_joint",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+z, upward from the left upright into the tabletop underside near x=-430 mm and y=-150 mm",
+      "fit_intent": "Two-point pedestal mounting; 0.2 mm single-sided slot allowance, approximately 20 mm insertion, with a shoulder seated against the tabletop underside."
+    },
+    {
+      "id": "left_leg_rear_mount",
+      "tab_part": "left_pedestal",
+      "slot_part": "tabletop",
+      "tab_port": "top_rear_tab",
+      "slot_port": "left_rear_leg_slot",
+      "parameter_name": "tabletop_leg_joint",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+z, upward from the left upright into the tabletop underside near x=-430 mm and y=+150 mm",
+      "fit_intent": "Second separated mount for the already positioned left pedestal; it must share the same dimensions and 0.2 mm fit allowance as the front mount."
+    },
+    {
+      "id": "right_leg_front_mount",
+      "tab_part": "right_pedestal",
+      "slot_part": "tabletop",
+      "tab_port": "top_front_tab",
+      "slot_port": "right_front_leg_slot",
+      "parameter_name": "tabletop_leg_joint",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+z, upward from the right upright into the tabletop underside near x=+430 mm and y=-150 mm",
+      "fit_intent": "Mirror of the left front pedestal mount, using the same shared dimensions and fixed 0.2 mm single-sided slot allowance."
+    },
+    {
+      "id": "right_leg_rear_mount",
+      "tab_part": "right_pedestal",
+      "slot_part": "tabletop",
+      "tab_port": "top_rear_tab",
+      "slot_port": "right_rear_leg_slot",
+      "parameter_name": "tabletop_leg_joint",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+z, upward from the right upright into the tabletop underside near x=+430 mm and y=+150 mm",
+      "fit_intent": "Second separated mount for the already positioned right pedestal; its frame must agree with the mirrored pedestal pose."
+    },
+    {
+      "id": "upper_brace_left_mount",
+      "tab_part": "upper_brace",
+      "slot_part": "left_pedestal",
+      "tab_port": "left_end_tab",
+      "slot_port": "upper_brace_inner_slot",
+      "parameter_name": "brace_leg_joint",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x, from the upper brace's left end into the inward-facing side of the left upright",
+      "fit_intent": "Locating connection for the upper brace, with approximately 25 mm insertion and the frozen 0.2 mm single-sided slot allowance."
+    },
+    {
+      "id": "upper_brace_right_mount",
+      "tab_part": "upper_brace",
+      "slot_part": "right_pedestal",
+      "tab_port": "right_end_tab",
+      "slot_port": "upper_brace_inner_slot",
+      "parameter_name": "brace_leg_joint",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x, from the upper brace's right end into the inward-facing side of the right upright",
+      "fit_intent": "Closing connection for the already positioned upper brace; frames must coincide without moving either placed endpoint."
+    },
+    {
+      "id": "lower_brace_left_mount",
+      "tab_part": "lower_brace",
+      "slot_part": "left_pedestal",
+      "tab_port": "left_end_tab",
+      "slot_port": "lower_brace_inner_slot",
+      "parameter_name": "brace_leg_joint",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x, from the lower brace's left end into the inward-facing side of the left upright",
+      "fit_intent": "Locating connection for the lower brace, with approximately 25 mm insertion and the frozen 0.2 mm single-sided slot allowance."
+    },
+    {
+      "id": "lower_brace_right_mount",
+      "tab_part": "lower_brace",
+      "slot_part": "right_pedestal",
+      "tab_port": "right_end_tab",
+      "slot_port": "lower_brace_inner_slot",
+      "parameter_name": "brace_leg_joint",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x, from the lower brace's right end into the inward-facing side of the right upright",
+      "fit_intent": "Closing connection for the already positioned lower brace; frames must coincide without changing the established brace or pedestal poses."
+    }
+  ],
+  "root_part": "tabletop",
+  "mm_per_unit": 1.0,
+  "final_size_mm": [
+    1500.0,
+    750.0,
+    750.0
+  ]
+}

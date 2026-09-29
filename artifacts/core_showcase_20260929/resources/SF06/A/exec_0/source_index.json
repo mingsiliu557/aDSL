@@ -1,0 +1,3263 @@
+{
+  "version": 1,
+  "source_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/A/SF06/source.py",
+  "source_sha256": "87d3e072b635f3f249d36e705dcc39ec20623d07b5a32e768846ad1789ddc283",
+  "index_sha256": "1ce2db4f491a7596289a79f425e087e57920dcf18728e38cc6df83048f7d6bee",
+  "root_feature_id": "feature:Armchair on black background",
+  "source_nodes": [
+    {
+      "source_id": "source:9c41fb5fb6799c21e65a",
+      "kind": "function",
+      "name": "ellipsoid",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 10,
+        "end_line": 16,
+        "start_col": 0,
+        "end_col": 40
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Sphere",
+        "center",
+        "color",
+        "form",
+        "scale",
+        "scale_shape",
+        "translate_shape"
+      ],
+      "expression": "def ellipsoid(scale, center, color):\n    form = scale_shape(\n        Sphere(1.0, color=color),\n        scale,\n        center=(0.0, 0.0, 0.0),\n    )\n    return translate_shape(form, center)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:364d1cb45a9ed6aa5342",
+      "kind": "dsl_call",
+      "name": "scale_shape",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 11,
+        "end_line": 15,
+        "start_col": 11,
+        "end_col": 5
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Sphere",
+        "color",
+        "scale",
+        "scale_shape"
+      ],
+      "expression": "scale_shape(\n        Sphere(1.0, color=color),\n        scale,\n        center=(0.0, 0.0, 0.0),\n    )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:1fa4a6d1c1f94109eb9b",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 12,
+        "end_line": 12,
+        "start_col": 8,
+        "end_col": 32
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "Sphere",
+        "color"
+      ],
+      "expression": "Sphere(1.0, color=color)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:657b34e1fde9bfe36a32",
+      "kind": "dsl_call",
+      "name": "translate_shape",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 16,
+        "end_line": 16,
+        "start_col": 11,
+        "end_col": 40
+      },
+      "parameters": [],
+      "dependencies": [
+        "center",
+        "form",
+        "translate_shape"
+      ],
+      "expression": "translate_shape(form, center)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:e1f1e73414a66e060fa2",
+      "kind": "class",
+      "name": "RoundedSeatBase",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 19,
+        "end_line": 56,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "axis",
+        "center",
+        "color",
+        "height",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "Cube",
+        "Cylinder",
+        "UPHOLSTERY_GRAY",
+        "boolean_union",
+        "center_z",
+        "depth",
+        "height",
+        "pieces",
+        "radius",
+        "self",
+        "super",
+        "width",
+        "x",
+        "y"
+      ],
+      "expression": "class RoundedSeatBase(Asset):\n    def __init__(self):\n        super().__init__(label=\"Rounded upholstered seat base\")\n\n        width = 1.70\n        depth = 1.00\n        height = 0.28\n        radius = 0.14\n        center_z = 0.69\n\n        pieces = [\n            Cube(\n                (width - 2.0 * radius, depth, height),\n                center=(0.0, 0.0, center_z),\n                color=UPHOLSTERY_GRAY,\n            ),\n            Cube(\n                (width, depth - 2.0 * radius, height),\n                center=(0.0, 0.0, center_z),\n                color=UPHOLSTERY_GRAY,\n            ),\n        ]\n        for x in (-width / 2.0 + radius, width / 2.0 - radius):\n            for y in (-depth / 2.0 + radius, depth / 2.0 - radius):\n                pieces.append(\n                    Cylinder(\n                        radius,\n                        height=height,\n                        center=(x, y, center_z),\n                        axis=\"z\",\n                        color=UPHOLSTERY_GRAY,\n                    )\n                )\n\n        self.rounded_shell = self.attach_part(\n            \"rounded_shell\",\n            boolean_union(*pieces),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:8e24e88526efd1c81fb4",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "RoundedSeatBase/__init__",
+      "owner_class": "RoundedSeatBase",
+      "semantic_name": null,
+      "span": {
+        "start_line": 20,
+        "end_line": 56,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "axis",
+        "center",
+        "color",
+        "height",
+        "label"
+      ],
+      "dependencies": [
+        "Cube",
+        "Cylinder",
+        "UPHOLSTERY_GRAY",
+        "boolean_union",
+        "center_z",
+        "depth",
+        "height",
+        "pieces",
+        "radius",
+        "self",
+        "super",
+        "width",
+        "x",
+        "y"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"Rounded upholstered seat base\")\n\n        width = 1.70\n        depth = 1.00\n        height = 0.28\n        radius = 0.14\n        center_z = 0.69\n\n        pieces = [\n            Cube(\n                (width - 2.0 * radius, depth, height),\n                center=(0.0, 0.0, center_z),\n                color=UPHOLSTERY_GRAY,\n            ),\n            Cube(\n                (width, depth - 2.0 * radius, height),\n                center=(0.0, 0.0, center_z),\n                color=UPHOLSTERY_GRAY,\n            ),\n        ]\n        for x in (-width / 2.0 + radius, width / 2.0 - radius):\n            for y in (-depth / 2.0 + radius, depth / 2.0 - radius):\n                pieces.append(\n                    Cylinder(\n                        radius,\n                        height=height,\n                        center=(x, y, center_z),\n                        axis=\"z\",\n                        color=UPHOLSTERY_GRAY,\n                    )\n                )\n\n        self.rounded_shell = self.attach_part(\n            \"rounded_shell\",\n            boolean_union(*pieces),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:ec393335314b133d4f41",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "RoundedSeatBase/__init__",
+      "owner_class": "RoundedSeatBase",
+      "semantic_name": null,
+      "span": {
+        "start_line": 30,
+        "end_line": 34,
+        "start_col": 12,
+        "end_col": 13
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Cube",
+        "UPHOLSTERY_GRAY",
+        "center_z",
+        "depth",
+        "height",
+        "radius",
+        "width"
+      ],
+      "expression": "Cube(\n                (width - 2.0 * radius, depth, height),\n                center=(0.0, 0.0, center_z),\n                color=UPHOLSTERY_GRAY,\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:a78ee3b84efff92c0a1d",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "RoundedSeatBase/__init__",
+      "owner_class": "RoundedSeatBase",
+      "semantic_name": null,
+      "span": {
+        "start_line": 35,
+        "end_line": 39,
+        "start_col": 12,
+        "end_col": 13
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Cube",
+        "UPHOLSTERY_GRAY",
+        "center_z",
+        "depth",
+        "height",
+        "radius",
+        "width"
+      ],
+      "expression": "Cube(\n                (width, depth - 2.0 * radius, height),\n                center=(0.0, 0.0, center_z),\n                color=UPHOLSTERY_GRAY,\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:d49240cfd61ddae31bd1",
+      "kind": "dsl_call",
+      "name": "Cylinder",
+      "scope": "RoundedSeatBase/__init__",
+      "owner_class": "RoundedSeatBase",
+      "semantic_name": null,
+      "span": {
+        "start_line": 44,
+        "end_line": 50,
+        "start_col": 20,
+        "end_col": 21
+      },
+      "parameters": [
+        "axis",
+        "center",
+        "color",
+        "height"
+      ],
+      "dependencies": [
+        "Cylinder",
+        "UPHOLSTERY_GRAY",
+        "center_z",
+        "height",
+        "radius",
+        "x",
+        "y"
+      ],
+      "expression": "Cylinder(\n                        radius,\n                        height=height,\n                        center=(x, y, center_z),\n                        axis=\"z\",\n                        color=UPHOLSTERY_GRAY,\n                    )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:ea4a4c6a12cf1321a1ce",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "RoundedSeatBase/__init__",
+      "owner_class": "RoundedSeatBase",
+      "semantic_name": "rounded_shell",
+      "span": {
+        "start_line": 53,
+        "end_line": 56,
+        "start_col": 29,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_union",
+        "pieces",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"rounded_shell\",\n            boolean_union(*pieces),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:f4afb062b99811b22ed6",
+      "kind": "dsl_call",
+      "name": "boolean_union",
+      "scope": "RoundedSeatBase/__init__",
+      "owner_class": "RoundedSeatBase",
+      "semantic_name": null,
+      "span": {
+        "start_line": 55,
+        "end_line": 55,
+        "start_col": 12,
+        "end_col": 34
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_union",
+        "pieces"
+      ],
+      "expression": "boolean_union(*pieces)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:24c7563b3759b7b00117",
+      "kind": "class",
+      "name": "DepressedSeatCushion",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 59,
+        "end_line": 100,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "UPHOLSTERY_GRAY",
+        "boolean_union",
+        "center_pad",
+        "ellipsoid",
+        "front_border",
+        "left_border",
+        "rear_border",
+        "right_border",
+        "self",
+        "super"
+      ],
+      "expression": "class DepressedSeatCushion(Asset):\n    def __init__(self):\n        super().__init__(label=\"Ergonomic depressed seat cushion\")\n\n        # The center pad sits below the four softly raised perimeter bolsters,\n        # producing a shallow, comfortable depression without opening a hole.\n        center_pad = ellipsoid(\n            (0.53, 0.31, 0.075),\n            (0.0, -0.03, 0.905),\n            UPHOLSTERY_GRAY,\n        )\n        left_border = ellipsoid(\n            (0.115, 0.37, 0.105),\n            (-0.59, -0.03, 0.955),\n            UPHOLSTERY_GRAY,\n        )\n        right_border = ellipsoid(\n            (0.115, 0.37, 0.105),\n            (0.59, -0.03, 0.955),\n            UPHOLSTERY_GRAY,\n        )\n        front_border = ellipsoid(\n            (0.56, 0.105, 0.105),\n            (0.0, -0.355, 0.955),\n            UPHOLSTERY_GRAY,\n        )\n        rear_border = ellipsoid(\n            (0.55, 0.095, 0.10),\n            (0.0, 0.285, 0.95),\n            UPHOLSTERY_GRAY,\n        )\n\n        self.cushion_form = self.attach_part(\n            \"cushion_form\",\n            boolean_union(\n                center_pad,\n                left_border,\n                right_border,\n                front_border,\n                rear_border,\n            ),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:1d402bf16b4542729119",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "DepressedSeatCushion/__init__",
+      "owner_class": "DepressedSeatCushion",
+      "semantic_name": null,
+      "span": {
+        "start_line": 60,
+        "end_line": 100,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "label"
+      ],
+      "dependencies": [
+        "UPHOLSTERY_GRAY",
+        "boolean_union",
+        "center_pad",
+        "ellipsoid",
+        "front_border",
+        "left_border",
+        "rear_border",
+        "right_border",
+        "self",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"Ergonomic depressed seat cushion\")\n\n        # The center pad sits below the four softly raised perimeter bolsters,\n        # producing a shallow, comfortable depression without opening a hole.\n        center_pad = ellipsoid(\n            (0.53, 0.31, 0.075),\n            (0.0, -0.03, 0.905),\n            UPHOLSTERY_GRAY,\n        )\n        left_border = ellipsoid(\n            (0.115, 0.37, 0.105),\n            (-0.59, -0.03, 0.955),\n            UPHOLSTERY_GRAY,\n        )\n        right_border = ellipsoid(\n            (0.115, 0.37, 0.105),\n            (0.59, -0.03, 0.955),\n            UPHOLSTERY_GRAY,\n        )\n        front_border = ellipsoid(\n            (0.56, 0.105, 0.105),\n            (0.0, -0.355, 0.955),\n            UPHOLSTERY_GRAY,\n        )\n        rear_border = ellipsoid(\n            (0.55, 0.095, 0.10),\n            (0.0, 0.285, 0.95),\n            UPHOLSTERY_GRAY,\n        )\n\n        self.cushion_form = self.attach_part(\n            \"cushion_form\",\n            boolean_union(\n                center_pad,\n                left_border,\n                right_border,\n                front_border,\n                rear_border,\n            ),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:e9ea3823d7e4a4c23ac4",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "DepressedSeatCushion/__init__",
+      "owner_class": "DepressedSeatCushion",
+      "semantic_name": "cushion_form",
+      "span": {
+        "start_line": 91,
+        "end_line": 100,
+        "start_col": 28,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_union",
+        "center_pad",
+        "front_border",
+        "left_border",
+        "rear_border",
+        "right_border",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"cushion_form\",\n            boolean_union(\n                center_pad,\n                left_border,\n                right_border,\n                front_border,\n                rear_border,\n            ),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:46e4f2f4e7bc875da2dd",
+      "kind": "dsl_call",
+      "name": "boolean_union",
+      "scope": "DepressedSeatCushion/__init__",
+      "owner_class": "DepressedSeatCushion",
+      "semantic_name": null,
+      "span": {
+        "start_line": 93,
+        "end_line": 99,
+        "start_col": 12,
+        "end_col": 13
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_union",
+        "center_pad",
+        "front_border",
+        "left_border",
+        "rear_border",
+        "right_border"
+      ],
+      "expression": "boolean_union(\n                center_pad,\n                left_border,\n                right_border,\n                front_border,\n                rear_border,\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:30201be74568c67f1003",
+      "kind": "class",
+      "name": "CurvedBackrest",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 103,
+        "end_line": 135,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "UPHOLSTERY_GRAY",
+        "boolean_union",
+        "central_back",
+        "ellipsoid",
+        "left_wing",
+        "lower_bridge",
+        "right_wing",
+        "self",
+        "super"
+      ],
+      "expression": "class CurvedBackrest(Asset):\n    def __init__(self):\n        super().__init__(label=\"Curved upholstered backrest\")\n\n        # A broad ellipsoidal center gives a smooth lumbar-to-head curve.\n        central_back = ellipsoid(\n            (0.72, 0.17, 0.58),\n            (0.0, 0.36, 1.43),\n            UPHOLSTERY_GRAY,\n        )\n        lower_bridge = ellipsoid(\n            (0.67, 0.16, 0.24),\n            (0.0, 0.36, 1.02),\n            UPHOLSTERY_GRAY,\n        )\n\n        # The side wings sit slightly farther toward the front (-y), making the\n        # back visibly wrap around the sitter while remaining symmetric.\n        left_wing = ellipsoid(\n            (0.18, 0.23, 0.46),\n            (-0.66, 0.25, 1.39),\n            UPHOLSTERY_GRAY,\n        )\n        right_wing = ellipsoid(\n            (0.18, 0.23, 0.46),\n            (0.66, 0.25, 1.39),\n            UPHOLSTERY_GRAY,\n        )\n\n        self.back_shell = self.attach_part(\n            \"back_shell\",\n            boolean_union(central_back, lower_bridge, left_wing, right_wing),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:f508fbd3b2a7073adb85",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "CurvedBackrest/__init__",
+      "owner_class": "CurvedBackrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 104,
+        "end_line": 135,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "label"
+      ],
+      "dependencies": [
+        "UPHOLSTERY_GRAY",
+        "boolean_union",
+        "central_back",
+        "ellipsoid",
+        "left_wing",
+        "lower_bridge",
+        "right_wing",
+        "self",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"Curved upholstered backrest\")\n\n        # A broad ellipsoidal center gives a smooth lumbar-to-head curve.\n        central_back = ellipsoid(\n            (0.72, 0.17, 0.58),\n            (0.0, 0.36, 1.43),\n            UPHOLSTERY_GRAY,\n        )\n        lower_bridge = ellipsoid(\n            (0.67, 0.16, 0.24),\n            (0.0, 0.36, 1.02),\n            UPHOLSTERY_GRAY,\n        )\n\n        # The side wings sit slightly farther toward the front (-y), making the\n        # back visibly wrap around the sitter while remaining symmetric.\n        left_wing = ellipsoid(\n            (0.18, 0.23, 0.46),\n            (-0.66, 0.25, 1.39),\n            UPHOLSTERY_GRAY,\n        )\n        right_wing = ellipsoid(\n            (0.18, 0.23, 0.46),\n            (0.66, 0.25, 1.39),\n            UPHOLSTERY_GRAY,\n        )\n\n        self.back_shell = self.attach_part(\n            \"back_shell\",\n            boolean_union(central_back, lower_bridge, left_wing, right_wing),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:206a533470ca9c757662",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "CurvedBackrest/__init__",
+      "owner_class": "CurvedBackrest",
+      "semantic_name": "back_shell",
+      "span": {
+        "start_line": 132,
+        "end_line": 135,
+        "start_col": 26,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_union",
+        "central_back",
+        "left_wing",
+        "lower_bridge",
+        "right_wing",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"back_shell\",\n            boolean_union(central_back, lower_bridge, left_wing, right_wing),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:9764d83fa42f0a617aae",
+      "kind": "dsl_call",
+      "name": "boolean_union",
+      "scope": "CurvedBackrest/__init__",
+      "owner_class": "CurvedBackrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 134,
+        "end_line": 134,
+        "start_col": 12,
+        "end_col": 76
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_union",
+        "central_back",
+        "left_wing",
+        "lower_bridge",
+        "right_wing"
+      ],
+      "expression": "boolean_union(central_back, lower_bridge, left_wing, right_wing)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:ddaf8da3f872bb46a911",
+      "kind": "class",
+      "name": "CurvedArmrest",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 138,
+        "end_line": 169,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label",
+        "p0",
+        "p1"
+      ],
+      "dependencies": [
+        "Asset",
+        "Cylinder",
+        "Sphere",
+        "UPHOLSTERY_GRAY",
+        "arm_rail",
+        "boolean_union",
+        "ellipsoid",
+        "front_cap",
+        "rear_cap",
+        "self",
+        "side",
+        "side_support",
+        "super",
+        "x"
+      ],
+      "expression": "class CurvedArmrest(Asset):\n    def __init__(self, side):\n        super().__init__(label=\"Curved upholstered armrest\")\n        x = 0.73 if side == \"right\" else -0.73\n\n        # The arm slopes gently downward toward the open front of the chair.\n        arm_rail = Cylinder(\n            0.13,\n            p0=(x, -0.24, 1.14),\n            p1=(x, 0.30, 1.26),\n            color=UPHOLSTERY_GRAY,\n        )\n        front_cap = Sphere(\n            0.13,\n            center=(x, -0.24, 1.14),\n            color=UPHOLSTERY_GRAY,\n        )\n        rear_cap = Sphere(\n            0.13,\n            center=(x, 0.30, 1.26),\n            color=UPHOLSTERY_GRAY,\n        )\n        side_support = ellipsoid(\n            (0.15, 0.31, 0.29),\n            (x, 0.04, 1.00),\n            UPHOLSTERY_GRAY,\n        )\n\n        self.arm_form = self.attach_part(\n            \"arm_form\",\n            boolean_union(arm_rail, front_cap, rear_cap, side_support),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:e22e83383b3a00230321",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "CurvedArmrest/__init__",
+      "owner_class": "CurvedArmrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 139,
+        "end_line": 169,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label",
+        "p0",
+        "p1"
+      ],
+      "dependencies": [
+        "Cylinder",
+        "Sphere",
+        "UPHOLSTERY_GRAY",
+        "arm_rail",
+        "boolean_union",
+        "ellipsoid",
+        "front_cap",
+        "rear_cap",
+        "self",
+        "side",
+        "side_support",
+        "super",
+        "x"
+      ],
+      "expression": "def __init__(self, side):\n        super().__init__(label=\"Curved upholstered armrest\")\n        x = 0.73 if side == \"right\" else -0.73\n\n        # The arm slopes gently downward toward the open front of the chair.\n        arm_rail = Cylinder(\n            0.13,\n            p0=(x, -0.24, 1.14),\n            p1=(x, 0.30, 1.26),\n            color=UPHOLSTERY_GRAY,\n        )\n        front_cap = Sphere(\n            0.13,\n            center=(x, -0.24, 1.14),\n            color=UPHOLSTERY_GRAY,\n        )\n        rear_cap = Sphere(\n            0.13,\n            center=(x, 0.30, 1.26),\n            color=UPHOLSTERY_GRAY,\n        )\n        side_support = ellipsoid(\n            (0.15, 0.31, 0.29),\n            (x, 0.04, 1.00),\n            UPHOLSTERY_GRAY,\n        )\n\n        self.arm_form = self.attach_part(\n            \"arm_form\",\n            boolean_union(arm_rail, front_cap, rear_cap, side_support),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:0ae9fdcd5a2b0915093c",
+      "kind": "dsl_call",
+      "name": "Cylinder",
+      "scope": "CurvedArmrest/__init__",
+      "owner_class": "CurvedArmrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 144,
+        "end_line": 149,
+        "start_col": 19,
+        "end_col": 9
+      },
+      "parameters": [
+        "color",
+        "p0",
+        "p1"
+      ],
+      "dependencies": [
+        "Cylinder",
+        "UPHOLSTERY_GRAY",
+        "x"
+      ],
+      "expression": "Cylinder(\n            0.13,\n            p0=(x, -0.24, 1.14),\n            p1=(x, 0.30, 1.26),\n            color=UPHOLSTERY_GRAY,\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:ae361bb28c87410a89c6",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "CurvedArmrest/__init__",
+      "owner_class": "CurvedArmrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 150,
+        "end_line": 154,
+        "start_col": 20,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Sphere",
+        "UPHOLSTERY_GRAY",
+        "x"
+      ],
+      "expression": "Sphere(\n            0.13,\n            center=(x, -0.24, 1.14),\n            color=UPHOLSTERY_GRAY,\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:a4bec980d64748b69a4e",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "CurvedArmrest/__init__",
+      "owner_class": "CurvedArmrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 155,
+        "end_line": 159,
+        "start_col": 19,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Sphere",
+        "UPHOLSTERY_GRAY",
+        "x"
+      ],
+      "expression": "Sphere(\n            0.13,\n            center=(x, 0.30, 1.26),\n            color=UPHOLSTERY_GRAY,\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:db89c1efaa020abd2b45",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "CurvedArmrest/__init__",
+      "owner_class": "CurvedArmrest",
+      "semantic_name": "arm_form",
+      "span": {
+        "start_line": 166,
+        "end_line": 169,
+        "start_col": 24,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "arm_rail",
+        "boolean_union",
+        "front_cap",
+        "rear_cap",
+        "self",
+        "side_support"
+      ],
+      "expression": "self.attach_part(\n            \"arm_form\",\n            boolean_union(arm_rail, front_cap, rear_cap, side_support),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:94472796f8b7f3abd706",
+      "kind": "dsl_call",
+      "name": "boolean_union",
+      "scope": "CurvedArmrest/__init__",
+      "owner_class": "CurvedArmrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 168,
+        "end_line": 168,
+        "start_col": 12,
+        "end_col": 70
+      },
+      "parameters": [],
+      "dependencies": [
+        "arm_rail",
+        "boolean_union",
+        "front_cap",
+        "rear_cap",
+        "side_support"
+      ],
+      "expression": "boolean_union(arm_rail, front_cap, rear_cap, side_support)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:f9f678df26ac8364bbc1",
+      "kind": "class",
+      "name": "SquareWoodenLeg",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 172,
+        "end_line": 182,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "Cube",
+        "WOOD_BROWN",
+        "self",
+        "super",
+        "x",
+        "y"
+      ],
+      "expression": "class SquareWoodenLeg(Asset):\n    def __init__(self, x, y):\n        super().__init__(label=\"Straight square wooden leg\")\n        self.leg = self.attach_part(\n            \"leg\",\n            Cube(\n                (0.14, 0.14, 0.55),\n                center=(x, y, 0.275),\n                color=WOOD_BROWN,\n            ),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:91d0abb6ba263ab3d404",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "SquareWoodenLeg/__init__",
+      "owner_class": "SquareWoodenLeg",
+      "semantic_name": null,
+      "span": {
+        "start_line": 173,
+        "end_line": 182,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Cube",
+        "WOOD_BROWN",
+        "self",
+        "super",
+        "x",
+        "y"
+      ],
+      "expression": "def __init__(self, x, y):\n        super().__init__(label=\"Straight square wooden leg\")\n        self.leg = self.attach_part(\n            \"leg\",\n            Cube(\n                (0.14, 0.14, 0.55),\n                center=(x, y, 0.275),\n                color=WOOD_BROWN,\n            ),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:dbfad4fce9458c15c2d5",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "SquareWoodenLeg/__init__",
+      "owner_class": "SquareWoodenLeg",
+      "semantic_name": "leg",
+      "span": {
+        "start_line": 175,
+        "end_line": 182,
+        "start_col": 19,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Cube",
+        "WOOD_BROWN",
+        "self",
+        "x",
+        "y"
+      ],
+      "expression": "self.attach_part(\n            \"leg\",\n            Cube(\n                (0.14, 0.14, 0.55),\n                center=(x, y, 0.275),\n                color=WOOD_BROWN,\n            ),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:a2784c09672db4ac4d4d",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "SquareWoodenLeg/__init__",
+      "owner_class": "SquareWoodenLeg",
+      "semantic_name": null,
+      "span": {
+        "start_line": 177,
+        "end_line": 181,
+        "start_col": 12,
+        "end_col": 13
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Cube",
+        "WOOD_BROWN",
+        "x",
+        "y"
+      ],
+      "expression": "Cube(\n                (0.14, 0.14, 0.55),\n                center=(x, y, 0.275),\n                color=WOOD_BROWN,\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:d7c4f773802ecb4e4ef5",
+      "kind": "class",
+      "name": "NailheadTrim",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 185,
+        "end_line": 202,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "axis",
+        "center",
+        "color",
+        "label",
+        "spacing"
+      ],
+      "dependencies": [
+        "Asset",
+        "METAL_PEWTER",
+        "Sphere",
+        "_",
+        "distribute_along_axis",
+        "first_x",
+        "range",
+        "self",
+        "spacing",
+        "stud_count",
+        "studs",
+        "super"
+      ],
+      "expression": "class NailheadTrim(Asset):\n    def __init__(self):\n        super().__init__(label=\"Front nailhead trim\")\n        stud_count = 15\n        spacing = 0.082\n        first_x = -spacing * (stud_count - 1) / 2.0\n        studs = [\n            Sphere(\n                0.027,\n                center=(first_x, -0.502, 0.635),\n                color=METAL_PEWTER,\n            )\n            for _ in range(stud_count)\n        ]\n        self.studs = self.attach_part(\n            \"studs\",\n            distribute_along_axis(studs, axis=\"+x\", spacing=spacing),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:108b1bf8b929fb3140f0",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "NailheadTrim/__init__",
+      "owner_class": "NailheadTrim",
+      "semantic_name": null,
+      "span": {
+        "start_line": 186,
+        "end_line": 202,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "axis",
+        "center",
+        "color",
+        "label",
+        "spacing"
+      ],
+      "dependencies": [
+        "METAL_PEWTER",
+        "Sphere",
+        "_",
+        "distribute_along_axis",
+        "first_x",
+        "range",
+        "self",
+        "spacing",
+        "stud_count",
+        "studs",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"Front nailhead trim\")\n        stud_count = 15\n        spacing = 0.082\n        first_x = -spacing * (stud_count - 1) / 2.0\n        studs = [\n            Sphere(\n                0.027,\n                center=(first_x, -0.502, 0.635),\n                color=METAL_PEWTER,\n            )\n            for _ in range(stud_count)\n        ]\n        self.studs = self.attach_part(\n            \"studs\",\n            distribute_along_axis(studs, axis=\"+x\", spacing=spacing),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:d3ba3f8cc4408ba4a448",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "NailheadTrim/__init__",
+      "owner_class": "NailheadTrim",
+      "semantic_name": null,
+      "span": {
+        "start_line": 192,
+        "end_line": 196,
+        "start_col": 12,
+        "end_col": 13
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "METAL_PEWTER",
+        "Sphere",
+        "first_x"
+      ],
+      "expression": "Sphere(\n                0.027,\n                center=(first_x, -0.502, 0.635),\n                color=METAL_PEWTER,\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:3f6b710fa5dae633e2bb",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "NailheadTrim/__init__",
+      "owner_class": "NailheadTrim",
+      "semantic_name": "studs",
+      "span": {
+        "start_line": 199,
+        "end_line": 202,
+        "start_col": 21,
+        "end_col": 9
+      },
+      "parameters": [
+        "axis",
+        "spacing"
+      ],
+      "dependencies": [
+        "distribute_along_axis",
+        "self",
+        "spacing",
+        "studs"
+      ],
+      "expression": "self.attach_part(\n            \"studs\",\n            distribute_along_axis(studs, axis=\"+x\", spacing=spacing),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:ff6e83395647e519800b",
+      "kind": "dsl_call",
+      "name": "distribute_along_axis",
+      "scope": "NailheadTrim/__init__",
+      "owner_class": "NailheadTrim",
+      "semantic_name": null,
+      "span": {
+        "start_line": 201,
+        "end_line": 201,
+        "start_col": 12,
+        "end_col": 68
+      },
+      "parameters": [
+        "axis",
+        "spacing"
+      ],
+      "dependencies": [
+        "distribute_along_axis",
+        "spacing",
+        "studs"
+      ],
+      "expression": "distribute_along_axis(studs, axis=\"+x\", spacing=spacing)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:2da43f420e66d4d7f0a4",
+      "kind": "class",
+      "name": "PresentationBackdrop",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 205,
+        "end_line": 223,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "BACKGROUND_BLACK",
+        "Cube",
+        "self",
+        "super"
+      ],
+      "expression": "class PresentationBackdrop(Asset):\n    def __init__(self):\n        super().__init__(label=\"Plain black presentation backdrop\")\n        self.ground = self.attach_part(\n            \"ground\",\n            Cube(\n                (4.0, 4.0, 0.04),\n                center=(0.0, 0.0, -0.02),\n                color=BACKGROUND_BLACK,\n            ),\n        )\n        self.back_wall = self.attach_part(\n            \"back_wall\",\n            Cube(\n                (4.0, 0.04, 3.0),\n                center=(0.0, 1.48, 1.50),\n                color=BACKGROUND_BLACK,\n            ),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:0f9ff72c1a4fde6f33a1",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "PresentationBackdrop/__init__",
+      "owner_class": "PresentationBackdrop",
+      "semantic_name": null,
+      "span": {
+        "start_line": 206,
+        "end_line": 223,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "BACKGROUND_BLACK",
+        "Cube",
+        "self",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"Plain black presentation backdrop\")\n        self.ground = self.attach_part(\n            \"ground\",\n            Cube(\n                (4.0, 4.0, 0.04),\n                center=(0.0, 0.0, -0.02),\n                color=BACKGROUND_BLACK,\n            ),\n        )\n        self.back_wall = self.attach_part(\n            \"back_wall\",\n            Cube(\n                (4.0, 0.04, 3.0),\n                center=(0.0, 1.48, 1.50),\n                color=BACKGROUND_BLACK,\n            ),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:c5b05963cf8e31d087bd",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "PresentationBackdrop/__init__",
+      "owner_class": "PresentationBackdrop",
+      "semantic_name": "ground",
+      "span": {
+        "start_line": 208,
+        "end_line": 215,
+        "start_col": 22,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "BACKGROUND_BLACK",
+        "Cube",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"ground\",\n            Cube(\n                (4.0, 4.0, 0.04),\n                center=(0.0, 0.0, -0.02),\n                color=BACKGROUND_BLACK,\n            ),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:55ac682da75d7658c039",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "PresentationBackdrop/__init__",
+      "owner_class": "PresentationBackdrop",
+      "semantic_name": null,
+      "span": {
+        "start_line": 210,
+        "end_line": 214,
+        "start_col": 12,
+        "end_col": 13
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "BACKGROUND_BLACK",
+        "Cube"
+      ],
+      "expression": "Cube(\n                (4.0, 4.0, 0.04),\n                center=(0.0, 0.0, -0.02),\n                color=BACKGROUND_BLACK,\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:5025d5bb5f2c62a8349c",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "PresentationBackdrop/__init__",
+      "owner_class": "PresentationBackdrop",
+      "semantic_name": "back_wall",
+      "span": {
+        "start_line": 216,
+        "end_line": 223,
+        "start_col": 25,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "BACKGROUND_BLACK",
+        "Cube",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"back_wall\",\n            Cube(\n                (4.0, 0.04, 3.0),\n                center=(0.0, 1.48, 1.50),\n                color=BACKGROUND_BLACK,\n            ),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:8e776cd98e385e6915d1",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "PresentationBackdrop/__init__",
+      "owner_class": "PresentationBackdrop",
+      "semantic_name": null,
+      "span": {
+        "start_line": 218,
+        "end_line": 222,
+        "start_col": 12,
+        "end_col": 13
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "BACKGROUND_BLACK",
+        "Cube"
+      ],
+      "expression": "Cube(\n                (4.0, 0.04, 3.0),\n                center=(0.0, 1.48, 1.50),\n                color=BACKGROUND_BLACK,\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:871dd2fbe77627e0469d",
+      "kind": "class",
+      "name": "ModernRoundedArmchair",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 226,
+        "end_line": 264,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "CurvedArmrest",
+        "CurvedBackrest",
+        "DepressedSeatCushion",
+        "NailheadTrim",
+        "RoundedSeatBase",
+        "SquareWoodenLeg",
+        "self",
+        "super"
+      ],
+      "expression": "class ModernRoundedArmchair(Asset):\n    def __init__(self):\n        super().__init__(label=\"Modern rounded upholstered armchair\")\n\n        self.seat_base = self.attach_part(\"seat_base\", RoundedSeatBase())\n        self.seat_cushion = self.attach_part(\n            \"seat_cushion\",\n            DepressedSeatCushion(),\n        )\n        self.backrest = self.attach_part(\"backrest\", CurvedBackrest())\n        self.left_armrest = self.attach_part(\n            \"left_armrest\",\n            CurvedArmrest(\"left\"),\n        )\n        self.right_armrest = self.attach_part(\n            \"right_armrest\",\n            CurvedArmrest(\"right\"),\n        )\n\n        self.front_left_leg = self.attach_part(\n            \"front_left_leg\",\n            SquareWoodenLeg(-0.69, -0.36),\n        )\n        self.front_right_leg = self.attach_part(\n            \"front_right_leg\",\n            SquareWoodenLeg(0.69, -0.36),\n        )\n        self.rear_left_leg = self.attach_part(\n            \"rear_left_leg\",\n            SquareWoodenLeg(-0.69, 0.36),\n        )\n        self.rear_right_leg = self.attach_part(\n            \"rear_right_leg\",\n            SquareWoodenLeg(0.69, 0.36),\n        )\n        self.front_nailhead_trim = self.attach_part(\n            \"front_nailhead_trim\",\n            NailheadTrim(),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:6247d7cdc3f3a1808efd",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": null,
+      "span": {
+        "start_line": 227,
+        "end_line": 264,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "label"
+      ],
+      "dependencies": [
+        "CurvedArmrest",
+        "CurvedBackrest",
+        "DepressedSeatCushion",
+        "NailheadTrim",
+        "RoundedSeatBase",
+        "SquareWoodenLeg",
+        "self",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"Modern rounded upholstered armchair\")\n\n        self.seat_base = self.attach_part(\"seat_base\", RoundedSeatBase())\n        self.seat_cushion = self.attach_part(\n            \"seat_cushion\",\n            DepressedSeatCushion(),\n        )\n        self.backrest = self.attach_part(\"backrest\", CurvedBackrest())\n        self.left_armrest = self.attach_part(\n            \"left_armrest\",\n            CurvedArmrest(\"left\"),\n        )\n        self.right_armrest = self.attach_part(\n            \"right_armrest\",\n            CurvedArmrest(\"right\"),\n        )\n\n        self.front_left_leg = self.attach_part(\n            \"front_left_leg\",\n            SquareWoodenLeg(-0.69, -0.36),\n        )\n        self.front_right_leg = self.attach_part(\n            \"front_right_leg\",\n            SquareWoodenLeg(0.69, -0.36),\n        )\n        self.rear_left_leg = self.attach_part(\n            \"rear_left_leg\",\n            SquareWoodenLeg(-0.69, 0.36),\n        )\n        self.rear_right_leg = self.attach_part(\n            \"rear_right_leg\",\n            SquareWoodenLeg(0.69, 0.36),\n        )\n        self.front_nailhead_trim = self.attach_part(\n            \"front_nailhead_trim\",\n            NailheadTrim(),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:9dcee8440e48e504211a",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "seat_base",
+      "span": {
+        "start_line": 230,
+        "end_line": 230,
+        "start_col": 25,
+        "end_col": 73
+      },
+      "parameters": [],
+      "dependencies": [
+        "RoundedSeatBase",
+        "self"
+      ],
+      "expression": "self.attach_part(\"seat_base\", RoundedSeatBase())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:4e0df93ef7d1b141e22e",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "seat_cushion",
+      "span": {
+        "start_line": 231,
+        "end_line": 234,
+        "start_col": 28,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "DepressedSeatCushion",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"seat_cushion\",\n            DepressedSeatCushion(),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:521d802afad44eb1abea",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "backrest",
+      "span": {
+        "start_line": 235,
+        "end_line": 235,
+        "start_col": 24,
+        "end_col": 70
+      },
+      "parameters": [],
+      "dependencies": [
+        "CurvedBackrest",
+        "self"
+      ],
+      "expression": "self.attach_part(\"backrest\", CurvedBackrest())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:8ae21df85b823ae8b5b4",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "left_armrest",
+      "span": {
+        "start_line": 236,
+        "end_line": 239,
+        "start_col": 28,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "CurvedArmrest",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"left_armrest\",\n            CurvedArmrest(\"left\"),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:06dbc3c92f85c313ed4c",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "right_armrest",
+      "span": {
+        "start_line": 240,
+        "end_line": 243,
+        "start_col": 29,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "CurvedArmrest",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"right_armrest\",\n            CurvedArmrest(\"right\"),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:9b5048832cf4d467c472",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "front_left_leg",
+      "span": {
+        "start_line": 245,
+        "end_line": 248,
+        "start_col": 30,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "SquareWoodenLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"front_left_leg\",\n            SquareWoodenLeg(-0.69, -0.36),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:509edd93d2bf65d191aa",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "front_right_leg",
+      "span": {
+        "start_line": 249,
+        "end_line": 252,
+        "start_col": 31,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "SquareWoodenLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"front_right_leg\",\n            SquareWoodenLeg(0.69, -0.36),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:71b96239de0bfd361a48",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "rear_left_leg",
+      "span": {
+        "start_line": 253,
+        "end_line": 256,
+        "start_col": 29,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "SquareWoodenLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"rear_left_leg\",\n            SquareWoodenLeg(-0.69, 0.36),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:f201413e503571973030",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "rear_right_leg",
+      "span": {
+        "start_line": 257,
+        "end_line": 260,
+        "start_col": 30,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "SquareWoodenLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"rear_right_leg\",\n            SquareWoodenLeg(0.69, 0.36),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:e43be19661859a734654",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "front_nailhead_trim",
+      "span": {
+        "start_line": 261,
+        "end_line": 264,
+        "start_col": 35,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "NailheadTrim",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"front_nailhead_trim\",\n            NailheadTrim(),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:01f6646c37e8b27ceb77",
+      "kind": "class",
+      "name": "ArmchairPresentation",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 267,
+        "end_line": 271,
+        "start_col": 0,
+        "end_col": 71
+      },
+      "parameters": [
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "ModernRoundedArmchair",
+        "PresentationBackdrop",
+        "self",
+        "super"
+      ],
+      "expression": "class ArmchairPresentation(Asset):\n    def __init__(self):\n        super().__init__(label=\"Armchair on black background\")\n        self.background = self.attach_part(\"background\", PresentationBackdrop())\n        self.chair = self.attach_part(\"chair\", ModernRoundedArmchair())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:65ed23c1162a3343e344",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "ArmchairPresentation/__init__",
+      "owner_class": "ArmchairPresentation",
+      "semantic_name": null,
+      "span": {
+        "start_line": 268,
+        "end_line": 271,
+        "start_col": 4,
+        "end_col": 71
+      },
+      "parameters": [
+        "label"
+      ],
+      "dependencies": [
+        "ModernRoundedArmchair",
+        "PresentationBackdrop",
+        "self",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"Armchair on black background\")\n        self.background = self.attach_part(\"background\", PresentationBackdrop())\n        self.chair = self.attach_part(\"chair\", ModernRoundedArmchair())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:093602e09d853687cb2e",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ArmchairPresentation/__init__",
+      "owner_class": "ArmchairPresentation",
+      "semantic_name": "background",
+      "span": {
+        "start_line": 270,
+        "end_line": 270,
+        "start_col": 26,
+        "end_col": 80
+      },
+      "parameters": [],
+      "dependencies": [
+        "PresentationBackdrop",
+        "self"
+      ],
+      "expression": "self.attach_part(\"background\", PresentationBackdrop())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:dffc1e3ab723fdb14e08",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ArmchairPresentation/__init__",
+      "owner_class": "ArmchairPresentation",
+      "semantic_name": "chair",
+      "span": {
+        "start_line": 271,
+        "end_line": 271,
+        "start_col": 21,
+        "end_col": 71
+      },
+      "parameters": [],
+      "dependencies": [
+        "ModernRoundedArmchair",
+        "self"
+      ],
+      "expression": "self.attach_part(\"chair\", ModernRoundedArmchair())",
+      "resolution": "complete"
+    }
+  ],
+  "features": [
+    {
+      "feature_id": "feature:Armchair on black background",
+      "semantic_path": "Armchair on black background",
+      "name": "Armchair on black background",
+      "asset_class": "ArmchairPresentation",
+      "parent_feature_id": null,
+      "attach_mode": "root",
+      "bounds": [
+        [
+          -2.0,
+          -2.0,
+          -0.04
+        ],
+        [
+          2.0,
+          2.0,
+          3.0
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:01f6646c37e8b27ceb77"
+      ],
+      "source_locations": [
+        "L267-L271"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/background",
+      "semantic_path": "Armchair on black background/background",
+      "name": "background",
+      "asset_class": "PresentationBackdrop",
+      "parent_feature_id": "feature:Armchair on black background",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.0,
+          -2.0,
+          -0.04
+        ],
+        [
+          2.0,
+          2.0,
+          3.0
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:093602e09d853687cb2e",
+        "source:2da43f420e66d4d7f0a4"
+      ],
+      "source_locations": [
+        "L270-L270",
+        "L205-L223"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/background/ground",
+      "semantic_path": "Armchair on black background/background/ground",
+      "name": "ground",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Armchair on black background/background",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.0,
+          -2.0,
+          -0.04
+        ],
+        [
+          2.0,
+          2.0,
+          0.0
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:c5b05963cf8e31d087bd"
+      ],
+      "source_locations": [
+        "L208-L215"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/background/back_wall",
+      "semantic_path": "Armchair on black background/background/back_wall",
+      "name": "back_wall",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Armchair on black background/background",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.0,
+          1.46,
+          0.0
+        ],
+        [
+          2.0,
+          1.5,
+          3.0
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:5025d5bb5f2c62a8349c"
+      ],
+      "source_locations": [
+        "L216-L223"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair",
+      "semantic_path": "Armchair on black background/chair",
+      "name": "chair",
+      "asset_class": "ModernRoundedArmchair",
+      "parent_feature_id": "feature:Armchair on black background",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.88,
+          -0.529,
+          0.0
+        ],
+        [
+          0.88,
+          0.53,
+          2.01
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:dffc1e3ab723fdb14e08",
+        "source:871dd2fbe77627e0469d"
+      ],
+      "source_locations": [
+        "L271-L271",
+        "L226-L264"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_base",
+      "semantic_path": "Armchair on black background/chair/seat_base",
+      "name": "seat_base",
+      "asset_class": "RoundedSeatBase",
+      "parent_feature_id": "feature:Armchair on black background/chair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.85,
+          -0.5,
+          0.5499999999999999
+        ],
+        [
+          0.85,
+          0.5,
+          0.83
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:9dcee8440e48e504211a",
+        "source:e1f1e73414a66e060fa2"
+      ],
+      "source_locations": [
+        "L230-L230",
+        "L19-L56"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell",
+      "semantic_path": "Armchair on black background/chair/seat_base/rounded_shell",
+      "name": "rounded_shell",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Armchair on black background/chair/seat_base",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.85,
+          -0.5,
+          0.5499999999999999
+        ],
+        [
+          0.85,
+          0.5,
+          0.83
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:ea4a4c6a12cf1321a1ce"
+      ],
+      "source_locations": [
+        "L53-L56"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell/op_0",
+      "semantic_path": "Armchair on black background/chair/seat_base/rounded_shell/op_0",
+      "name": "op_0",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.71,
+          -0.5,
+          0.5499999999999999
+        ],
+        [
+          0.71,
+          0.5,
+          0.83
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell/op_1",
+      "semantic_path": "Armchair on black background/chair/seat_base/rounded_shell/op_1",
+      "name": "op_1",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.85,
+          -0.36,
+          0.5499999999999999
+        ],
+        [
+          0.85,
+          0.36,
+          0.83
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell/op_2",
+      "semantic_path": "Armchair on black background/chair/seat_base/rounded_shell/op_2",
+      "name": "op_2",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.85,
+          -0.5,
+          0.5499999999999999
+        ],
+        [
+          -0.57,
+          -0.21999999999999997,
+          0.83
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell/op_3",
+      "semantic_path": "Armchair on black background/chair/seat_base/rounded_shell/op_3",
+      "name": "op_3",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.85,
+          0.21999999999999997,
+          0.5499999999999999
+        ],
+        [
+          -0.57,
+          0.5,
+          0.83
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell/op_4",
+      "semantic_path": "Armchair on black background/chair/seat_base/rounded_shell/op_4",
+      "name": "op_4",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.57,
+          -0.5,
+          0.5499999999999999
+        ],
+        [
+          0.85,
+          -0.21999999999999997,
+          0.83
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell/op_5",
+      "semantic_path": "Armchair on black background/chair/seat_base/rounded_shell/op_5",
+      "name": "op_5",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.57,
+          0.21999999999999997,
+          0.5499999999999999
+        ],
+        [
+          0.85,
+          0.5,
+          0.83
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_cushion",
+      "semantic_path": "Armchair on black background/chair/seat_cushion",
+      "name": "seat_cushion",
+      "asset_class": "DepressedSeatCushion",
+      "parent_feature_id": "feature:Armchair on black background/chair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.705,
+          -0.45999999999999996,
+          0.8300000000000001
+        ],
+        [
+          0.705,
+          0.38,
+          1.06
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:4e0df93ef7d1b141e22e",
+        "source:24c7563b3759b7b00117"
+      ],
+      "source_locations": [
+        "L231-L234",
+        "L59-L100"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form",
+      "semantic_path": "Armchair on black background/chair/seat_cushion/cushion_form",
+      "name": "cushion_form",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Armchair on black background/chair/seat_cushion",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.705,
+          -0.45999999999999996,
+          0.8300000000000001
+        ],
+        [
+          0.705,
+          0.38,
+          1.06
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:e9ea3823d7e4a4c23ac4"
+      ],
+      "source_locations": [
+        "L91-L100"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form/op_0",
+      "semantic_path": "Armchair on black background/chair/seat_cushion/cushion_form/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.53,
+          -0.33999999999999997,
+          0.8300000000000001
+        ],
+        [
+          0.53,
+          0.28,
+          0.98
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form/op_1",
+      "semantic_path": "Armchair on black background/chair/seat_cushion/cushion_form/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.705,
+          -0.4,
+          0.85
+        ],
+        [
+          -0.475,
+          0.33999999999999997,
+          1.06
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form/op_2",
+      "semantic_path": "Armchair on black background/chair/seat_cushion/cushion_form/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.475,
+          -0.4,
+          0.85
+        ],
+        [
+          0.705,
+          0.33999999999999997,
+          1.06
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form/op_3",
+      "semantic_path": "Armchair on black background/chair/seat_cushion/cushion_form/op_3",
+      "name": "op_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.56,
+          -0.45999999999999996,
+          0.85
+        ],
+        [
+          0.56,
+          -0.25,
+          1.06
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form/op_4",
+      "semantic_path": "Armchair on black background/chair/seat_cushion/cushion_form/op_4",
+      "name": "op_4",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.55,
+          0.18999999999999997,
+          0.85
+        ],
+        [
+          0.55,
+          0.38,
+          1.05
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/backrest",
+      "semantic_path": "Armchair on black background/chair/backrest",
+      "name": "backrest",
+      "asset_class": "CurvedBackrest",
+      "parent_feature_id": "feature:Armchair on black background/chair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.8400000000000001,
+          0.01999999999999999,
+          0.78
+        ],
+        [
+          0.8400000000000001,
+          0.53,
+          2.01
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:521d802afad44eb1abea",
+        "source:30201be74568c67f1003"
+      ],
+      "source_locations": [
+        "L235-L235",
+        "L103-L135"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/backrest/back_shell",
+      "semantic_path": "Armchair on black background/chair/backrest/back_shell",
+      "name": "back_shell",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Armchair on black background/chair/backrest",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.8400000000000001,
+          0.01999999999999999,
+          0.78
+        ],
+        [
+          0.8400000000000001,
+          0.53,
+          2.01
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:206a533470ca9c757662"
+      ],
+      "source_locations": [
+        "L132-L135"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/backrest/back_shell/op_0",
+      "semantic_path": "Armchair on black background/chair/backrest/back_shell/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/backrest/back_shell",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.72,
+          0.18999999999999997,
+          0.85
+        ],
+        [
+          0.72,
+          0.53,
+          2.01
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/backrest/back_shell/op_1",
+      "semantic_path": "Armchair on black background/chair/backrest/back_shell/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/backrest/back_shell",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.67,
+          0.19999999999999998,
+          0.78
+        ],
+        [
+          0.67,
+          0.52,
+          1.26
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/backrest/back_shell/op_2",
+      "semantic_path": "Armchair on black background/chair/backrest/back_shell/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/backrest/back_shell",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.8400000000000001,
+          0.01999999999999999,
+          0.9299999999999999
+        ],
+        [
+          -0.48000000000000004,
+          0.48,
+          1.8499999999999999
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/backrest/back_shell/op_3",
+      "semantic_path": "Armchair on black background/chair/backrest/back_shell/op_3",
+      "name": "op_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/backrest/back_shell",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.48000000000000004,
+          0.01999999999999999,
+          0.9299999999999999
+        ],
+        [
+          0.8400000000000001,
+          0.48,
+          1.8499999999999999
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/left_armrest",
+      "semantic_path": "Armchair on black background/chair/left_armrest",
+      "name": "left_armrest",
+      "asset_class": "CurvedArmrest",
+      "parent_feature_id": "feature:Armchair on black background/chair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.88,
+          -0.37,
+          0.71
+        ],
+        [
+          -0.58,
+          0.43,
+          1.3900000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:8ae21df85b823ae8b5b4",
+        "source:ddaf8da3f872bb46a911"
+      ],
+      "source_locations": [
+        "L236-L239",
+        "L138-L169"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/left_armrest/arm_form",
+      "semantic_path": "Armchair on black background/chair/left_armrest/arm_form",
+      "name": "arm_form",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Armchair on black background/chair/left_armrest",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.88,
+          -0.37,
+          0.71
+        ],
+        [
+          -0.58,
+          0.43,
+          1.3900000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:db89c1efaa020abd2b45"
+      ],
+      "source_locations": [
+        "L166-L169"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/left_armrest/arm_form/op_0",
+      "semantic_path": "Armchair on black background/chair/left_armrest/arm_form/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:Armchair on black background/chair/left_armrest/arm_form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.86,
+          -0.2682009595164253,
+          1.0130956821760861
+        ],
+        [
+          -0.6,
+          0.3282009595164253,
+          1.3869043178239138
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/left_armrest/arm_form/op_1",
+      "semantic_path": "Armchair on black background/chair/left_armrest/arm_form/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/left_armrest/arm_form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.86,
+          -0.37,
+          1.0099999999999998
+        ],
+        [
+          -0.6,
+          -0.10999999999999999,
+          1.27
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/left_armrest/arm_form/op_2",
+      "semantic_path": "Armchair on black background/chair/left_armrest/arm_form/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/left_armrest/arm_form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.86,
+          0.16999999999999998,
+          1.13
+        ],
+        [
+          -0.6,
+          0.43,
+          1.3900000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/left_armrest/arm_form/op_3",
+      "semantic_path": "Armchair on black background/chair/left_armrest/arm_form/op_3",
+      "name": "op_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/left_armrest/arm_form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.88,
+          -0.27,
+          0.71
+        ],
+        [
+          -0.58,
+          0.35,
+          1.29
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/right_armrest",
+      "semantic_path": "Armchair on black background/chair/right_armrest",
+      "name": "right_armrest",
+      "asset_class": "CurvedArmrest",
+      "parent_feature_id": "feature:Armchair on black background/chair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.58,
+          -0.37,
+          0.71
+        ],
+        [
+          0.88,
+          0.43,
+          1.3900000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:06dbc3c92f85c313ed4c",
+        "source:ddaf8da3f872bb46a911"
+      ],
+      "source_locations": [
+        "L240-L243",
+        "L138-L169"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/right_armrest/arm_form",
+      "semantic_path": "Armchair on black background/chair/right_armrest/arm_form",
+      "name": "arm_form",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Armchair on black background/chair/right_armrest",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.58,
+          -0.37,
+          0.71
+        ],
+        [
+          0.88,
+          0.43,
+          1.3900000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:db89c1efaa020abd2b45"
+      ],
+      "source_locations": [
+        "L166-L169"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/right_armrest/arm_form/op_0",
+      "semantic_path": "Armchair on black background/chair/right_armrest/arm_form/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:Armchair on black background/chair/right_armrest/arm_form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6,
+          -0.2682009595164253,
+          1.0130956821760861
+        ],
+        [
+          0.86,
+          0.3282009595164253,
+          1.3869043178239138
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/right_armrest/arm_form/op_1",
+      "semantic_path": "Armchair on black background/chair/right_armrest/arm_form/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/right_armrest/arm_form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6,
+          -0.37,
+          1.0099999999999998
+        ],
+        [
+          0.86,
+          -0.10999999999999999,
+          1.27
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/right_armrest/arm_form/op_2",
+      "semantic_path": "Armchair on black background/chair/right_armrest/arm_form/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/right_armrest/arm_form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6,
+          0.16999999999999998,
+          1.13
+        ],
+        [
+          0.86,
+          0.43,
+          1.3900000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/right_armrest/arm_form/op_3",
+      "semantic_path": "Armchair on black background/chair/right_armrest/arm_form/op_3",
+      "name": "op_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/right_armrest/arm_form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.58,
+          -0.27,
+          0.71
+        ],
+        [
+          0.88,
+          0.35,
+          1.29
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_left_leg",
+      "semantic_path": "Armchair on black background/chair/front_left_leg",
+      "name": "front_left_leg",
+      "asset_class": "SquareWoodenLeg",
+      "parent_feature_id": "feature:Armchair on black background/chair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.76,
+          -0.43,
+          0.0
+        ],
+        [
+          -0.6199999999999999,
+          -0.29,
+          0.55
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:9b5048832cf4d467c472",
+        "source:f9f678df26ac8364bbc1"
+      ],
+      "source_locations": [
+        "L245-L248",
+        "L172-L182"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_left_leg/leg",
+      "semantic_path": "Armchair on black background/chair/front_left_leg/leg",
+      "name": "leg",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_left_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.76,
+          -0.43,
+          0.0
+        ],
+        [
+          -0.6199999999999999,
+          -0.29,
+          0.55
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:dbfad4fce9458c15c2d5"
+      ],
+      "source_locations": [
+        "L175-L182"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_right_leg",
+      "semantic_path": "Armchair on black background/chair/front_right_leg",
+      "name": "front_right_leg",
+      "asset_class": "SquareWoodenLeg",
+      "parent_feature_id": "feature:Armchair on black background/chair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6199999999999999,
+          -0.43,
+          0.0
+        ],
+        [
+          0.76,
+          -0.29,
+          0.55
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:509edd93d2bf65d191aa",
+        "source:f9f678df26ac8364bbc1"
+      ],
+      "source_locations": [
+        "L249-L252",
+        "L172-L182"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_right_leg/leg",
+      "semantic_path": "Armchair on black background/chair/front_right_leg/leg",
+      "name": "leg",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_right_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6199999999999999,
+          -0.43,
+          0.0
+        ],
+        [
+          0.76,
+          -0.29,
+          0.55
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:dbfad4fce9458c15c2d5"
+      ],
+      "source_locations": [
+        "L175-L182"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/rear_left_leg",
+      "semantic_path": "Armchair on black background/chair/rear_left_leg",
+      "name": "rear_left_leg",
+      "asset_class": "SquareWoodenLeg",
+      "parent_feature_id": "feature:Armchair on black background/chair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.76,
+          0.29,
+          0.0
+        ],
+        [
+          -0.6199999999999999,
+          0.43,
+          0.55
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:71b96239de0bfd361a48",
+        "source:f9f678df26ac8364bbc1"
+      ],
+      "source_locations": [
+        "L253-L256",
+        "L172-L182"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/rear_left_leg/leg",
+      "semantic_path": "Armchair on black background/chair/rear_left_leg/leg",
+      "name": "leg",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Armchair on black background/chair/rear_left_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.76,
+          0.29,
+          0.0
+        ],
+        [
+          -0.6199999999999999,
+          0.43,
+          0.55
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:dbfad4fce9458c15c2d5"
+      ],
+      "source_locations": [
+        "L175-L182"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/rear_right_leg",
+      "semantic_path": "Armchair on black background/chair/rear_right_leg",
+      "name": "rear_right_leg",
+      "asset_class": "SquareWoodenLeg",
+      "parent_feature_id": "feature:Armchair on black background/chair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6199999999999999,
+          0.29,
+          0.0
+        ],
+        [
+          0.76,
+          0.43,
+          0.55
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:f201413e503571973030",
+        "source:f9f678df26ac8364bbc1"
+      ],
+      "source_locations": [
+        "L257-L260",
+        "L172-L182"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/rear_right_leg/leg",
+      "semantic_path": "Armchair on black background/chair/rear_right_leg/leg",
+      "name": "leg",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Armchair on black background/chair/rear_right_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6199999999999999,
+          0.29,
+          0.0
+        ],
+        [
+          0.76,
+          0.43,
+          0.55
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:dbfad4fce9458c15c2d5"
+      ],
+      "source_locations": [
+        "L175-L182"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim",
+      "name": "front_nailhead_trim",
+      "asset_class": "NailheadTrim",
+      "parent_feature_id": "feature:Armchair on black background/chair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.6010000000000001,
+          -0.529,
+          0.608
+        ],
+        [
+          0.6010000000000001,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:e43be19661859a734654",
+        "source:d7c4f773802ecb4e4ef5"
+      ],
+      "source_locations": [
+        "L261-L264",
+        "L185-L202"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs",
+      "name": "studs",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.6010000000000001,
+          -0.529,
+          0.608
+        ],
+        [
+          0.6010000000000001,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:3f6b710fa5dae633e2bb"
+      ],
+      "source_locations": [
+        "L199-L202"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_0",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_0",
+      "name": "part_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.6010000000000001,
+          -0.529,
+          0.608
+        ],
+        [
+          -0.547,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_1",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_1",
+      "name": "part_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.5190000000000001,
+          -0.529,
+          0.608
+        ],
+        [
+          -0.465,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_2",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_2",
+      "name": "part_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.43700000000000006,
+          -0.529,
+          0.608
+        ],
+        [
+          -0.383,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_3",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_3",
+      "name": "part_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.35500000000000004,
+          -0.529,
+          0.608
+        ],
+        [
+          -0.301,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_4",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_4",
+      "name": "part_4",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.273,
+          -0.529,
+          0.608
+        ],
+        [
+          -0.21899999999999997,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_5",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_5",
+      "name": "part_5",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.191,
+          -0.529,
+          0.608
+        ],
+        [
+          -0.13699999999999996,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_6",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_6",
+      "name": "part_6",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.10899999999999999,
+          -0.529,
+          0.608
+        ],
+        [
+          -0.05499999999999994,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_7",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_7",
+      "name": "part_7",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.027000000000000024,
+          -0.529,
+          0.608
+        ],
+        [
+          0.027000000000000024,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_8",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_8",
+      "name": "part_8",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.05500000000000005,
+          -0.529,
+          0.608
+        ],
+        [
+          0.1090000000000001,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_9",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_9",
+      "name": "part_9",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.137,
+          -0.529,
+          0.608
+        ],
+        [
+          0.19100000000000006,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_10",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_10",
+      "name": "part_10",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.21899999999999997,
+          -0.529,
+          0.608
+        ],
+        [
+          0.273,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_11",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_11",
+      "name": "part_11",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.30100000000000005,
+          -0.529,
+          0.608
+        ],
+        [
+          0.3550000000000001,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_12",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_12",
+      "name": "part_12",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.3830000000000001,
+          -0.529,
+          0.608
+        ],
+        [
+          0.43700000000000017,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_13",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_13",
+      "name": "part_13",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.4650000000000002,
+          -0.529,
+          0.608
+        ],
+        [
+          0.5190000000000002,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_14",
+      "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_14",
+      "name": "part_14",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.547,
+          -0.529,
+          0.608
+        ],
+        [
+          0.6010000000000001,
+          -0.475,
+          0.662
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    }
+  ],
+  "unresolved": [
+    "Armchair on black background/chair/seat_base/rounded_shell/op_0: 0 direct source candidates for Asset.op_0",
+    "Armchair on black background/chair/seat_base/rounded_shell/op_1: 0 direct source candidates for Asset.op_1",
+    "Armchair on black background/chair/seat_base/rounded_shell/op_2: 0 direct source candidates for Asset.op_2",
+    "Armchair on black background/chair/seat_base/rounded_shell/op_3: 0 direct source candidates for Asset.op_3",
+    "Armchair on black background/chair/seat_base/rounded_shell/op_4: 0 direct source candidates for Asset.op_4",
+    "Armchair on black background/chair/seat_base/rounded_shell/op_5: 0 direct source candidates for Asset.op_5",
+    "Armchair on black background/chair/seat_cushion/cushion_form/op_0: 0 direct source candidates for Asset.op_0",
+    "Armchair on black background/chair/seat_cushion/cushion_form/op_1: 0 direct source candidates for Asset.op_1",
+    "Armchair on black background/chair/seat_cushion/cushion_form/op_2: 0 direct source candidates for Asset.op_2",
+    "Armchair on black background/chair/seat_cushion/cushion_form/op_3: 0 direct source candidates for Asset.op_3",
+    "Armchair on black background/chair/seat_cushion/cushion_form/op_4: 0 direct source candidates for Asset.op_4",
+    "Armchair on black background/chair/backrest/back_shell/op_0: 0 direct source candidates for Asset.op_0",
+    "Armchair on black background/chair/backrest/back_shell/op_1: 0 direct source candidates for Asset.op_1",
+    "Armchair on black background/chair/backrest/back_shell/op_2: 0 direct source candidates for Asset.op_2",
+    "Armchair on black background/chair/backrest/back_shell/op_3: 0 direct source candidates for Asset.op_3",
+    "Armchair on black background/chair/left_armrest/arm_form/op_0: 0 direct source candidates for Asset.op_0",
+    "Armchair on black background/chair/left_armrest/arm_form/op_1: 0 direct source candidates for Asset.op_1",
+    "Armchair on black background/chair/left_armrest/arm_form/op_2: 0 direct source candidates for Asset.op_2",
+    "Armchair on black background/chair/left_armrest/arm_form/op_3: 0 direct source candidates for Asset.op_3",
+    "Armchair on black background/chair/right_armrest/arm_form/op_0: 0 direct source candidates for Asset.op_0",
+    "Armchair on black background/chair/right_armrest/arm_form/op_1: 0 direct source candidates for Asset.op_1",
+    "Armchair on black background/chair/right_armrest/arm_form/op_2: 0 direct source candidates for Asset.op_2",
+    "Armchair on black background/chair/right_armrest/arm_form/op_3: 0 direct source candidates for Asset.op_3",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_0: 0 direct source candidates for Asset.part_0",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_1: 0 direct source candidates for Asset.part_1",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_2: 0 direct source candidates for Asset.part_2",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_3: 0 direct source candidates for Asset.part_3",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_4: 0 direct source candidates for Asset.part_4",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_5: 0 direct source candidates for Asset.part_5",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_6: 0 direct source candidates for Asset.part_6",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_7: 0 direct source candidates for Asset.part_7",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_8: 0 direct source candidates for Asset.part_8",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_9: 0 direct source candidates for Asset.part_9",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_10: 0 direct source candidates for Asset.part_10",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_11: 0 direct source candidates for Asset.part_11",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_12: 0 direct source candidates for Asset.part_12",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_13: 0 direct source candidates for Asset.part_13",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_14: 0 direct source candidates for Asset.part_14"
+  ]
+}

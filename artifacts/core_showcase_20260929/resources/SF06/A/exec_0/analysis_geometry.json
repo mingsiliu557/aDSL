@@ -1,0 +1,3961 @@
+{
+  "version": 1,
+  "source_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/A/SF06/source.py",
+  "source_sha256": "87d3e072b635f3f249d36e705dcc39ec20623d07b5a32e768846ad1789ddc283",
+  "source_index_sha256": "1ce2db4f491a7596289a79f425e087e57920dcf18728e38cc6df83048f7d6bee",
+  "frame": "authored_scene",
+  "length_unit": "scene_unit",
+  "root": {
+    "semantic_path": "Armchair on black background",
+    "name": "Armchair on black background",
+    "label": "Armchair on black background",
+    "asset_class": "ArmchairPresentation",
+    "attach_mode": "root",
+    "boolean_mode": null,
+    "primitives": [],
+    "children": [
+      {
+        "semantic_path": "Armchair on black background/background",
+        "name": "background",
+        "label": "Plain black presentation backdrop",
+        "asset_class": "PresentationBackdrop",
+        "attach_mode": "part",
+        "boolean_mode": null,
+        "primitives": [],
+        "children": [
+          {
+            "semantic_path": "Armchair on black background/background/ground",
+            "name": "ground",
+            "label": "Cube",
+            "asset_class": "Cube",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "cube",
+                "params": {
+                  "center": [
+                    0.0,
+                    0.0,
+                    -0.02
+                  ],
+                  "scale": [
+                    4.0,
+                    4.0,
+                    0.04
+                  ]
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.008,
+                  0.008,
+                  0.01
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:Armchair on black background/background/ground",
+            "source_ids": [
+              "source:c5b05963cf8e31d087bd"
+            ],
+            "source_locations": [
+              "L208-L215"
+            ],
+            "bounds": [
+              [
+                -2.0,
+                -2.0,
+                -0.04
+              ],
+              [
+                2.0,
+                2.0,
+                0.0
+              ]
+            ],
+            "resolution": "complete"
+          },
+          {
+            "semantic_path": "Armchair on black background/background/back_wall",
+            "name": "back_wall",
+            "label": "Cube",
+            "asset_class": "Cube",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "cube",
+                "params": {
+                  "center": [
+                    0.0,
+                    1.48,
+                    1.5
+                  ],
+                  "scale": [
+                    4.0,
+                    0.04,
+                    3.0
+                  ]
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.008,
+                  0.008,
+                  0.01
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:Armchair on black background/background/back_wall",
+            "source_ids": [
+              "source:5025d5bb5f2c62a8349c"
+            ],
+            "source_locations": [
+              "L216-L223"
+            ],
+            "bounds": [
+              [
+                -2.0,
+                1.46,
+                0.0
+              ],
+              [
+                2.0,
+                1.5,
+                3.0
+              ]
+            ],
+            "resolution": "complete"
+          }
+        ],
+        "joints": [],
+        "feature_id": "feature:Armchair on black background/background",
+        "source_ids": [
+          "source:093602e09d853687cb2e",
+          "source:2da43f420e66d4d7f0a4"
+        ],
+        "source_locations": [
+          "L270-L270",
+          "L205-L223"
+        ],
+        "bounds": [
+          [
+            -2.0,
+            -2.0,
+            -0.04
+          ],
+          [
+            2.0,
+            2.0,
+            3.0
+          ]
+        ],
+        "resolution": "complete"
+      },
+      {
+        "semantic_path": "Armchair on black background/chair",
+        "name": "chair",
+        "label": "Modern rounded upholstered armchair",
+        "asset_class": "ModernRoundedArmchair",
+        "attach_mode": "part",
+        "boolean_mode": null,
+        "primitives": [],
+        "children": [
+          {
+            "semantic_path": "Armchair on black background/chair/seat_base",
+            "name": "seat_base",
+            "label": "Rounded upholstered seat base",
+            "asset_class": "RoundedSeatBase",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [],
+            "children": [
+              {
+                "semantic_path": "Armchair on black background/chair/seat_base/rounded_shell",
+                "name": "rounded_shell",
+                "label": "BooleanUnion",
+                "asset_class": "Asset",
+                "attach_mode": "part",
+                "boolean_mode": "UNION",
+                "primitives": [
+                  {
+                    "type": "boolean",
+                    "params": {
+                      "mode": "UNION"
+                    },
+                    "xform": null,
+                    "color": [
+                      1.0,
+                      1.0,
+                      1.0
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [
+                  {
+                    "semantic_path": "Armchair on black background/chair/seat_base/rounded_shell/op_0",
+                    "name": "op_0",
+                    "label": "Cube",
+                    "asset_class": "Cube",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "cube",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.69
+                          ],
+                          "scale": [
+                            1.42,
+                            1.0,
+                            0.28
+                          ]
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell/op_0",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.71,
+                        -0.5,
+                        0.5499999999999999
+                      ],
+                      [
+                        0.71,
+                        0.5,
+                        0.83
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/seat_base/rounded_shell/op_1",
+                    "name": "op_1",
+                    "label": "Cube",
+                    "asset_class": "Cube",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "cube",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.69
+                          ],
+                          "scale": [
+                            1.7,
+                            0.72,
+                            0.28
+                          ]
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell/op_1",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.85,
+                        -0.36,
+                        0.5499999999999999
+                      ],
+                      [
+                        0.85,
+                        0.36,
+                        0.83
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/seat_base/rounded_shell/op_2",
+                    "name": "op_2",
+                    "label": "Cylinder",
+                    "asset_class": "Cylinder",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "cylinder",
+                        "params": {
+                          "p0": [
+                            -0.71,
+                            -0.36,
+                            0.5499999999999999
+                          ],
+                          "p1": [
+                            -0.71,
+                            -0.36,
+                            0.83
+                          ],
+                          "radius": 0.14
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell/op_2",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.85,
+                        -0.5,
+                        0.5499999999999999
+                      ],
+                      [
+                        -0.57,
+                        -0.21999999999999997,
+                        0.83
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/seat_base/rounded_shell/op_3",
+                    "name": "op_3",
+                    "label": "Cylinder",
+                    "asset_class": "Cylinder",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "cylinder",
+                        "params": {
+                          "p0": [
+                            -0.71,
+                            0.36,
+                            0.5499999999999999
+                          ],
+                          "p1": [
+                            -0.71,
+                            0.36,
+                            0.83
+                          ],
+                          "radius": 0.14
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell/op_3",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.85,
+                        0.21999999999999997,
+                        0.5499999999999999
+                      ],
+                      [
+                        -0.57,
+                        0.5,
+                        0.83
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/seat_base/rounded_shell/op_4",
+                    "name": "op_4",
+                    "label": "Cylinder",
+                    "asset_class": "Cylinder",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "cylinder",
+                        "params": {
+                          "p0": [
+                            0.71,
+                            -0.36,
+                            0.5499999999999999
+                          ],
+                          "p1": [
+                            0.71,
+                            -0.36,
+                            0.83
+                          ],
+                          "radius": 0.14
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell/op_4",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.57,
+                        -0.5,
+                        0.5499999999999999
+                      ],
+                      [
+                        0.85,
+                        -0.21999999999999997,
+                        0.83
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/seat_base/rounded_shell/op_5",
+                    "name": "op_5",
+                    "label": "Cylinder",
+                    "asset_class": "Cylinder",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "cylinder",
+                        "params": {
+                          "p0": [
+                            0.71,
+                            0.36,
+                            0.5499999999999999
+                          ],
+                          "p1": [
+                            0.71,
+                            0.36,
+                            0.83
+                          ],
+                          "radius": 0.14
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell/op_5",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.57,
+                        0.21999999999999997,
+                        0.5499999999999999
+                      ],
+                      [
+                        0.85,
+                        0.5,
+                        0.83
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  }
+                ],
+                "joints": [],
+                "feature_id": "feature:Armchair on black background/chair/seat_base/rounded_shell",
+                "source_ids": [
+                  "source:ea4a4c6a12cf1321a1ce"
+                ],
+                "source_locations": [
+                  "L53-L56"
+                ],
+                "bounds": [
+                  [
+                    -0.85,
+                    -0.5,
+                    0.5499999999999999
+                  ],
+                  [
+                    0.85,
+                    0.5,
+                    0.83
+                  ]
+                ],
+                "resolution": "complete"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:Armchair on black background/chair/seat_base",
+            "source_ids": [
+              "source:9dcee8440e48e504211a",
+              "source:e1f1e73414a66e060fa2"
+            ],
+            "source_locations": [
+              "L230-L230",
+              "L19-L56"
+            ],
+            "bounds": [
+              [
+                -0.85,
+                -0.5,
+                0.5499999999999999
+              ],
+              [
+                0.85,
+                0.5,
+                0.83
+              ]
+            ],
+            "resolution": "complete"
+          },
+          {
+            "semantic_path": "Armchair on black background/chair/seat_cushion",
+            "name": "seat_cushion",
+            "label": "Ergonomic depressed seat cushion",
+            "asset_class": "DepressedSeatCushion",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [],
+            "children": [
+              {
+                "semantic_path": "Armchair on black background/chair/seat_cushion/cushion_form",
+                "name": "cushion_form",
+                "label": "BooleanUnion",
+                "asset_class": "Asset",
+                "attach_mode": "part",
+                "boolean_mode": "UNION",
+                "primitives": [
+                  {
+                    "type": "boolean",
+                    "params": {
+                      "mode": "UNION"
+                    },
+                    "xform": null,
+                    "color": [
+                      1.0,
+                      1.0,
+                      1.0
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [
+                  {
+                    "semantic_path": "Armchair on black background/chair/seat_cushion/cushion_form/op_0",
+                    "name": "op_0",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.53,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.31,
+                            0.0,
+                            -0.03
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.075,
+                            0.905
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form/op_0",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.53,
+                        -0.33999999999999997,
+                        0.8300000000000001
+                      ],
+                      [
+                        0.53,
+                        0.28,
+                        0.98
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/seat_cushion/cushion_form/op_1",
+                    "name": "op_1",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.115,
+                            0.0,
+                            0.0,
+                            -0.59
+                          ],
+                          [
+                            0.0,
+                            0.37,
+                            0.0,
+                            -0.03
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.105,
+                            0.955
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form/op_1",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.705,
+                        -0.4,
+                        0.85
+                      ],
+                      [
+                        -0.475,
+                        0.33999999999999997,
+                        1.06
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/seat_cushion/cushion_form/op_2",
+                    "name": "op_2",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.115,
+                            0.0,
+                            0.0,
+                            0.59
+                          ],
+                          [
+                            0.0,
+                            0.37,
+                            0.0,
+                            -0.03
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.105,
+                            0.955
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form/op_2",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.475,
+                        -0.4,
+                        0.85
+                      ],
+                      [
+                        0.705,
+                        0.33999999999999997,
+                        1.06
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/seat_cushion/cushion_form/op_3",
+                    "name": "op_3",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.56,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.105,
+                            0.0,
+                            -0.355
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.105,
+                            0.955
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form/op_3",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.56,
+                        -0.45999999999999996,
+                        0.85
+                      ],
+                      [
+                        0.56,
+                        -0.25,
+                        1.06
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/seat_cushion/cushion_form/op_4",
+                    "name": "op_4",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.55,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.095,
+                            0.0,
+                            0.285
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.1,
+                            0.95
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form/op_4",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.55,
+                        0.18999999999999997,
+                        0.85
+                      ],
+                      [
+                        0.55,
+                        0.38,
+                        1.05
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  }
+                ],
+                "joints": [],
+                "feature_id": "feature:Armchair on black background/chair/seat_cushion/cushion_form",
+                "source_ids": [
+                  "source:e9ea3823d7e4a4c23ac4"
+                ],
+                "source_locations": [
+                  "L91-L100"
+                ],
+                "bounds": [
+                  [
+                    -0.705,
+                    -0.45999999999999996,
+                    0.8300000000000001
+                  ],
+                  [
+                    0.705,
+                    0.38,
+                    1.06
+                  ]
+                ],
+                "resolution": "complete"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:Armchair on black background/chair/seat_cushion",
+            "source_ids": [
+              "source:4e0df93ef7d1b141e22e",
+              "source:24c7563b3759b7b00117"
+            ],
+            "source_locations": [
+              "L231-L234",
+              "L59-L100"
+            ],
+            "bounds": [
+              [
+                -0.705,
+                -0.45999999999999996,
+                0.8300000000000001
+              ],
+              [
+                0.705,
+                0.38,
+                1.06
+              ]
+            ],
+            "resolution": "complete"
+          },
+          {
+            "semantic_path": "Armchair on black background/chair/backrest",
+            "name": "backrest",
+            "label": "Curved upholstered backrest",
+            "asset_class": "CurvedBackrest",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [],
+            "children": [
+              {
+                "semantic_path": "Armchair on black background/chair/backrest/back_shell",
+                "name": "back_shell",
+                "label": "BooleanUnion",
+                "asset_class": "Asset",
+                "attach_mode": "part",
+                "boolean_mode": "UNION",
+                "primitives": [
+                  {
+                    "type": "boolean",
+                    "params": {
+                      "mode": "UNION"
+                    },
+                    "xform": null,
+                    "color": [
+                      1.0,
+                      1.0,
+                      1.0
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [
+                  {
+                    "semantic_path": "Armchair on black background/chair/backrest/back_shell/op_0",
+                    "name": "op_0",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.72,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.17,
+                            0.0,
+                            0.36
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.58,
+                            1.43
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/backrest/back_shell/op_0",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.72,
+                        0.18999999999999997,
+                        0.85
+                      ],
+                      [
+                        0.72,
+                        0.53,
+                        2.01
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/backrest/back_shell/op_1",
+                    "name": "op_1",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.67,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.16,
+                            0.0,
+                            0.36
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.24,
+                            1.02
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/backrest/back_shell/op_1",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.67,
+                        0.19999999999999998,
+                        0.78
+                      ],
+                      [
+                        0.67,
+                        0.52,
+                        1.26
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/backrest/back_shell/op_2",
+                    "name": "op_2",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.18,
+                            0.0,
+                            0.0,
+                            -0.66
+                          ],
+                          [
+                            0.0,
+                            0.23,
+                            0.0,
+                            0.25
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.46,
+                            1.39
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/backrest/back_shell/op_2",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.8400000000000001,
+                        0.01999999999999999,
+                        0.9299999999999999
+                      ],
+                      [
+                        -0.48000000000000004,
+                        0.48,
+                        1.8499999999999999
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/backrest/back_shell/op_3",
+                    "name": "op_3",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.18,
+                            0.0,
+                            0.0,
+                            0.66
+                          ],
+                          [
+                            0.0,
+                            0.23,
+                            0.0,
+                            0.25
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.46,
+                            1.39
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/backrest/back_shell/op_3",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.48000000000000004,
+                        0.01999999999999999,
+                        0.9299999999999999
+                      ],
+                      [
+                        0.8400000000000001,
+                        0.48,
+                        1.8499999999999999
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  }
+                ],
+                "joints": [],
+                "feature_id": "feature:Armchair on black background/chair/backrest/back_shell",
+                "source_ids": [
+                  "source:206a533470ca9c757662"
+                ],
+                "source_locations": [
+                  "L132-L135"
+                ],
+                "bounds": [
+                  [
+                    -0.8400000000000001,
+                    0.01999999999999999,
+                    0.78
+                  ],
+                  [
+                    0.8400000000000001,
+                    0.53,
+                    2.01
+                  ]
+                ],
+                "resolution": "complete"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:Armchair on black background/chair/backrest",
+            "source_ids": [
+              "source:521d802afad44eb1abea",
+              "source:30201be74568c67f1003"
+            ],
+            "source_locations": [
+              "L235-L235",
+              "L103-L135"
+            ],
+            "bounds": [
+              [
+                -0.8400000000000001,
+                0.01999999999999999,
+                0.78
+              ],
+              [
+                0.8400000000000001,
+                0.53,
+                2.01
+              ]
+            ],
+            "resolution": "complete"
+          },
+          {
+            "semantic_path": "Armchair on black background/chair/left_armrest",
+            "name": "left_armrest",
+            "label": "Curved upholstered armrest",
+            "asset_class": "CurvedArmrest",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [],
+            "children": [
+              {
+                "semantic_path": "Armchair on black background/chair/left_armrest/arm_form",
+                "name": "arm_form",
+                "label": "BooleanUnion",
+                "asset_class": "Asset",
+                "attach_mode": "part",
+                "boolean_mode": "UNION",
+                "primitives": [
+                  {
+                    "type": "boolean",
+                    "params": {
+                      "mode": "UNION"
+                    },
+                    "xform": null,
+                    "color": [
+                      1.0,
+                      1.0,
+                      1.0
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [
+                  {
+                    "semantic_path": "Armchair on black background/chair/left_armrest/arm_form/op_0",
+                    "name": "op_0",
+                    "label": "Cylinder",
+                    "asset_class": "Cylinder",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "cylinder",
+                        "params": {
+                          "p0": [
+                            -0.73,
+                            -0.24,
+                            1.14
+                          ],
+                          "p1": [
+                            -0.73,
+                            0.3,
+                            1.26
+                          ],
+                          "radius": 0.13
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/left_armrest/arm_form/op_0",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.86,
+                        -0.2682009595164253,
+                        1.0130956821760861
+                      ],
+                      [
+                        -0.6,
+                        0.3282009595164253,
+                        1.3869043178239138
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/left_armrest/arm_form/op_1",
+                    "name": "op_1",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.73,
+                            -0.24,
+                            1.14
+                          ],
+                          "radius": 0.13
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/left_armrest/arm_form/op_1",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.86,
+                        -0.37,
+                        1.0099999999999998
+                      ],
+                      [
+                        -0.6,
+                        -0.10999999999999999,
+                        1.27
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/left_armrest/arm_form/op_2",
+                    "name": "op_2",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.73,
+                            0.3,
+                            1.26
+                          ],
+                          "radius": 0.13
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/left_armrest/arm_form/op_2",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.86,
+                        0.16999999999999998,
+                        1.13
+                      ],
+                      [
+                        -0.6,
+                        0.43,
+                        1.3900000000000001
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/left_armrest/arm_form/op_3",
+                    "name": "op_3",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.15,
+                            0.0,
+                            0.0,
+                            -0.73
+                          ],
+                          [
+                            0.0,
+                            0.31,
+                            0.0,
+                            0.04
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.29,
+                            1.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/left_armrest/arm_form/op_3",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.88,
+                        -0.27,
+                        0.71
+                      ],
+                      [
+                        -0.58,
+                        0.35,
+                        1.29
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  }
+                ],
+                "joints": [],
+                "feature_id": "feature:Armchair on black background/chair/left_armrest/arm_form",
+                "source_ids": [
+                  "source:db89c1efaa020abd2b45"
+                ],
+                "source_locations": [
+                  "L166-L169"
+                ],
+                "bounds": [
+                  [
+                    -0.88,
+                    -0.37,
+                    0.71
+                  ],
+                  [
+                    -0.58,
+                    0.43,
+                    1.3900000000000001
+                  ]
+                ],
+                "resolution": "complete"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:Armchair on black background/chair/left_armrest",
+            "source_ids": [
+              "source:8ae21df85b823ae8b5b4",
+              "source:ddaf8da3f872bb46a911"
+            ],
+            "source_locations": [
+              "L236-L239",
+              "L138-L169"
+            ],
+            "bounds": [
+              [
+                -0.88,
+                -0.37,
+                0.71
+              ],
+              [
+                -0.58,
+                0.43,
+                1.3900000000000001
+              ]
+            ],
+            "resolution": "complete"
+          },
+          {
+            "semantic_path": "Armchair on black background/chair/right_armrest",
+            "name": "right_armrest",
+            "label": "Curved upholstered armrest",
+            "asset_class": "CurvedArmrest",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [],
+            "children": [
+              {
+                "semantic_path": "Armchair on black background/chair/right_armrest/arm_form",
+                "name": "arm_form",
+                "label": "BooleanUnion",
+                "asset_class": "Asset",
+                "attach_mode": "part",
+                "boolean_mode": "UNION",
+                "primitives": [
+                  {
+                    "type": "boolean",
+                    "params": {
+                      "mode": "UNION"
+                    },
+                    "xform": null,
+                    "color": [
+                      1.0,
+                      1.0,
+                      1.0
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [
+                  {
+                    "semantic_path": "Armchair on black background/chair/right_armrest/arm_form/op_0",
+                    "name": "op_0",
+                    "label": "Cylinder",
+                    "asset_class": "Cylinder",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "cylinder",
+                        "params": {
+                          "p0": [
+                            0.73,
+                            -0.24,
+                            1.14
+                          ],
+                          "p1": [
+                            0.73,
+                            0.3,
+                            1.26
+                          ],
+                          "radius": 0.13
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/right_armrest/arm_form/op_0",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.6,
+                        -0.2682009595164253,
+                        1.0130956821760861
+                      ],
+                      [
+                        0.86,
+                        0.3282009595164253,
+                        1.3869043178239138
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/right_armrest/arm_form/op_1",
+                    "name": "op_1",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.73,
+                            -0.24,
+                            1.14
+                          ],
+                          "radius": 0.13
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/right_armrest/arm_form/op_1",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.6,
+                        -0.37,
+                        1.0099999999999998
+                      ],
+                      [
+                        0.86,
+                        -0.10999999999999999,
+                        1.27
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/right_armrest/arm_form/op_2",
+                    "name": "op_2",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.73,
+                            0.3,
+                            1.26
+                          ],
+                          "radius": 0.13
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/right_armrest/arm_form/op_2",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.6,
+                        0.16999999999999998,
+                        1.13
+                      ],
+                      [
+                        0.86,
+                        0.43,
+                        1.3900000000000001
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/right_armrest/arm_form/op_3",
+                    "name": "op_3",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.15,
+                            0.0,
+                            0.0,
+                            0.73
+                          ],
+                          [
+                            0.0,
+                            0.31,
+                            0.0,
+                            0.04
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.29,
+                            1.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.46,
+                          0.47,
+                          0.49
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/right_armrest/arm_form/op_3",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.58,
+                        -0.27,
+                        0.71
+                      ],
+                      [
+                        0.88,
+                        0.35,
+                        1.29
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  }
+                ],
+                "joints": [],
+                "feature_id": "feature:Armchair on black background/chair/right_armrest/arm_form",
+                "source_ids": [
+                  "source:db89c1efaa020abd2b45"
+                ],
+                "source_locations": [
+                  "L166-L169"
+                ],
+                "bounds": [
+                  [
+                    0.58,
+                    -0.37,
+                    0.71
+                  ],
+                  [
+                    0.88,
+                    0.43,
+                    1.3900000000000001
+                  ]
+                ],
+                "resolution": "complete"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:Armchair on black background/chair/right_armrest",
+            "source_ids": [
+              "source:06dbc3c92f85c313ed4c",
+              "source:ddaf8da3f872bb46a911"
+            ],
+            "source_locations": [
+              "L240-L243",
+              "L138-L169"
+            ],
+            "bounds": [
+              [
+                0.58,
+                -0.37,
+                0.71
+              ],
+              [
+                0.88,
+                0.43,
+                1.3900000000000001
+              ]
+            ],
+            "resolution": "complete"
+          },
+          {
+            "semantic_path": "Armchair on black background/chair/front_left_leg",
+            "name": "front_left_leg",
+            "label": "Straight square wooden leg",
+            "asset_class": "SquareWoodenLeg",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [],
+            "children": [
+              {
+                "semantic_path": "Armchair on black background/chair/front_left_leg/leg",
+                "name": "leg",
+                "label": "Cube",
+                "asset_class": "Cube",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "cube",
+                    "params": {
+                      "center": [
+                        -0.69,
+                        -0.36,
+                        0.275
+                      ],
+                      "scale": [
+                        0.14,
+                        0.14,
+                        0.55
+                      ]
+                    },
+                    "xform": [
+                      [
+                        1.0,
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.3,
+                      0.16,
+                      0.08
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [],
+                "joints": [],
+                "feature_id": "feature:Armchair on black background/chair/front_left_leg/leg",
+                "source_ids": [
+                  "source:dbfad4fce9458c15c2d5"
+                ],
+                "source_locations": [
+                  "L175-L182"
+                ],
+                "bounds": [
+                  [
+                    -0.76,
+                    -0.43,
+                    0.0
+                  ],
+                  [
+                    -0.6199999999999999,
+                    -0.29,
+                    0.55
+                  ]
+                ],
+                "resolution": "complete"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:Armchair on black background/chair/front_left_leg",
+            "source_ids": [
+              "source:9b5048832cf4d467c472",
+              "source:f9f678df26ac8364bbc1"
+            ],
+            "source_locations": [
+              "L245-L248",
+              "L172-L182"
+            ],
+            "bounds": [
+              [
+                -0.76,
+                -0.43,
+                0.0
+              ],
+              [
+                -0.6199999999999999,
+                -0.29,
+                0.55
+              ]
+            ],
+            "resolution": "complete"
+          },
+          {
+            "semantic_path": "Armchair on black background/chair/front_right_leg",
+            "name": "front_right_leg",
+            "label": "Straight square wooden leg",
+            "asset_class": "SquareWoodenLeg",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [],
+            "children": [
+              {
+                "semantic_path": "Armchair on black background/chair/front_right_leg/leg",
+                "name": "leg",
+                "label": "Cube",
+                "asset_class": "Cube",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "cube",
+                    "params": {
+                      "center": [
+                        0.69,
+                        -0.36,
+                        0.275
+                      ],
+                      "scale": [
+                        0.14,
+                        0.14,
+                        0.55
+                      ]
+                    },
+                    "xform": [
+                      [
+                        1.0,
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.3,
+                      0.16,
+                      0.08
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [],
+                "joints": [],
+                "feature_id": "feature:Armchair on black background/chair/front_right_leg/leg",
+                "source_ids": [
+                  "source:dbfad4fce9458c15c2d5"
+                ],
+                "source_locations": [
+                  "L175-L182"
+                ],
+                "bounds": [
+                  [
+                    0.6199999999999999,
+                    -0.43,
+                    0.0
+                  ],
+                  [
+                    0.76,
+                    -0.29,
+                    0.55
+                  ]
+                ],
+                "resolution": "complete"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:Armchair on black background/chair/front_right_leg",
+            "source_ids": [
+              "source:509edd93d2bf65d191aa",
+              "source:f9f678df26ac8364bbc1"
+            ],
+            "source_locations": [
+              "L249-L252",
+              "L172-L182"
+            ],
+            "bounds": [
+              [
+                0.6199999999999999,
+                -0.43,
+                0.0
+              ],
+              [
+                0.76,
+                -0.29,
+                0.55
+              ]
+            ],
+            "resolution": "complete"
+          },
+          {
+            "semantic_path": "Armchair on black background/chair/rear_left_leg",
+            "name": "rear_left_leg",
+            "label": "Straight square wooden leg",
+            "asset_class": "SquareWoodenLeg",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [],
+            "children": [
+              {
+                "semantic_path": "Armchair on black background/chair/rear_left_leg/leg",
+                "name": "leg",
+                "label": "Cube",
+                "asset_class": "Cube",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "cube",
+                    "params": {
+                      "center": [
+                        -0.69,
+                        0.36,
+                        0.275
+                      ],
+                      "scale": [
+                        0.14,
+                        0.14,
+                        0.55
+                      ]
+                    },
+                    "xform": [
+                      [
+                        1.0,
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.3,
+                      0.16,
+                      0.08
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [],
+                "joints": [],
+                "feature_id": "feature:Armchair on black background/chair/rear_left_leg/leg",
+                "source_ids": [
+                  "source:dbfad4fce9458c15c2d5"
+                ],
+                "source_locations": [
+                  "L175-L182"
+                ],
+                "bounds": [
+                  [
+                    -0.76,
+                    0.29,
+                    0.0
+                  ],
+                  [
+                    -0.6199999999999999,
+                    0.43,
+                    0.55
+                  ]
+                ],
+                "resolution": "complete"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:Armchair on black background/chair/rear_left_leg",
+            "source_ids": [
+              "source:71b96239de0bfd361a48",
+              "source:f9f678df26ac8364bbc1"
+            ],
+            "source_locations": [
+              "L253-L256",
+              "L172-L182"
+            ],
+            "bounds": [
+              [
+                -0.76,
+                0.29,
+                0.0
+              ],
+              [
+                -0.6199999999999999,
+                0.43,
+                0.55
+              ]
+            ],
+            "resolution": "complete"
+          },
+          {
+            "semantic_path": "Armchair on black background/chair/rear_right_leg",
+            "name": "rear_right_leg",
+            "label": "Straight square wooden leg",
+            "asset_class": "SquareWoodenLeg",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [],
+            "children": [
+              {
+                "semantic_path": "Armchair on black background/chair/rear_right_leg/leg",
+                "name": "leg",
+                "label": "Cube",
+                "asset_class": "Cube",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "cube",
+                    "params": {
+                      "center": [
+                        0.69,
+                        0.36,
+                        0.275
+                      ],
+                      "scale": [
+                        0.14,
+                        0.14,
+                        0.55
+                      ]
+                    },
+                    "xform": [
+                      [
+                        1.0,
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.3,
+                      0.16,
+                      0.08
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [],
+                "joints": [],
+                "feature_id": "feature:Armchair on black background/chair/rear_right_leg/leg",
+                "source_ids": [
+                  "source:dbfad4fce9458c15c2d5"
+                ],
+                "source_locations": [
+                  "L175-L182"
+                ],
+                "bounds": [
+                  [
+                    0.6199999999999999,
+                    0.29,
+                    0.0
+                  ],
+                  [
+                    0.76,
+                    0.43,
+                    0.55
+                  ]
+                ],
+                "resolution": "complete"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:Armchair on black background/chair/rear_right_leg",
+            "source_ids": [
+              "source:f201413e503571973030",
+              "source:f9f678df26ac8364bbc1"
+            ],
+            "source_locations": [
+              "L257-L260",
+              "L172-L182"
+            ],
+            "bounds": [
+              [
+                0.6199999999999999,
+                0.29,
+                0.0
+              ],
+              [
+                0.76,
+                0.43,
+                0.55
+              ]
+            ],
+            "resolution": "complete"
+          },
+          {
+            "semantic_path": "Armchair on black background/chair/front_nailhead_trim",
+            "name": "front_nailhead_trim",
+            "label": "Front nailhead trim",
+            "asset_class": "NailheadTrim",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [],
+            "children": [
+              {
+                "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs",
+                "name": "studs",
+                "label": "Axis Layout",
+                "asset_class": "Asset",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [],
+                "children": [
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_0",
+                    "name": "part_0",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_0",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.6010000000000001,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        -0.547,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_1",
+                    "name": "part_1",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.08200000000000002
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_1",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.5190000000000001,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        -0.465,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_2",
+                    "name": "part_2",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.16400000000000003
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_2",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.43700000000000006,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        -0.383,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_3",
+                    "name": "part_3",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.24600000000000005
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_3",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.35500000000000004,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        -0.301,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_4",
+                    "name": "part_4",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.32800000000000007
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_4",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.273,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        -0.21899999999999997,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_5",
+                    "name": "part_5",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.4100000000000001
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_5",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.191,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        -0.13699999999999996,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_6",
+                    "name": "part_6",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.4920000000000001
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_6",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.10899999999999999,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        -0.05499999999999994,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_7",
+                    "name": "part_7",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.5740000000000001
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_7",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.027000000000000024,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        0.027000000000000024,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_8",
+                    "name": "part_8",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.6560000000000001
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_8",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.05500000000000005,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        0.1090000000000001,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_9",
+                    "name": "part_9",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.7380000000000001
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_9",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.137,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        0.19100000000000006,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_10",
+                    "name": "part_10",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.8200000000000001
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_10",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.21899999999999997,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        0.273,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_11",
+                    "name": "part_11",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.9020000000000001
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_11",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.30100000000000005,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        0.3550000000000001,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_12",
+                    "name": "part_12",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.9840000000000002
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_12",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.3830000000000001,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        0.43700000000000017,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_13",
+                    "name": "part_13",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            1.0660000000000003
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_13",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.4650000000000002,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        0.5190000000000002,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "Armchair on black background/chair/front_nailhead_trim/studs/part_14",
+                    "name": "part_14",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            -0.5740000000000001,
+                            -0.502,
+                            0.635
+                          ],
+                          "radius": 0.027
+                        },
+                        "xform": [
+                          [
+                            1.0,
+                            0.0,
+                            0.0,
+                            1.1480000000000001
+                          ],
+                          [
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.42,
+                          0.44,
+                          0.46
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs/part_14",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.547,
+                        -0.529,
+                        0.608
+                      ],
+                      [
+                        0.6010000000000001,
+                        -0.475,
+                        0.662
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  }
+                ],
+                "joints": [],
+                "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim/studs",
+                "source_ids": [
+                  "source:3f6b710fa5dae633e2bb"
+                ],
+                "source_locations": [
+                  "L199-L202"
+                ],
+                "bounds": [
+                  [
+                    -0.6010000000000001,
+                    -0.529,
+                    0.608
+                  ],
+                  [
+                    0.6010000000000001,
+                    -0.475,
+                    0.662
+                  ]
+                ],
+                "resolution": "complete"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:Armchair on black background/chair/front_nailhead_trim",
+            "source_ids": [
+              "source:e43be19661859a734654",
+              "source:d7c4f773802ecb4e4ef5"
+            ],
+            "source_locations": [
+              "L261-L264",
+              "L185-L202"
+            ],
+            "bounds": [
+              [
+                -0.6010000000000001,
+                -0.529,
+                0.608
+              ],
+              [
+                0.6010000000000001,
+                -0.475,
+                0.662
+              ]
+            ],
+            "resolution": "complete"
+          }
+        ],
+        "joints": [],
+        "feature_id": "feature:Armchair on black background/chair",
+        "source_ids": [
+          "source:dffc1e3ab723fdb14e08",
+          "source:871dd2fbe77627e0469d"
+        ],
+        "source_locations": [
+          "L271-L271",
+          "L226-L264"
+        ],
+        "bounds": [
+          [
+            -0.88,
+            -0.529,
+            0.0
+          ],
+          [
+            0.88,
+            0.53,
+            2.01
+          ]
+        ],
+        "resolution": "complete"
+      }
+    ],
+    "joints": [],
+    "feature_id": "feature:Armchair on black background",
+    "source_ids": [
+      "source:01f6646c37e8b27ceb77"
+    ],
+    "source_locations": [
+      "L267-L271"
+    ],
+    "bounds": [
+      [
+        -2.0,
+        -2.0,
+        -0.04
+      ],
+      [
+        2.0,
+        2.0,
+        3.0
+      ]
+    ],
+    "resolution": "complete"
+  },
+  "unresolved": [
+    "Armchair on black background/chair/seat_base/rounded_shell/op_0: 0 direct source candidates for Asset.op_0",
+    "Armchair on black background/chair/seat_base/rounded_shell/op_1: 0 direct source candidates for Asset.op_1",
+    "Armchair on black background/chair/seat_base/rounded_shell/op_2: 0 direct source candidates for Asset.op_2",
+    "Armchair on black background/chair/seat_base/rounded_shell/op_3: 0 direct source candidates for Asset.op_3",
+    "Armchair on black background/chair/seat_base/rounded_shell/op_4: 0 direct source candidates for Asset.op_4",
+    "Armchair on black background/chair/seat_base/rounded_shell/op_5: 0 direct source candidates for Asset.op_5",
+    "Armchair on black background/chair/seat_cushion/cushion_form/op_0: 0 direct source candidates for Asset.op_0",
+    "Armchair on black background/chair/seat_cushion/cushion_form/op_1: 0 direct source candidates for Asset.op_1",
+    "Armchair on black background/chair/seat_cushion/cushion_form/op_2: 0 direct source candidates for Asset.op_2",
+    "Armchair on black background/chair/seat_cushion/cushion_form/op_3: 0 direct source candidates for Asset.op_3",
+    "Armchair on black background/chair/seat_cushion/cushion_form/op_4: 0 direct source candidates for Asset.op_4",
+    "Armchair on black background/chair/backrest/back_shell/op_0: 0 direct source candidates for Asset.op_0",
+    "Armchair on black background/chair/backrest/back_shell/op_1: 0 direct source candidates for Asset.op_1",
+    "Armchair on black background/chair/backrest/back_shell/op_2: 0 direct source candidates for Asset.op_2",
+    "Armchair on black background/chair/backrest/back_shell/op_3: 0 direct source candidates for Asset.op_3",
+    "Armchair on black background/chair/left_armrest/arm_form/op_0: 0 direct source candidates for Asset.op_0",
+    "Armchair on black background/chair/left_armrest/arm_form/op_1: 0 direct source candidates for Asset.op_1",
+    "Armchair on black background/chair/left_armrest/arm_form/op_2: 0 direct source candidates for Asset.op_2",
+    "Armchair on black background/chair/left_armrest/arm_form/op_3: 0 direct source candidates for Asset.op_3",
+    "Armchair on black background/chair/right_armrest/arm_form/op_0: 0 direct source candidates for Asset.op_0",
+    "Armchair on black background/chair/right_armrest/arm_form/op_1: 0 direct source candidates for Asset.op_1",
+    "Armchair on black background/chair/right_armrest/arm_form/op_2: 0 direct source candidates for Asset.op_2",
+    "Armchair on black background/chair/right_armrest/arm_form/op_3: 0 direct source candidates for Asset.op_3",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_0: 0 direct source candidates for Asset.part_0",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_1: 0 direct source candidates for Asset.part_1",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_2: 0 direct source candidates for Asset.part_2",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_3: 0 direct source candidates for Asset.part_3",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_4: 0 direct source candidates for Asset.part_4",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_5: 0 direct source candidates for Asset.part_5",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_6: 0 direct source candidates for Asset.part_6",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_7: 0 direct source candidates for Asset.part_7",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_8: 0 direct source candidates for Asset.part_8",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_9: 0 direct source candidates for Asset.part_9",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_10: 0 direct source candidates for Asset.part_10",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_11: 0 direct source candidates for Asset.part_11",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_12: 0 direct source candidates for Asset.part_12",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_13: 0 direct source candidates for Asset.part_13",
+    "Armchair on black background/chair/front_nailhead_trim/studs/part_14: 0 direct source candidates for Asset.part_14"
+  ],
+  "geometry_sha256": "e16f94facfdc0aae26eff1fc50ad85b09abab2d45cb88195664cfe5f993a8591"
+}

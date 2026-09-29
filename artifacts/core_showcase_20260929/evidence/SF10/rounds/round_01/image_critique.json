@@ -1,0 +1,22 @@
+{
+  "approved": false,
+  "observations": [
+    "Across orbit views 1–6, the model reads clearly as a conference table with a warm-brown tabletop and two mirrored dark-gray pedestal supports.",
+    "Top view 7 shows a straight-edged, symmetric trapezoidal tabletop with a subtle and even front-to-back taper; it does not appear skewed, bowed, or oval.",
+    "Orbit views 1 and 4 clearly show two distinct horizontal braces between the pedestal uprights, with no visible detachment or exterior protrusion.",
+    "The uprights appear to meet the tabletop underside, and the broad feet appear aligned at a common floor level in the orbit views.",
+    "The dark pedestal assemblies and braces visually contrast with the brown tabletop and appear appropriately matte. No unnecessary environmental objects or decorative relief are present."
+  ],
+  "required_changes": [
+    "tabletop: Use any supported material configuration that produces a visibly glossy warm-brown tabletop while leaving the dark legs and braces matte. Do not invent roughness/specular setter methods; if color/alpha and fixed default Principled shading are the only public controls, treat the requested gloss as an unsupported appearance capability and report it as unresolved."
+  ],
+  "issues": [
+    {
+      "aspect": "surface",
+      "severity": "HIGH",
+      "target": "tabletop",
+      "problem": "In orbit views 1–6 and top view 7, the tabletop is smooth and brown but reads as predominantly diffuse/matte, with no clearly visible glossy highlight or reflection. This fails the requirement's explicit smooth, glossy tabletop finish.",
+      "suggested_fix": "Use any supported material configuration that produces a visibly glossy warm-brown tabletop while leaving the dark legs and braces matte. Do not invent roughness/specular setter methods; if color/alpha and fixed default Principled shading are the only public controls, treat the requested gloss as an unsupported appearance capability and report it as unresolved."
+    }
+  ]
+}

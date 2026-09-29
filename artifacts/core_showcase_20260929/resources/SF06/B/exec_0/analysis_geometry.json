@@ -1,0 +1,4468 @@
+{
+  "version": 1,
+  "source_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/SF06/source.py",
+  "source_sha256": "8b1d215c97048b413ad2d54f5e1c21a51d599ecae26ea84262f0f6d49247ac0e",
+  "source_index_sha256": "e767869dc072c5441a7453b3842c0b439a82cd6ae8787449e9127fb586ae99c7",
+  "frame": "authored_scene",
+  "length_unit": "scene_unit",
+  "root": {
+    "semantic_path": "ModernRoundedArmchair",
+    "name": "ModernRoundedArmchair",
+    "label": "ModernRoundedArmchair",
+    "asset_class": "ModernRoundedArmchair",
+    "attach_mode": "root",
+    "boolean_mode": null,
+    "primitives": [],
+    "children": [
+      {
+        "semantic_path": "ModernRoundedArmchair/presentation_background",
+        "name": "presentation_background",
+        "label": "PresentationBackground",
+        "asset_class": "PresentationBackground",
+        "attach_mode": "part",
+        "boolean_mode": null,
+        "primitives": [],
+        "children": [
+          {
+            "semantic_path": "ModernRoundedArmchair/presentation_background/matte_black_floor",
+            "name": "matte_black_floor",
+            "label": "Cube",
+            "asset_class": "Cube",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "cube",
+                "params": {
+                  "center": [
+                    0.0,
+                    0.0,
+                    -0.015
+                  ],
+                  "scale": [
+                    5.0,
+                    4.0,
+                    0.03
+                  ]
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.004,
+                  0.004,
+                  0.005
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/presentation_background/matte_black_floor",
+            "source_ids": [
+              "source:879ca2560671a8e8cd19"
+            ],
+            "source_locations": [
+              "L124-L124"
+            ],
+            "bounds": [
+              [
+                -2.5,
+                -2.0,
+                -0.03
+              ],
+              [
+                2.5,
+                2.0,
+                0.0
+              ]
+            ],
+            "resolution": "complete"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/presentation_background/matte_black_backdrop",
+            "name": "matte_black_backdrop",
+            "label": "Cube",
+            "asset_class": "Cube",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "cube",
+                "params": {
+                  "center": [
+                    0.0,
+                    1.62,
+                    1.6
+                  ],
+                  "scale": [
+                    5.0,
+                    0.03,
+                    3.2
+                  ]
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.004,
+                  0.004,
+                  0.005
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/presentation_background/matte_black_backdrop",
+            "source_ids": [
+              "source:3f53686ae6786626245a"
+            ],
+            "source_locations": [
+              "L125-L125"
+            ],
+            "bounds": [
+              [
+                -2.5,
+                1.6050000000000002,
+                0.0
+              ],
+              [
+                2.5,
+                1.635,
+                3.2
+              ]
+            ],
+            "resolution": "complete"
+          }
+        ],
+        "joints": [],
+        "feature_id": "feature:ModernRoundedArmchair/presentation_background",
+        "source_ids": [
+          "source:382dbccf7ab34424ff5d",
+          "source:dceaff60a2278d20f5fa"
+        ],
+        "source_locations": [
+          "L132-L132",
+          "L119-L125"
+        ],
+        "bounds": [
+          [
+            -2.5,
+            -2.0,
+            -0.03
+          ],
+          [
+            2.5,
+            2.0,
+            3.2
+          ]
+        ],
+        "resolution": "complete"
+      },
+      {
+        "semantic_path": "ModernRoundedArmchair/front_left_leg",
+        "name": "front_left_leg",
+        "label": "SquareWoodenLeg",
+        "asset_class": "SquareWoodenLeg",
+        "attach_mode": "part",
+        "boolean_mode": null,
+        "primitives": [],
+        "children": [
+          {
+            "semantic_path": "ModernRoundedArmchair/front_left_leg/square_post",
+            "name": "square_post",
+            "label": "Cube",
+            "asset_class": "Cube",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "cube",
+                "params": {
+                  "center": [
+                    -0.73,
+                    -0.515,
+                    0.3125
+                  ],
+                  "scale": [
+                    0.145,
+                    0.145,
+                    0.625
+                  ]
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.27,
+                  0.12,
+                  0.055
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/front_left_leg/square_post",
+            "source_ids": [
+              "source:c4846773c6a2fe1b1baa"
+            ],
+            "source_locations": [
+              "L102-L102"
+            ],
+            "bounds": [
+              [
+                -0.8025,
+                -0.5875,
+                0.0
+              ],
+              [
+                -0.6575,
+                -0.4425,
+                0.625
+              ]
+            ],
+            "resolution": "complete"
+          }
+        ],
+        "joints": [],
+        "feature_id": "feature:ModernRoundedArmchair/front_left_leg",
+        "source_ids": [
+          "source:9b5048832cf4d467c472",
+          "source:f9f678df26ac8364bbc1"
+        ],
+        "source_locations": [
+          "L134-L136",
+          "L98-L102"
+        ],
+        "bounds": [
+          [
+            -0.8025,
+            -0.5875,
+            0.0
+          ],
+          [
+            -0.6575,
+            -0.4425,
+            0.625
+          ]
+        ],
+        "resolution": "complete"
+      },
+      {
+        "semantic_path": "ModernRoundedArmchair/front_right_leg",
+        "name": "front_right_leg",
+        "label": "SquareWoodenLeg",
+        "asset_class": "SquareWoodenLeg",
+        "attach_mode": "part",
+        "boolean_mode": null,
+        "primitives": [],
+        "children": [
+          {
+            "semantic_path": "ModernRoundedArmchair/front_right_leg/square_post",
+            "name": "square_post",
+            "label": "Cube",
+            "asset_class": "Cube",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "cube",
+                "params": {
+                  "center": [
+                    0.73,
+                    -0.515,
+                    0.3125
+                  ],
+                  "scale": [
+                    0.145,
+                    0.145,
+                    0.625
+                  ]
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.27,
+                  0.12,
+                  0.055
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/front_right_leg/square_post",
+            "source_ids": [
+              "source:c4846773c6a2fe1b1baa"
+            ],
+            "source_locations": [
+              "L102-L102"
+            ],
+            "bounds": [
+              [
+                0.6575,
+                -0.5875,
+                0.0
+              ],
+              [
+                0.8025,
+                -0.4425,
+                0.625
+              ]
+            ],
+            "resolution": "complete"
+          }
+        ],
+        "joints": [],
+        "feature_id": "feature:ModernRoundedArmchair/front_right_leg",
+        "source_ids": [
+          "source:509edd93d2bf65d191aa",
+          "source:f9f678df26ac8364bbc1"
+        ],
+        "source_locations": [
+          "L137-L139",
+          "L98-L102"
+        ],
+        "bounds": [
+          [
+            0.6575,
+            -0.5875,
+            0.0
+          ],
+          [
+            0.8025,
+            -0.4425,
+            0.625
+          ]
+        ],
+        "resolution": "complete"
+      },
+      {
+        "semantic_path": "ModernRoundedArmchair/rear_left_leg",
+        "name": "rear_left_leg",
+        "label": "SquareWoodenLeg",
+        "asset_class": "SquareWoodenLeg",
+        "attach_mode": "part",
+        "boolean_mode": null,
+        "primitives": [],
+        "children": [
+          {
+            "semantic_path": "ModernRoundedArmchair/rear_left_leg/square_post",
+            "name": "square_post",
+            "label": "Cube",
+            "asset_class": "Cube",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "cube",
+                "params": {
+                  "center": [
+                    -0.69,
+                    0.37,
+                    0.3125
+                  ],
+                  "scale": [
+                    0.145,
+                    0.145,
+                    0.625
+                  ]
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.27,
+                  0.12,
+                  0.055
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/rear_left_leg/square_post",
+            "source_ids": [
+              "source:c4846773c6a2fe1b1baa"
+            ],
+            "source_locations": [
+              "L102-L102"
+            ],
+            "bounds": [
+              [
+                -0.7625,
+                0.2975,
+                0.0
+              ],
+              [
+                -0.6174999999999999,
+                0.4425,
+                0.625
+              ]
+            ],
+            "resolution": "complete"
+          }
+        ],
+        "joints": [],
+        "feature_id": "feature:ModernRoundedArmchair/rear_left_leg",
+        "source_ids": [
+          "source:71b96239de0bfd361a48",
+          "source:f9f678df26ac8364bbc1"
+        ],
+        "source_locations": [
+          "L140-L142",
+          "L98-L102"
+        ],
+        "bounds": [
+          [
+            -0.7625,
+            0.2975,
+            0.0
+          ],
+          [
+            -0.6174999999999999,
+            0.4425,
+            0.625
+          ]
+        ],
+        "resolution": "complete"
+      },
+      {
+        "semantic_path": "ModernRoundedArmchair/rear_right_leg",
+        "name": "rear_right_leg",
+        "label": "SquareWoodenLeg",
+        "asset_class": "SquareWoodenLeg",
+        "attach_mode": "part",
+        "boolean_mode": null,
+        "primitives": [],
+        "children": [
+          {
+            "semantic_path": "ModernRoundedArmchair/rear_right_leg/square_post",
+            "name": "square_post",
+            "label": "Cube",
+            "asset_class": "Cube",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "cube",
+                "params": {
+                  "center": [
+                    0.69,
+                    0.37,
+                    0.3125
+                  ],
+                  "scale": [
+                    0.145,
+                    0.145,
+                    0.625
+                  ]
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.27,
+                  0.12,
+                  0.055
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/rear_right_leg/square_post",
+            "source_ids": [
+              "source:c4846773c6a2fe1b1baa"
+            ],
+            "source_locations": [
+              "L102-L102"
+            ],
+            "bounds": [
+              [
+                0.6174999999999999,
+                0.2975,
+                0.0
+              ],
+              [
+                0.7625,
+                0.4425,
+                0.625
+              ]
+            ],
+            "resolution": "complete"
+          }
+        ],
+        "joints": [],
+        "feature_id": "feature:ModernRoundedArmchair/rear_right_leg",
+        "source_ids": [
+          "source:f201413e503571973030",
+          "source:f9f678df26ac8364bbc1"
+        ],
+        "source_locations": [
+          "L143-L145",
+          "L98-L102"
+        ],
+        "bounds": [
+          [
+            0.6174999999999999,
+            0.2975,
+            0.0
+          ],
+          [
+            0.7625,
+            0.4425,
+            0.625
+          ]
+        ],
+        "resolution": "complete"
+      },
+      {
+        "semantic_path": "ModernRoundedArmchair/seat_base",
+        "name": "seat_base",
+        "label": "RoundedSeatBase",
+        "asset_class": "RoundedSeatBase",
+        "attach_mode": "part",
+        "boolean_mode": null,
+        "primitives": [],
+        "children": [
+          {
+            "semantic_path": "ModernRoundedArmchair/seat_base/upholstered_body",
+            "name": "upholstered_body",
+            "label": "Hull",
+            "asset_class": "Asset",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "hull",
+                "params": {},
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.38,
+                  0.4,
+                  0.42
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [
+              {
+                "semantic_path": "ModernRoundedArmchair/seat_base/upholstered_body/op_0",
+                "name": "op_0",
+                "label": "Sphere",
+                "asset_class": "Sphere",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "sphere",
+                    "params": {
+                      "center": [
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      "radius": 1.0
+                    },
+                    "xform": [
+                      [
+                        0.27,
+                        0.0,
+                        0.0,
+                        -0.745
+                      ],
+                      [
+                        0.0,
+                        0.27,
+                        0.0,
+                        -0.575
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.155,
+                        0.775
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.38,
+                      0.4,
+                      0.42
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [],
+                "joints": [],
+                "feature_id": "feature:ModernRoundedArmchair/seat_base/upholstered_body/op_0",
+                "source_ids": [],
+                "source_locations": [],
+                "bounds": [
+                  [
+                    -1.0150000000000001,
+                    -0.845,
+                    0.62
+                  ],
+                  [
+                    -0.475,
+                    -0.30499999999999994,
+                    0.93
+                  ]
+                ],
+                "resolution": "unresolved"
+              },
+              {
+                "semantic_path": "ModernRoundedArmchair/seat_base/upholstered_body/op_1",
+                "name": "op_1",
+                "label": "Sphere",
+                "asset_class": "Sphere",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "sphere",
+                    "params": {
+                      "center": [
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      "radius": 1.0
+                    },
+                    "xform": [
+                      [
+                        0.27,
+                        0.0,
+                        0.0,
+                        0.745
+                      ],
+                      [
+                        0.0,
+                        0.27,
+                        0.0,
+                        -0.575
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.155,
+                        0.775
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.38,
+                      0.4,
+                      0.42
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [],
+                "joints": [],
+                "feature_id": "feature:ModernRoundedArmchair/seat_base/upholstered_body/op_1",
+                "source_ids": [],
+                "source_locations": [],
+                "bounds": [
+                  [
+                    0.475,
+                    -0.845,
+                    0.62
+                  ],
+                  [
+                    1.0150000000000001,
+                    -0.30499999999999994,
+                    0.93
+                  ]
+                ],
+                "resolution": "unresolved"
+              },
+              {
+                "semantic_path": "ModernRoundedArmchair/seat_base/upholstered_body/op_2",
+                "name": "op_2",
+                "label": "Sphere",
+                "asset_class": "Sphere",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "sphere",
+                    "params": {
+                      "center": [
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      "radius": 1.0
+                    },
+                    "xform": [
+                      [
+                        0.25,
+                        0.0,
+                        0.0,
+                        -0.705
+                      ],
+                      [
+                        0.0,
+                        0.25,
+                        0.0,
+                        0.455
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.155,
+                        0.775
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.38,
+                      0.4,
+                      0.42
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [],
+                "joints": [],
+                "feature_id": "feature:ModernRoundedArmchair/seat_base/upholstered_body/op_2",
+                "source_ids": [],
+                "source_locations": [],
+                "bounds": [
+                  [
+                    -0.955,
+                    0.20500000000000002,
+                    0.62
+                  ],
+                  [
+                    -0.45499999999999996,
+                    0.7050000000000001,
+                    0.93
+                  ]
+                ],
+                "resolution": "unresolved"
+              },
+              {
+                "semantic_path": "ModernRoundedArmchair/seat_base/upholstered_body/op_3",
+                "name": "op_3",
+                "label": "Sphere",
+                "asset_class": "Sphere",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "sphere",
+                    "params": {
+                      "center": [
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      "radius": 1.0
+                    },
+                    "xform": [
+                      [
+                        0.25,
+                        0.0,
+                        0.0,
+                        0.705
+                      ],
+                      [
+                        0.0,
+                        0.25,
+                        0.0,
+                        0.455
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.155,
+                        0.775
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.38,
+                      0.4,
+                      0.42
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [],
+                "joints": [],
+                "feature_id": "feature:ModernRoundedArmchair/seat_base/upholstered_body/op_3",
+                "source_ids": [],
+                "source_locations": [],
+                "bounds": [
+                  [
+                    0.45499999999999996,
+                    0.20500000000000002,
+                    0.62
+                  ],
+                  [
+                    0.955,
+                    0.7050000000000001,
+                    0.93
+                  ]
+                ],
+                "resolution": "unresolved"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/seat_base/upholstered_body",
+            "source_ids": [
+              "source:0b96ebd116594a40c8a0"
+            ],
+            "source_locations": [
+              "L35-L35"
+            ],
+            "bounds": [
+              [
+                -1.0150000000000001,
+                -0.845,
+                0.62
+              ],
+              [
+                1.0150000000000001,
+                0.7050000000000001,
+                0.93
+              ]
+            ],
+            "resolution": "complete"
+          }
+        ],
+        "joints": [],
+        "feature_id": "feature:ModernRoundedArmchair/seat_base",
+        "source_ids": [
+          "source:9dcee8440e48e504211a",
+          "source:e1f1e73414a66e060fa2"
+        ],
+        "source_locations": [
+          "L147-L147",
+          "L18-L35"
+        ],
+        "bounds": [
+          [
+            -1.0150000000000001,
+            -0.845,
+            0.62
+          ],
+          [
+            1.0150000000000001,
+            0.7050000000000001,
+            0.93
+          ]
+        ],
+        "resolution": "complete"
+      },
+      {
+        "semantic_path": "ModernRoundedArmchair/seat_cushion",
+        "name": "seat_cushion",
+        "label": "DepressedSeatCushion",
+        "asset_class": "DepressedSeatCushion",
+        "attach_mode": "part",
+        "boolean_mode": null,
+        "primitives": [],
+        "children": [
+          {
+            "semantic_path": "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion",
+            "name": "shallow_depressed_cushion",
+            "label": "BooleanDifference",
+            "asset_class": "Asset",
+            "attach_mode": "part",
+            "boolean_mode": "DIFFERENCE",
+            "primitives": [
+              {
+                "type": "boolean",
+                "params": {
+                  "mode": "DIFFERENCE"
+                },
+                "xform": null,
+                "color": [
+                  1.0,
+                  1.0,
+                  1.0
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [
+              {
+                "semantic_path": "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base",
+                "name": "base",
+                "label": "Hull",
+                "asset_class": "Asset",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "hull",
+                    "params": {},
+                    "xform": [
+                      [
+                        1.0,
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.43,
+                      0.45,
+                      0.47
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [
+                  {
+                    "semantic_path": "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_0",
+                    "name": "op_0",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.205,
+                            0.0,
+                            0.0,
+                            -0.525
+                          ],
+                          [
+                            0.0,
+                            0.205,
+                            0.0,
+                            -0.515
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.135,
+                            1.055
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_0",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.73,
+                        -0.72,
+                        0.9199999999999999
+                      ],
+                      [
+                        -0.32000000000000006,
+                        -0.31000000000000005,
+                        1.19
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_1",
+                    "name": "op_1",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.205,
+                            0.0,
+                            0.0,
+                            0.525
+                          ],
+                          [
+                            0.0,
+                            0.205,
+                            0.0,
+                            -0.515
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.135,
+                            1.055
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_1",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.32000000000000006,
+                        -0.72,
+                        0.9199999999999999
+                      ],
+                      [
+                        0.73,
+                        -0.31000000000000005,
+                        1.19
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_2",
+                    "name": "op_2",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.195,
+                            0.0,
+                            0.0,
+                            -0.475
+                          ],
+                          [
+                            0.0,
+                            0.195,
+                            0.0,
+                            0.245
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.13,
+                            1.045
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_2",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.6699999999999999,
+                        0.04999999999999999,
+                        0.9149999999999999
+                      ],
+                      [
+                        -0.27999999999999997,
+                        0.44,
+                        1.1749999999999998
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_3",
+                    "name": "op_3",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.195,
+                            0.0,
+                            0.0,
+                            0.475
+                          ],
+                          [
+                            0.0,
+                            0.195,
+                            0.0,
+                            0.245
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.13,
+                            1.045
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_3",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.27999999999999997,
+                        0.04999999999999999,
+                        0.9149999999999999
+                      ],
+                      [
+                        0.6699999999999999,
+                        0.44,
+                        1.1749999999999998
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  }
+                ],
+                "joints": [],
+                "feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base",
+                "source_ids": [],
+                "source_locations": [],
+                "bounds": [
+                  [
+                    -0.73,
+                    -0.72,
+                    0.9149999999999999
+                  ],
+                  [
+                    0.73,
+                    0.44,
+                    1.19
+                  ]
+                ],
+                "resolution": "unresolved"
+              },
+              {
+                "semantic_path": "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/op_0",
+                "name": "op_0",
+                "label": "Sphere",
+                "asset_class": "Sphere",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "sphere",
+                    "params": {
+                      "center": [
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      "radius": 1.0
+                    },
+                    "xform": [
+                      [
+                        0.54,
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.43,
+                        0.0,
+                        -0.08
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.15,
+                        1.245
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.43,
+                      0.45,
+                      0.47
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [],
+                "joints": [],
+                "feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/op_0",
+                "source_ids": [],
+                "source_locations": [],
+                "bounds": [
+                  [
+                    -0.54,
+                    -0.51,
+                    1.0950000000000002
+                  ],
+                  [
+                    0.54,
+                    0.35,
+                    1.395
+                  ]
+                ],
+                "resolution": "unresolved"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion",
+            "source_ids": [
+              "source:21bd41eeb5badb45cc7c"
+            ],
+            "source_locations": [
+              "L60-L60"
+            ],
+            "bounds": [
+              [
+                -0.73,
+                -0.72,
+                0.9149999999999999
+              ],
+              [
+                0.73,
+                0.44,
+                1.19
+              ]
+            ],
+            "resolution": "complete"
+          }
+        ],
+        "joints": [],
+        "feature_id": "feature:ModernRoundedArmchair/seat_cushion",
+        "source_ids": [
+          "source:4e0df93ef7d1b141e22e",
+          "source:24c7563b3759b7b00117"
+        ],
+        "source_locations": [
+          "L148-L148",
+          "L38-L60"
+        ],
+        "bounds": [
+          [
+            -0.73,
+            -0.72,
+            0.9149999999999999
+          ],
+          [
+            0.73,
+            0.44,
+            1.19
+          ]
+        ],
+        "resolution": "complete"
+      },
+      {
+        "semantic_path": "ModernRoundedArmchair/backrest",
+        "name": "backrest",
+        "label": "CurvedBackrest",
+        "asset_class": "CurvedBackrest",
+        "attach_mode": "part",
+        "boolean_mode": null,
+        "primitives": [],
+        "children": [
+          {
+            "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back",
+            "name": "ergonomic_back",
+            "label": "BooleanUnion",
+            "asset_class": "Asset",
+            "attach_mode": "part",
+            "boolean_mode": "UNION",
+            "primitives": [
+              {
+                "type": "boolean",
+                "params": {
+                  "mode": "UNION"
+                },
+                "xform": null,
+                "color": [
+                  1.0,
+                  1.0,
+                  1.0
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [
+              {
+                "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_0",
+                "name": "op_0",
+                "label": "Hull",
+                "asset_class": "Asset",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "hull",
+                    "params": {},
+                    "xform": [
+                      [
+                        1.0,
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.43,
+                      0.45,
+                      0.47
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [
+                  {
+                    "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_0/op_0",
+                    "name": "op_0",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.82,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.24,
+                            0.0,
+                            0.47
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.29,
+                            1.285
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_0/op_0",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.82,
+                        0.22999999999999998,
+                        0.9949999999999999
+                      ],
+                      [
+                        0.82,
+                        0.71,
+                        1.575
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_0/op_1",
+                    "name": "op_1",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.9,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.21,
+                            0.0,
+                            0.43
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.31,
+                            1.5
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_0/op_1",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.9,
+                        0.22,
+                        1.19
+                      ],
+                      [
+                        0.9,
+                        0.64,
+                        1.81
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  }
+                ],
+                "joints": [],
+                "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_0",
+                "source_ids": [],
+                "source_locations": [],
+                "bounds": [
+                  [
+                    -0.9,
+                    0.22,
+                    0.9949999999999999
+                  ],
+                  [
+                    0.9,
+                    0.71,
+                    1.81
+                  ]
+                ],
+                "resolution": "unresolved"
+              },
+              {
+                "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_1",
+                "name": "op_1",
+                "label": "Hull",
+                "asset_class": "Asset",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "hull",
+                    "params": {},
+                    "xform": [
+                      [
+                        1.0,
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.43,
+                      0.45,
+                      0.47
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [
+                  {
+                    "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_1/op_0",
+                    "name": "op_0",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.9,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.21,
+                            0.0,
+                            0.43
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.31,
+                            1.5
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_1/op_0",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.9,
+                        0.22,
+                        1.19
+                      ],
+                      [
+                        0.9,
+                        0.64,
+                        1.81
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_1/op_1",
+                    "name": "op_1",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.84,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.19,
+                            0.0,
+                            0.545
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.32,
+                            1.76
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_1/op_1",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.84,
+                        0.35500000000000004,
+                        1.44
+                      ],
+                      [
+                        0.84,
+                        0.7350000000000001,
+                        2.08
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  }
+                ],
+                "joints": [],
+                "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_1",
+                "source_ids": [],
+                "source_locations": [],
+                "bounds": [
+                  [
+                    -0.9,
+                    0.22,
+                    1.19
+                  ],
+                  [
+                    0.9,
+                    0.7350000000000001,
+                    2.08
+                  ]
+                ],
+                "resolution": "unresolved"
+              },
+              {
+                "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_2",
+                "name": "op_2",
+                "label": "Hull",
+                "asset_class": "Asset",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "hull",
+                    "params": {},
+                    "xform": [
+                      [
+                        1.0,
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.43,
+                      0.45,
+                      0.47
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [
+                  {
+                    "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_2/op_0",
+                    "name": "op_0",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.84,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.19,
+                            0.0,
+                            0.545
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.32,
+                            1.76
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_2/op_0",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.84,
+                        0.35500000000000004,
+                        1.44
+                      ],
+                      [
+                        0.84,
+                        0.7350000000000001,
+                        2.08
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_2/op_1",
+                    "name": "op_1",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.69,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          [
+                            0.0,
+                            0.17,
+                            0.0,
+                            0.635
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.245,
+                            2.005
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_2/op_1",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -0.69,
+                        0.46499999999999997,
+                        1.7599999999999998
+                      ],
+                      [
+                        0.69,
+                        0.805,
+                        2.25
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  }
+                ],
+                "joints": [],
+                "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_2",
+                "source_ids": [],
+                "source_locations": [],
+                "bounds": [
+                  [
+                    -0.84,
+                    0.35500000000000004,
+                    1.44
+                  ],
+                  [
+                    0.84,
+                    0.805,
+                    2.25
+                  ]
+                ],
+                "resolution": "unresolved"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back",
+            "source_ids": [
+              "source:43d4136934a804323448"
+            ],
+            "source_locations": [
+              "L78-L78"
+            ],
+            "bounds": [
+              [
+                -0.9,
+                0.22,
+                0.9949999999999999
+              ],
+              [
+                0.9,
+                0.805,
+                2.25
+              ]
+            ],
+            "resolution": "complete"
+          }
+        ],
+        "joints": [],
+        "feature_id": "feature:ModernRoundedArmchair/backrest",
+        "source_ids": [
+          "source:521d802afad44eb1abea",
+          "source:30201be74568c67f1003"
+        ],
+        "source_locations": [
+          "L149-L149",
+          "L63-L78"
+        ],
+        "bounds": [
+          [
+            -0.9,
+            0.22,
+            0.9949999999999999
+          ],
+          [
+            0.9,
+            0.805,
+            2.25
+          ]
+        ],
+        "resolution": "complete"
+      },
+      {
+        "semantic_path": "ModernRoundedArmchair/left_armrest",
+        "name": "left_armrest",
+        "label": "LeftArmrest",
+        "asset_class": "CurvedArmrest",
+        "attach_mode": "part",
+        "boolean_mode": null,
+        "primitives": [],
+        "children": [
+          {
+            "semantic_path": "ModernRoundedArmchair/left_armrest/rounded_rail",
+            "name": "rounded_rail",
+            "label": "BooleanUnion",
+            "asset_class": "Asset",
+            "attach_mode": "part",
+            "boolean_mode": "UNION",
+            "primitives": [
+              {
+                "type": "boolean",
+                "params": {
+                  "mode": "UNION"
+                },
+                "xform": null,
+                "color": [
+                  1.0,
+                  1.0,
+                  1.0
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [
+              {
+                "semantic_path": "ModernRoundedArmchair/left_armrest/rounded_rail/op_0",
+                "name": "op_0",
+                "label": "Hull",
+                "asset_class": "Asset",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "hull",
+                    "params": {},
+                    "xform": [
+                      [
+                        1.0,
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.43,
+                      0.45,
+                      0.47
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [
+                  {
+                    "semantic_path": "ModernRoundedArmchair/left_armrest/rounded_rail/op_0/op_0",
+                    "name": "op_0",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.215,
+                            0.0,
+                            0.0,
+                            -0.875
+                          ],
+                          [
+                            0.0,
+                            0.255,
+                            0.0,
+                            -0.245
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.17,
+                            1.185
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_0/op_0",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -1.09,
+                        -0.5,
+                        1.0150000000000001
+                      ],
+                      [
+                        -0.66,
+                        0.010000000000000009,
+                        1.355
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "ModernRoundedArmchair/left_armrest/rounded_rail/op_0/op_1",
+                    "name": "op_1",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.225,
+                            0.0,
+                            0.0,
+                            -0.875
+                          ],
+                          [
+                            0.0,
+                            0.285,
+                            0.0,
+                            0.005
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.18,
+                            1.325
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_0/op_1",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -1.1,
+                        -0.27999999999999997,
+                        1.145
+                      ],
+                      [
+                        -0.65,
+                        0.29,
+                        1.505
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  }
+                ],
+                "joints": [],
+                "feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_0",
+                "source_ids": [],
+                "source_locations": [],
+                "bounds": [
+                  [
+                    -1.1,
+                    -0.5,
+                    1.0150000000000001
+                  ],
+                  [
+                    -0.65,
+                    0.29,
+                    1.505
+                  ]
+                ],
+                "resolution": "unresolved"
+              },
+              {
+                "semantic_path": "ModernRoundedArmchair/left_armrest/rounded_rail/op_1",
+                "name": "op_1",
+                "label": "Hull",
+                "asset_class": "Asset",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "hull",
+                    "params": {},
+                    "xform": [
+                      [
+                        1.0,
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.43,
+                      0.45,
+                      0.47
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [
+                  {
+                    "semantic_path": "ModernRoundedArmchair/left_armrest/rounded_rail/op_1/op_0",
+                    "name": "op_0",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.225,
+                            0.0,
+                            0.0,
+                            -0.875
+                          ],
+                          [
+                            0.0,
+                            0.285,
+                            0.0,
+                            0.005
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.18,
+                            1.325
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_1/op_0",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -1.1,
+                        -0.27999999999999997,
+                        1.145
+                      ],
+                      [
+                        -0.65,
+                        0.29,
+                        1.505
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "ModernRoundedArmchair/left_armrest/rounded_rail/op_1/op_1",
+                    "name": "op_1",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.24,
+                            0.0,
+                            0.0,
+                            -0.875
+                          ],
+                          [
+                            0.0,
+                            0.285,
+                            0.0,
+                            0.315
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.21,
+                            1.43
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_1/op_1",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        -1.115,
+                        0.030000000000000027,
+                        1.22
+                      ],
+                      [
+                        -0.635,
+                        0.6,
+                        1.64
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  }
+                ],
+                "joints": [],
+                "feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_1",
+                "source_ids": [],
+                "source_locations": [],
+                "bounds": [
+                  [
+                    -1.115,
+                    -0.27999999999999997,
+                    1.145
+                  ],
+                  [
+                    -0.635,
+                    0.6,
+                    1.64
+                  ]
+                ],
+                "resolution": "unresolved"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail",
+            "source_ids": [
+              "source:ba0b845e87143850b3f8"
+            ],
+            "source_locations": [
+              "L95-L95"
+            ],
+            "bounds": [
+              [
+                -1.115,
+                -0.5,
+                1.0150000000000001
+              ],
+              [
+                -0.635,
+                0.6,
+                1.64
+              ]
+            ],
+            "resolution": "complete"
+          }
+        ],
+        "joints": [],
+        "feature_id": "feature:ModernRoundedArmchair/left_armrest",
+        "source_ids": [
+          "source:8ae21df85b823ae8b5b4",
+          "source:ddaf8da3f872bb46a911"
+        ],
+        "source_locations": [
+          "L150-L150",
+          "L81-L95"
+        ],
+        "bounds": [
+          [
+            -1.115,
+            -0.5,
+            1.0150000000000001
+          ],
+          [
+            -0.635,
+            0.6,
+            1.64
+          ]
+        ],
+        "resolution": "complete"
+      },
+      {
+        "semantic_path": "ModernRoundedArmchair/right_armrest",
+        "name": "right_armrest",
+        "label": "RightArmrest",
+        "asset_class": "CurvedArmrest",
+        "attach_mode": "part",
+        "boolean_mode": null,
+        "primitives": [],
+        "children": [
+          {
+            "semantic_path": "ModernRoundedArmchair/right_armrest/rounded_rail",
+            "name": "rounded_rail",
+            "label": "BooleanUnion",
+            "asset_class": "Asset",
+            "attach_mode": "part",
+            "boolean_mode": "UNION",
+            "primitives": [
+              {
+                "type": "boolean",
+                "params": {
+                  "mode": "UNION"
+                },
+                "xform": null,
+                "color": [
+                  1.0,
+                  1.0,
+                  1.0
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [
+              {
+                "semantic_path": "ModernRoundedArmchair/right_armrest/rounded_rail/op_0",
+                "name": "op_0",
+                "label": "Hull",
+                "asset_class": "Asset",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "hull",
+                    "params": {},
+                    "xform": [
+                      [
+                        1.0,
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.43,
+                      0.45,
+                      0.47
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [
+                  {
+                    "semantic_path": "ModernRoundedArmchair/right_armrest/rounded_rail/op_0/op_0",
+                    "name": "op_0",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.215,
+                            0.0,
+                            0.0,
+                            0.875
+                          ],
+                          [
+                            0.0,
+                            0.255,
+                            0.0,
+                            -0.245
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.17,
+                            1.185
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_0/op_0",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.66,
+                        -0.5,
+                        1.0150000000000001
+                      ],
+                      [
+                        1.09,
+                        0.010000000000000009,
+                        1.355
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "ModernRoundedArmchair/right_armrest/rounded_rail/op_0/op_1",
+                    "name": "op_1",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.225,
+                            0.0,
+                            0.0,
+                            0.875
+                          ],
+                          [
+                            0.0,
+                            0.285,
+                            0.0,
+                            0.005
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.18,
+                            1.325
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_0/op_1",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.65,
+                        -0.27999999999999997,
+                        1.145
+                      ],
+                      [
+                        1.1,
+                        0.29,
+                        1.505
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  }
+                ],
+                "joints": [],
+                "feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_0",
+                "source_ids": [],
+                "source_locations": [],
+                "bounds": [
+                  [
+                    0.65,
+                    -0.5,
+                    1.0150000000000001
+                  ],
+                  [
+                    1.1,
+                    0.29,
+                    1.505
+                  ]
+                ],
+                "resolution": "unresolved"
+              },
+              {
+                "semantic_path": "ModernRoundedArmchair/right_armrest/rounded_rail/op_1",
+                "name": "op_1",
+                "label": "Hull",
+                "asset_class": "Asset",
+                "attach_mode": "part",
+                "boolean_mode": null,
+                "primitives": [
+                  {
+                    "type": "hull",
+                    "params": {},
+                    "xform": [
+                      [
+                        1.0,
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        1.0,
+                        0.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        1.0,
+                        0.0
+                      ],
+                      [
+                        0.0,
+                        0.0,
+                        0.0,
+                        1.0
+                      ]
+                    ],
+                    "color": [
+                      0.43,
+                      0.45,
+                      0.47
+                    ],
+                    "alpha": null
+                  }
+                ],
+                "children": [
+                  {
+                    "semantic_path": "ModernRoundedArmchair/right_armrest/rounded_rail/op_1/op_0",
+                    "name": "op_0",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.225,
+                            0.0,
+                            0.0,
+                            0.875
+                          ],
+                          [
+                            0.0,
+                            0.285,
+                            0.0,
+                            0.005
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.18,
+                            1.325
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_1/op_0",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.65,
+                        -0.27999999999999997,
+                        1.145
+                      ],
+                      [
+                        1.1,
+                        0.29,
+                        1.505
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  },
+                  {
+                    "semantic_path": "ModernRoundedArmchair/right_armrest/rounded_rail/op_1/op_1",
+                    "name": "op_1",
+                    "label": "Sphere",
+                    "asset_class": "Sphere",
+                    "attach_mode": "part",
+                    "boolean_mode": null,
+                    "primitives": [
+                      {
+                        "type": "sphere",
+                        "params": {
+                          "center": [
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "radius": 1.0
+                        },
+                        "xform": [
+                          [
+                            0.24,
+                            0.0,
+                            0.0,
+                            0.875
+                          ],
+                          [
+                            0.0,
+                            0.285,
+                            0.0,
+                            0.315
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.21,
+                            1.43
+                          ],
+                          [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        ],
+                        "color": [
+                          0.43,
+                          0.45,
+                          0.47
+                        ],
+                        "alpha": null
+                      }
+                    ],
+                    "children": [],
+                    "joints": [],
+                    "feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_1/op_1",
+                    "source_ids": [],
+                    "source_locations": [],
+                    "bounds": [
+                      [
+                        0.635,
+                        0.030000000000000027,
+                        1.22
+                      ],
+                      [
+                        1.115,
+                        0.6,
+                        1.64
+                      ]
+                    ],
+                    "resolution": "unresolved"
+                  }
+                ],
+                "joints": [],
+                "feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_1",
+                "source_ids": [],
+                "source_locations": [],
+                "bounds": [
+                  [
+                    0.635,
+                    -0.27999999999999997,
+                    1.145
+                  ],
+                  [
+                    1.115,
+                    0.6,
+                    1.64
+                  ]
+                ],
+                "resolution": "unresolved"
+              }
+            ],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail",
+            "source_ids": [
+              "source:ba0b845e87143850b3f8"
+            ],
+            "source_locations": [
+              "L95-L95"
+            ],
+            "bounds": [
+              [
+                0.635,
+                -0.5,
+                1.0150000000000001
+              ],
+              [
+                1.115,
+                0.6,
+                1.64
+              ]
+            ],
+            "resolution": "complete"
+          }
+        ],
+        "joints": [],
+        "feature_id": "feature:ModernRoundedArmchair/right_armrest",
+        "source_ids": [
+          "source:06dbc3c92f85c313ed4c",
+          "source:ddaf8da3f872bb46a911"
+        ],
+        "source_locations": [
+          "L151-L151",
+          "L81-L95"
+        ],
+        "bounds": [
+          [
+            0.635,
+            -0.5,
+            1.0150000000000001
+          ],
+          [
+            1.115,
+            0.6,
+            1.64
+          ]
+        ],
+        "resolution": "complete"
+      },
+      {
+        "semantic_path": "ModernRoundedArmchair/nailhead_trim",
+        "name": "nailhead_trim",
+        "label": "NailheadTrim",
+        "asset_class": "NailheadTrim",
+        "attach_mode": "part",
+        "boolean_mode": null,
+        "primitives": [],
+        "children": [
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_01",
+            "name": "stud_01",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    -0.75,
+                    -0.828,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_01",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                -0.785,
+                -0.863,
+                0.7
+              ],
+              [
+                -0.715,
+                -0.7929999999999999,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_02",
+            "name": "stud_02",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    -0.6428571428571429,
+                    -0.8348979591836734,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_02",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                -0.6778571428571429,
+                -0.8698979591836734,
+                0.7
+              ],
+              [
+                -0.6078571428571429,
+                -0.7998979591836733,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_03",
+            "name": "stud_03",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    -0.5357142857142857,
+                    -0.840734693877551,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_03",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                -0.5707142857142857,
+                -0.875734693877551,
+                0.7
+              ],
+              [
+                -0.5007142857142857,
+                -0.8057346938775509,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_04",
+            "name": "stud_04",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    -0.42857142857142855,
+                    -0.8455102040816326,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_04",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                -0.4635714285714285,
+                -0.8805102040816326,
+                0.7
+              ],
+              [
+                -0.39357142857142857,
+                -0.8105102040816325,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_05",
+            "name": "stud_05",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    -0.32142857142857145,
+                    -0.8492244897959184,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_05",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                -0.35642857142857143,
+                -0.8842244897959184,
+                0.7
+              ],
+              [
+                -0.2864285714285715,
+                -0.8142244897959183,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_06",
+            "name": "stud_06",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    -0.2142857142857143,
+                    -0.8518775510204081,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_06",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                -0.2492857142857143,
+                -0.8868775510204081,
+                0.7
+              ],
+              [
+                -0.1792857142857143,
+                -0.816877551020408,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_07",
+            "name": "stud_07",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    -0.1071428571428571,
+                    -0.853469387755102,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_07",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                -0.1421428571428571,
+                -0.888469387755102,
+                0.7
+              ],
+              [
+                -0.07214285714285709,
+                -0.8184693877551019,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_08",
+            "name": "stud_08",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    0.0,
+                    -0.854,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_08",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                -0.035,
+                -0.889,
+                0.7
+              ],
+              [
+                0.035,
+                -0.819,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_09",
+            "name": "stud_09",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    0.1071428571428571,
+                    -0.853469387755102,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_09",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                0.07214285714285709,
+                -0.888469387755102,
+                0.7
+              ],
+              [
+                0.1421428571428571,
+                -0.8184693877551019,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_10",
+            "name": "stud_10",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    0.2142857142857143,
+                    -0.8518775510204081,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_10",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                0.1792857142857143,
+                -0.8868775510204081,
+                0.7
+              ],
+              [
+                0.2492857142857143,
+                -0.816877551020408,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_11",
+            "name": "stud_11",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    0.3214285714285714,
+                    -0.8492244897959184,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_11",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                0.28642857142857137,
+                -0.8842244897959184,
+                0.7
+              ],
+              [
+                0.35642857142857143,
+                -0.8142244897959183,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_12",
+            "name": "stud_12",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    0.4285714285714286,
+                    -0.8455102040816326,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_12",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                0.39357142857142857,
+                -0.8805102040816326,
+                0.7
+              ],
+              [
+                0.46357142857142863,
+                -0.8105102040816325,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_13",
+            "name": "stud_13",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    0.5357142857142858,
+                    -0.840734693877551,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_13",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                0.5007142857142858,
+                -0.875734693877551,
+                0.7
+              ],
+              [
+                0.5707142857142858,
+                -0.8057346938775509,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_14",
+            "name": "stud_14",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    0.6428571428571428,
+                    -0.8348979591836734,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_14",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                0.6078571428571428,
+                -0.8698979591836734,
+                0.7
+              ],
+              [
+                0.6778571428571428,
+                -0.7998979591836733,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          },
+          {
+            "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_15",
+            "name": "stud_15",
+            "label": "Sphere",
+            "asset_class": "Sphere",
+            "attach_mode": "part",
+            "boolean_mode": null,
+            "primitives": [
+              {
+                "type": "sphere",
+                "params": {
+                  "center": [
+                    0.75,
+                    -0.828,
+                    0.735
+                  ],
+                  "radius": 0.035
+                },
+                "xform": [
+                  [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ],
+                "color": [
+                  0.72,
+                  0.74,
+                  0.76
+                ],
+                "alpha": null
+              }
+            ],
+            "children": [],
+            "joints": [],
+            "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_15",
+            "source_ids": [
+              "source:173ef7eef8e75ee9a909"
+            ],
+            "source_locations": [
+              "L116-L116"
+            ],
+            "bounds": [
+              [
+                0.715,
+                -0.863,
+                0.7
+              ],
+              [
+                0.785,
+                -0.7929999999999999,
+                0.77
+              ]
+            ],
+            "resolution": "partial"
+          }
+        ],
+        "joints": [],
+        "feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+        "source_ids": [
+          "source:b33988d650a98bb6a936",
+          "source:d7c4f773802ecb4e4ef5"
+        ],
+        "source_locations": [
+          "L152-L152",
+          "L105-L116"
+        ],
+        "bounds": [
+          [
+            -0.785,
+            -0.889,
+            0.7
+          ],
+          [
+            0.785,
+            -0.7929999999999999,
+            0.77
+          ]
+        ],
+        "resolution": "complete"
+      }
+    ],
+    "joints": [],
+    "feature_id": "feature:ModernRoundedArmchair",
+    "source_ids": [
+      "source:871dd2fbe77627e0469d"
+    ],
+    "source_locations": [
+      "L128-L152"
+    ],
+    "bounds": [
+      [
+        -2.5,
+        -2.0,
+        -0.03
+      ],
+      [
+        2.5,
+        2.0,
+        3.2
+      ]
+    ],
+    "resolution": "complete"
+  },
+  "unresolved": [
+    "ModernRoundedArmchair/seat_base/upholstered_body/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/seat_base/upholstered_body/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/seat_base/upholstered_body/op_2: 0 direct source candidates for Asset.op_2",
+    "ModernRoundedArmchair/seat_base/upholstered_body/op_3: 0 direct source candidates for Asset.op_3",
+    "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base: 0 direct source candidates for Asset.base",
+    "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_2: 0 direct source candidates for Asset.op_2",
+    "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_3: 0 direct source candidates for Asset.op_3",
+    "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_0/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_0/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_1/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_1/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_2: 0 direct source candidates for Asset.op_2",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_2/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_2/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/left_armrest/rounded_rail/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/left_armrest/rounded_rail/op_0/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/left_armrest/rounded_rail/op_0/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/left_armrest/rounded_rail/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/left_armrest/rounded_rail/op_1/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/left_armrest/rounded_rail/op_1/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/right_armrest/rounded_rail/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/right_armrest/rounded_rail/op_0/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/right_armrest/rounded_rail/op_0/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/right_armrest/rounded_rail/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/right_armrest/rounded_rail/op_1/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/right_armrest/rounded_rail/op_1/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/nailhead_trim/stud_01: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_02: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_03: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_04: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_05: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_06: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_07: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_08: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_09: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_10: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_11: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_12: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_13: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_14: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_15: runtime name maps to a dynamic source expression"
+  ],
+  "geometry_sha256": "d4b8c77d39696dbb51fbabb5a3964e91b6080161c918d9fc8db8eb70ff28b8eb"
+}

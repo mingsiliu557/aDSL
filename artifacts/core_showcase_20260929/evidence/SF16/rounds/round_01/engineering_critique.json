@@ -1,0 +1,168 @@
+{
+  "approved": false,
+  "observations": [
+    "The required assembly_topology checker reports 25 PASS items and one FAIL; therefore engineering approval is not permitted.",
+    "The only measured failure is undeclared interference between slanted_back_panel and top_shelf: 842681.309 mm³ against an allowed maximum of 6251.241 mm³.",
+    "The measured intersection occupies the full shelf width in X and the rear strip Y=180.367..205.0 mm through the complete top-shelf thickness Z=1632..1668 mm. This is consistent with the top shelf extending to Y=205 while the inclined back panel crosses that rear shelf region.",
+    "Current source inspection confirms Shelf.__init__ creates every shelf at 410 mm depth centered at Y=0, while SlantedBackPanel.__init__ creates a 24 x 260 mm panel inclined -7 degrees about +X. The back-panel connection places its local origin at assembly Y=197, Z=1669.",
+    "All six print parts, all five generated TabSlot interfaces, every individual part-connectivity check, and every other undeclared-interference pair passed. These are preservation constraints for the repair.",
+    "The existing back-panel angle is real, but the visual review found it insufficiently legible. A very small increase in the same rotation can be coordinated with the topology repair; no second rotation is warranted.",
+    "The shelf-side and back-panel interface dimensions, including fit_offset_mm=0.2, are not implicated and must remain frozen."
+  ],
+  "required_changes": [
+    "Create rear clearance between the three aligned shelves and the slanted back panel by minimally reducing the common shelf depth and moving the common shelf body slightly toward -Y. Keep all three shelves identical and aligned.",
+    "Within the same patch, increase only the existing back-panel inclination slightly and update tilted_vertical, the back-panel slot-frame origin, and its inverse print orientation consistently. Do not add another rotation or alter any TabSlot parameter.",
+    "Re-export and rerun assembly_topology. Confirm that the slanted_back_panel/top_shelf overlap is removed without disturbing the five currently passing interfaces, other passing part pairs, six-part grouping, or frozen 1125 x 450 x 1800 mm envelope."
+  ],
+  "checker_interpretation": [
+    "UNDECLARED_PART_INTERFERENCE is measured overlapping material, not an interface declaration or solver error. Because slanted_back_panel and top_shelf have no declared mutual connection, their 842681.309 mm³ intersection must be removed geometrically.",
+    "The failed AABB ends at the top shelf's current rear edge Y=205 and exactly matches its Z thickness of 36 mm. Moving the shared shelf rear edge forward of the back panel's minimum Y over Z=1632..1668 directly targets the measured region.",
+    "A bounded shelf change from 410 mm depth at Y=0 to approximately 400 mm depth at Y=-24.5 gives an approximate shelf range Y=-224.5..175.5. This stays inside the frozen ±225 mm depth envelope and provides clearance from the reported Y minimum of 180.367 mm.",
+    "If the existing back-panel rotation is changed from -7 to approximately -8 degrees, its placement and interface direction must be recomputed together. Keeping its rear and upper extrema within Y=225 and Z=1800 gives an approximate center Y=195.0, Z=1669.6; the corresponding slot origin in right_side_panel local coordinates is approximately Y=195.0, Z=769.6.",
+    "The proposed values are hypotheses derived from the current primitive dimensions and reported intersection bounds. They do not establish a pass until the source is re-exported and assembly_topology is rerun."
+  ],
+  "repair_proposals": [
+    {
+      "proposal_id": "repair_top_shelf_back_panel_clearance_01",
+      "finding_ids": [
+        "assembly_topology:pair:slanted_back_panel:top_shelf:UNDECLARED_PART_INTERFERENCE"
+      ],
+      "hypothesis": "If all three Shelf bodies retain equal dimensions but their common depth is reduced slightly and shifted toward -Y so their rear edge is no farther back than about Y=176, the top shelf will no longer intersect the inclined back panel over Z=1632..1668. Coordinating a one-degree increase of the existing back-panel inclination with its direction vector and slot-frame origin should improve the required visible slant while retaining the frozen envelope and the passing back-panel interface.",
+      "evidence": [
+        "Measured overlap is 842681.309 mm³, exceeding the 6251.241 mm³ threshold.",
+        "Measured overlap AABB is X=-522.5..522.5, Y=180.366852..205.0, Z=1632.0..1668.0 mm.",
+        "Shelf.__init__ currently uses Cube((1045.0, 410.0, 36.0), center=(0.0, 0.0, 0.0)); after placement, top_shelf therefore reaches Y=205 and Z=1632..1668.",
+        "SlantedBackPanel.__init__ currently rotates a 1045 x 24 x 260 mm panel by -7 degrees about +X.",
+        "connect_back_panel_to_right_side currently uses tilted_vertical=(0.0, 0.1218693434, 0.9925461516) and a slot-frame origin based on assembly Y=197, Z=1669.",
+        "All five INTERFACE_GEOMETRY_PAIRED checks and all other part-pair interference checks currently pass."
+      ],
+      "target": {
+        "feature_ids": [
+          "feature:FixedAssembly/top_shelf",
+          "feature:FixedAssembly/slanted_back_panel"
+        ],
+        "source_ids": [],
+        "parameters": [
+          "Shelf.shelf Cube depth",
+          "Shelf.shelf Cube local Y center",
+          "SlantedBackPanel panel rotation angle",
+          "tilted_vertical",
+          "connect_back_panel_to_right_side slot_frame origin",
+          "slanted_back_panel print orientation"
+        ],
+        "allowed_scopes": [
+          "Shelf.__init__",
+          "SlantedBackPanel.__init__",
+          "tilted_vertical",
+          "<module>"
+        ]
+      },
+      "action": "reshape",
+      "parameter_bounds": {
+        "shelf_depth_mm": {
+          "current": 410.0,
+          "min": 398.0,
+          "max": 402.0,
+          "recommended": 400.0
+        },
+        "shelf_local_center_y_mm": {
+          "current": 0.0,
+          "min": -26.0,
+          "max": -23.0,
+          "recommended": -24.5
+        },
+        "shelf_rear_edge_y_mm": {
+          "required_max": 177.0,
+          "recommended_max": 175.5
+        },
+        "back_panel_x_rotation_deg": {
+          "current": -7.0,
+          "min": -8.5,
+          "max": -7.5,
+          "recommended": -8.0
+        },
+        "tilted_vertical": {
+          "rule": "Use (0, sin(abs(angle)), cos(abs(angle))) for the selected negative +X rotation; approximately (0, 0.139173, 0.990268) at -8 degrees."
+        },
+        "back_panel_assembly_origin_mm": {
+          "y_min": 194.5,
+          "y_max": 195.5,
+          "z_min": 1669.0,
+          "z_max": 1670.2,
+          "recommended": [
+            0.0,
+            195.0,
+            1669.6
+          ]
+        },
+        "back_panel_slot_origin_right_panel_local_mm": {
+          "x": -20.0,
+          "y_min": 194.5,
+          "y_max": 195.5,
+          "z_min": 769.0,
+          "z_max": 770.2,
+          "recommended": [
+            -20.0,
+            195.0,
+            769.6
+          ]
+        },
+        "print_orientation_x_deg": {
+          "rule": "Update from +7 degrees to the inverse of the selected assembly body rotation, approximately +8 degrees."
+        },
+        "frozen": {
+          "shelf_width_mm": 1045.0,
+          "shelf_thickness_mm": 36.0,
+          "back_panel_size_mm": [
+            1045.0,
+            24.0,
+            260.0
+          ],
+          "fit_offset_mm": 0.2,
+          "mm_per_unit": 1.0,
+          "final_size_mm": [
+            1125.0,
+            450.0,
+            1800.0
+          ]
+        }
+      },
+      "expected_improvements": [
+        "Remove the measured top_shelf/slanted_back_panel overlap by placing the common shelf rear edge ahead of the back panel throughout the top-shelf Z band.",
+        "Retain three equally sized, aligned, usable shelves with only a small depth reduction from the nominal 410 mm.",
+        "Make the existing upper-back-panel inclination somewhat more readable without introducing a second transform.",
+        "Keep the final depth and height extrema controlled by the unchanged full-height side panels and the bounded back-panel placement."
+      ],
+      "possible_regressions": [
+        "Changing Shelf.__init__ affects lower_shelf, middle_shelf, and top_shelf; all shelf-to-side interfaces must be checked even though the edit is common and bounded.",
+        "Moving shelf bodies relative to connector origins could reduce local material around tabs if taken outside the proposed bounds.",
+        "Incorrectly updating tilted_vertical or the back-panel slot-frame origin could break connect_back_panel_to_right_side mate alignment.",
+        "Increasing the panel angle without recomputing its origin could exceed Y=225 or Z=1800, or recreate interference near the shelf rear edge.",
+        "The smaller shelf depth may alter the rendered side profile, though the proposed 398..402 mm range remains close to the requested approximately 410 mm depth."
+      ],
+      "preserve": [
+        "Exactly six separate print parts and five existing physical interfaces.",
+        "left_side_panel as root_part.",
+        "All assembly.connect calls and their receiver-first acyclic ordering.",
+        "All TabSlot dimensions and fit_offset_mm=0.2.",
+        "Both full-height 40 x 450 x 1800 mm side panels and their floor contact.",
+        "Three horizontal shelves with matching dimensions, aligned front and rear edges, centers at Z=450, 1050, and 1650 mm, and unobstructed upper surfaces.",
+        "The top_shelf semantic identity and its upward surface in the frozen load-selection band, although FEA is not evaluated in this run.",
+        "The single intrinsic back-panel rotation and the visibly slanted upper-rear-panel requirement.",
+        "The exact 1125 x 450 x 1800 mm assembled envelope and mm_per_unit=1.",
+        "All currently passing interface and non-interference results.",
+        "Monochromatic matte-black appearance."
+      ],
+      "rerun_checkers": [
+        "assembly_topology"
+      ],
+      "preconditions": [
+        "Modify only original/source.py.",
+        "Derive tilted_vertical and the back-panel slot-frame origin from the same selected angle and placement; do not edit them independently.",
+        "Verify analytically before export that every shelf remains within Y=-225..225 and the back panel remains within Y=-225..225 and Z=0..1800.",
+        "Do not change checker settings, tolerances, part declarations, connection count, fit allowance, or connector parameters."
+      ]
+    }
+  ],
+  "unresolved_findings": []
+}

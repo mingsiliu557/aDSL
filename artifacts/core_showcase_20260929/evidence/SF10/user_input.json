@@ -1,0 +1,86 @@
+{
+  "requirement": "[ORIGINAL TASK]\nThe 3D model is a conference table with a rectangular tabletop that tapers slightly from front to back. The tabletop has straight, symmetrical edges and a smooth, glossy finish, possibly mimicking wood. Two central legs support the tabletop, connected by horizontal braces for stability. The legs have a matte finish and are colored black or dark gray, providing a strong contrast to the tabletop. The model focuses on the table's structure without any additional environmental context.\n\n[UNIFORM MANUFACTURING REQUIREMENTS]\nEvaluate the supplied latest complete aDSL program for the original task below, with static fixed manufacturing assembly, not articulation. Use the existing Planner's component and connection plan; Coder implements that plan in assembly using connectors for its connections. Do not add a separate print-part decision stage. Do not assume one Asset/class per print part or impose a minimum number of print parts; a single planned print part needs no connector. Use ONLY existing FixedAssembly / TabSlot and ordered connections starting from root_part: at least one endpoint must already be placed. Either placed endpoint can locate the other; with both endpoints placed, check world interface frames and add mating geometry without moving either part. Plan every physical interface, including additional connections and multiple interfaces between the same pair using distinct endpoint ports. Tab/slot are geometric roles, not placement order. Within a print part retain normal modeling and attach_part. Between print parts use assembly.connect to generate BOTH mating sides and placement; no global union across print parts. The parameters argument of connect must be a TabSlot object (or an entry containing that object), not a dictionary of dimensions. Preserve the requested appearance and function. Frozen scale, overall dimensions and single-sided fit allowance below must not change. These are geometric demonstration dimensions; clearance is not proof of physical fixation. Use one complete initial source.py and repair only within the frozen budget, with existing Image/Code Critic in visual_only mode and export consistency checks. Assembly geometry checks are NOT_EVALUATED; visual approval is not manufacturing approval. Selected tools execute in order: assembly_topology, assembly_overhang, assembly_standing. FEA and old whole-object checkers are disabled. No snap_floaters or extra interface types. Budget: at most 2 evaluation rounds including the baseline review, with at most 1 source repair candidate for this bounded partition experiment. Use normal Image/Code repair for required visual defects. After necessary checks pass, Engineering may propose one evidence-supported local split/merge; Coder implements it and all selected checks run again. An alternative score need not already exist to propose a falsifiable grouping hypothesis. NO_PROPOSAL is valid when no reasonable local candidate follows from the current body and measurements. Do not force modifications to spend budget. Keep the original prompt authoritative; inferred planner descriptions do not turn optional texture into a required feature. Partition scoring uses frozen pre-connector bodies, Dapper alpha=0.3/Rvox=0.1 and independent 24-rotation print poses. Preserve body shape/root for pure grouping optimization, remove internal connectors and update all cross-group interfaces. Compare scores only among feasible candidates with the same reference; otherwise retain the qualified baseline. Physics, scale, fit, dimensions, evaluator and budget are frozen.\nFrozen dimensions in mm: [1500.0, 750.0, 750.0]; mm_per_unit=1.0; fit_offset_mm=0.2.\n[BOUNDED INTEGRATION SMOKE]\nResume the supplied five-print-part source and its existing plan; do not call Planner or regenerate from scratch. Re-evaluate the baseline, then allow at most one Engineering grouping hypothesis and one Coder implementation. Use current next_edit_purpose and primary_objective. Unresolved surface-only requirements still prevent full approval but do not prevent a geometrically valid grouping comparison. If Engineering has no reasonable grouping proposal, end this experiment; do not add attempts or generate an unrelated material repair. No manual candidate or required merge direction is supplied.",
+  "image_paths": [],
+  "articulation": false,
+  "max_rounds": 2,
+  "checker_specs": [
+    {
+      "name": "assembly_topology",
+      "command": [
+        "{python}",
+        "-m",
+        "adsl.agents.assembly_topology",
+        "--manifest",
+        "{asset_dir}/assembly_manifest.json",
+        "--source",
+        "{source}",
+        "--output",
+        "{output_dir}",
+        "--source-index",
+        "{source_index}",
+        "--budget-seconds",
+        "900"
+      ],
+      "required": true,
+      "timeout_seconds": 900.0,
+      "prepend_environment": {}
+    },
+    {
+      "name": "assembly_overhang",
+      "command": [
+        "{python}",
+        "-m",
+        "adsl.agents.assembly_overhang",
+        "--manifest",
+        "{asset_dir}/assembly_manifest.json",
+        "--source",
+        "{source}",
+        "--output",
+        "{output_dir}",
+        "--source-index",
+        "{source_index}",
+        "--physics",
+        "{round_dir}/assembly_physics.json",
+        "--topology-cache",
+        "{round_dir}/checkers/assembly_topology"
+      ],
+      "required": false,
+      "timeout_seconds": 900.0,
+      "prepend_environment": {}
+    },
+    {
+      "name": "assembly_standing",
+      "command": [
+        "{python}",
+        "-m",
+        "adsl.agents.assembly_standing",
+        "--manifest",
+        "{asset_dir}/assembly_manifest.json",
+        "--source",
+        "{source}",
+        "--output",
+        "{output_dir}",
+        "--source-index",
+        "{source_index}",
+        "--physics",
+        "{round_dir}/assembly_physics.json",
+        "--topology-cache",
+        "{round_dir}/checkers/assembly_topology"
+      ],
+      "required": true,
+      "timeout_seconds": 900.0,
+      "prepend_environment": {}
+    }
+  ],
+  "check_first": false,
+  "repair_policy": {
+    "print_partition_editable": true,
+    "max_candidates_per_round": 1,
+    "max_total_candidates": 1,
+    "time_budget_seconds": 7200.0,
+    "print_orientation_editable": false,
+    "default_relative_tolerance": 0.01,
+    "default_absolute_tolerance": 1e-09
+  },
+  "overhang_experiment": {}
+}

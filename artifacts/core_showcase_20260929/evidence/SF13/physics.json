@@ -1,0 +1,20 @@
+{
+  "scope": "SF13 100x32x200 mm printed demonstration; gravity only, no external loads or FEA. Uniform density is an experimental assumption, not inferred wood properties.",
+  "material": {
+    "density_kg_m3": 1240.0
+  },
+  "standing": {
+    "duration_seconds": 5.0,
+    "timestep_seconds": 0.002,
+    "friction": [
+      0.5,
+      0.005,
+      0.0001
+    ],
+    "tilt_threshold_deg": 25.0,
+    "settle_window_seconds": 0.5,
+    "settle_linear_m_s": 0.001,
+    "settle_angular_rad_s": 0.01,
+    "collision_backend": "rigid_flex"
+  }
+}

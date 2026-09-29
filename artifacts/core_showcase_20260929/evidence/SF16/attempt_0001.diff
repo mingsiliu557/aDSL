@@ -1,0 +1,51 @@
+--- original/source.py
++++ attempt_0001/source.py
+@@ -23,8 +23,8 @@
+         self.shelf = self.attach_part(
+             "shelf_body",
+             Cube(
+-                (1045.0, 410.0, 36.0),
+-                center=(0.0, 0.0, 0.0),
++                (1045.0, 400.0, 36.0),
++                center=(0.0, -24.5, 0.0),
+                 color=MATTE_BLACK,
+             ),
+         )
+@@ -38,7 +38,7 @@
+             center=(0.0, 0.0, 0.0),
+             color=MATTE_BLACK,
+         )
+-        panel = rotate_shape(panel, axis="+x", angle=-7.0, center=(0.0, 0.0, 0.0))
++        panel = rotate_shape(panel, axis="+x", angle=-8.0, center=(0.0, 0.0, 0.0))
+         self.panel = self.attach_part("panel_body", panel)
+ 
+ 
+@@ -202,9 +202,9 @@
+ )
+ 
+ 
+-# The upper rear panel leans seven degrees toward +Y as it rises.  Its connector
++# The upper rear panel leans eight degrees toward +Y as it rises.  Its connector
+ # frame follows the panel's tilted vertical direction while insertion remains +X.
+-tilted_vertical = (0.0, 0.1218693434, 0.9925461516)
++tilted_vertical = (0.0, 0.1391731010, 0.9902680687)
+ assembly.connect(
+     "connect_back_panel_to_right_side",
+     tab_part="slanted_back_panel",
+@@ -215,7 +215,7 @@
+         insert_axis=(1.0, 0.0, 0.0),
+     ),
+     slot_frame=InterfaceFrame(
+-        origin=(-20.0, 197.0, 1669.0 - 900.0),
++        origin=(-20.0, 195.0, 1669.59 - 900.0),
+         x_axis=tilted_vertical,
+         insert_axis=(1.0, 0.0, 0.0),
+     ),
+@@ -229,6 +229,6 @@
+ # Print orientations affect only exported individual pieces, never assembly pose.
+ assembly.set_print_orientation("left_side_panel", rotation_deg=(0.0, 90.0, 0.0))
+ assembly.set_print_orientation("right_side_panel", rotation_deg=(0.0, 90.0, 0.0))
+-assembly.set_print_orientation("slanted_back_panel", rotation_deg=(7.0, 0.0, 0.0))
++assembly.set_print_orientation("slanted_back_panel", rotation_deg=(8.0, 0.0, 0.0))
+ 
+ scene = assembly.scene()

@@ -1,0 +1,1412 @@
+{
+  "checker": "assembly_topology",
+  "version": 2,
+  "status": "FAIL",
+  "summary": "Assembly topology FAIL; item counts {'PASS': 25, 'FAIL': 1, 'INDETERMINATE': 0}",
+  "metrics": {
+    "items": [
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "left_side_panel",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              -562.5,
+              -225.0,
+              0.0
+            ],
+            [
+              -522.5,
+              225.0,
+              1800.0
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            -542.5,
+            0.0,
+            900.0
+          ]
+        ],
+        "bounds_mm": [
+          [
+            -562.5,
+            -225.0,
+            0.0
+          ],
+          [
+            -522.5,
+            225.0,
+            1800.0
+          ]
+        ],
+        "length_tolerance_mm": 0.0034332275390625,
+        "surface_area_mm2": 1805551.9961547852,
+        "nearest_components": null,
+        "solid_sha256": "2771d4b0ec108587ae267c2c9a48ff2b837e0e78e03d186a31fa4e0de8ffcc80",
+        "elapsed_seconds": 6.081421911716461,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/part_left_side_panel/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "top_shelf",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              -542.5,
+              -205.0,
+              -18.0
+            ],
+            [
+              522.5,
+              205.0,
+              18.0
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            -10.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "bounds_mm": [
+          [
+            -542.5,
+            -205.0,
+            -18.0
+          ],
+          [
+            522.5,
+            205.0,
+            18.0
+          ]
+        ],
+        "length_tolerance_mm": 0.0010347366333007812,
+        "surface_area_mm2": 972402.0203143907,
+        "nearest_components": null,
+        "solid_sha256": "6e0b7db1c4ca38050ab149547ddccbce1b0f6f385a969a1cefce1e819861738e",
+        "elapsed_seconds": 6.531538940966129,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/part_top_shelf/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "right_side_panel",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              -40.000003814697266,
+              -225.0,
+              -900.0
+            ],
+            [
+              20.0,
+              225.0,
+              900.0
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            -10.000001907348633,
+            0.0,
+            0.0
+          ]
+        ],
+        "bounds_mm": [
+          [
+            -40.000003814697266,
+            -225.0,
+            -900.0
+          ],
+          [
+            20.0,
+            225.0,
+            900.0
+          ]
+        ],
+        "length_tolerance_mm": 0.00171661376953125,
+        "surface_area_mm2": 1820806.0279687997,
+        "nearest_components": null,
+        "solid_sha256": "660355354df5b66ccc2092a10d0240bb299eb388411ad1272cd39a510d201e90",
+        "elapsed_seconds": 6.4819243010133505,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/part_right_side_panel/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "middle_shelf",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              -522.5,
+              -205.0,
+              -18.0
+            ],
+            [
+              542.5,
+              205.0,
+              18.0
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            10.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "bounds_mm": [
+          [
+            -522.5,
+            -205.0,
+            -18.0
+          ],
+          [
+            542.5,
+            205.0,
+            18.0
+          ]
+        ],
+        "length_tolerance_mm": 0.0010347366333007812,
+        "surface_area_mm2": 966850.0280125716,
+        "nearest_components": null,
+        "solid_sha256": "dac1defef6c1b3b30d6e4c8df287e76fb9f197bf021eb5d55152bb826ff38fe8",
+        "elapsed_seconds": 6.532293256372213,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/part_middle_shelf/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "lower_shelf",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              -522.5,
+              -205.0,
+              -18.0
+            ],
+            [
+              542.5,
+              205.0,
+              18.0
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            10.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "bounds_mm": [
+          [
+            -522.5,
+            -205.0,
+            -18.0
+          ],
+          [
+            542.5,
+            205.0,
+            18.0
+          ]
+        ],
+        "length_tolerance_mm": 0.0010347366333007812,
+        "surface_area_mm2": 966850.0280125716,
+        "nearest_components": null,
+        "solid_sha256": "dac1defef6c1b3b30d6e4c8df287e76fb9f197bf021eb5d55152bb826ff38fe8",
+        "elapsed_seconds": 6.281541338190436,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/part_lower_shelf/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "slanted_back_panel",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              -522.5,
+              -27.753570556640625,
+              -130.4934387207031
+            ],
+            [
+              542.5,
+              27.753570556640625,
+              130.49343872070312
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            10.0,
+            0.0,
+            1.4210854715202004e-14
+          ]
+        ],
+        "bounds_mm": [
+          [
+            -522.5,
+            -27.753570556640625,
+            -130.4934387207031
+          ],
+          [
+            542.5,
+            27.753570556640625,
+            130.49343872070312
+          ]
+        ],
+        "length_tolerance_mm": 0.0010347366333007812,
+        "surface_area_mm2": 610250.9792769011,
+        "nearest_components": null,
+        "solid_sha256": "069889e253f2a4631fa9479e60d7debe32a38ba20eac9498c1fd0fc4dc29b403",
+        "elapsed_seconds": 5.579935887828469,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/part_slanted_back_panel/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "interface",
+        "status": "PASS",
+        "code": "INTERFACE_GEOMETRY_PAIRED",
+        "tab_part": "top_shelf",
+        "slot_part": "left_side_panel",
+        "parameter_name": "shelf_side_joint",
+        "tab_port": "left_end_tab",
+        "slot_port": "upper_shelf_slot",
+        "connection_id": "connect_top_shelf_to_left_side",
+        "id": "connect_top_shelf_to_left_side",
+        "parameters": {
+          "width_mm": 120.0,
+          "thickness_mm": 18.0,
+          "insertion_mm": 20.0,
+          "slot_depth_mm": 20.0,
+          "fit_offset_mm": 0.2,
+          "root_overlap_mm": 8.0,
+          "opening_extension_mm": 0.5,
+          "lead_in_mm": 2.0
+        },
+        "bounds_mm": [
+          [
+            -60.2,
+            -9.2,
+            -0.5
+          ],
+          [
+            60.2,
+            9.2,
+            20.0
+          ]
+        ],
+        "frame": "slot_interface",
+        "unit": "mm",
+        "frame_offset_mm": 0.0,
+        "frame_angle_radians": 0.0,
+        "missing_tab_mm3": 0.001171248940346614,
+        "occupied_cavity_mm3": 0.23515624999654963,
+        "local_interference_mm3": 0.0,
+        "undeclared_local_interference_mm3": 0.0,
+        "effective_insertion_interval_mm": [
+          0.0,
+          20.0
+        ],
+        "expected_insertion_mm": 20.0,
+        "length_tolerance_mm": 0.003147125244140625,
+        "volume_tolerance_mm3": 36.878071736455475,
+        "fit_kind": "clearance",
+        "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+        "local_wall_evidence": [
+          {
+            "axis": 0,
+            "side": -1,
+            "band_mm": 0.0125885009765625,
+            "intersection_mm3": 4.6322875991479915,
+            "equivalent_band_area_mm2": 367.9776970881973,
+            "uncertainty_mm3": 2.3193268105387688,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 0,
+            "side": 1,
+            "band_mm": 0.0125885009765625,
+            "intersection_mm3": 4.63228759914795,
+            "equivalent_band_area_mm2": 367.97769708819396,
+            "uncertainty_mm3": 2.3193268105387688,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": -1,
+            "band_mm": 0.0125885009765625,
+            "intersection_mm3": 30.3131103515625,
+            "equivalent_band_area_mm2": 2408.0,
+            "uncertainty_mm3": 15.167679794831201,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": 1,
+            "band_mm": 0.0125885009765625,
+            "intersection_mm3": 30.3131103515625,
+            "equivalent_band_area_mm2": 2408.0,
+            "uncertainty_mm3": 15.167679794831201,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          }
+        ],
+        "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+        "failures": [],
+        "elapsed_seconds": 6.081295983865857,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/interface_connect_top_shelf_to_left_side/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "interface",
+        "status": "PASS",
+        "code": "INTERFACE_GEOMETRY_PAIRED",
+        "tab_part": "right_side_panel",
+        "slot_part": "top_shelf",
+        "parameter_name": "shelf_side_joint",
+        "tab_port": "upper_inner_tab",
+        "slot_port": "right_end_slot",
+        "connection_id": "connect_right_side_to_top_shelf",
+        "id": "connect_right_side_to_top_shelf",
+        "parameters": {
+          "width_mm": 120.0,
+          "thickness_mm": 18.0,
+          "insertion_mm": 20.0,
+          "slot_depth_mm": 20.0,
+          "fit_offset_mm": 0.2,
+          "root_overlap_mm": 8.0,
+          "opening_extension_mm": 0.5,
+          "lead_in_mm": 2.0
+        },
+        "bounds_mm": [
+          [
+            -60.2,
+            -9.2,
+            -0.5
+          ],
+          [
+            60.2,
+            9.2,
+            20.0
+          ]
+        ],
+        "frame": "slot_interface",
+        "unit": "mm",
+        "frame_offset_mm": 0.0,
+        "frame_angle_radians": 0.0,
+        "missing_tab_mm3": 0.0015487672688294638,
+        "occupied_cavity_mm3": 0.0016534423817210118,
+        "local_interference_mm3": 1.7053025658242404e-13,
+        "undeclared_local_interference_mm3": 1.7053025658242404e-13,
+        "effective_insertion_interval_mm": [
+          0.0,
+          20.0
+        ],
+        "expected_insertion_mm": 20.0,
+        "length_tolerance_mm": 0.003147125244140625,
+        "volume_tolerance_mm3": 36.878071736455475,
+        "fit_kind": "clearance",
+        "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+        "local_wall_evidence": [
+          {
+            "axis": 0,
+            "side": -1,
+            "band_mm": 0.0125885009765625,
+            "intersection_mm3": 4.632287597668004,
+            "equivalent_band_area_mm2": 367.9776969706307,
+            "uncertainty_mm3": 2.3193268105387688,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 0,
+            "side": 1,
+            "band_mm": 0.0125885009765625,
+            "intersection_mm3": 4.632287597667911,
+            "equivalent_band_area_mm2": 367.9776969706233,
+            "uncertainty_mm3": 2.3193268105387688,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": -1,
+            "band_mm": 0.0125885009765625,
+            "intersection_mm3": 30.312742919921636,
+            "equivalent_band_area_mm2": 2407.970812121193,
+            "uncertainty_mm3": 15.167679794831201,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": 1,
+            "band_mm": 0.0125885009765625,
+            "intersection_mm3": 30.312742919920986,
+            "equivalent_band_area_mm2": 2407.9708121211415,
+            "uncertainty_mm3": 15.167679794831201,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          }
+        ],
+        "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+        "failures": [],
+        "elapsed_seconds": 5.98092614300549,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/interface_connect_right_side_to_top_shelf/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "interface",
+        "status": "PASS",
+        "code": "INTERFACE_GEOMETRY_PAIRED",
+        "tab_part": "middle_shelf",
+        "slot_part": "right_side_panel",
+        "parameter_name": "shelf_side_joint",
+        "tab_port": "right_end_tab",
+        "slot_port": "middle_shelf_slot",
+        "connection_id": "connect_middle_shelf_to_right_side",
+        "id": "connect_middle_shelf_to_right_side",
+        "parameters": {
+          "width_mm": 120.0,
+          "thickness_mm": 18.0,
+          "insertion_mm": 20.0,
+          "slot_depth_mm": 20.0,
+          "fit_offset_mm": 0.2,
+          "root_overlap_mm": 8.0,
+          "opening_extension_mm": 0.5,
+          "lead_in_mm": 2.0
+        },
+        "bounds_mm": [
+          [
+            -60.2,
+            -9.2,
+            -0.5
+          ],
+          [
+            60.2,
+            9.2,
+            20.0
+          ]
+        ],
+        "frame": "slot_interface",
+        "unit": "mm",
+        "frame_offset_mm": 0.0,
+        "frame_angle_radians": 0.0,
+        "missing_tab_mm3": 0.0010299648238288137,
+        "occupied_cavity_mm3": 0.01708386939431724,
+        "local_interference_mm3": 0.0016830102478502676,
+        "undeclared_local_interference_mm3": 0.0016830102478502676,
+        "effective_insertion_interval_mm": [
+          0.0,
+          20.0
+        ],
+        "expected_insertion_mm": 20.0,
+        "length_tolerance_mm": 0.002002716064453125,
+        "volume_tolerance_mm3": 23.467863832289847,
+        "fit_kind": "clearance",
+        "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+        "local_wall_evidence": [
+          {
+            "axis": 0,
+            "side": -1,
+            "band_mm": 0.0080108642578125,
+            "intersection_mm3": 2.9477172853151914,
+            "equivalent_band_area_mm2": 367.9649524007931,
+            "uncertainty_mm3": 1.4752311632037163,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 0,
+            "side": 1,
+            "band_mm": 0.0080108642578125,
+            "intersection_mm3": 2.947717285251407,
+            "equivalent_band_area_mm2": 367.96495239283087,
+            "uncertainty_mm3": 1.4752311632037163,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": -1,
+            "band_mm": 0.0080108642578125,
+            "intersection_mm3": 19.2901611328125,
+            "equivalent_band_area_mm2": 2408.0,
+            "uncertainty_mm3": 9.649585577426478,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": 1,
+            "band_mm": 0.0080108642578125,
+            "intersection_mm3": 19.2901611328125,
+            "equivalent_band_area_mm2": 2408.0,
+            "uncertainty_mm3": 9.649585577426478,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          }
+        ],
+        "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+        "failures": [],
+        "elapsed_seconds": 6.030905412510037,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/interface_connect_middle_shelf_to_right_side/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "interface",
+        "status": "PASS",
+        "code": "INTERFACE_GEOMETRY_PAIRED",
+        "tab_part": "lower_shelf",
+        "slot_part": "right_side_panel",
+        "parameter_name": "shelf_side_joint",
+        "tab_port": "right_end_tab",
+        "slot_port": "lower_shelf_slot",
+        "connection_id": "connect_lower_shelf_to_right_side",
+        "id": "connect_lower_shelf_to_right_side",
+        "parameters": {
+          "width_mm": 120.0,
+          "thickness_mm": 18.0,
+          "insertion_mm": 20.0,
+          "slot_depth_mm": 20.0,
+          "fit_offset_mm": 0.2,
+          "root_overlap_mm": 8.0,
+          "opening_extension_mm": 0.5,
+          "lead_in_mm": 2.0
+        },
+        "bounds_mm": [
+          [
+            -60.2,
+            -9.2,
+            -0.5
+          ],
+          [
+            60.2,
+            9.2,
+            20.0
+          ]
+        ],
+        "frame": "slot_interface",
+        "unit": "mm",
+        "frame_offset_mm": 0.0,
+        "frame_angle_radians": 0.0,
+        "missing_tab_mm3": 0.0010299648238288137,
+        "occupied_cavity_mm3": 0.0023866045357779494,
+        "local_interference_mm3": 0.0016830102331845118,
+        "undeclared_local_interference_mm3": 0.0016830102331845118,
+        "effective_insertion_interval_mm": [
+          0.0,
+          20.0
+        ],
+        "expected_insertion_mm": 20.0,
+        "length_tolerance_mm": 0.002574920654296875,
+        "volume_tolerance_mm3": 30.17296778437266,
+        "fit_kind": "clearance",
+        "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+        "local_wall_evidence": [
+          {
+            "axis": 0,
+            "side": -1,
+            "band_mm": 0.0102996826171875,
+            "intersection_mm3": 3.7900024414685296,
+            "equivalent_band_area_mm2": 367.9727407467875,
+            "uncertainty_mm3": 1.897178404033184,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 0,
+            "side": 1,
+            "band_mm": 0.0102996826171875,
+            "intersection_mm3": 3.7900024414070685,
+            "equivalent_band_area_mm2": 367.9727407408202,
+            "uncertainty_mm3": 1.897178404033184,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": -1,
+            "band_mm": 0.0102996826171875,
+            "intersection_mm3": 24.772241212181445,
+            "equivalent_band_area_mm2": 2405.146074194849,
+            "uncertainty_mm3": 12.408264930127189,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": 1,
+            "band_mm": 0.0102996826171875,
+            "intersection_mm3": 24.77224121288226,
+            "equivalent_band_area_mm2": 2405.1460742628915,
+            "uncertainty_mm3": 12.408264930127189,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          }
+        ],
+        "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+        "failures": [],
+        "elapsed_seconds": 5.881299290806055,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/interface_connect_lower_shelf_to_right_side/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "interface",
+        "status": "PASS",
+        "code": "INTERFACE_GEOMETRY_PAIRED",
+        "tab_part": "slanted_back_panel",
+        "slot_part": "right_side_panel",
+        "parameter_name": "back_panel_joint",
+        "tab_port": "right_edge_tab",
+        "slot_port": "upper_back_slot",
+        "connection_id": "connect_back_panel_to_right_side",
+        "id": "connect_back_panel_to_right_side",
+        "parameters": {
+          "width_mm": 100.0,
+          "thickness_mm": 12.0,
+          "insertion_mm": 20.0,
+          "slot_depth_mm": 20.0,
+          "fit_offset_mm": 0.2,
+          "root_overlap_mm": 8.0,
+          "opening_extension_mm": 0.5,
+          "lead_in_mm": 2.0
+        },
+        "bounds_mm": [
+          [
+            -50.2,
+            -6.2,
+            -0.5
+          ],
+          [
+            50.2,
+            6.2,
+            20.0
+          ]
+        ],
+        "frame": "slot_interface",
+        "unit": "mm",
+        "frame_offset_mm": 0.0,
+        "frame_angle_radians": 1.2906022939666374e-05,
+        "missing_tab_mm3": 0.006322307750783283,
+        "occupied_cavity_mm3": 0.0109601980417856,
+        "local_interference_mm3": 0.0006598767694009184,
+        "undeclared_local_interference_mm3": 0.0006598767694009184,
+        "effective_insertion_interval_mm": [
+          0.0,
+          20.0
+        ],
+        "expected_insertion_mm": 20.0,
+        "length_tolerance_mm": 0.003257729320673839,
+        "volume_tolerance_mm3": 27.374504861436325,
+        "fit_kind": "clearance",
+        "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+        "local_wall_evidence": [
+          {
+            "axis": 0,
+            "side": -1,
+            "band_mm": 0.013030917282695356,
+            "intersection_mm3": 3.2268209532450864,
+            "equivalent_band_area_mm2": 247.62807431294203,
+            "uncertainty_mm3": 1.618584580898924,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 0,
+            "side": 1,
+            "band_mm": 0.013030917282695356,
+            "intersection_mm3": 3.226820953516479,
+            "equivalent_band_area_mm2": 247.62807433376886,
+            "uncertainty_mm3": 1.618584580898924,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": -1,
+            "band_mm": 0.013030917282695356,
+            "intersection_mm3": 26.16327474823523,
+            "equivalent_band_area_mm2": 2007.7845772975038,
+            "uncertainty_mm3": 13.09326320110089,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": 1,
+            "band_mm": 0.013030917282695356,
+            "intersection_mm3": 26.163228065355636,
+            "equivalent_band_area_mm2": 2007.7809948267857,
+            "uncertainty_mm3": 13.09326320110089,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          }
+        ],
+        "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+        "failures": [],
+        "elapsed_seconds": 6.4319187588989735,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/interface_connect_back_panel_to_right_side/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "left_side_panel:lower_shelf",
+        "part_ids": [
+          "left_side_panel",
+          "lower_shelf"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": null,
+        "bounds_center_mm": null,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "connect_top_shelf_to_left_side",
+          "connect_lower_shelf_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.281094875186682,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0000/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "left_side_panel:middle_shelf",
+        "part_ids": [
+          "left_side_panel",
+          "middle_shelf"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": null,
+        "bounds_center_mm": null,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "connect_top_shelf_to_left_side",
+          "connect_middle_shelf_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.731664374470711,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0001/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "left_side_panel:right_side_panel",
+        "part_ids": [
+          "left_side_panel",
+          "right_side_panel"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": null,
+        "bounds_center_mm": null,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "connect_top_shelf_to_left_side",
+          "connect_right_side_to_top_shelf",
+          "connect_middle_shelf_to_right_side",
+          "connect_lower_shelf_to_right_side",
+          "connect_back_panel_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.582287911325693,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0002/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "left_side_panel:slanted_back_panel",
+        "part_ids": [
+          "left_side_panel",
+          "slanted_back_panel"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": null,
+        "bounds_center_mm": null,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "connect_top_shelf_to_left_side",
+          "connect_back_panel_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.2919533140957355,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0003/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "left_side_panel:top_shelf",
+        "part_ids": [
+          "left_side_panel",
+          "top_shelf"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": -7.45075112718041e-11,
+        "undeclared_interference_mm3": -7.45075112718041e-11,
+        "bounds_mm": [
+          [
+            -522.5,
+            -205.0,
+            1632.0
+          ],
+          [
+            -522.5,
+            54.11254882812501,
+            1668.0
+          ]
+        ],
+        "bounds_center_mm": [
+          -522.5,
+          -75.4437255859375,
+          1650.0
+        ],
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [
+          "connect_top_shelf_to_left_side"
+        ],
+        "related_connection_ids": [
+          "connect_top_shelf_to_left_side",
+          "connect_right_side_to_top_shelf"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.130985597148538,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0004/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "lower_shelf:middle_shelf",
+        "part_ids": [
+          "lower_shelf",
+          "middle_shelf"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": null,
+        "bounds_center_mm": null,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "connect_middle_shelf_to_right_side",
+          "connect_lower_shelf_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 5.830909023061395,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0005/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "lower_shelf:right_side_panel",
+        "part_ids": [
+          "lower_shelf",
+          "right_side_panel"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0016830103500783673,
+        "undeclared_interference_mm3": 0.0016830103500783673,
+        "bounds_mm": [
+          [
+            522.5,
+            -205.0,
+            432.0
+          ],
+          [
+            542.5,
+            205.0,
+            468.0
+          ]
+        ],
+        "bounds_center_mm": [
+          532.5,
+          0.0,
+          450.0
+        ],
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [
+          "connect_lower_shelf_to_right_side"
+        ],
+        "related_connection_ids": [
+          "connect_right_side_to_top_shelf",
+          "connect_middle_shelf_to_right_side",
+          "connect_lower_shelf_to_right_side",
+          "connect_back_panel_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.2819896917790174,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0006/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "lower_shelf:slanted_back_panel",
+        "part_ids": [
+          "lower_shelf",
+          "slanted_back_panel"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": null,
+        "bounds_center_mm": null,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "connect_lower_shelf_to_right_side",
+          "connect_back_panel_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.23151089809835,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0007/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "lower_shelf:top_shelf",
+        "part_ids": [
+          "lower_shelf",
+          "top_shelf"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": null,
+        "bounds_center_mm": null,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "connect_top_shelf_to_left_side",
+          "connect_right_side_to_top_shelf",
+          "connect_lower_shelf_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 5.880883596837521,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0008/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "middle_shelf:right_side_panel",
+        "part_ids": [
+          "middle_shelf",
+          "right_side_panel"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0016830102253843958,
+        "undeclared_interference_mm3": 0.0016830102253843958,
+        "bounds_mm": [
+          [
+            542.4999955024823,
+            -58.00005027391921,
+            1042.999950451715
+          ],
+          [
+            542.5,
+            5.089404643262281,
+            1057.000043121361
+          ]
+        ],
+        "bounds_center_mm": [
+          542.4999977512412,
+          -26.455322815328465,
+          1049.9999967865378
+        ],
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [
+          "connect_middle_shelf_to_right_side"
+        ],
+        "related_connection_ids": [
+          "connect_right_side_to_top_shelf",
+          "connect_middle_shelf_to_right_side",
+          "connect_lower_shelf_to_right_side",
+          "connect_back_panel_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.33268016576767,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0009/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "middle_shelf:slanted_back_panel",
+        "part_ids": [
+          "middle_shelf",
+          "slanted_back_panel"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": null,
+        "bounds_center_mm": null,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "connect_middle_shelf_to_right_side",
+          "connect_back_panel_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.181298973038793,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0010/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "middle_shelf:top_shelf",
+        "part_ids": [
+          "middle_shelf",
+          "top_shelf"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": null,
+        "bounds_center_mm": null,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "connect_top_shelf_to_left_side",
+          "connect_right_side_to_top_shelf",
+          "connect_middle_shelf_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.1811470333486795,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0011/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "right_side_panel:slanted_back_panel",
+        "part_ids": [
+          "right_side_panel",
+          "slanted_back_panel"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.000659876763806474,
+        "undeclared_interference_mm3": 0.000659876763806474,
+        "bounds_mm": [
+          [
+            522.5,
+            169.24642944335938,
+            1540.575802912241
+          ],
+          [
+            542.5,
+            224.75357055664062,
+            1796.5685729980469
+          ]
+        ],
+        "bounds_center_mm": [
+          532.5,
+          197.0,
+          1668.5721879551438
+        ],
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [
+          "connect_back_panel_to_right_side"
+        ],
+        "related_connection_ids": [
+          "connect_right_side_to_top_shelf",
+          "connect_middle_shelf_to_right_side",
+          "connect_lower_shelf_to_right_side",
+          "connect_back_panel_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.030798958614469,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0012/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "right_side_panel:top_shelf",
+        "part_ids": [
+          "right_side_panel",
+          "top_shelf"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0015487810194719596,
+        "undeclared_interference_mm3": 0.0015487810194719596,
+        "bounds_mm": [
+          [
+            502.49999618530273,
+            -70.53191489361701,
+            1642.9999351501901
+          ],
+          [
+            522.5,
+            80.34743608989226,
+            1668.0
+          ]
+        ],
+        "bounds_center_mm": [
+          512.4999980926514,
+          4.907760598137621,
+          1655.499967575095
+        ],
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [
+          "connect_right_side_to_top_shelf"
+        ],
+        "related_connection_ids": [
+          "connect_top_shelf_to_left_side",
+          "connect_right_side_to_top_shelf",
+          "connect_middle_shelf_to_right_side",
+          "connect_lower_shelf_to_right_side",
+          "connect_back_panel_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 5.981174835935235,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0013/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "FAIL",
+        "code": "UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "slanted_back_panel:top_shelf",
+        "part_ids": [
+          "slanted_back_panel",
+          "top_shelf"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 842681.3089759703,
+        "undeclared_interference_mm3": 842681.3089759703,
+        "bounds_mm": [
+          [
+            -522.5,
+            180.3668524371798,
+            1632.0
+          ],
+          [
+            522.5,
+            205.0,
+            1668.0
+          ]
+        ],
+        "bounds_center_mm": [
+          0.0,
+          192.6834262185899,
+          1650.0
+        ],
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "connect_top_shelf_to_left_side",
+          "connect_right_side_to_top_shelf",
+          "connect_back_panel_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.281082067638636,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0014/checkers/assembly_topology/result.json"
+      }
+    ]
+  },
+  "violations": [],
+  "assumptions": {
+    "source_sha256": "88daba8f1cd247feadc3b732c3e8678e0ee9a09dfe966371a679245c40b655c6",
+    "manifest_sha256": "4d73d27b8a0204c79843757a27d97d7e3d57c16e5e686445cb412239f8eebdfd",
+    "topology_scope_version": 2,
+    "scope": "within-part solid connectivity, local TabSlot pairing and global assembly material interference; not retention, insertion path, strength or manufacturing",
+    "localization": "index-assisted if current candidates exist; otherwise model source inference"
+  },
+  "artifacts": {
+    "report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/report.json"
+  },
+  "analysis_context": null,
+  "findings": [
+    {
+      "finding_id": "assembly_topology:pair:slanted_back_panel:top_shelf:UNDECLARED_PART_INTERFERENCE",
+      "rule_id": "UNDECLARED_PART_INTERFERENCE",
+      "category": "geometry_failure",
+      "applicability": "applicable",
+      "applicability_basis": null,
+      "metric": {
+        "name": "undeclared_interference_mm3",
+        "value": 842681.3089759703,
+        "unit": "mm3",
+        "threshold": 6251.241398513488,
+        "comparator": "le",
+        "relative_tolerance": 0.0,
+        "absolute_tolerance": 0.0
+      },
+      "region": {
+        "kind": "aabb",
+        "frame": "assembly",
+        "unit": "mm",
+        "point": null,
+        "bounds": [
+          [
+            -522.5,
+            180.3668524371798,
+            1632.0
+          ],
+          [
+            522.5,
+            205.0,
+            1668.0
+          ]
+        ],
+        "face_ids": [],
+        "layer_range": null,
+        "part_names": [
+          "slanted_back_panel",
+          "top_shelf"
+        ],
+        "details": {
+          "connection_ids": [],
+          "related_connection_ids": [
+            "connect_top_shelf_to_left_side",
+            "connect_right_side_to_top_shelf",
+            "connect_back_panel_to_right_side"
+          ],
+          "allowed_fit_connection_ids": [],
+          "raw_intersection_mm3": 842681.3089759703,
+          "length_tolerance_mm": 0.0034332275390625
+        }
+      },
+      "relations": [],
+      "evidence_refs": [
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/report.json"
+      ],
+      "source_candidates": [
+        {
+          "feature_id": "feature:FixedAssembly/top_shelf",
+          "source_ids": [],
+          "source_locations": [],
+          "method": "direct",
+          "relation_role": null,
+          "overlap_score": null,
+          "evidence": [
+            "Exact runtime feature-name match; not unique triangle ownership"
+          ],
+          "ambiguous": true
+        },
+        {
+          "feature_id": "feature:FixedAssembly/slanted_back_panel",
+          "source_ids": [],
+          "source_locations": [],
+          "method": "direct",
+          "relation_role": null,
+          "overlap_score": null,
+          "evidence": [
+            "Exact runtime feature-name match; not unique triangle ownership"
+          ],
+          "ambiguous": true
+        }
+      ],
+      "required": true,
+      "repairability": "geometry",
+      "message": "pair:slanted_back_panel:top_shelf: UNDECLARED_PART_INTERFERENCE; geometry evidence only, manufacture unverified.",
+      "domain": {
+        "kind": "pair",
+        "status": "FAIL",
+        "code": "UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "slanted_back_panel:top_shelf",
+        "part_ids": [
+          "slanted_back_panel",
+          "top_shelf"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 842681.3089759703,
+        "undeclared_interference_mm3": 842681.3089759703,
+        "bounds_mm": [
+          [
+            -522.5,
+            180.3668524371798,
+            1632.0
+          ],
+          [
+            522.5,
+            205.0,
+            1668.0
+          ]
+        ],
+        "bounds_center_mm": [
+          0.0,
+          192.6834262185899,
+          1650.0
+        ],
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.0034332275390625,
+        "volume_tolerance_mm3": 6251.241398513488,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "connect_top_shelf_to_left_side",
+          "connect_right_side_to_top_shelf",
+          "connect_back_panel_to_right_side"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.281082067638636,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0014/checkers/assembly_topology/result.json"
+      }
+    }
+  ]
+}

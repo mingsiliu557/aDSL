@@ -1,0 +1,3386 @@
+{
+  "source_sha256": "a4212de6738c3c598eb53286bcb10036ef26cad5c7eeb6fbd5d5c5a8e43eb6f2",
+  "mm_per_unit": 1.0,
+  "stl_vertex_unit": "mm",
+  "root_id": "side_left",
+  "parts": [
+    {
+      "id": "side_left",
+      "components": [
+        "left_side_panel"
+      ],
+      "stl": "side_left.stl",
+      "glb": "side_left.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          206
+        ],
+        [
+          206,
+          218
+        ],
+        [
+          218,
+          230
+        ],
+        [
+          230,
+          242
+        ],
+        [
+          242,
+          254
+        ],
+        [
+          254,
+          266
+        ],
+        [
+          266,
+          278
+        ],
+        [
+          278,
+          290
+        ],
+        [
+          290,
+          302
+        ]
+      ],
+      "mesh_normalizations": [
+        {
+          "object": "geometry_0_cube",
+          "method": "planar_polygon_retriangulation",
+          "polygons": 1,
+          "zero_area_triangles_before": 1,
+          "zero_area_triangles_after": 0,
+          "shell_components": 1,
+          "vertices_unchanged": true,
+          "closed": true,
+          "manifold": true,
+          "winding_consistent": true
+        }
+      ],
+      "exploded_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "side_right",
+      "components": [
+        "right_side_panel"
+      ],
+      "stl": "side_right.stl",
+      "glb": "side_right.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          204
+        ],
+        [
+          204,
+          216
+        ],
+        [
+          216,
+          228
+        ],
+        [
+          228,
+          240
+        ],
+        [
+          240,
+          252
+        ],
+        [
+          252,
+          264
+        ],
+        [
+          264,
+          276
+        ],
+        [
+          276,
+          288
+        ],
+        [
+          288,
+          300
+        ]
+      ],
+      "mesh_normalizations": [
+        {
+          "object": "geometry_0_cube",
+          "method": "planar_polygon_retriangulation",
+          "polygons": 1,
+          "zero_area_triangles_before": 1,
+          "zero_area_triangles_after": 0,
+          "shell_components": 1,
+          "vertices_unchanged": true,
+          "closed": true,
+          "manifold": true,
+          "winding_consistent": true
+        }
+      ],
+      "exploded_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          250.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "shelf_bottom",
+      "components": [
+        "shelf_1_bottom"
+      ],
+      "stl": "shelf_bottom.stl",
+      "glb": "shelf_bottom.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          250
+        ]
+      ],
+      "exploded_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          500.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "shelf_level_2",
+      "components": [
+        "shelf_2"
+      ],
+      "stl": "shelf_level_2.stl",
+      "glb": "shelf_level_2.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -38.79999923706055
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          242
+        ]
+      ],
+      "exploded_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          750.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "shelf_level_3",
+      "components": [
+        "shelf_3"
+      ],
+      "stl": "shelf_level_3.stl",
+      "glb": "shelf_level_3.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -77.5999984741211
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          228
+        ]
+      ],
+      "exploded_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1000.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "shelf_level_4",
+      "components": [
+        "shelf_4"
+      ],
+      "stl": "shelf_level_4.stl",
+      "glb": "shelf_level_4.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -116.4000015258789
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          234
+        ]
+      ],
+      "exploded_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1250.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "shelf_level_5",
+      "components": [
+        "shelf_5"
+      ],
+      "stl": "shelf_level_5.stl",
+      "glb": "shelf_level_5.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -155.1999969482422
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          242
+        ]
+      ],
+      "mesh_normalizations": [
+        {
+          "object": "geometry_0_cube",
+          "method": "local_boundary_weld",
+          "status": "APPLIED",
+          "boundary_edges_before": 12,
+          "boundary_edges_after": 0,
+          "maximum_displacement_mm": 3.814697265625e-06,
+          "displacement_limit_mm": 0.0001,
+          "merged_vertices": 4,
+          "target_boundary_loops": 4,
+          "reason": "validated local roundoff boundary weld",
+          "attempted_maximum_displacement_mm": 3.814697265625e-06,
+          "attempted_boundary_edges_after": 0,
+          "shell_components": 1,
+          "closed": true,
+          "manifold": true,
+          "winding_consistent": true,
+          "zero_area_triangles_after": 0,
+          "surface_area_change_mm2": 2.4234574084402993e-05,
+          "signed_volume_change_mm3": 1.0901621863013133e-05,
+          "welded_pairs": [
+            {
+              "source_local": [
+                -47.64999771118164,
+                5.0,
+                156.4499969482422
+              ],
+              "target_local": [
+                -47.650001525878906,
+                5.0,
+                156.4499969482422
+              ],
+              "displacement_mm": 3.814697265625e-06
+            },
+            {
+              "source_local": [
+                -47.64999771118164,
+                -15.0,
+                156.4499969482422
+              ],
+              "target_local": [
+                -47.650001525878906,
+                -15.0,
+                156.4499969482422
+              ],
+              "displacement_mm": 3.814697265625e-06
+            },
+            {
+              "source_local": [
+                -47.64999771118164,
+                15.0,
+                156.4499969482422
+              ],
+              "target_local": [
+                -47.650001525878906,
+                15.0,
+                156.4499969482422
+              ],
+              "displacement_mm": 3.814697265625e-06
+            },
+            {
+              "source_local": [
+                -47.64999771118164,
+                -5.0,
+                156.4499969482422
+              ],
+              "target_local": [
+                -47.650001525878906,
+                -5.0,
+                156.4499969482422
+              ],
+              "displacement_mm": 3.814697265625e-06
+            }
+          ]
+        }
+      ],
+      "exploded_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1500.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "cap_top",
+      "components": [
+        "top_cap"
+      ],
+      "stl": "cap_top.stl",
+      "glb": "cap_top.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -194.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          226
+        ]
+      ],
+      "mesh_normalizations": [
+        {
+          "object": "geometry_0_cube",
+          "method": "local_boundary_weld",
+          "status": "APPLIED",
+          "boundary_edges_before": 36,
+          "boundary_edges_after": 0,
+          "maximum_displacement_mm": 7.62939453125e-06,
+          "displacement_limit_mm": 0.0001,
+          "merged_vertices": 12,
+          "target_boundary_loops": 12,
+          "reason": "validated local roundoff boundary weld",
+          "attempted_maximum_displacement_mm": 7.62939453125e-06,
+          "attempted_boundary_edges_after": 0,
+          "shell_components": 1,
+          "closed": true,
+          "manifold": true,
+          "winding_consistent": true,
+          "zero_area_triangles_after": 0,
+          "surface_area_change_mm2": -1.4602389455831144e-05,
+          "signed_volume_change_mm3": -1.8115664715878665e-05,
+          "welded_pairs": [
+            {
+              "source_local": [
+                47.65000534057617,
+                5.0,
+                198.75
+              ],
+              "target_local": [
+                47.64999771118164,
+                5.0,
+                198.75
+              ],
+              "displacement_mm": 7.62939453125e-06
+            },
+            {
+              "source_local": [
+                47.65000534057617,
+                15.0,
+                198.75
+              ],
+              "target_local": [
+                47.64999771118164,
+                15.0,
+                198.75
+              ],
+              "displacement_mm": 7.62939453125e-06
+            },
+            {
+              "source_local": [
+                -47.64999771118164,
+                -15.0,
+                195.25
+              ],
+              "target_local": [
+                -47.650001525878906,
+                -15.0,
+                195.25
+              ],
+              "displacement_mm": 3.814697265625e-06
+            },
+            {
+              "source_local": [
+                47.65000534057617,
+                -5.0,
+                195.25
+              ],
+              "target_local": [
+                47.64999771118164,
+                -5.0,
+                195.25
+              ],
+              "displacement_mm": 7.62939453125e-06
+            },
+            {
+              "source_local": [
+                -47.64999771118164,
+                -5.0,
+                195.25
+              ],
+              "target_local": [
+                -47.650001525878906,
+                -5.0,
+                195.25
+              ],
+              "displacement_mm": 3.814697265625e-06
+            },
+            {
+              "source_local": [
+                47.65000534057617,
+                -15.0,
+                198.75
+              ],
+              "target_local": [
+                47.64999771118164,
+                -15.0,
+                198.75
+              ],
+              "displacement_mm": 7.62939453125e-06
+            },
+            {
+              "source_local": [
+                47.65000534057617,
+                5.0,
+                195.25
+              ],
+              "target_local": [
+                47.64999771118164,
+                5.0,
+                195.25
+              ],
+              "displacement_mm": 7.62939453125e-06
+            },
+            {
+              "source_local": [
+                47.65000534057617,
+                15.0,
+                195.25
+              ],
+              "target_local": [
+                47.64999771118164,
+                15.0,
+                195.25
+              ],
+              "displacement_mm": 7.62939453125e-06
+            },
+            {
+              "source_local": [
+                47.65000534057617,
+                -15.0,
+                195.25
+              ],
+              "target_local": [
+                47.64999771118164,
+                -15.0,
+                195.25
+              ],
+              "displacement_mm": 7.62939453125e-06
+            },
+            {
+              "source_local": [
+                47.65000534057617,
+                -5.0,
+                198.75
+              ],
+              "target_local": [
+                47.64999771118164,
+                -5.0,
+                198.75
+              ],
+              "displacement_mm": 7.62939453125e-06
+            },
+            {
+              "source_local": [
+                -47.64999771118164,
+                15.0,
+                195.25
+              ],
+              "target_local": [
+                -47.650001525878906,
+                15.0,
+                195.25
+              ],
+              "displacement_mm": 3.814697265625e-06
+            },
+            {
+              "source_local": [
+                -47.64999771118164,
+                5.0,
+                195.25
+              ],
+              "target_local": [
+                -47.650001525878906,
+                5.0,
+                195.25
+              ],
+              "displacement_mm": 3.814697265625e-06
+            }
+          ]
+        }
+      ],
+      "exploded_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1750.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "interfaces": [],
+  "failures": [],
+  "part_declarations": [
+    {
+      "id": "side_left",
+      "components": [
+        "left_side_panel"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "side_right",
+      "components": [
+        "right_side_panel"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "shelf_bottom",
+      "components": [
+        "shelf_1_bottom"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "shelf_level_2",
+      "components": [
+        "shelf_2"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "shelf_level_3",
+      "components": [
+        "shelf_3"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "shelf_level_4",
+      "components": [
+        "shelf_4"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "shelf_level_5",
+      "components": [
+        "shelf_5"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "cap_top",
+      "components": [
+        "top_cap"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "s1_left_front",
+      "tab_part": "shelf_bottom",
+      "slot_part": "side_left",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_1_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          3.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          3.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s1_left_rear",
+      "tab_part": "shelf_bottom",
+      "slot_part": "side_left",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_1_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          3.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          3.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s1_right_front",
+      "tab_part": "shelf_bottom",
+      "slot_part": "side_right",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_1_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          3.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          3.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s1_right_rear",
+      "tab_part": "shelf_bottom",
+      "slot_part": "side_right",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_1_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          3.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          3.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s2_left_front",
+      "tab_part": "shelf_level_2",
+      "slot_part": "side_left",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_2_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          41.8
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          41.8
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s2_left_rear",
+      "tab_part": "shelf_level_2",
+      "slot_part": "side_left",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_2_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          41.8
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          41.8
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s2_right_front",
+      "tab_part": "shelf_level_2",
+      "slot_part": "side_right",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_2_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          41.8
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          41.8
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s2_right_rear",
+      "tab_part": "shelf_level_2",
+      "slot_part": "side_right",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_2_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          41.8
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          41.8
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s3_left_front",
+      "tab_part": "shelf_level_3",
+      "slot_part": "side_left",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_3_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          80.6
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          80.6
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s3_left_rear",
+      "tab_part": "shelf_level_3",
+      "slot_part": "side_left",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_3_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          80.6
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          80.6
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s3_right_front",
+      "tab_part": "shelf_level_3",
+      "slot_part": "side_right",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_3_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          80.6
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          80.6
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s3_right_rear",
+      "tab_part": "shelf_level_3",
+      "slot_part": "side_right",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_3_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          80.6
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          80.6
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s4_left_front",
+      "tab_part": "shelf_level_4",
+      "slot_part": "side_left",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_4_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          119.4
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          119.4
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s4_left_rear",
+      "tab_part": "shelf_level_4",
+      "slot_part": "side_left",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_4_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          119.4
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          119.4
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s4_right_front",
+      "tab_part": "shelf_level_4",
+      "slot_part": "side_right",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_4_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          119.4
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          119.4
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s4_right_rear",
+      "tab_part": "shelf_level_4",
+      "slot_part": "side_right",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_4_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          119.4
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          119.4
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s5_left_front",
+      "tab_part": "shelf_level_5",
+      "slot_part": "side_left",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_5_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          158.2
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          158.2
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s5_left_rear",
+      "tab_part": "shelf_level_5",
+      "slot_part": "side_left",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_5_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          158.2
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          158.2
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s5_right_front",
+      "tab_part": "shelf_level_5",
+      "slot_part": "side_right",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_5_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          158.2
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          158.2
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "s5_right_rear",
+      "tab_part": "shelf_level_5",
+      "slot_part": "side_right",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_5_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          158.2
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          158.2
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "cap_left_front",
+      "tab_part": "cap_top",
+      "slot_part": "side_left",
+      "tab_port": "left_front_tab",
+      "slot_port": "top_cap_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          197.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          197.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "cap_left_rear",
+      "tab_part": "cap_top",
+      "slot_part": "side_left",
+      "tab_port": "left_rear_tab",
+      "slot_port": "top_cap_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          197.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          -1.0,
+          -44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          197.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "cap_right_front",
+      "tab_part": "cap_top",
+      "slot_part": "side_right",
+      "tab_port": "right_front_tab",
+      "slot_port": "top_cap_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          197.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          -10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          197.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "cap_right_rear",
+      "tab_part": "cap_top",
+      "slot_part": "side_right",
+      "tab_port": "right_rear_tab",
+      "slot_port": "top_cap_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "parameters": {
+        "width_mm": 10.0,
+        "thickness_mm": 3.5,
+        "insertion_mm": 4.0,
+        "slot_depth_mm": 4.5,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 0.75,
+        "opening_extension_mm": 0.5,
+        "lead_in_mm": 0.35
+      },
+      "tab_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          197.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          0.0,
+          0.0,
+          1.0,
+          44.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          197.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "status": "NOT_EVALUATED",
+  "verification_scope": "visual_code_only",
+  "unverified": [
+    "insertion_path",
+    "press_fit_retention",
+    "load_bearing",
+    "printability",
+    "closedness",
+    "connectivity",
+    "interface_geometry",
+    "interference",
+    "dimensions"
+  ],
+  "physical_checkers": {
+    "topology": "NOT_EXECUTED",
+    "standing": "NOT_EXECUTED",
+    "overhang": "NOT_EXECUTED",
+    "fea": "NOT_EXECUTED"
+  },
+  "backend": {
+    "boolean": "Blender",
+    "within_part_union": "NOT_EXECUTED"
+  },
+  "geometry_validation": "NOT_EVALUATED",
+  "task_constraints": {
+    "require_multiple_parts": true
+  },
+  "plan_changes": {
+    "status": "UNCHANGED",
+    "codes": [],
+    "parts": {
+      "added": [],
+      "removed": [],
+      "changed": []
+    },
+    "connections": {
+      "added": [],
+      "removed": [],
+      "changed": []
+    },
+    "connection_order_changed": false
+  },
+  "initial_plan_sha256": "f08b9f1c565b36bace3057fb5e3d093a012f402e2f89570b6ffe530547809708",
+  "stage": "complete",
+  "diagnostic": {
+    "diagnostic_only": true,
+    "parts": [
+      {
+        "id": "side_left",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "side_right",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "shelf_bottom",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "shelf_level_2",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "shelf_level_3",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "shelf_level_4",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "shelf_level_5",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "cap_top",
+        "geometry_valid": null,
+        "shown": true
+      }
+    ],
+    "invalid_parts": [],
+    "missing_parts": [],
+    "display_available": true,
+    "semantic_completeness": "NOT_EVALUATED",
+    "glb": "diagnostic_scene.glb",
+    "omitted_mesh_nodes": []
+  },
+  "numeric_tolerance": {
+    "length_mm": 0.0003814697265625,
+    "source": "16 * float32 epsilon * max local coordinate; serialization only"
+  },
+  "export_consistency": [
+    {
+      "file": "side_left.stl",
+      "part_id": "side_left",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "side_right.stl",
+      "part_id": "side_right",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "shelf_bottom.stl",
+      "part_id": "shelf_bottom",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "shelf_level_2.stl",
+      "part_id": "shelf_level_2",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "shelf_level_3.stl",
+      "part_id": "shelf_level_3",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "shelf_level_4.stl",
+      "part_id": "shelf_level_4",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "shelf_level_5.stl",
+      "part_id": "shelf_level_5",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "cap_top.stl",
+      "part_id": "cap_top",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "side_left.glb",
+      "part_id": "side_left",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "side_right.glb",
+      "part_id": "side_right",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "shelf_bottom.glb",
+      "part_id": "shelf_bottom",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "shelf_level_2.glb",
+      "part_id": "shelf_level_2",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "shelf_level_3.glb",
+      "part_id": "shelf_level_3",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "shelf_level_4.glb",
+      "part_id": "shelf_level_4",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "shelf_level_5.glb",
+      "part_id": "shelf_level_5",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "cap_top.glb",
+      "part_id": "cap_top",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "scene.glb",
+      "part_id": "side_left",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "scene.glb",
+      "part_id": "side_right",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "scene.glb",
+      "part_id": "shelf_bottom",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "scene.glb",
+      "part_id": "shelf_level_2",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "scene.glb",
+      "part_id": "shelf_level_3",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "scene.glb",
+      "part_id": "shelf_level_4",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "scene.glb",
+      "part_id": "shelf_level_5",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "scene.glb",
+      "part_id": "cap_top",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "exploded.glb",
+      "part_id": "side_left",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "exploded.glb",
+      "part_id": "side_right",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "exploded.glb",
+      "part_id": "shelf_bottom",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "exploded.glb",
+      "part_id": "shelf_level_2",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "exploded.glb",
+      "part_id": "shelf_level_3",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "exploded.glb",
+      "part_id": "shelf_level_4",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "exploded.glb",
+      "part_id": "shelf_level_5",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    },
+    {
+      "file": "exploded.glb",
+      "part_id": "cap_top",
+      "status": "PASS",
+      "scope": "file_structure_only"
+    }
+  ],
+  "triangle_comparison": "NOT_EXECUTED",
+  "placement_comparison": "NOT_EXECUTED",
+  "export_status": "PASS",
+  "elapsed_seconds": 6.649938099086285,
+  "files_sha256": {
+    "cap_top.diagnostic.glb": "30a086c63d833d06573679ff2678b79d5fcef09564418c57de5b9592ed63aecb",
+    "cap_top.glb": "30a086c63d833d06573679ff2678b79d5fcef09564418c57de5b9592ed63aecb",
+    "cap_top.stl": "8d38143045f49732bd683bd7c0852c85f05e103d3831da891a8684c4fac71f18",
+    "diagnostic_scene.glb": "30179087c7d953a8668765a3fff2583256a30e279340db426c50255eb7ad08db",
+    "exploded.glb": "9dce8610f5c0289616c4e451df2cb2c3528fff88d0ac66612f07bf592dba3b22",
+    "scene.glb": "b2ff9de3f3107891e566aad2fee98abb8408fe1acc714a8f2785373831f23348",
+    "shelf_bottom.diagnostic.glb": "d937173095fbb28ebce92470f6027be203523b5cd75c1182e8b7c0d3dece15a4",
+    "shelf_bottom.glb": "d937173095fbb28ebce92470f6027be203523b5cd75c1182e8b7c0d3dece15a4",
+    "shelf_bottom.stl": "6d273120b73364a0510d1164fc7fdab75a66449191c8c73e41b3451647e9f002",
+    "shelf_level_2.diagnostic.glb": "54b2daf5dbb671844d219579ce7cce368d8d788af679667becad6b4e8f1aae48",
+    "shelf_level_2.glb": "54b2daf5dbb671844d219579ce7cce368d8d788af679667becad6b4e8f1aae48",
+    "shelf_level_2.stl": "cb05fb561a360209ebc2dfa839817bc62ee3517227d3be2583cbef6e66c4c062",
+    "shelf_level_3.diagnostic.glb": "c7b2e4c51be16101723cf2c8f33ffaea4fd8012839e812fdba27213829059054",
+    "shelf_level_3.glb": "c7b2e4c51be16101723cf2c8f33ffaea4fd8012839e812fdba27213829059054",
+    "shelf_level_3.stl": "4cd24c826135aab601bb47a58ef57155ab6ded37aa1344354970c04554f2bf6f",
+    "shelf_level_4.diagnostic.glb": "44a4b2cf8c5158753ed56615859426085f08e24d4f71b929c981a9e47b02e572",
+    "shelf_level_4.glb": "44a4b2cf8c5158753ed56615859426085f08e24d4f71b929c981a9e47b02e572",
+    "shelf_level_4.stl": "5eadcb89a50a96589332201f1c0457e6f9c607d47becec84cbb345ac122022b0",
+    "shelf_level_5.diagnostic.glb": "c0282b5b8728a7d04551cc72987fe7416e20a30708dcdca15e9bbda6e29e4244",
+    "shelf_level_5.glb": "c0282b5b8728a7d04551cc72987fe7416e20a30708dcdca15e9bbda6e29e4244",
+    "shelf_level_5.stl": "c5bc8070c710a8e4882df15ba75f67be44334f13faf8cd296c5ed46d1e7a2b6a",
+    "side_left.diagnostic.glb": "d9191dd1585c418d39cb892048e8e5724b1cf5a5c6adbd30f6152b1027424737",
+    "side_left.glb": "d9191dd1585c418d39cb892048e8e5724b1cf5a5c6adbd30f6152b1027424737",
+    "side_left.stl": "b9adeafae1735be74228088ccc5c56ede009e68308f2925240dea6faf919c895",
+    "side_right.diagnostic.glb": "615592767198473f5d07ac20cf1acc8aaff16c2a9d3c13ee0d3eab7117350c77",
+    "side_right.glb": "615592767198473f5d07ac20cf1acc8aaff16c2a9d3c13ee0d3eab7117350c77",
+    "side_right.stl": "d41530bc29fd0be6c17d4c33253e655039796f7f7dc2d1819aeaab8850de3bb4"
+  }
+}

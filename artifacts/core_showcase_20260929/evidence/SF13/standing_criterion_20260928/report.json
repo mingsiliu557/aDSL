@@ -1,0 +1,1017 @@
+{
+  "checker": "assembly_standing",
+  "version": 1,
+  "status": "PASS",
+  "summary": "After 5 s self-weight: final tilt 0.004636 deg; 0 interfaces outside; standing observation PASS; settling diagnostic: motion not settled (not a pass requirement)",
+  "metrics": {
+    "observation_duration_seconds": 5.0,
+    "simulation_wall_seconds": 11.544346978887916,
+    "initial_contact_count": 612,
+    "initial_minimum_contact_distance_mm": -0.01999999997906257,
+    "max_contact_count": 612,
+    "max_interpart_flex_contacts": 600,
+    "simulated_duration_seconds": 5.0,
+    "assessment_time_seconds": 5.0,
+    "assessment_scope": "Full gravity-only observation; final state at the end, first events are not early stops",
+    "final_tipped": false,
+    "final_exited_interfaces": [],
+    "peak_tilt_deg": 0.15634074398477596,
+    "final_tilt_deg": 0.004636396936118448,
+    "tipped": false,
+    "exits": {},
+    "settled": false,
+    "final_interfaces": [
+      {
+        "connection_id": "s1_left_front",
+        "exited": false,
+        "exit_axial_mm": 0.10186140892427886,
+        "lateral_offset_mm": 0.03355111383365449,
+        "relative_angle_deg": 0.18011807500813146,
+        "insertion_volume_mm3": 134.83824973836184,
+        "volume_uncertainty_mm3": 0.0020169177176498666,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.9127493427019884
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.0028205929848576883,
+            5.458076636814518e-06,
+            -0.9999960221047995,
+            -44.08826362572193
+          ],
+          [
+            0.9999960188617912,
+            -8.073610521932543e-05,
+            0.0028205925350448433,
+            -10.004758575277965
+          ],
+          [
+            -8.07203890493425e-05,
+            -0.9999999967259451,
+            -5.685778599463436e-06,
+            2.973616404855866
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s1_left_rear",
+        "exited": false,
+        "exit_axial_mm": 0.03898962666939099,
+        "lateral_offset_mm": 0.03381747910892478,
+        "relative_angle_deg": 0.18011807500813146,
+        "insertion_volume_mm3": 137.0387729903553,
+        "volume_uncertainty_mm3": 0.0020169572672617403,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.9756211249568763
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.0028205929848576883,
+            5.458076636814518e-06,
+            -0.9999960221047995,
+            -44.03185176602478
+          ],
+          [
+            0.9999960188617912,
+            -8.073610521932543e-05,
+            0.0028205925350448433,
+            9.99516180195786
+          ],
+          [
+            -8.07203890493425e-05,
+            -0.9999999967259451,
+            -5.685778599463436e-06,
+            2.9720019970748788
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s1_right_front",
+        "exited": false,
+        "exit_axial_mm": 0.04347439790455354,
+        "lateral_offset_mm": 0.01993713941305198,
+        "relative_angle_deg": 0.07427413350695054,
+        "insertion_volume_mm3": 136.88181148140387,
+        "volume_uncertainty_mm3": 0.0020053208786908307,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.961631533016945
+        ],
+        "slot_frame_world_mm": [
+          [
+            -0.0011169846808388065,
+            0.0009972620566999018,
+            0.9999988789061784,
+            44.05696033241651
+          ],
+          [
+            0.9999993713370265,
+            -9.722618608242485e-05,
+            0.0011170821909721358,
+            -9.997248724161098
+          ],
+          [
+            9.834010076602001e-05,
+            0.9999994980076039,
+            -0.000997152829597741,
+            2.9744684144624585
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s1_right_rear",
+        "exited": false,
+        "exit_axial_mm": 0.02759142911429535,
+        "lateral_offset_mm": 0.017003090521140112,
+        "relative_angle_deg": 0.07427413350695054,
+        "insertion_volume_mm3": 137.43771584888182,
+        "volume_uncertainty_mm3": 0.002005323506799894,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.977514501807203
+        ],
+        "slot_frame_world_mm": [
+          [
+            -0.0011169846808388065,
+            0.0009972620566999018,
+            0.9999988789061784,
+            44.03462063879974
+          ],
+          [
+            0.9999993713370265,
+            -9.722618608242485e-05,
+            0.0011170821909721358,
+            10.002738702579434
+          ],
+          [
+            9.834010076602001e-05,
+            0.9999994980076039,
+            -0.000997152829597741,
+            2.9764352164777788
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s2_left_front",
+        "exited": false,
+        "exit_axial_mm": 0.16592263078025837,
+        "lateral_offset_mm": 0.09493857630090899,
+        "relative_angle_deg": 0.4748861015050758,
+        "insertion_volume_mm3": 132.59606348623234,
+        "volume_uncertainty_mm3": 0.002044457996950291,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.855776026197808
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.0028205929848576883,
+            5.458076636814518e-06,
+            -0.9999960221047995,
+            -44.08847539909544
+          ],
+          [
+            0.9999960188617912,
+            -8.073610521932543e-05,
+            0.0028205925350448433,
+            -10.001626014395455
+          ],
+          [
+            -8.07203890493425e-05,
+            -0.9999999967259451,
+            -5.685778599463436e-06,
+            41.77361627782253
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s2_left_rear",
+        "exited": false,
+        "exit_axial_mm": 0.08595286701675775,
+        "lateral_offset_mm": 0.17941342766910606,
+        "relative_angle_deg": 0.4748861015050758,
+        "insertion_volume_mm3": 135.39503466784075,
+        "volume_uncertainty_mm3": 0.00204420355629682,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.9357457899613086
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.0028205929848576883,
+            5.458076636814518e-06,
+            -0.9999960221047995,
+            -44.03206353939829
+          ],
+          [
+            0.9999960188617912,
+            -8.073610521932543e-05,
+            0.0028205925350448433,
+            9.998294362840369
+          ],
+          [
+            -8.07203890493425e-05,
+            -0.9999999967259451,
+            -5.685778599463436e-06,
+            41.77200187004155
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s2_right_front",
+        "exited": false,
+        "exit_axial_mm": 0.017796319324567378,
+        "lateral_offset_mm": 0.29100081719041615,
+        "relative_angle_deg": 0.41204429935343023,
+        "insertion_volume_mm3": 137.02030136574186,
+        "volume_uncertainty_mm3": 0.0020839570642133738,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.9842334804602837
+        ],
+        "slot_frame_world_mm": [
+          [
+            -0.0011169846808388065,
+            0.0009972620566999018,
+            0.9999988789061784,
+            44.095654100216464
+          ],
+          [
+            0.9999993713370265,
+            -9.722618608242485e-05,
+            0.0011170821909721358,
+            -10.001021100181097
+          ],
+          [
+            9.834010076602001e-05,
+            0.9999994980076039,
+            -0.000997152829597741,
+            41.77444893715749
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s2_right_rear",
+        "exited": false,
+        "exit_axial_mm": 0.018874647285173296,
+        "lateral_offset_mm": 0.40707394041588146,
+        "relative_angle_deg": 0.41204429935343023,
+        "insertion_volume_mm3": 131.79360705631305,
+        "volume_uncertainty_mm3": 0.0020837565775392057,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.9831551524996778
+        ],
+        "slot_frame_world_mm": [
+          [
+            -0.0011169846808388065,
+            0.0009972620566999018,
+            0.9999988789061784,
+            44.07331440659969
+          ],
+          [
+            0.9999993713370265,
+            -9.722618608242485e-05,
+            0.0011170821909721358,
+            9.998966326559435
+          ],
+          [
+            9.834010076602001e-05,
+            0.9999994980076039,
+            -0.000997152829597741,
+            41.776415739172805
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s3_left_front",
+        "exited": false,
+        "exit_axial_mm": 0.01815418917626488,
+        "lateral_offset_mm": 0.4604226275254191,
+        "relative_angle_deg": 0.16728480946041838,
+        "insertion_volume_mm3": 129.46988975153107,
+        "volume_uncertainty_mm3": 0.00208002849136846,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.9859946569134834
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.0028205929848576883,
+            5.458076636814518e-06,
+            -0.9999960221047995,
+            -44.08868717246895
+          ],
+          [
+            0.9999960188617912,
+            -8.073610521932543e-05,
+            0.0028205925350448433,
+            -9.998493453512944
+          ],
+          [
+            -8.07203890493425e-05,
+            -0.9999999967259451,
+            -5.685778599463436e-06,
+            80.5736161507892
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s3_left_rear",
+        "exited": false,
+        "exit_axial_mm": 0.018985745569722212,
+        "lateral_offset_mm": 0.4729261371566671,
+        "relative_angle_deg": 0.16728480946041838,
+        "insertion_volume_mm3": 128.91120140454103,
+        "volume_uncertainty_mm3": 0.002080026584086224,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.985163100520026
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.0028205929848576883,
+            5.458076636814518e-06,
+            -0.9999960221047995,
+            -44.0322753127718
+          ],
+          [
+            0.9999960188617912,
+            -8.073610521932543e-05,
+            0.0028205925350448433,
+            10.00142692372288
+          ],
+          [
+            -8.07203890493425e-05,
+            -0.9999999967259451,
+            -5.685778599463436e-06,
+            80.57200174300822
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s3_right_front",
+        "exited": false,
+        "exit_axial_mm": 0.20492901095952476,
+        "lateral_offset_mm": 0.17450183973610012,
+        "relative_angle_deg": 0.3206554689654661,
+        "insertion_volume_mm3": 131.23079168329596,
+        "volume_uncertainty_mm3": 0.002027067999092762,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.8188882386312786
+        ],
+        "slot_frame_world_mm": [
+          [
+            -0.0011169846808388065,
+            0.0009972620566999018,
+            0.9999988789061784,
+            44.13434786801642
+          ],
+          [
+            0.9999993713370265,
+            -9.722618608242485e-05,
+            0.0011170821909721358,
+            -10.004793476201094
+          ],
+          [
+            9.834010076602001e-05,
+            0.9999994980076039,
+            -0.000997152829597741,
+            80.57442945985251
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s3_right_rear",
+        "exited": false,
+        "exit_axial_mm": 0.12532870239287774,
+        "lateral_offset_mm": 0.19119117287495155,
+        "relative_angle_deg": 0.3206554689654661,
+        "insertion_volume_mm3": 134.0168450548311,
+        "volume_uncertainty_mm3": 0.002027134381895239,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.8984885471979256
+        ],
+        "slot_frame_world_mm": [
+          [
+            -0.0011169846808388065,
+            0.0009972620566999018,
+            0.9999988789061784,
+            44.11200817439965
+          ],
+          [
+            0.9999993713370265,
+            -9.722618608242485e-05,
+            0.0011170821909721358,
+            9.995193950539438
+          ],
+          [
+            9.834010076602001e-05,
+            0.9999994980076039,
+            -0.000997152829597741,
+            80.57639626186784
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s4_left_front",
+        "exited": false,
+        "exit_axial_mm": 0.15463860233681714,
+        "lateral_offset_mm": 0.22462186923879082,
+        "relative_angle_deg": 0.14262511989202684,
+        "insertion_volume_mm3": 132.991048826996,
+        "volume_uncertainty_mm3": 0.0020547592244314124,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.856930216150518
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.0028205929848576883,
+            5.458076636814518e-06,
+            -0.9999960221047995,
+            -44.08889894584246
+          ],
+          [
+            0.9999960188617912,
+            -8.073610521932543e-05,
+            0.0028205925350448433,
+            -9.995360892630435
+          ],
+          [
+            -8.07203890493425e-05,
+            -0.9999999967259451,
+            -5.685778599463436e-06,
+            119.37361602375589
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s4_left_rear",
+        "exited": false,
+        "exit_axial_mm": 0.10486961411985618,
+        "lateral_offset_mm": 0.2235568633708707,
+        "relative_angle_deg": 0.14262511989202684,
+        "insertion_volume_mm3": 134.7329688079573,
+        "volume_uncertainty_mm3": 0.0020547344262445955,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.906699204367479
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.0028205929848576883,
+            5.458076636814518e-06,
+            -0.9999960221047995,
+            -44.03248708614531
+          ],
+          [
+            0.9999960188617912,
+            -8.073610521932543e-05,
+            0.0028205925350448433,
+            10.00455948460539
+          ],
+          [
+            -8.07203890493425e-05,
+            -0.9999999967259451,
+            -5.685778599463436e-06,
+            119.3720016159749
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s4_right_front",
+        "exited": false,
+        "exit_axial_mm": 0.10662287629178735,
+        "lateral_offset_mm": 0.2152125928704598,
+        "relative_angle_deg": 0.10141926355851967,
+        "insertion_volume_mm3": 134.6716101746293,
+        "volume_uncertainty_mm3": 0.0020479348388479407,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.901523657832829
+        ],
+        "slot_frame_world_mm": [
+          [
+            -0.0011169846808388065,
+            0.0009972620566999018,
+            0.9999988789061784,
+            44.173041635816375
+          ],
+          [
+            0.9999993713370265,
+            -9.722618608242485e-05,
+            0.0011170821909721358,
+            -10.008565852221093
+          ],
+          [
+            9.834010076602001e-05,
+            0.9999994980076039,
+            -0.000997152829597741,
+            119.37440998254756
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s4_right_rear",
+        "exited": false,
+        "exit_axial_mm": 0.07763801409490867,
+        "lateral_offset_mm": 0.21712374240727308,
+        "relative_angle_deg": 0.10141926355851967,
+        "insertion_volume_mm3": 135.68608193415213,
+        "volume_uncertainty_mm3": 0.0020479263814947146,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.930508520029708
+        ],
+        "slot_frame_world_mm": [
+          [
+            -0.0011169846808388065,
+            0.0009972620566999018,
+            0.9999988789061784,
+            44.1507019421996
+          ],
+          [
+            0.9999993713370265,
+            -9.722618608242485e-05,
+            0.0011170821909721358,
+            9.991421574519439
+          ],
+          [
+            9.834010076602001e-05,
+            0.9999994980076039,
+            -0.000997152829597741,
+            119.37637678456288
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s5_left_front",
+        "exited": false,
+        "exit_axial_mm": 0.28245988019101276,
+        "lateral_offset_mm": 0.06818967956394623,
+        "relative_angle_deg": 0.45590457697030556,
+        "insertion_volume_mm3": 128.5172119420182,
+        "volume_uncertainty_mm3": 0.002031474470304988,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.739790137562826
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.0028205929848576883,
+            5.458076636814518e-06,
+            -0.9999960221047995,
+            -44.08911071921597
+          ],
+          [
+            0.9999960188617912,
+            -8.073610521932543e-05,
+            0.0028205925350448433,
+            -9.992228331747926
+          ],
+          [
+            -8.07203890493425e-05,
+            -0.9999999967259451,
+            -5.685778599463436e-06,
+            158.1736158967225
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s5_left_rear",
+        "exited": false,
+        "exit_axial_mm": 0.20018476965007181,
+        "lateral_offset_mm": 0.1684438062522848,
+        "relative_angle_deg": 0.45590457697030556,
+        "insertion_volume_mm3": 131.3968725366513,
+        "volume_uncertainty_mm3": 0.002031241782261746,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.822065248103767
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.0028205929848576883,
+            5.458076636814518e-06,
+            -0.9999960221047995,
+            -44.03269885951882
+          ],
+          [
+            0.9999960188617912,
+            -8.073610521932543e-05,
+            0.0028205925350448433,
+            10.007692045487898
+          ],
+          [
+            -8.07203890493425e-05,
+            -0.9999999967259451,
+            -5.685778599463436e-06,
+            158.17200148894153
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s5_right_front",
+        "exited": false,
+        "exit_axial_mm": 0.018067562263524906,
+        "lateral_offset_mm": 0.30080179452288713,
+        "relative_angle_deg": 0.38533877523128196,
+        "insertion_volume_mm3": 136.578792509244,
+        "volume_uncertainty_mm3": 0.0020833621154697267,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.984515010608714
+        ],
+        "slot_frame_world_mm": [
+          [
+            -0.0011169846808388065,
+            0.0009972620566999018,
+            0.9999988789061784,
+            44.21173540361633
+          ],
+          [
+            0.9999993713370265,
+            -9.722618608242485e-05,
+            0.0011170821909721358,
+            -10.012338228241092
+          ],
+          [
+            9.834010076602001e-05,
+            0.9999994980076039,
+            -0.000997152829597741,
+            158.17439050524257
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "s5_right_rear",
+        "exited": false,
+        "exit_axial_mm": 0.02146059405161793,
+        "lateral_offset_mm": 0.41044872341855826,
+        "relative_angle_deg": 0.38533877523128196,
+        "insertion_volume_mm3": 131.54480528803015,
+        "volume_uncertainty_mm3": 0.00208318769962037,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.981121978820621
+        ],
+        "slot_frame_world_mm": [
+          [
+            -0.0011169846808388065,
+            0.0009972620566999018,
+            0.9999988789061784,
+            44.18939570999956
+          ],
+          [
+            0.9999993713370265,
+            -9.722618608242485e-05,
+            0.0011170821909721358,
+            9.98764919849944
+          ],
+          [
+            9.834010076602001e-05,
+            0.9999994980076039,
+            -0.000997152829597741,
+            158.1763573072579
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "cap_left_front",
+        "exited": false,
+        "exit_axial_mm": 0.20936047166247818,
+        "lateral_offset_mm": 0.18502257353038842,
+        "relative_angle_deg": 0.25640141182078957,
+        "insertion_volume_mm3": 131.07572680138352,
+        "volume_uncertainty_mm3": 0.002020364235656444,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.811436325071348
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.0028205929848576883,
+            5.458076636814518e-06,
+            -0.9999960221047995,
+            -44.089322492589474
+          ],
+          [
+            0.9999960188617912,
+            -8.073610521932543e-05,
+            0.0028205925350448433,
+            -9.989095770865415
+          ],
+          [
+            -8.07203890493425e-05,
+            -0.9999999967259451,
+            -5.685778599463436e-06,
+            196.9736157696892
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "cap_left_rear",
+        "exited": false,
+        "exit_axial_mm": 0.11987009362963619,
+        "lateral_offset_mm": 0.18379119634090366,
+        "relative_angle_deg": 0.25640141182078957,
+        "insertion_volume_mm3": 134.207921388759,
+        "volume_uncertainty_mm3": 0.0020204443778983443,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.90092670310419
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.0028205929848576883,
+            5.458076636814518e-06,
+            -0.9999960221047995,
+            -44.032910632892325
+          ],
+          [
+            0.9999960188617912,
+            -8.073610521932543e-05,
+            0.0028205925350448433,
+            10.01082460637041
+          ],
+          [
+            -8.07203890493425e-05,
+            -0.9999999967259451,
+            -5.685778599463436e-06,
+            196.9720013619082
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "cap_right_front",
+        "exited": false,
+        "exit_axial_mm": 0.1302650961247025,
+        "lateral_offset_mm": 0.22866798147602443,
+        "relative_angle_deg": 0.06659394215259538,
+        "insertion_volume_mm3": 133.8441352529043,
+        "volume_uncertainty_mm3": 0.002057928306040949,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.873662735586918
+        ],
+        "slot_frame_world_mm": [
+          [
+            -0.0011169846808388065,
+            0.0009972620566999018,
+            0.9999988789061784,
+            44.25042917141629
+          ],
+          [
+            0.9999993713370265,
+            -9.722618608242485e-05,
+            0.0011170821909721358,
+            -10.016110604261089
+          ],
+          [
+            9.834010076602001e-05,
+            0.9999994980076039,
+            -0.000997152829597741,
+            196.97437102793762
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "cap_right_rear",
+        "exited": false,
+        "exit_axial_mm": 0.14100185188060266,
+        "lateral_offset_mm": 0.23049349669846467,
+        "relative_angle_deg": 0.06659394215259538,
+        "insertion_volume_mm3": 133.4683485501093,
+        "volume_uncertainty_mm3": 0.002057927099456891,
+        "effective_insertion_interval_mm": [
+          0.0,
+          3.862925979831018
+        ],
+        "slot_frame_world_mm": [
+          [
+            -0.0011169846808388065,
+            0.0009972620566999018,
+            0.9999988789061784,
+            44.22808947779952
+          ],
+          [
+            0.9999993713370265,
+            -9.722618608242485e-05,
+            0.0011170821909721358,
+            9.983876822479443
+          ],
+          [
+            9.834010076602001e-05,
+            0.9999994980076039,
+            -0.000997152829597741,
+            196.97633782995294
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      }
+    ],
+    "final_linear_speed_m_s": 0.0007697687490988434,
+    "final_angular_speed_rad_s": 0.007124621851523694,
+    "interface_retention_verified": true,
+    "interface_method": "TabSlot solid intersection with declared insertion region at sampled simulated relative poses; no pullout-force claim",
+    "initial_contact_check": {
+      "verified": true,
+      "maximum_penetration_mm": 0.01999999997906257,
+      "shell_plus_numeric_bound_mm": 0.020762939453125
+    },
+    "simulation_frames": []
+  },
+  "violations": [],
+  "assumptions": {
+    "uniform_density_kg_m3": 1240.0,
+    "external_load_stability": "NOT_EVALUATED",
+    "standing_criterion": "No sampled root tilt above the configured limit and no interface exit during the full observation; settling is diagnostic only",
+    "contact": "independent bodies, no weld; rigid surface flex, display mesh collision disabled",
+    "collision_backend": "rigid_flex",
+    "rigid_flex_contact": {
+      "radius_mm": 0.01,
+      "margin_mm": 0.0,
+      "gap_mm": 0.0,
+      "paired_shell_thickness_mm": 0.02,
+      "minimum_fit_clearance_mm": 0.2,
+      "remaining_minimum_clearance_mm": 0.18000000000000002,
+      "choice": "min(0.01 mm, minimum positive single-sided fit / 20), or explicit radius_mm",
+      "representation": "rigid dim=2 surface flex; not volumetric FEM; no remeshing"
+    },
+    "mujoco_version": "3.12.0",
+    "coacd_version": null,
+    "configuration": {
+      "duration_seconds": 5.0,
+      "timestep_seconds": 0.002,
+      "friction": [
+        0.5,
+        0.005,
+        0.0001
+      ],
+      "tilt_threshold_deg": 25.0,
+      "settle_window_seconds": 0.5,
+      "settle_linear_m_s": 0.001,
+      "settle_angular_rad_s": 0.01,
+      "collision_backend": "rigid_flex"
+    },
+    "source_sha256": "a4212de6738c3c598eb53286bcb10036ef26cad5c7eeb6fbd5d5c5a8e43eb6f2",
+    "manifest_sha256": "9b5512563cae48c8039029b7dc3e288c5ffa75bb72918b85f8b76bf493efc77d",
+    "physics_sha256": "92b52cb91059181c56ee43047a5ca2bf67d7775b1bf2d6035230ab78f9aa8d24",
+    "elapsed_seconds": 15.017093481495976
+  },
+  "artifacts": {
+    "trajectory": "temp/sf13_microcrack_standing_20260928/standing_criterion_20260928/trajectory.json",
+    "simulation": "temp/sf13_microcrack_standing_20260928/standing_criterion_20260928/model.xml",
+    "report": "temp/sf13_microcrack_standing_20260928/standing_criterion_20260928/report.json"
+  },
+  "analysis_context": null,
+  "findings": []
+}

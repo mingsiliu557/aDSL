@@ -1,0 +1,2045 @@
+{
+  "requirement": "[ORIGINAL TASK]\nThe 3D model is a conference table with a rectangular tabletop that tapers slightly from front to back. The tabletop has straight, symmetrical edges and a smooth, glossy finish, possibly mimicking wood. Two central legs support the tabletop, connected by horizontal braces for stability. The legs have a matte finish and are colored black or dark gray, providing a strong contrast to the tabletop. The model focuses on the table's structure without any additional environmental context.\n\n[UNIFORM MANUFACTURING REQUIREMENTS]\nEvaluate the supplied latest complete aDSL program for the original task below, with static fixed manufacturing assembly, not articulation. Use the existing Planner's component and connection plan; Coder implements that plan in assembly using connectors for its connections. Do not add a separate print-part decision stage. Do not assume one Asset/class per print part or impose a minimum number of print parts; a single planned print part needs no connector. Use ONLY existing FixedAssembly / TabSlot and ordered connections starting from root_part: at least one endpoint must already be placed. Either placed endpoint can locate the other; with both endpoints placed, check world interface frames and add mating geometry without moving either part. Plan every physical interface, including additional connections and multiple interfaces between the same pair using distinct endpoint ports. Tab/slot are geometric roles, not placement order. Within a print part retain normal modeling and attach_part. Between print parts use assembly.connect to generate BOTH mating sides and placement; no global union across print parts. The parameters argument of connect must be a TabSlot object (or an entry containing that object), not a dictionary of dimensions. Preserve the requested appearance and function. Frozen scale, overall dimensions and single-sided fit allowance below must not change. These are geometric demonstration dimensions; clearance is not proof of physical fixation. Use one complete initial source.py and repair only within the frozen budget, with existing Image/Code Critic in visual_only mode and export consistency checks. Assembly geometry checks are NOT_EVALUATED; visual approval is not manufacturing approval. Selected tools execute in order: assembly_topology, assembly_overhang, assembly_standing. FEA and old whole-object checkers are disabled. No snap_floaters or extra interface types. Budget: at most 2 evaluation rounds including the baseline review, with at most 1 source repair candidate for this bounded partition experiment. Use normal Image/Code repair for required visual defects. After necessary checks pass, Engineering may propose one evidence-supported local split/merge; Coder implements it and all selected checks run again. An alternative score need not already exist to propose a falsifiable grouping hypothesis. NO_PROPOSAL is valid when no reasonable local candidate follows from the current body and measurements. Do not force modifications to spend budget. Keep the original prompt authoritative; inferred planner descriptions do not turn optional texture into a required feature. Partition scoring uses frozen pre-connector bodies, Dapper alpha=0.3/Rvox=0.1 and independent 24-rotation print poses. Preserve body shape/root for pure grouping optimization, remove internal connectors and update all cross-group interfaces. Compare scores only among feasible candidates with the same reference; otherwise retain the qualified baseline. Physics, scale, fit, dimensions, evaluator and budget are frozen.\nFrozen dimensions in mm: [1500.0, 750.0, 750.0]; mm_per_unit=1.0; fit_offset_mm=0.2.\n[BOUNDED INTEGRATION SMOKE]\nResume the supplied five-print-part source and its existing plan; do not call Planner or regenerate from scratch. Re-evaluate the baseline, then allow at most one Engineering grouping hypothesis and one Coder implementation. Use current next_edit_purpose and primary_objective. Unresolved surface-only requirements still prevent full approval but do not prevent a geometrically valid grouping comparison. If Engineering has no reasonable grouping proposal, end this experiment; do not add attempts or generate an unrelated material repair. No manual candidate or required merge direction is supplied.",
+  "plan": {
+    "object_name": "Tapered Rectangular Conference Table",
+    "components": [
+      {
+        "name": "tabletop",
+        "description": "Single straight-edged tabletop with a subtly trapezoidal plan: 1500 mm wide at the front edge (y=-375 mm), tapering symmetrically to 1420 mm at the back edge (y=+375 mm). It is 750 mm deep and 55 mm thick, with its underside at z=695 mm and top surface at z=750 mm. Use clean planar geometry, a warm medium-brown wood-like color, and smooth-looking surfaces. Wood grain is optional and must not be represented by added relief geometry."
+      },
+      {
+        "name": "left_leg_upright",
+        "description": "Left central pedestal upright centered near x=-430 mm and y=0, approximately 90 mm thick along x and 500 mm deep along y. It rises from the left foot at z=45 mm to contact the tabletop underside at z=695 mm. Use a black or dark-gray matte-looking color."
+      },
+      {
+        "name": "left_leg_foot",
+        "description": "Broad floor-contacting foot integrated with the left upright, centered near x=-430 mm and y=0. Approximate dimensions are 320 mm along x, 600 mm along y, and 45 mm along z, with its bottom exactly at z=0. Use the same dark color as the upright."
+      },
+      {
+        "name": "right_leg_upright",
+        "description": "Right central pedestal upright mirrored from the left upright across x=0, centered near x=+430 mm and y=0. It is approximately 90 mm thick along x and 500 mm deep along y, extending from z=45 mm to the tabletop underside at z=695 mm. Use a black or dark-gray matte-looking color."
+      },
+      {
+        "name": "right_leg_foot",
+        "description": "Broad floor-contacting foot integrated with the right upright and mirrored from the left foot, centered near x=+430 mm and y=0. Approximate dimensions are 320 mm along x, 600 mm along y, and 45 mm along z, with its bottom exactly at z=0. Use the same dark color as the upright."
+      },
+      {
+        "name": "upper_brace",
+        "description": "Horizontal rectangular brace running along x between the inward-facing sides of the two pedestal uprights. Its visible body spans approximately x=-385 mm to x=+385 mm, is centered at y=0, and has an approximately 70 by 70 mm cross-section centered near z=595 mm. Use the same dark matte-looking appearance as the legs."
+      },
+      {
+        "name": "lower_brace",
+        "description": "Second horizontal rectangular brace running along x between the inward-facing sides of the pedestal uprights. Its visible body spans approximately x=-385 mm to x=+385 mm, is centered at y=0, and has an approximately 90 mm y-depth by 80 mm z-height cross-section centered near z=250 mm. Use the same dark matte-looking appearance as the legs."
+      }
+    ],
+    "relations": [
+      "Use world coordinates with x across the 1500 mm table length, y from front to back, and z upward. The assembled table must have exact overall bounds of 1500 by 750 by 750 mm.",
+      "The tabletop is centered on x=0 and y=0. Its front edge reaches x=±750 mm at y=-375 mm, while its back edge reaches approximately x=±710 mm at y=+375 mm. The taper must be bilateral and visually symmetric about x=0.",
+      "The tabletop is the root print part. Its top is at z=750 mm and its underside is at z=695 mm.",
+      "The two pedestal legs are mirrored across x=0 and remain centered along y=0. Their broad feet contact the floor at z=0, while their uprights meet the tabletop underside without a visible vertical gap.",
+      "Each leg connects independently to the tabletop through two tab-slot interfaces located toward the front and rear portions of the upright top. The separated interfaces resist visible rotation and must use distinct ports.",
+      "The tabletop-mount tabs belong to the leg print parts and insert upward into slots generated in the tabletop. Use a shared TabSlot parameter named tabletop_leg_joint with fit_offset_mm fixed at 0.2 mm. A suitable common specification is approximately 36 mm tab width, 50 mm tab thickness, 20 mm insertion, at least 20 mm slot depth, and sufficient root overlap to embed the tab in the upright.",
+      "The upper and lower braces meet the inward-facing vertical surfaces of both leg uprights. Their unconnected body ends terminate at the upright inner faces, with assembly.connect generating the embedded end tabs and receiving slots.",
+      "Each brace is first located from the already placed left leg and then checked and connected against the already placed right leg. Both ends of each brace use separate port names.",
+      "Brace tabs insert horizontally: toward -x at the left end and toward +x at the right end. Use a shared TabSlot parameter named brace_leg_joint with fit_offset_mm fixed at 0.2 mm. A suitable common specification is approximately 50 mm tab width, 55 mm tab thickness, 25 mm insertion, at least 25 mm slot depth, and sufficient root overlap for a continuous shoulder.",
+      "The leg uprights and their corresponding feet are grouped into continuous left and right print parts to preserve the uninterrupted pedestal silhouette, eliminate an unnecessary foot-to-upright seam, and provide substantial mounting material for both tabletop and brace interfaces.",
+      "The tabletop remains a separate print part because its large planar body, contrasting appearance, and broad usable bed face differ from the dark support structure. Each brace remains separate because it spans between two already distinct pedestal parts.",
+      "For print-layout evaluation, the tabletop has a broad planar face, each pedestal assembly has broad slab and foot faces, and each brace has long rectangular faces suitable for grounding. Do not alter the frozen assembled dimensions or connector fit allowance merely to improve overhang scoring.",
+      "All tabletop-to-leg and brace-to-leg joints must be produced only through FixedAssembly.connect with TabSlot parameters; do not manually model tabs or slot cutters and do not union separate print parts globally.",
+      "The model contains only the conference table. Do not add chairs, floor slabs, room geometry, decor, fasteners, or other environmental context.",
+      "Use color contrast to distinguish the warm brown tabletop from the black or dark-gray base. The public appearance API does not provide explicit roughness or specular controls, so preserve clean smooth geometry and appropriate colors without inventing unsupported finish methods."
+    ],
+    "critic_checklist": [
+      "The assembled world-space size is exactly 1500.0 mm along x, 750.0 mm along y, and 750.0 mm along z.",
+      "The front tabletop edge is 1500 mm wide and the back edge is visibly but subtly narrower, approximately 1420 mm, with equal taper on the left and right sides.",
+      "The tabletop has straight, symmetric edges and does not appear skewed, bowed, rounded into an oval, or asymmetrically cut.",
+      "The tabletop occupies z=695 to z=750 mm and is the only geometry defining the maximum x, y, and z bounds.",
+      "Both feet have their lowest surfaces at z=0 and provide two broad, coplanar floor-contact regions.",
+      "The left and right pedestal assemblies are mirrored across x=0 and have matching dimensions, heights, colors, and offsets.",
+      "Both uprights visibly contact and support the tabletop underside without gaps or unintended penetration beyond the generated connector geometry.",
+      "Exactly two distinct horizontal braces are visibly present between the pedestal uprights: one upper brace and one lower brace.",
+      "Neither brace floats, stops short of a leg, protrudes through the exterior side of a leg, or extends beyond the tabletop footprint.",
+      "The tabletop is warm brown and visually contrasts strongly with the black or dark-gray legs and braces.",
+      "Surfaces are clean and smooth-looking. No mandatory wood grain should be inferred, and no decorative relief should be added to fake unsupported material properties.",
+      "Every named semantic component appears in exactly one print part.",
+      "The assembly retains five print parts: tabletop, left pedestal, right pedestal, upper brace, and lower brace.",
+      "All eight declared interfaces exist with unique connection IDs and unique endpoint ports: four tabletop-to-leg interfaces and four brace-to-leg interfaces.",
+      "Connection processing begins from the tabletop root; every subsequent connection has at least one endpoint already placed.",
+      "All connectors use interface_type tab_slot and preserve the frozen single-sided fit_offset_mm of 0.2 mm.",
+      "The second tabletop connection on each leg and the second end connection on each brace agree with the already established assembled pose rather than moving an already placed part.",
+      "There are no unsupported extra objects, articulation, joints, environmental context, or post-assembly transforms added to scene.",
+      "The structure remains standing-oriented with feet below the tabletop and no part visibly detached in the assembled scene.",
+      "The final program uses mm_per_unit=1.0, root_part=tabletop, and finishes with the FixedAssembly scene without globally unioning distinct print parts."
+    ],
+    "print_parts": [
+      {
+        "id": "tabletop",
+        "components": [
+          "tabletop"
+        ]
+      },
+      {
+        "id": "left_pedestal",
+        "components": [
+          "left_leg_upright",
+          "left_leg_foot"
+        ]
+      },
+      {
+        "id": "right_pedestal",
+        "components": [
+          "right_leg_upright",
+          "right_leg_foot"
+        ]
+      },
+      {
+        "id": "upper_brace",
+        "components": [
+          "upper_brace"
+        ]
+      },
+      {
+        "id": "lower_brace",
+        "components": [
+          "lower_brace"
+        ]
+      }
+    ],
+    "connections": [
+      {
+        "id": "left_leg_front_mount",
+        "tab_part": "left_pedestal",
+        "slot_part": "tabletop",
+        "tab_port": "top_front_tab",
+        "slot_port": "left_front_leg_slot",
+        "parameter_name": "tabletop_leg_joint",
+        "interface_type": "tab_slot",
+        "insertion_direction": "+z, upward from the left upright into the tabletop underside near x=-430 mm and y=-150 mm",
+        "fit_intent": "Two-point pedestal mounting; 0.2 mm single-sided slot allowance, approximately 20 mm insertion, with a shoulder seated against the tabletop underside."
+      },
+      {
+        "id": "left_leg_rear_mount",
+        "tab_part": "left_pedestal",
+        "slot_part": "tabletop",
+        "tab_port": "top_rear_tab",
+        "slot_port": "left_rear_leg_slot",
+        "parameter_name": "tabletop_leg_joint",
+        "interface_type": "tab_slot",
+        "insertion_direction": "+z, upward from the left upright into the tabletop underside near x=-430 mm and y=+150 mm",
+        "fit_intent": "Second separated mount for the already positioned left pedestal; it must share the same dimensions and 0.2 mm fit allowance as the front mount."
+      },
+      {
+        "id": "right_leg_front_mount",
+        "tab_part": "right_pedestal",
+        "slot_part": "tabletop",
+        "tab_port": "top_front_tab",
+        "slot_port": "right_front_leg_slot",
+        "parameter_name": "tabletop_leg_joint",
+        "interface_type": "tab_slot",
+        "insertion_direction": "+z, upward from the right upright into the tabletop underside near x=+430 mm and y=-150 mm",
+        "fit_intent": "Mirror of the left front pedestal mount, using the same shared dimensions and fixed 0.2 mm single-sided slot allowance."
+      },
+      {
+        "id": "right_leg_rear_mount",
+        "tab_part": "right_pedestal",
+        "slot_part": "tabletop",
+        "tab_port": "top_rear_tab",
+        "slot_port": "right_rear_leg_slot",
+        "parameter_name": "tabletop_leg_joint",
+        "interface_type": "tab_slot",
+        "insertion_direction": "+z, upward from the right upright into the tabletop underside near x=+430 mm and y=+150 mm",
+        "fit_intent": "Second separated mount for the already positioned right pedestal; its frame must agree with the mirrored pedestal pose."
+      },
+      {
+        "id": "upper_brace_left_mount",
+        "tab_part": "upper_brace",
+        "slot_part": "left_pedestal",
+        "tab_port": "left_end_tab",
+        "slot_port": "upper_brace_inner_slot",
+        "parameter_name": "brace_leg_joint",
+        "interface_type": "tab_slot",
+        "insertion_direction": "-x, from the upper brace's left end into the inward-facing side of the left upright",
+        "fit_intent": "Locating connection for the upper brace, with approximately 25 mm insertion and the frozen 0.2 mm single-sided slot allowance."
+      },
+      {
+        "id": "upper_brace_right_mount",
+        "tab_part": "upper_brace",
+        "slot_part": "right_pedestal",
+        "tab_port": "right_end_tab",
+        "slot_port": "upper_brace_inner_slot",
+        "parameter_name": "brace_leg_joint",
+        "interface_type": "tab_slot",
+        "insertion_direction": "+x, from the upper brace's right end into the inward-facing side of the right upright",
+        "fit_intent": "Closing connection for the already positioned upper brace; frames must coincide without moving either placed endpoint."
+      },
+      {
+        "id": "lower_brace_left_mount",
+        "tab_part": "lower_brace",
+        "slot_part": "left_pedestal",
+        "tab_port": "left_end_tab",
+        "slot_port": "lower_brace_inner_slot",
+        "parameter_name": "brace_leg_joint",
+        "interface_type": "tab_slot",
+        "insertion_direction": "-x, from the lower brace's left end into the inward-facing side of the left upright",
+        "fit_intent": "Locating connection for the lower brace, with approximately 25 mm insertion and the frozen 0.2 mm single-sided slot allowance."
+      },
+      {
+        "id": "lower_brace_right_mount",
+        "tab_part": "lower_brace",
+        "slot_part": "right_pedestal",
+        "tab_port": "right_end_tab",
+        "slot_port": "lower_brace_inner_slot",
+        "parameter_name": "brace_leg_joint",
+        "interface_type": "tab_slot",
+        "insertion_direction": "+x, from the lower brace's right end into the inward-facing side of the right upright",
+        "fit_intent": "Closing connection for the already positioned lower brace; frames must coincide without changing the established brace or pedestal poses."
+      }
+    ],
+    "root_part": "tabletop",
+    "mm_per_unit": 1.0,
+    "final_size_mm": [
+      1500.0,
+      750.0,
+      750.0
+    ]
+  },
+  "assigned_source": "original/source.py",
+  "assembly_context": {
+    "initial_plan_role": "reference_proposal_not_immutable_implementation",
+    "instruction": "The initial print-part/connection lists, including checklist items that merely repeat them, are a reference proposal, not an immutable implementation. Original task requirements remain binding. Default to the existing grouping. When feedback or source evidence shows a problem, minimally revise print-part boundaries, add_part/connect, frames and related construction; explain the changed locations and why. Semantic containers need not be print pieces; independent repeated pieces need their own instances and connections. Judge the original task, appearance and actual assembly, not exact equality to the initial list. Do not remove required components or connection requirements, change the root, frozen units, fit allowance, dimensions, budget or checker/configuration, or bypass existing legality checks. Declarations are source metadata, not proof of shape completeness or manufacture.",
+    "version_role": "current_candidate",
+    "source_sha256": "661c5a12b2971ba430b00c034338a0140cba6dd79936fbfba28e45757113b309",
+    "manifest_status": "CURRENT_SOURCE",
+    "current_assembly": {
+      "root_id": "tabletop",
+      "parts": [
+        {
+          "id": "tabletop",
+          "components": [
+            "tabletop"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "left_pedestal",
+          "components": [
+            "left_leg_upright",
+            "left_leg_foot"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "right_pedestal",
+          "components": [
+            "right_leg_upright",
+            "right_leg_foot"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "upper_brace",
+          "components": [
+            "upper_brace"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "lower_brace",
+          "components": [
+            "lower_brace"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ],
+      "connections": [
+        {
+          "id": "left_leg_front_mount",
+          "tab_part": "left_pedestal",
+          "slot_part": "tabletop",
+          "tab_port": "top_front_tab",
+          "slot_port": "left_front_leg_slot",
+          "parameter_name": "tabletop_leg_joint",
+          "parameters": {
+            "width_mm": 36.0,
+            "thickness_mm": 50.0,
+            "insertion_mm": 20.0,
+            "slot_depth_mm": 20.0,
+            "fit_offset_mm": 0.2,
+            "root_overlap_mm": 5.0,
+            "opening_extension_mm": 0.5,
+            "lead_in_mm": 0.0
+          },
+          "tab_frame": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -430.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -150.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              695.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "slot_frame": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -430.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -150.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              695.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "left_leg_rear_mount",
+          "tab_part": "left_pedestal",
+          "slot_part": "tabletop",
+          "tab_port": "top_rear_tab",
+          "slot_port": "left_rear_leg_slot",
+          "parameter_name": "tabletop_leg_joint",
+          "parameters": {
+            "width_mm": 36.0,
+            "thickness_mm": 50.0,
+            "insertion_mm": 20.0,
+            "slot_depth_mm": 20.0,
+            "fit_offset_mm": 0.2,
+            "root_overlap_mm": 5.0,
+            "opening_extension_mm": 0.5,
+            "lead_in_mm": 0.0
+          },
+          "tab_frame": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -430.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              150.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              695.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "slot_frame": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -430.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              150.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              695.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "right_leg_front_mount",
+          "tab_part": "right_pedestal",
+          "slot_part": "tabletop",
+          "tab_port": "top_front_tab",
+          "slot_port": "right_front_leg_slot",
+          "parameter_name": "tabletop_leg_joint",
+          "parameters": {
+            "width_mm": 36.0,
+            "thickness_mm": 50.0,
+            "insertion_mm": 20.0,
+            "slot_depth_mm": 20.0,
+            "fit_offset_mm": 0.2,
+            "root_overlap_mm": 5.0,
+            "opening_extension_mm": 0.5,
+            "lead_in_mm": 0.0
+          },
+          "tab_frame": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              430.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -150.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              695.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "slot_frame": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              430.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -150.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              695.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "right_leg_rear_mount",
+          "tab_part": "right_pedestal",
+          "slot_part": "tabletop",
+          "tab_port": "top_rear_tab",
+          "slot_port": "right_rear_leg_slot",
+          "parameter_name": "tabletop_leg_joint",
+          "parameters": {
+            "width_mm": 36.0,
+            "thickness_mm": 50.0,
+            "insertion_mm": 20.0,
+            "slot_depth_mm": 20.0,
+            "fit_offset_mm": 0.2,
+            "root_overlap_mm": 5.0,
+            "opening_extension_mm": 0.5,
+            "lead_in_mm": 0.0
+          },
+          "tab_frame": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              430.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              150.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              695.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "slot_frame": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              430.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              150.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              695.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "upper_brace_left_mount",
+          "tab_part": "upper_brace",
+          "slot_part": "left_pedestal",
+          "tab_port": "left_end_tab",
+          "slot_port": "upper_brace_inner_slot",
+          "parameter_name": "brace_leg_joint",
+          "parameters": {
+            "width_mm": 50.0,
+            "thickness_mm": 55.0,
+            "insertion_mm": 25.0,
+            "slot_depth_mm": 25.0,
+            "fit_offset_mm": 0.2,
+            "root_overlap_mm": 5.0,
+            "opening_extension_mm": 0.5,
+            "lead_in_mm": 0.0
+          },
+          "tab_frame": [
+            [
+              0.0,
+              0.0,
+              -1.0,
+              -385.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              -1.0,
+              0.0,
+              595.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "slot_frame": [
+            [
+              0.0,
+              0.0,
+              -1.0,
+              -385.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              -1.0,
+              0.0,
+              595.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "upper_brace_right_mount",
+          "tab_part": "upper_brace",
+          "slot_part": "right_pedestal",
+          "tab_port": "right_end_tab",
+          "slot_port": "upper_brace_inner_slot",
+          "parameter_name": "brace_leg_joint",
+          "parameters": {
+            "width_mm": 50.0,
+            "thickness_mm": 55.0,
+            "insertion_mm": 25.0,
+            "slot_depth_mm": 25.0,
+            "fit_offset_mm": 0.2,
+            "root_overlap_mm": 5.0,
+            "opening_extension_mm": 0.5,
+            "lead_in_mm": 0.0
+          },
+          "tab_frame": [
+            [
+              0.0,
+              0.0,
+              1.0,
+              385.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              595.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "slot_frame": [
+            [
+              0.0,
+              0.0,
+              1.0,
+              385.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              595.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "lower_brace_left_mount",
+          "tab_part": "lower_brace",
+          "slot_part": "left_pedestal",
+          "tab_port": "left_end_tab",
+          "slot_port": "lower_brace_inner_slot",
+          "parameter_name": "brace_leg_joint",
+          "parameters": {
+            "width_mm": 50.0,
+            "thickness_mm": 55.0,
+            "insertion_mm": 25.0,
+            "slot_depth_mm": 25.0,
+            "fit_offset_mm": 0.2,
+            "root_overlap_mm": 5.0,
+            "opening_extension_mm": 0.5,
+            "lead_in_mm": 0.0
+          },
+          "tab_frame": [
+            [
+              0.0,
+              0.0,
+              -1.0,
+              -385.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              -1.0,
+              0.0,
+              250.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "slot_frame": [
+            [
+              0.0,
+              0.0,
+              -1.0,
+              -385.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              -1.0,
+              0.0,
+              250.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "lower_brace_right_mount",
+          "tab_part": "lower_brace",
+          "slot_part": "right_pedestal",
+          "tab_port": "right_end_tab",
+          "slot_port": "lower_brace_inner_slot",
+          "parameter_name": "brace_leg_joint",
+          "parameters": {
+            "width_mm": 50.0,
+            "thickness_mm": 55.0,
+            "insertion_mm": 25.0,
+            "slot_depth_mm": 25.0,
+            "fit_offset_mm": 0.2,
+            "root_overlap_mm": 5.0,
+            "opening_extension_mm": 0.5,
+            "lead_in_mm": 0.0
+          },
+          "tab_frame": [
+            [
+              0.0,
+              0.0,
+              1.0,
+              385.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              250.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "slot_frame": [
+            [
+              0.0,
+              0.0,
+              1.0,
+              385.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              250.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ]
+    },
+    "plan_changes": {
+      "status": "UNCHANGED",
+      "codes": [],
+      "parts": {
+        "added": [],
+        "removed": [],
+        "changed": []
+      },
+      "connections": {
+        "added": [],
+        "removed": [],
+        "changed": []
+      },
+      "connection_order_changed": false
+    },
+    "task_constraints": null,
+    "failure_feedback": [],
+    "failure_instruction": "Candidate geometry evidence (empty/missing generated parts or disconnected components) may guide local source repair. File save/read and exporter errors are unassessed, not physical failures: do not change object shape to fix them. Unknown means cause unknown, not a confirmed shared bug. Use actual part IDs, stages and evidence; independently justified appearance/topology repairs remain allowed."
+  },
+  "checker_summary": [
+    {
+      "checker": "assembly_topology",
+      "required": true,
+      "status": "PASS",
+      "summary": "Assembly topology PASS; item counts {'PASS': 23, 'FAIL': 0, 'INDETERMINATE': 0}",
+      "finding_ids": [],
+      "result_ref": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/result.json"
+    },
+    {
+      "checker": "assembly_overhang",
+      "required": false,
+      "status": "PASS",
+      "summary": "Partition measurement complete; vertical-gap proxy, not slicer support or printability approval",
+      "finding_ids": [
+        "assembly_overhang:PRINT_PARTITION_OPPORTUNITY:tabletop:left_pedestal:right_pedestal:upper_brace:lower_brace"
+      ],
+      "result_ref": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_overhang/result.json"
+    },
+    {
+      "checker": "assembly_standing",
+      "required": true,
+      "status": "PASS",
+      "summary": "After 5 s self-weight: final tilt 0.0001925 deg; 0 interfaces outside; standing observation PASS; settling diagnostic: settled (not a pass requirement)",
+      "finding_ids": [],
+      "result_ref": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_standing/result.json"
+    }
+  ],
+  "typed_findings": [
+    {
+      "finding_id": "assembly_overhang:PRINT_PARTITION_OPPORTUNITY:tabletop:left_pedestal:right_pedestal:upper_brace:lower_brace",
+      "rule_id": "PRINT_PARTITION_OPPORTUNITY",
+      "category": "optimization_opportunity",
+      "applicability": "applicable",
+      "region": {
+        "kind": "parts",
+        "frame": "assembly",
+        "unit": "mm",
+        "face_ids": [],
+        "part_names": [
+          "tabletop",
+          "left_pedestal",
+          "right_pedestal",
+          "upper_brace",
+          "lower_brace"
+        ],
+        "details": {}
+      },
+      "relations": [],
+      "evidence_refs": [
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_overhang/report.json"
+      ],
+      "source_candidates": [
+        {
+          "feature_id": "feature:FixedAssembly/tabletop",
+          "source_ids": [],
+          "source_locations": [],
+          "method": "direct",
+          "evidence": [
+            "Exact runtime feature-name match; not unique triangle ownership"
+          ],
+          "ambiguous": true
+        },
+        {
+          "feature_id": "feature:FixedAssembly/tabletop/base/base/base/base/tabletop",
+          "source_ids": [
+            "source:e52a9d8bb0ba498cb885"
+          ],
+          "source_locations": [
+            "L63-L66"
+          ],
+          "method": "direct",
+          "evidence": [
+            "Exact runtime feature-name match; not unique triangle ownership"
+          ],
+          "ambiguous": true
+        },
+        {
+          "feature_id": "feature:FixedAssembly/left_pedestal",
+          "source_ids": [],
+          "source_locations": [],
+          "method": "direct",
+          "evidence": [
+            "Exact runtime feature-name match; not unique triangle ownership"
+          ],
+          "ambiguous": true
+        },
+        {
+          "feature_id": "feature:FixedAssembly/left_pedestal/base/base/op_0/op_0/left_leg_upright",
+          "source_ids": [
+            "source:ecb01088983bf77c71a7",
+            "source:4fc851c58ee1f0bd2375"
+          ],
+          "source_locations": [
+            "L76-L83",
+            "L84-L91"
+          ],
+          "method": "direct",
+          "evidence": [
+            "Exact runtime feature-name match; not unique triangle ownership"
+          ],
+          "ambiguous": true
+        },
+        {
+          "feature_id": "feature:FixedAssembly/left_pedestal/base/base/op_0/op_0/left_leg_foot",
+          "source_ids": [
+            "source:ecb01088983bf77c71a7",
+            "source:4fc851c58ee1f0bd2375"
+          ],
+          "source_locations": [
+            "L76-L83",
+            "L84-L91"
+          ],
+          "method": "direct",
+          "evidence": [
+            "Exact runtime feature-name match; not unique triangle ownership"
+          ],
+          "ambiguous": true
+        },
+        {
+          "feature_id": "feature:FixedAssembly/right_pedestal",
+          "source_ids": [],
+          "source_locations": [],
+          "method": "direct",
+          "evidence": [
+            "Exact runtime feature-name match; not unique triangle ownership"
+          ],
+          "ambiguous": true
+        }
+      ],
+      "required": false,
+      "repairability": "design_variable",
+      "message": "Evaluate at most one supported local split/merge, including at zero gap. Preserve pre-connector body shape and update every affected interface; NO_PROPOSAL is valid.",
+      "key_values": {},
+      "result_ref": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_overhang/result.json",
+      "result_pointer": "/findings/0"
+    }
+  ],
+  "evidence_access": "Use read_file only when inline evidence is insufficient. Select a specific JSON field with json_pointer (e.g. result_pointer + '/metric' or '/domain'), or a bounded text page with offset/max_chars. Follow next_offset only for relevant evidence, not to load every full report.",
+  "evidence_files": [
+    {
+      "source_sha256": "661c5a12b2971ba430b00c034338a0140cba6dd79936fbfba28e45757113b309",
+      "version_role": "current_source",
+      "path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/asset/assembly/assembly_manifest.json",
+      "purpose": "report_path",
+      "availability": "AVAILABLE",
+      "matches_current_source": true
+    },
+    {
+      "source_sha256": "661c5a12b2971ba430b00c034338a0140cba6dd79936fbfba28e45757113b309",
+      "version_role": "current_source",
+      "path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/result.json",
+      "purpose": "result_ref",
+      "availability": "AVAILABLE",
+      "matches_current_source": true
+    },
+    {
+      "source_sha256": "661c5a12b2971ba430b00c034338a0140cba6dd79936fbfba28e45757113b309",
+      "version_role": "current_source",
+      "path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_overhang/result.json",
+      "purpose": "result_ref",
+      "availability": "AVAILABLE",
+      "matches_current_source": true
+    },
+    {
+      "source_sha256": "661c5a12b2971ba430b00c034338a0140cba6dd79936fbfba28e45757113b309",
+      "version_role": "current_source",
+      "path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_standing/result.json",
+      "purpose": "result_ref",
+      "availability": "AVAILABLE",
+      "matches_current_source": true
+    },
+    {
+      "source_sha256": "661c5a12b2971ba430b00c034338a0140cba6dd79936fbfba28e45757113b309",
+      "version_role": "current_source",
+      "path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_overhang/report.json",
+      "purpose": "checker detail",
+      "availability": "AVAILABLE",
+      "matches_current_source": true
+    }
+  ],
+  "evidence_path_instruction": "Read the given evidence_files/result_ref paths directly; do not add a candidate directory prefix. Relative tool paths are workspace-relative. Only assigned_source may be modified. Initial-source-only evidence is a historical clue, not a measurement of modified geometry. Use inline facts first; reading every detailed report is not required.",
+  "source_sha256": "661c5a12b2971ba430b00c034338a0140cba6dd79936fbfba28e45757113b309",
+  "source_version": "original",
+  "assembly_item_statuses": [
+    {
+      "kind": "part",
+      "part_id": "tabletop",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART"
+    },
+    {
+      "kind": "part",
+      "part_id": "left_pedestal",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART"
+    },
+    {
+      "kind": "part",
+      "part_id": "right_pedestal",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART"
+    },
+    {
+      "kind": "part",
+      "part_id": "upper_brace",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART"
+    },
+    {
+      "kind": "part",
+      "part_id": "lower_brace",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART"
+    },
+    {
+      "kind": "interface",
+      "part_id": null,
+      "connection_id": "left_leg_front_mount",
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED"
+    },
+    {
+      "kind": "interface",
+      "part_id": null,
+      "connection_id": "left_leg_rear_mount",
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED"
+    },
+    {
+      "kind": "interface",
+      "part_id": null,
+      "connection_id": "right_leg_front_mount",
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED"
+    },
+    {
+      "kind": "interface",
+      "part_id": null,
+      "connection_id": "right_leg_rear_mount",
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED"
+    },
+    {
+      "kind": "interface",
+      "part_id": null,
+      "connection_id": "upper_brace_left_mount",
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED"
+    },
+    {
+      "kind": "interface",
+      "part_id": null,
+      "connection_id": "upper_brace_right_mount",
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED"
+    },
+    {
+      "kind": "interface",
+      "part_id": null,
+      "connection_id": "lower_brace_left_mount",
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED"
+    },
+    {
+      "kind": "interface",
+      "part_id": null,
+      "connection_id": "lower_brace_right_mount",
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "left_pedestal:lower_brace",
+      "part_ids": [
+        "left_pedestal",
+        "lower_brace"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "left_pedestal:right_pedestal",
+      "part_ids": [
+        "left_pedestal",
+        "right_pedestal"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "left_pedestal:tabletop",
+      "part_ids": [
+        "left_pedestal",
+        "tabletop"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "left_pedestal:upper_brace",
+      "part_ids": [
+        "left_pedestal",
+        "upper_brace"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "lower_brace:right_pedestal",
+      "part_ids": [
+        "lower_brace",
+        "right_pedestal"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "lower_brace:tabletop",
+      "part_ids": [
+        "lower_brace",
+        "tabletop"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "lower_brace:upper_brace",
+      "part_ids": [
+        "lower_brace",
+        "upper_brace"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "right_pedestal:tabletop",
+      "part_ids": [
+        "right_pedestal",
+        "tabletop"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "right_pedestal:upper_brace",
+      "part_ids": [
+        "right_pedestal",
+        "upper_brace"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "tabletop:upper_brace",
+      "part_ids": [
+        "tabletop",
+        "upper_brace"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": null,
+      "part_id": "tabletop",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": null
+    },
+    {
+      "kind": null,
+      "part_id": "left_pedestal",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": null
+    },
+    {
+      "kind": null,
+      "part_id": "right_pedestal",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": null
+    },
+    {
+      "kind": null,
+      "part_id": "upper_brace",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": null
+    },
+    {
+      "kind": null,
+      "part_id": "lower_brace",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": null
+    }
+  ],
+  "print_orientation_editable": false,
+  "print_partition_editable": true,
+  "partition_measurement": [
+    {
+      "partition_objective": {
+        "method": "dapper_fdm_2015",
+        "alpha": 0.3,
+        "r_vox": 0.1,
+        "orientation_set": "axis_aligned_24",
+        "layout": "independent_bed",
+        "reference_sha256": "969391f2f5e87ffc6b4f84e7c20c1af3d6414c3951f10997b219d417ca2a98ab",
+        "evaluation_config_sha256": "f15386fa287b5e1e385bb92cfaef84641869f814b6cb43662fe1276f09488ef4",
+        "voxel_pitch_mm": 75.0,
+        "reference_voxels": 616,
+        "gap_voxels": 0,
+        "print_part_count": 5,
+        "score": 380.09285943552595,
+        "direction": "maximize",
+        "numerator_nonpositive": false,
+        "gap_volume_mm3": 0.0
+      },
+      "partition_guidance": {
+        "status": "AVAILABLE",
+        "current": {
+          "N": 5,
+          "G": 0,
+          "score": 380.09285943552595
+        },
+        "numerator_nonpositive": false,
+        "split_one_more": {
+          "target_part_count": 6,
+          "zero_gap_score_upper_bound": 359.86145953780516,
+          "improvement_possible": false
+        },
+        "merge_one_fewer": {
+          "target_part_count": 4,
+          "gap_voxels_exclusive_upper_bound": 39.88695614126527,
+          "allowed_gap_increase_exclusive": 39.88695614126527
+        }
+      },
+      "items": [
+        {
+          "part_id": "tabletop",
+          "status": "PASS",
+          "largest_regions": [
+            {
+              "area_mm2": 1834.5610083006322,
+              "centroid_mm": [
+                -430.0,
+                -150.0,
+                20.0
+              ],
+              "representative_point_mm": [
+                -423.93332926432294,
+                -158.3999989827474,
+                20.0
+              ],
+              "bounds_mm": [
+                [
+                  -448.20001220703125,
+                  -175.1999969482422,
+                  20.0
+                ],
+                [
+                  -411.79998779296875,
+                  -124.80000305175781,
+                  20.0
+                ]
+              ],
+              "provenance": "exterior region; source mapping requires localization"
+            },
+            {
+              "area_mm2": 1834.5610083006322,
+              "centroid_mm": [
+                -430.0,
+                150.0,
+                20.0
+              ],
+              "representative_point_mm": [
+                -423.93332926432294,
+                141.6000010172526,
+                20.0
+              ],
+              "bounds_mm": [
+                [
+                  -448.20001220703125,
+                  124.80000305175781,
+                  20.0
+                ],
+                [
+                  -411.79998779296875,
+                  175.1999969482422,
+                  20.0
+                ]
+              ],
+              "provenance": "exterior region; source mapping requires localization"
+            },
+            {
+              "area_mm2": 1834.5610083006322,
+              "centroid_mm": [
+                430.0,
+                -150.0,
+                20.0
+              ],
+              "representative_point_mm": [
+                436.06667073567706,
+                -158.3999989827474,
+                20.0
+              ],
+              "bounds_mm": [
+                [
+                  411.79998779296875,
+                  -175.1999969482422,
+                  20.0
+                ],
+                [
+                  448.20001220703125,
+                  -124.80000305175781,
+                  20.0
+                ]
+              ],
+              "provenance": "exterior region; source mapping requires localization"
+            }
+          ],
+          "input_pose_area_mm2": 7338.244033202529,
+          "gap_voxels": 0,
+          "selected_rotation_id": 0,
+          "recommended_print_transform_mm": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              750.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              375.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              -695.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "recommended_pose_area_mm2": 7338.244033202529
+        },
+        {
+          "part_id": "left_pedestal",
+          "status": "PASS",
+          "largest_regions": [
+            {
+              "area_mm2": 1260.0000381469727,
+              "centroid_mm": [
+                -397.5,
+                0.0,
+                277.70001220703125
+              ],
+              "representative_point_mm": [
+                -393.3333333333333,
+                -8.40000089009603,
+                277.70001220703125
+              ],
+              "bounds_mm": [
+                [
+                  -410.0,
+                  -25.200002670288086,
+                  277.70001220703125
+                ],
+                [
+                  -385.0,
+                  25.200002670288086,
+                  277.70001220703125
+                ]
+              ],
+              "provenance": "exterior region; source mapping requires localization"
+            },
+            {
+              "area_mm2": 1260.0000381469727,
+              "centroid_mm": [
+                -397.5,
+                0.0,
+                622.7000122070312
+              ],
+              "representative_point_mm": [
+                -393.3333333333333,
+                -8.40000089009603,
+                622.7000122070312
+              ],
+              "bounds_mm": [
+                [
+                  -410.0,
+                  -25.200002670288086,
+                  622.7000122070312
+                ],
+                [
+                  -385.0,
+                  25.200002670288086,
+                  622.7000122070312
+                ]
+              ],
+              "provenance": "exterior region; source mapping requires localization"
+            }
+          ],
+          "input_pose_area_mm2": 2520.0000762939453,
+          "gap_voxels": 0,
+          "selected_rotation_id": 0,
+          "recommended_print_transform_mm": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              590.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              300.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              -0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "recommended_pose_area_mm2": 2520.0000762939453
+        },
+        {
+          "part_id": "right_pedestal",
+          "status": "PASS",
+          "largest_regions": [
+            {
+              "area_mm2": 1260.0000381469727,
+              "centroid_mm": [
+                397.5,
+                0.0,
+                277.70001220703125
+              ],
+              "representative_point_mm": [
+                393.3333333333333,
+                -8.399999618530273,
+                277.70001220703125
+              ],
+              "bounds_mm": [
+                [
+                  385.0,
+                  -25.200002670288086,
+                  277.70001220703125
+                ],
+                [
+                  410.0,
+                  25.200002670288086,
+                  277.70001220703125
+                ]
+              ],
+              "provenance": "exterior region; source mapping requires localization"
+            },
+            {
+              "area_mm2": 1260.0000381469727,
+              "centroid_mm": [
+                397.5,
+                0.0,
+                622.7000122070312
+              ],
+              "representative_point_mm": [
+                393.3333333333333,
+                -8.399999618530273,
+                622.7000122070312
+              ],
+              "bounds_mm": [
+                [
+                  385.0,
+                  -25.200002670288086,
+                  622.7000122070312
+                ],
+                [
+                  410.0,
+                  25.200002670288086,
+                  622.7000122070312
+                ]
+              ],
+              "provenance": "exterior region; source mapping requires localization"
+            }
+          ],
+          "input_pose_area_mm2": 2520.0000762939453,
+          "gap_voxels": 0,
+          "selected_rotation_id": 0,
+          "recommended_print_transform_mm": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -270.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              300.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              -0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "recommended_pose_area_mm2": 2520.0000762939453
+        },
+        {
+          "part_id": "upper_brace",
+          "status": "PASS",
+          "largest_regions": [
+            {
+              "area_mm2": 1250.0,
+              "centroid_mm": [
+                -397.5,
+                0.0,
+                7.5
+              ],
+              "representative_point_mm": [
+                -401.6666666666667,
+                -8.333332697550455,
+                7.5
+              ],
+              "bounds_mm": [
+                [
+                  -410.0,
+                  -25.000001907348633,
+                  7.5
+                ],
+                [
+                  -385.0,
+                  25.000001907348633,
+                  7.5
+                ]
+              ],
+              "provenance": "exterior region; source mapping requires localization"
+            },
+            {
+              "area_mm2": 1250.0,
+              "centroid_mm": [
+                397.5,
+                0.0,
+                7.5
+              ],
+              "representative_point_mm": [
+                401.6666666666667,
+                -8.333333969116211,
+                7.5
+              ],
+              "bounds_mm": [
+                [
+                  385.0,
+                  -25.000001907348633,
+                  7.5
+                ],
+                [
+                  410.0,
+                  25.000001907348633,
+                  7.5
+                ]
+              ],
+              "provenance": "exterior region; source mapping requires localization"
+            }
+          ],
+          "input_pose_area_mm2": 2500.0,
+          "gap_voxels": 0,
+          "selected_rotation_id": 0,
+          "recommended_print_transform_mm": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              410.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              35.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              -560.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "recommended_pose_area_mm2": 2500.0
+        },
+        {
+          "part_id": "lower_brace",
+          "status": "PASS",
+          "largest_regions": [
+            {
+              "area_mm2": 1250.0,
+              "centroid_mm": [
+                -397.5,
+                0.0,
+                12.5
+              ],
+              "representative_point_mm": [
+                -401.6666666666667,
+                -8.333332697550455,
+                12.5
+              ],
+              "bounds_mm": [
+                [
+                  -410.0,
+                  -25.000001907348633,
+                  12.5
+                ],
+                [
+                  -385.0,
+                  25.000001907348633,
+                  12.5
+                ]
+              ],
+              "provenance": "exterior region; source mapping requires localization"
+            },
+            {
+              "area_mm2": 1250.0,
+              "centroid_mm": [
+                397.5,
+                0.0,
+                12.5
+              ],
+              "representative_point_mm": [
+                401.6666666666667,
+                -8.333333969116211,
+                12.5
+              ],
+              "bounds_mm": [
+                [
+                  385.0,
+                  -25.000001907348633,
+                  12.5
+                ],
+                [
+                  410.0,
+                  25.000001907348633,
+                  12.5
+                ]
+              ],
+              "provenance": "exterior region; source mapping requires localization"
+            }
+          ],
+          "input_pose_area_mm2": 2500.0,
+          "gap_voxels": 0,
+          "selected_rotation_id": 0,
+          "recommended_print_transform_mm": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              410.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              45.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              -210.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "recommended_pose_area_mm2": 2500.0
+        }
+      ]
+    }
+  ],
+  "partition_change_vs_baseline": null,
+  "next_edit_purpose": "partition_optimization",
+  "primary_objective": "Evaluate one local grouping hypothesis; preserve the body and defer unresolved surface-only requirements.",
+  "comparison_baseline_version": "original",
+  "partition_guidance": {
+    "status": "AVAILABLE",
+    "current": {
+      "N": 5,
+      "G": 0,
+      "score": 380.09285943552595
+    },
+    "numerator_nonpositive": false,
+    "split_one_more": {
+      "target_part_count": 6,
+      "zero_gap_score_upper_bound": 359.86145953780516,
+      "improvement_possible": false
+    },
+    "merge_one_fewer": {
+      "target_part_count": 4,
+      "gap_voxels_exclusive_upper_bound": 39.88695614126527,
+      "allowed_gap_increase_exclusive": 39.88695614126527
+    }
+  },
+  "resolved_visual_feedback": {
+    "reviewed_by": "code_critic",
+    "required_changes": [
+      "TaperedTabletop.body: Add or use a supported material/exporter or renderer-level configuration that can assign an opaque glossy Principled material to `TaperedTabletop.body` while leaving `DARK_METAL` matte. Do not use transparency, decorative geometry, or invented aDSL material methods as substitutes; if no such supported configuration is available, retain this as an explicit capability limitation."
+    ],
+    "issues": [
+      {
+        "aspect": "surface",
+        "severity": "HIGH",
+        "target": "TaperedTabletop.body",
+        "problem": "The tabletop is correctly warm brown and geometrically smooth, but its rendered surface appears diffuse/matte in views 1–7 rather than visibly glossy. The source only assigns `WOOD` through primitive color parameters and has no supported roughness or specular control, leaving the explicit glossy-finish requirement unmet.",
+        "suggested_fix": "Add or use a supported material/exporter or renderer-level configuration that can assign an opaque glossy Principled material to `TaperedTabletop.body` while leaving `DARK_METAL` matte. Do not use transparency, decorative geometry, or invented aDSL material methods as substitutes; if no such supported configuration is available, retain this as an explicit capability limitation."
+      }
+    ]
+  },
+  "pending_reviews": {
+    "image_critic": {
+      "approved": false,
+      "observations": [
+        "Across orbit views 1–6, the model reads clearly as a conference table with a warm-brown tabletop and two mirrored dark-gray pedestal supports.",
+        "Top view 7 shows a straight-edged, symmetric trapezoidal tabletop with a subtle and even front-to-back taper; it does not appear skewed, bowed, or oval.",
+        "Orbit views 1 and 4 clearly show two distinct horizontal braces between the pedestal uprights, with no visible detachment or exterior protrusion.",
+        "The uprights appear to meet the tabletop underside, and the broad feet appear aligned at a common floor level in the orbit views.",
+        "The dark pedestal assemblies and braces visually contrast with the brown tabletop and appear appropriately matte. No unnecessary environmental objects or decorative relief are present."
+      ],
+      "required_changes": [
+        "tabletop: Use any supported material configuration that produces a visibly glossy warm-brown tabletop while leaving the dark legs and braces matte. Do not invent roughness/specular setter methods; if color/alpha and fixed default Principled shading are the only public controls, treat the requested gloss as an unsupported appearance capability and report it as unresolved."
+      ],
+      "issues": [
+        {
+          "aspect": "surface",
+          "severity": "HIGH",
+          "target": "tabletop",
+          "problem": "In orbit views 1–6 and top view 7, the tabletop is smooth and brown but reads as predominantly diffuse/matte, with no clearly visible glossy highlight or reflection. This fails the requirement's explicit smooth, glossy tabletop finish.",
+          "suggested_fix": "Use any supported material configuration that produces a visibly glossy warm-brown tabletop while leaving the dark legs and braces matte. Do not invent roughness/specular setter methods; if color/alpha and fixed default Principled shading are the only public controls, treat the requested gloss as an unsupported appearance capability and report it as unresolved."
+        }
+      ]
+    },
+    "code_critic": {
+      "approved": false,
+      "observations": [
+        "The table geometry is visually consistent with the requested design: views 1–6 show two mirrored dark pedestal supports, broad feet, and two distinct horizontal braces; view 7 shows a straight-edged, bilaterally symmetric tapered tabletop.",
+        "The source constructs the tabletop through `TaperedTabletop`, using `boolean_intersection(slab, right_halfspace, left_halfspace)`. Its dimensions and taper operations correspond to the visible trapezoidal plan, while `Pedestal` and `HorizontalBrace` account for the support components visible in the orbit and bottom views.",
+        "The warm-brown `WOOD` color contrasts clearly with `DARK_METAL`, but views 1–7 show no clear glossy highlight or reflection on the tabletop. It reads as smooth but predominantly diffuse.",
+        "The public source API used here exposes color and alpha but no roughness or specular control. Changing `WOOD` or adding alpha would not reliably implement the required opaque glossy finish. This is an unresolved appearance capability limitation, not a geometry defect.",
+        "The images are diagnostic visual renders and do not establish manufacturing or physical-checker approval."
+      ],
+      "required_changes": [
+        "TaperedTabletop.body: Add or use a supported material/exporter or renderer-level configuration that can assign an opaque glossy Principled material to `TaperedTabletop.body` while leaving `DARK_METAL` matte. Do not use transparency, decorative geometry, or invented aDSL material methods as substitutes; if no such supported configuration is available, retain this as an explicit capability limitation."
+      ],
+      "image_critic_corrections": [
+        "Confirmed the reported HIGH surface issue. In source, `WOOD = (0.50, 0.24, 0.08)` is passed as `color=WOOD` to the `slab`, `right_halfspace`, and `left_halfspace` used by `TaperedTabletop.body`; there is no supported gloss, roughness, or specular operation. In visible views 1–7, the resulting tabletop is brown and smooth but lacks a clearly glossy highlight or reflection. Because gloss is explicitly required and the smoke-test instructions state that unresolved surface requirements prevent full approval, the issue remains HIGH rather than being downgraded.",
+        "The optional wood-like character does not create a separate issue: the requirement makes wood mimicry optional, and neither source nor views introduce inappropriate relief grain."
+      ],
+      "issues": [
+        {
+          "aspect": "surface",
+          "severity": "HIGH",
+          "target": "TaperedTabletop.body",
+          "problem": "The tabletop is correctly warm brown and geometrically smooth, but its rendered surface appears diffuse/matte in views 1–7 rather than visibly glossy. The source only assigns `WOOD` through primitive color parameters and has no supported roughness or specular control, leaving the explicit glossy-finish requirement unmet.",
+          "suggested_fix": "Add or use a supported material/exporter or renderer-level configuration that can assign an opaque glossy Principled material to `TaperedTabletop.body` while leaving `DARK_METAL` matte. Do not use transparency, decorative geometry, or invented aDSL material methods as substitutes; if no such supported configuration is available, retain this as an explicit capability limitation."
+        }
+      ]
+    },
+    "render_issue": null,
+    "repair_history": [
+      {
+        "version": "original",
+        "source_sha256": "661c5a12b2971ba430b00c034338a0140cba6dd79936fbfba28e45757113b309",
+        "reason": "interface_or_appearance_rejected",
+        "topology_status": "PASS",
+        "tool_statuses": {
+          "assembly_topology": "PASS",
+          "assembly_overhang": "PASS",
+          "assembly_standing": "PASS"
+        },
+        "overhang_change": null
+      }
+    ]
+  },
+  "remaining_repairs": 1,
+  "maximum_repair_proposals": 1,
+  "assignment": "Fixed assembly specialization: the old whole-object topology\nbridge_parent/scope-only rules do NOT apply. Index candidates are hints, not edit\npermissions. Read the assigned current source; infer relevant body classes,\nhelpers and add_part/connect/frame calls when index candidates are absent or\nambiguous. Explain location, evidence and uncertainty; never invent index IDs.\nUse exact current source symbols in allowed_scopes; top-level assembly statements\ncan use <module>. These are optional location hints, not edit permissions or\ninvented index IDs. Unresolved attribute hints must be verified by reading source.\nYou may minimally correct print grouping and connections, without a new Planner.\nKeep frozen units, fit allowance, dimensions and task requirements. No checker,\nconfiguration or mesh repair edits. Propose at most ONE coordinated source patch,\nincluding compatible resolved_visual_feedback.required_changes. Raw Image/Code\nreports are context; dismissed/downgraded Image issues are not mandatory edits.\nMED/LOW issues are advisory. Engineering advice does not change checker outcomes. Stop with no proposals if no\nreasonable edit follows from evidence. INDETERMINATE alone is not a shape defect.\nOPEN_PRINT_MESH with measured boundary locations permits a bounded local SOURCE\nrepair attempt, but is NOT confirmed disconnection. Read the current source and\nboundary evidence; local body/decoration simplification may be proposed without\nassuming the connector is at fault. Preserve required visible features. The exact\ncause remains uncertain until re-export and recheck. Never fill holes in exported\nmeshes, change tolerances/checker settings, or treat unavailable interfaces as FAIL.\nUNDECLARED_PART_INTERFERENCE identifies overlapping material between the named\nprint parts in assembly coordinates. Inspect the reported region, current body\ngeometry and the connections positioning those parts. Propose a minimal coordinated\nsource correction to dimensions, local clearance or interface frames as supported\nby evidence. A declared connection does not excuse overlap elsewhere. Check mate\nalignment after any placement change. AABB location identifies the result, not its\nunique source cause. Re-export and re-run the selected checks.\nEngineering approval cannot override measured FAIL. Recheck assembly_topology.\n\nFollow next_edit_purpose and primary_objective. Necessary localized geometry or\nphysical failures have priority and may justify regrouping without a score gain.\nAn existing partition candidate's interface repair retains its original comparison\nbaseline. For partition_optimization, preserve all bodies and defer pending HIGH\nsurface-only requirements; they still block full approval. Do not require a\nsimultaneous unsupported material repair. Arithmetic partition_guidance gives\nstrict theoretical bounds, not measured candidate scores or a restriction to N±1.\nPartition objective enabled: use the measured frozen-reference Dapper score (maximize),\nnot overhang area, to evaluate ONE local split or merge. Even G=0 may admit a useful\nmerge; NO_PROPOSAL is valid. A proposal is a falsifiable hypothesis, not a measured\nimprovement: an alternative score is not required before proposing it. Use current\nbody structure, per-part G and N to explain the expected gap/count tradeoff and its\nrisks; do not invent the candidate score. Measurement after the edit determines\nadoption. Decline when no reasonable local change follows from this evidence,\nnot solely because no alternative has been measured yet.\nUse action regroup_print_parts with grouping_change\n(operation, source_part_ids, target_print_parts, connection_changes). Preserve all\npre-connector body material, appearance, root ID/frame and required features.\nBuild from original bodies/children, remove internal connectors and recreate every\ncross-group interface. Splitting overlapping children requires explicit disjoint\nmaterial ownership; do not export their original overlap as separate print parts.\nDo not change checker/reference/configuration. Keep mounting shoulders and unnamed\nbody details. All selected checks must run again. Standing/required physical or\nvisual failures remain necessary repairs; a high score cannot excuse them.\nRead the given evidence_files/result_ref paths directly; do not add a candidate directory prefix. Relative tool paths are workspace-relative. Only assigned_source may be modified. Initial-source-only evidence is a historical clue, not a measurement of modified geometry. Use inline facts first; reading every detailed report is not required."
+}

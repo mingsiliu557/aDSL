@@ -1,0 +1,20 @@
+Generated source exited with code 1.
+STDOUT:
+Warning: Falling back to the standard locale ("C")
+
+STDERR:
+could not get a list of mounted file-systems
+Traceback (most recent call last):
+  File "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/A/adsl/agents/utils/asset_executor.py", line 217, in <module>
+    raise SystemExit(main())
+  File "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/A/adsl/agents/utils/asset_executor.py", line 149, in main
+    export_glb(
+  File "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/A/adsl/core/__init__.py", line 66, in export_glb
+    return _export_glb(*args, **kwargs)
+  File "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/A/adsl/core/export/export_glb.py", line 809, in export_glb
+    _normalize_zero_area_tessellation(obj)
+  File "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/A/adsl/core/export/export_glb.py", line 565, in _normalize_zero_area_tessellation
+    reject('degenerate triangle has no alternate polygon tessellation')
+  File "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/A/adsl/core/export/export_glb.py", line 547, in reject
+    raise ValueError(
+ValueError: EVALUATED_MESH_DEGENERATE: object='geometry_0_cube.002' zero_area_triangles=4 polygons=[35, 51, 53] coincident_vertices=2 reason=degenerate triangle has no alternate polygon tessellation

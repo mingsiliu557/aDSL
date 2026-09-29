@@ -1,0 +1,1261 @@
+{
+  "requirement": "Repair the existing SF16 FixedAssembly model using the selected checker evidence. Preserve the modern matte-black bookcase, both full-height side panels, three usable shelves, and the visibly slanted upper back panel. Preserve all six separate print parts and all five existing physical interfaces; do not globally fuse parts or delete features to pass. Keep root_part, mm_per_unit=1, final_size_mm=[1125,450,1800], and fit_offset_mm=0.2 frozen. Make the smallest coordinated source correction supported by actual geometry evidence; maintain mate frames and check any related interfaces after changing bodies or placement. Only assembly_topology is selected. Standing, FEA and overhang are not evaluated in this run. This is an existing-source repair, with one initial evaluation and at most one source repair followed by re-export and re-evaluation. Do not regenerate or re-plan the object. If no reasonable repair exists, report NO_CHANGE.",
+  "plan": {
+    "object_name": "Modern minimalist three-shelf bookcase",
+    "components": [
+      {
+        "name": "left_side_panel",
+        "description": "Full-height matte-black vertical side panel forming the left boundary and a floor-contact support. Use an approximately 40 mm panel thickness, the full 450 mm depth, and the full 1800 mm height; place its outer face at X=-562.5 mm and bottom face at Z=0."
+      },
+      {
+        "name": "right_side_panel",
+        "description": "Mirror-symmetric full-height matte-black vertical side panel forming the right boundary and second floor-contact support. Match the left panel dimensions; place its outer face at X=+562.5 mm and bottom face at Z=0."
+      },
+      {
+        "name": "lower_shelf",
+        "description": "Smooth, flat matte-black horizontal shelf spanning the clear space between the side panels. Use approximately 1045 mm width, 410 mm depth, and 36 mm thickness, centered near Y=0 and Z=450 mm."
+      },
+      {
+        "name": "middle_shelf",
+        "description": "Smooth, flat matte-black horizontal shelf identical in size and finish to the lower shelf, centered near Y=0 and Z=1050 mm."
+      },
+      {
+        "name": "top_shelf",
+        "description": "Upper load-bearing matte-black horizontal shelf identical in size and finish to the other shelves, centered near Y=0 and Z=1650 mm so its upward face lies within the frozen Z=1620..1801 mm load-selection band."
+      },
+      {
+        "name": "slanted_back_panel",
+        "description": "Upper rear stabilizing panel spanning between the side panels above and behind the top shelf. It is a shallow rectangular panel tilted slightly rearward in the Y-Z plane, producing the requested subtle trapezoidal silhouette while remaining inside the 450 mm overall depth and 1800 mm overall height."
+      }
+    ],
+    "relations": [
+      "Use assembly coordinates with +X right, +Y back, and +Z up; center the 1125 mm by 450 mm footprint at X=Y=0 and place all floor-contacting side-panel bottom faces at Z=0.",
+      "The completed assembled envelope must be exactly 1125 mm wide, 450 mm deep, and 1800 mm high; no connector geometry may extend beyond this frozen envelope.",
+      "The left and right side panels are vertical, parallel, mirror-symmetric about X=0, and separated by an approximately 1045 mm clear internal width.",
+      "The lower, middle, and top shelves are horizontal, mutually parallel, centered between the side panels, and evenly spaced at approximately 600 mm center-to-center intervals: Z=450, 1050, and 1650 mm.",
+      "Each shelf extends from the inner face of the left side panel to the inner face of the right side panel and visually contacts both supports without protruding through their outer faces.",
+      "The top shelf remains a semantically named load-bearing shelf, with its upward surface inside the frozen FEA load region Z=1620..1801 mm.",
+      "The slanted back panel occupies the upper rear portion of the bookcase, spans most of the clear width, and tilts only slightly rearward so the front elevation remains minimalist and nearly rectangular while the side silhouette is subtly trapezoidal.",
+      "The two side panels provide the only floor-contact supports and remain within the frozen support region around Z=0.",
+      "All visible components have a uniform monochromatic black matte finish with subtle lighting-based shading; avoid gloss, bright accents, ornament, handles, or visible decorative hardware.",
+      "Use FixedAssembly with left_side_panel as the receiver-first root. Every non-root print part is introduced once as a tab child through the ordered acyclic connection list.",
+      "All TabSlot interfaces use the frozen single-sided fit allowance of 0.2 mm. This clearance is a geometric demonstration and must not be described as proof of retention or strength.",
+      "Shelf-to-side connectors should be concealed within panel/shelf intersections, with adequate local material around slots, tab shoulders, and embedded roots. The generated tabs and slots must come only from assembly.connect, not manually modeled geometry.",
+      "The slightly trapezoidal character comes from the upper rear panel tilt; the main side panels remain vertical as requested.",
+      "The rendering should use a dark background that preserves enough contrast to distinguish the black side panels, three shelf surfaces, and slanted upper back panel."
+    ],
+    "critic_checklist": [
+      "Verify the final assembly AABB is exactly 1125.0 mm in X, 450.0 mm in Y, and 1800.0 mm in Z, with mm_per_unit=1.0.",
+      "Verify the assembled footprint is centered at X=Y=0 and the lowest faces of both side panels are at Z=0.",
+      "Verify there are exactly three visible horizontal shelves named lower_shelf, middle_shelf, and top_shelf; do not add a fourth shelf or treat the back panel as a shelf.",
+      "Verify the three shelf center elevations are evenly spaced, nominally 450, 1050, and 1650 mm, with matching shelf thicknesses and aligned front and back edges.",
+      "Verify the upward surface of top_shelf intersects the frozen FEA load band Z=1620..1801 mm and retains a shelf-related semantic name.",
+      "Verify left_side_panel and right_side_panel are full-height, parallel, vertical, mirror-symmetric, and visibly support the shelf ends.",
+      "Verify both side-panel bottom faces remain available in the frozen Z=-0.1..0.1 mm floor-support region.",
+      "Verify the slanted_back_panel is at the upper rear, is visibly but mildly tilted in the Y-Z plane, spans between the side panels, and does not exceed the final depth or height.",
+      "Verify the overall front appearance is symmetrical and height-dominant, with a clean rectangular composition and only a subtle trapezoidal side/profile effect.",
+      "Verify shelf surfaces are flat and unobstructed, especially the top shelf; connector features should not visibly rise above usable shelf surfaces.",
+      "Verify all six semantic components are assigned exactly once among the six declared print parts.",
+      "Verify the connection graph is connected, acyclic, receiver-first, rooted at left_side_panel, and contains exactly one placement connection for each non-root print part.",
+      "Verify assembly.connect generates both sides of every interface using TabSlot parameters; no between-part global union and no manually modeled replacement tabs or slots are used.",
+      "Verify every connection using parameter_name shelf_side_joint reuses identical TabSlot dimensions and the frozen fit_offset_mm=0.2.",
+      "Verify the back_panel_joint also uses fit_offset_mm=0.2 and has sufficient surrounding material despite the panel's tilt.",
+      "Verify no print-part ID uses the reserved names scene or exploded.",
+      "Verify all visible geometry is monochromatic black with a matte appearance and no contrasting connector colors.",
+      "Verify the presentation background is dark but provides sufficient rim or directional lighting to read the black silhouette and shelf spacing.",
+      "Verify any overhang repair changes only print orientation through assembly.set_print_orientation; it must not alter assembly pose, dimensions, connector frames, loads, supports, or fit allowance.",
+      "Treat visual-only approval as appearance/export approval only; do not claim that clearance, standing, FEA, overhang, or ideal-bond results certify manufacturability or fastening strength."
+    ],
+    "print_parts": [
+      {
+        "id": "left_side_panel",
+        "components": [
+          "left_side_panel"
+        ]
+      },
+      {
+        "id": "top_shelf",
+        "components": [
+          "top_shelf"
+        ]
+      },
+      {
+        "id": "right_side_panel",
+        "components": [
+          "right_side_panel"
+        ]
+      },
+      {
+        "id": "middle_shelf",
+        "components": [
+          "middle_shelf"
+        ]
+      },
+      {
+        "id": "lower_shelf",
+        "components": [
+          "lower_shelf"
+        ]
+      },
+      {
+        "id": "slanted_back_panel",
+        "components": [
+          "slanted_back_panel"
+        ]
+      }
+    ],
+    "connections": [
+      {
+        "id": "connect_top_shelf_to_left_side",
+        "tab_part": "top_shelf",
+        "slot_part": "left_side_panel",
+        "tab_port": "left_end_tab",
+        "slot_port": "upper_shelf_slot",
+        "parameter_name": "shelf_side_joint",
+        "interface_type": "tab_slot",
+        "insertion_direction": "-x",
+        "fit_intent": "Concealed horizontal slide-fit shelf-to-side interface using the frozen 0.2 mm single-sided slot allowance; tab is rooted in the top shelf's left end and inserts into the left side panel."
+      },
+      {
+        "id": "connect_right_side_to_top_shelf",
+        "tab_part": "right_side_panel",
+        "slot_part": "top_shelf",
+        "tab_port": "upper_inner_tab",
+        "slot_port": "right_end_slot",
+        "parameter_name": "shelf_side_joint",
+        "interface_type": "tab_slot",
+        "insertion_direction": "-x",
+        "fit_intent": "Concealed horizontal interface placing the right side panel against the top shelf's right end, using the same frozen 0.2 mm single-sided allowance and shared shelf-side dimensions."
+      },
+      {
+        "id": "connect_middle_shelf_to_right_side",
+        "tab_part": "middle_shelf",
+        "slot_part": "right_side_panel",
+        "tab_port": "right_end_tab",
+        "slot_port": "middle_shelf_slot",
+        "parameter_name": "shelf_side_joint",
+        "interface_type": "tab_slot",
+        "insertion_direction": "+x",
+        "fit_intent": "Concealed horizontal slide-fit interface at the middle shelf's right end using the shared shelf-side TabSlot and frozen 0.2 mm single-sided allowance."
+      },
+      {
+        "id": "connect_lower_shelf_to_right_side",
+        "tab_part": "lower_shelf",
+        "slot_part": "right_side_panel",
+        "tab_port": "right_end_tab",
+        "slot_port": "lower_shelf_slot",
+        "parameter_name": "shelf_side_joint",
+        "interface_type": "tab_slot",
+        "insertion_direction": "+x",
+        "fit_intent": "Concealed horizontal slide-fit interface at the lower shelf's right end using the shared shelf-side TabSlot and frozen 0.2 mm single-sided allowance."
+      },
+      {
+        "id": "connect_back_panel_to_right_side",
+        "tab_part": "slanted_back_panel",
+        "slot_part": "right_side_panel",
+        "tab_port": "right_edge_tab",
+        "slot_port": "upper_back_slot",
+        "parameter_name": "back_panel_joint",
+        "interface_type": "tab_slot",
+        "insertion_direction": "+x",
+        "fit_intent": "Concealed edge interface locating the tilted upper back panel against the right side support, with a dedicated TabSlot sized for the back panel and the frozen 0.2 mm single-sided allowance."
+      }
+    ],
+    "root_part": "left_side_panel",
+    "mm_per_unit": 1.0,
+    "final_size_mm": [
+      1125.0,
+      450.0,
+      1800.0
+    ]
+  },
+  "assigned_source": "original/source.py",
+  "assembly_context": {
+    "initial_plan_role": "reference_proposal_not_immutable_implementation",
+    "instruction": "The initial print-part/connection lists, including checklist items that merely repeat them, are a reference proposal, not an immutable implementation. Original task requirements remain binding. Default to the existing grouping. When feedback or source evidence shows a problem, minimally revise print-part boundaries, add_part/connect, frames and related construction; explain the changed locations and why. Semantic containers need not be print pieces; independent repeated pieces need their own instances and connections. Judge the original task, appearance and actual assembly, not exact equality to the initial list. Do not remove required components or connection requirements, change the root, frozen units, fit allowance, dimensions, budget or checker/configuration, or bypass existing legality checks. Declarations are source metadata, not proof of shape completeness or manufacture.",
+    "version_role": "current_candidate",
+    "source_sha256": "88daba8f1cd247feadc3b732c3e8678e0ee9a09dfe966371a679245c40b655c6",
+    "manifest_status": "CURRENT_SOURCE",
+    "current_assembly": {
+      "root_id": "left_side_panel",
+      "parts": [
+        {
+          "id": "left_side_panel",
+          "components": [
+            "left_side_panel"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "top_shelf",
+          "components": [
+            "top_shelf"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              1650.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "right_side_panel",
+          "components": [
+            "right_side_panel"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              542.5
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              900.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "middle_shelf",
+          "components": [
+            "middle_shelf"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              1050.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "lower_shelf",
+          "components": [
+            "lower_shelf"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              450.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "slanted_back_panel",
+          "components": [
+            "slanted_back_panel"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              4.284704071197545e-19,
+              197.0
+            ],
+            [
+              0.0,
+              -1.2286828356106394e-17,
+              0.9999999999999999,
+              1669.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ],
+      "connections": [
+        {
+          "id": "connect_top_shelf_to_left_side",
+          "tab_part": "top_shelf",
+          "slot_part": "left_side_panel",
+          "tab_port": "left_end_tab",
+          "slot_port": "upper_shelf_slot",
+          "parameter_name": "shelf_side_joint",
+          "parameters": {
+            "width_mm": 120.0,
+            "thickness_mm": 18.0,
+            "insertion_mm": 20.0,
+            "slot_depth_mm": 20.0,
+            "fit_offset_mm": 0.2,
+            "root_overlap_mm": 8.0,
+            "opening_extension_mm": 0.5,
+            "lead_in_mm": 2.0
+          },
+          "tab_frame": [
+            [
+              0.0,
+              0.0,
+              -1.0,
+              -522.5
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              -1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "slot_frame": [
+            [
+              0.0,
+              0.0,
+              -1.0,
+              -522.5
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              -1.0,
+              0.0,
+              1650.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "connect_right_side_to_top_shelf",
+          "tab_part": "right_side_panel",
+          "slot_part": "top_shelf",
+          "tab_port": "upper_inner_tab",
+          "slot_port": "right_end_slot",
+          "parameter_name": "shelf_side_joint",
+          "parameters": {
+            "width_mm": 120.0,
+            "thickness_mm": 18.0,
+            "insertion_mm": 20.0,
+            "slot_depth_mm": 20.0,
+            "fit_offset_mm": 0.2,
+            "root_overlap_mm": 8.0,
+            "opening_extension_mm": 0.5,
+            "lead_in_mm": 2.0
+          },
+          "tab_frame": [
+            [
+              0.0,
+              0.0,
+              -1.0,
+              -20.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              -1.0,
+              0.0,
+              750.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "slot_frame": [
+            [
+              0.0,
+              0.0,
+              -1.0,
+              522.5
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              -1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "connect_middle_shelf_to_right_side",
+          "tab_part": "middle_shelf",
+          "slot_part": "right_side_panel",
+          "tab_port": "right_end_tab",
+          "slot_port": "middle_shelf_slot",
+          "parameter_name": "shelf_side_joint",
+          "parameters": {
+            "width_mm": 120.0,
+            "thickness_mm": 18.0,
+            "insertion_mm": 20.0,
+            "slot_depth_mm": 20.0,
+            "fit_offset_mm": 0.2,
+            "root_overlap_mm": 8.0,
+            "opening_extension_mm": 0.5,
+            "lead_in_mm": 2.0
+          },
+          "tab_frame": [
+            [
+              0.0,
+              0.0,
+              1.0,
+              522.5
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "slot_frame": [
+            [
+              0.0,
+              0.0,
+              1.0,
+              -20.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              150.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "connect_lower_shelf_to_right_side",
+          "tab_part": "lower_shelf",
+          "slot_part": "right_side_panel",
+          "tab_port": "right_end_tab",
+          "slot_port": "lower_shelf_slot",
+          "parameter_name": "shelf_side_joint",
+          "parameters": {
+            "width_mm": 120.0,
+            "thickness_mm": 18.0,
+            "insertion_mm": 20.0,
+            "slot_depth_mm": 20.0,
+            "fit_offset_mm": 0.2,
+            "root_overlap_mm": 8.0,
+            "opening_extension_mm": 0.5,
+            "lead_in_mm": 2.0
+          },
+          "tab_frame": [
+            [
+              0.0,
+              0.0,
+              1.0,
+              522.5
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "slot_frame": [
+            [
+              0.0,
+              0.0,
+              1.0,
+              -20.0
+            ],
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -450.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "connect_back_panel_to_right_side",
+          "tab_part": "slanted_back_panel",
+          "slot_part": "right_side_panel",
+          "tab_port": "right_edge_tab",
+          "slot_port": "upper_back_slot",
+          "parameter_name": "back_panel_joint",
+          "parameters": {
+            "width_mm": 100.0,
+            "thickness_mm": 12.0,
+            "insertion_mm": 20.0,
+            "slot_depth_mm": 20.0,
+            "fit_offset_mm": 0.2,
+            "root_overlap_mm": 8.0,
+            "opening_extension_mm": 0.5,
+            "lead_in_mm": 2.0
+          },
+          "tab_frame": [
+            [
+              0.0,
+              0.0,
+              1.0,
+              522.5
+            ],
+            [
+              0.1218693434,
+              -0.9925461516,
+              0.0,
+              0.0
+            ],
+            [
+              0.9925461516,
+              0.1218693434,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "slot_frame": [
+            [
+              0.0,
+              0.0,
+              1.0,
+              -20.0
+            ],
+            [
+              0.1218693434,
+              -0.9925461516,
+              0.0,
+              197.0
+            ],
+            [
+              0.9925461516,
+              0.1218693434,
+              0.0,
+              769.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ]
+    },
+    "plan_changes": {
+      "status": "UNCHANGED",
+      "codes": [],
+      "parts": {
+        "added": [],
+        "removed": [],
+        "changed": []
+      },
+      "connections": {
+        "added": [],
+        "removed": [],
+        "changed": []
+      },
+      "connection_order_changed": false
+    },
+    "task_constraints": {
+      "require_multiple_parts": true
+    },
+    "failure_feedback": [],
+    "failure_instruction": "Candidate geometry evidence (empty/missing generated parts or disconnected components) may guide local source repair. File save/read and exporter errors are unassessed, not physical failures: do not change object shape to fix them. Unknown means cause unknown, not a confirmed shared bug. Use actual part IDs, stages and evidence; independently justified appearance/topology repairs remain allowed."
+  },
+  "checker_summary": [
+    {
+      "checker": "assembly_topology",
+      "required": true,
+      "status": "FAIL",
+      "summary": "Assembly topology FAIL; item counts {'PASS': 25, 'FAIL': 1, 'INDETERMINATE': 0}",
+      "finding_ids": [
+        "assembly_topology:pair:slanted_back_panel:top_shelf:UNDECLARED_PART_INTERFERENCE"
+      ],
+      "result_ref": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/result.json"
+    }
+  ],
+  "typed_findings": [
+    {
+      "finding_id": "assembly_topology:pair:slanted_back_panel:top_shelf:UNDECLARED_PART_INTERFERENCE",
+      "rule_id": "UNDECLARED_PART_INTERFERENCE",
+      "category": "geometry_failure",
+      "applicability": "applicable",
+      "metric": {
+        "name": "undeclared_interference_mm3",
+        "value": 842681.3089759703,
+        "unit": "mm3",
+        "threshold": 6251.241398513488,
+        "comparator": "le",
+        "relative_tolerance": 0.0,
+        "absolute_tolerance": 0.0
+      },
+      "region": {
+        "kind": "aabb",
+        "frame": "assembly",
+        "unit": "mm",
+        "bounds": [
+          [
+            -522.5,
+            180.3668524371798,
+            1632.0
+          ],
+          [
+            522.5,
+            205.0,
+            1668.0
+          ]
+        ],
+        "face_ids": [],
+        "part_names": [
+          "slanted_back_panel",
+          "top_shelf"
+        ],
+        "details": {
+          "connection_ids": [],
+          "related_connection_ids": [
+            "connect_top_shelf_to_left_side",
+            "connect_right_side_to_top_shelf",
+            "connect_back_panel_to_right_side"
+          ],
+          "allowed_fit_connection_ids": [],
+          "raw_intersection_mm3": 842681.3089759703,
+          "length_tolerance_mm": 0.0034332275390625
+        }
+      },
+      "relations": [],
+      "evidence_refs": [
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/report.json"
+      ],
+      "source_candidates": [
+        {
+          "feature_id": "feature:FixedAssembly/top_shelf",
+          "source_ids": [],
+          "source_locations": [],
+          "method": "direct",
+          "evidence": [
+            "Exact runtime feature-name match; not unique triangle ownership"
+          ],
+          "ambiguous": true
+        },
+        {
+          "feature_id": "feature:FixedAssembly/slanted_back_panel",
+          "source_ids": [],
+          "source_locations": [],
+          "method": "direct",
+          "evidence": [
+            "Exact runtime feature-name match; not unique triangle ownership"
+          ],
+          "ambiguous": true
+        }
+      ],
+      "required": true,
+      "repairability": "geometry",
+      "message": "pair:slanted_back_panel:top_shelf: UNDECLARED_PART_INTERFERENCE; geometry evidence only, manufacture unverified.",
+      "result_ref": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/result.json",
+      "result_pointer": "/findings/0",
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0014/checkers/assembly_topology/result.json"
+    }
+  ],
+  "evidence_access": "Use read_file only when inline evidence is insufficient. Select a specific JSON field with json_pointer (e.g. result_pointer + '/metric' or '/domain'), or a bounded text page with offset/max_chars. Follow next_offset only for relevant evidence, not to load every full report.",
+  "evidence_files": [
+    {
+      "source_sha256": "88daba8f1cd247feadc3b732c3e8678e0ee9a09dfe966371a679245c40b655c6",
+      "version_role": "current_source",
+      "path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/asset/assembly/assembly_manifest.json",
+      "purpose": "report_path",
+      "availability": "AVAILABLE",
+      "matches_current_source": true
+    },
+    {
+      "source_sha256": "88daba8f1cd247feadc3b732c3e8678e0ee9a09dfe966371a679245c40b655c6",
+      "version_role": "current_source",
+      "path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/result.json",
+      "purpose": "result_ref",
+      "availability": "AVAILABLE",
+      "matches_current_source": true
+    },
+    {
+      "source_sha256": "88daba8f1cd247feadc3b732c3e8678e0ee9a09dfe966371a679245c40b655c6",
+      "version_role": "current_source",
+      "path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/items/pair_0014/checkers/assembly_topology/result.json",
+      "purpose": "report_path",
+      "availability": "AVAILABLE",
+      "matches_current_source": true
+    },
+    {
+      "source_sha256": "88daba8f1cd247feadc3b732c3e8678e0ee9a09dfe966371a679245c40b655c6",
+      "version_role": "current_source",
+      "path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_01/checkers/assembly_topology/report.json",
+      "purpose": "checker detail",
+      "availability": "AVAILABLE",
+      "matches_current_source": true
+    }
+  ],
+  "evidence_path_instruction": "Read the given evidence_files/result_ref paths directly; do not add a candidate directory prefix. Relative tool paths are workspace-relative. Only assigned_source may be modified. Initial-source-only evidence is a historical clue, not a measurement of modified geometry. Use inline facts first; reading every detailed report is not required.",
+  "source_sha256": "88daba8f1cd247feadc3b732c3e8678e0ee9a09dfe966371a679245c40b655c6",
+  "source_version": "original",
+  "assembly_item_statuses": [
+    {
+      "kind": "part",
+      "part_id": "left_side_panel",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART"
+    },
+    {
+      "kind": "part",
+      "part_id": "top_shelf",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART"
+    },
+    {
+      "kind": "part",
+      "part_id": "right_side_panel",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART"
+    },
+    {
+      "kind": "part",
+      "part_id": "middle_shelf",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART"
+    },
+    {
+      "kind": "part",
+      "part_id": "lower_shelf",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART"
+    },
+    {
+      "kind": "part",
+      "part_id": "slanted_back_panel",
+      "connection_id": null,
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART"
+    },
+    {
+      "kind": "interface",
+      "part_id": null,
+      "connection_id": "connect_top_shelf_to_left_side",
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED"
+    },
+    {
+      "kind": "interface",
+      "part_id": null,
+      "connection_id": "connect_right_side_to_top_shelf",
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED"
+    },
+    {
+      "kind": "interface",
+      "part_id": null,
+      "connection_id": "connect_middle_shelf_to_right_side",
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED"
+    },
+    {
+      "kind": "interface",
+      "part_id": null,
+      "connection_id": "connect_lower_shelf_to_right_side",
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED"
+    },
+    {
+      "kind": "interface",
+      "part_id": null,
+      "connection_id": "connect_back_panel_to_right_side",
+      "pair_id": null,
+      "part_ids": null,
+      "status": "PASS",
+      "code": "INTERFACE_GEOMETRY_PAIRED"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "left_side_panel:lower_shelf",
+      "part_ids": [
+        "left_side_panel",
+        "lower_shelf"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "left_side_panel:middle_shelf",
+      "part_ids": [
+        "left_side_panel",
+        "middle_shelf"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "left_side_panel:right_side_panel",
+      "part_ids": [
+        "left_side_panel",
+        "right_side_panel"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "left_side_panel:slanted_back_panel",
+      "part_ids": [
+        "left_side_panel",
+        "slanted_back_panel"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "left_side_panel:top_shelf",
+      "part_ids": [
+        "left_side_panel",
+        "top_shelf"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "lower_shelf:middle_shelf",
+      "part_ids": [
+        "lower_shelf",
+        "middle_shelf"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "lower_shelf:right_side_panel",
+      "part_ids": [
+        "lower_shelf",
+        "right_side_panel"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "lower_shelf:slanted_back_panel",
+      "part_ids": [
+        "lower_shelf",
+        "slanted_back_panel"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "lower_shelf:top_shelf",
+      "part_ids": [
+        "lower_shelf",
+        "top_shelf"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "middle_shelf:right_side_panel",
+      "part_ids": [
+        "middle_shelf",
+        "right_side_panel"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "middle_shelf:slanted_back_panel",
+      "part_ids": [
+        "middle_shelf",
+        "slanted_back_panel"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "middle_shelf:top_shelf",
+      "part_ids": [
+        "middle_shelf",
+        "top_shelf"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "right_side_panel:slanted_back_panel",
+      "part_ids": [
+        "right_side_panel",
+        "slanted_back_panel"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "right_side_panel:top_shelf",
+      "part_ids": [
+        "right_side_panel",
+        "top_shelf"
+      ],
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE"
+    },
+    {
+      "kind": "pair",
+      "part_id": null,
+      "connection_id": null,
+      "pair_id": "slanted_back_panel:top_shelf",
+      "part_ids": [
+        "slanted_back_panel",
+        "top_shelf"
+      ],
+      "status": "FAIL",
+      "code": "UNDECLARED_PART_INTERFERENCE"
+    }
+  ],
+  "print_orientation_editable": false,
+  "resolved_visual_feedback": {
+    "reviewed_by": "code_critic",
+    "required_changes": [
+      "SlantedBackPanel.__init__: Do not add a second independent rotation. Minimally adjust the existing `rotate_shape(panel, axis=\"+x\", angle=-7.0, ...)` angle and/or the panel's rear placement to expose a mild but readable profile. Coordinate the same inclination in `tilted_vertical` and update the `connect_back_panel_to_right_side` slot-frame origin as needed. Then re-export and verify the exact frozen envelope, mate-frame consistency, and assembly topology."
+    ],
+    "issues": [
+      {
+        "severity": "HIGH",
+        "target": "SlantedBackPanel.__init__",
+        "problem": "The panel has an actual -7 degree X-axis rotation in the source, but the required slant is not visibly demonstrated in the supplied renders. Its profile is obscured by the side panels and low contrast, so it reads primarily as a straight rectangular upper fascia rather than a visibly tilted upper rear panel.",
+        "suggested_fix": "Do not add a second independent rotation. Minimally adjust the existing `rotate_shape(panel, axis=\"+x\", angle=-7.0, ...)` angle and/or the panel's rear placement to expose a mild but readable profile. Coordinate the same inclination in `tilted_vertical` and update the `connect_back_panel_to_right_side` slot-frame origin as needed. Then re-export and verify the exact frozen envelope, mate-frame consistency, and assembly topology."
+      },
+      {
+        "severity": "MED",
+        "target": "MATTE_BLACK",
+        "problem": "The nearly black surfaces are underexposed against the black background, causing side-panel and rear-panel boundaries to merge and making the existing back-panel inclination difficult to read.",
+        "suggested_fix": "Retain the monochromatic matte-black appearance but increase rim or directional illumination, or slightly lift the background/exposure, so the rear-panel profile separates from both side panels without introducing contrasting connector colors."
+      }
+    ]
+  },
+  "pending_reviews": {
+    "image_critic": {
+      "approved": false,
+      "observations": [
+        "All eight views show a monochromatic matte-black, height-dominant bookcase with two full-height side panels and three distinct horizontal shelves.",
+        "The lower, middle, and top shelves appear evenly spaced, aligned between the side panels, and free of visibly protruding connectors.",
+        "The frontal views (attachments 1 and 4) are broadly symmetrical, while the oblique views (attachments 2, 3, 5, and 6) confirm that both side panels extend to the floor.",
+        "Exact dimensions, interface count, connection topology, fit allowance, and print-part assignments cannot be certified from these diagnostic renders."
+      ],
+      "required_changes": [
+        "slanted_back_panel: Apply the intended small rotation about the X axis to the slanted_back_panel, or correct its body geometry if the tilt is meant to be intrinsic. Keep it between the side panels at the upper rear, retain the existing back_panel_joint and mate-frame alignment, and ensure the tilted panel remains within the frozen 1125 × 450 × 1800 mm assembly bounds."
+      ],
+      "issues": [
+        {
+          "severity": "HIGH",
+          "target": "slanted_back_panel",
+          "problem": "The required slant is not visibly evidenced. In the oblique/profile-revealing views at attachments 2, 3, 5, and 6, the upper back panel reads as a straight vertical fascia or rectangular panel without a discernible mild Y-Z tilt. This fails the explicit requirement to preserve a visibly slanted upper back panel.",
+          "suggested_fix": "Apply the intended small rotation about the X axis to the slanted_back_panel, or correct its body geometry if the tilt is meant to be intrinsic. Keep it between the side panels at the upper rear, retain the existing back_panel_joint and mate-frame alignment, and ensure the tilted panel remains within the frozen 1125 × 450 × 1800 mm assembly bounds."
+        },
+        {
+          "severity": "MED",
+          "target": null,
+          "problem": "The black surfaces are heavily underexposed in every view, particularly attachments 2, 3, 5, and 6. Panel boundaries and the upper-back-panel profile blend into the black background, making the silhouette and any subtle tilt difficult to read.",
+          "suggested_fix": "Increase rim or directional illumination and slightly lift the dark background or exposure while retaining the monochromatic matte-black material. Favor lighting that separates the rear panel from the side panels without introducing contrasting connector colors."
+        }
+      ]
+    },
+    "code_critic": {
+      "approved": false,
+      "observations": [
+        "The source preserves six separate print parts, with `left_side_panel` as the `FixedAssembly` root, `mm_per_unit=1.0`, and five `assembly.connect` interfaces. Both `shelf_side_joint` and `back_panel_joint` retain `fit_offset_mm=0.2`.",
+        "`SlantedBackPanel.__init__` does contain a real intrinsic tilt: `rotate_shape(panel, axis=\"+x\", angle=-7.0, center=(0.0, 0.0, 0.0))`. The related `connect_back_panel_to_right_side` interface also uses the matching tilted direction `tilted_vertical = (0.0, 0.1218693434, 0.9925461516)`. Therefore, the panel is not geometrically unrotated.",
+        "Despite that source rotation, the supplied renders do not make the required Y-Z lean reliably visible. Attachments 1 and 4 present the panel as a horizontal upper fascia, while the oblique attachments 2, 3, 5, and 6 provide insufficient profile separation from the side panels to establish a visibly slanted back panel. Because visible slant is an explicit appearance requirement, the discrepancy remains major.",
+        "The three shelves and two full-height side panels are consistently visible across the frontal and oblique views. No visibly protruding connector geometry appears above the shelf surfaces.",
+        "The very dark material/background combination reduces edge separation throughout the views and contributes to the ambiguity of the rear-panel profile.",
+        "The diagnostic renders are explicitly marked as display-only, and no assembly-topology result is supplied here. Consequently, dimensions, interference, fit, or other physical-checker conclusions cannot be established from these images."
+      ],
+      "required_changes": [
+        "SlantedBackPanel.__init__: Do not add a second independent rotation. Minimally adjust the existing `rotate_shape(panel, axis=\"+x\", angle=-7.0, ...)` angle and/or the panel's rear placement to expose a mild but readable profile. Coordinate the same inclination in `tilted_vertical` and update the `connect_back_panel_to_right_side` slot-frame origin as needed. Then re-export and verify the exact frozen envelope, mate-frame consistency, and assembly topology."
+      ],
+      "image_critic_corrections": [
+        "The HIGH issue is confirmed as a rendered-appearance failure, but its proposed diagnosis is corrected. `SlantedBackPanel.__init__` already rotates `panel` by -7 degrees about `+x`; the source is not missing the intended rotation. The associated interface also follows that inclination through `tilted_vertical` in `connect_back_panel_to_right_side`.",
+        "The HIGH issue remains HIGH because source intent does not override the rendered result: attachments 2, 3, 5, and 6 do not expose a clear side/profile edge showing the lean, and attachments 1 and 4 read as a rectangular upper fascia. Occlusion by the full-depth side panels and low contrast plausibly explain why the existing tilt is difficult to see, but they do not satisfy the explicit requirement that it be visibly slanted.",
+        "The corrective action is therefore revised from simply applying a rotation to making the existing lean visually legible through a coordinated change to the `rotate_shape(... angle=-7.0)` operation, `tilted_vertical`, and the back-panel connection placement. Any angle or placement change must be checked rather than assumed to remain inside the frozen envelope.",
+        "The MED lighting issue is retained. Across all supplied views, and especially attachments 2, 3, 5, and 6, `MATTE_BLACK = (0.018, 0.020, 0.024)` renders with weak separation from the black background. This is advisory, but improved lighting or background contrast would make the panel boundaries and tilt easier to assess."
+      ],
+      "issues": [
+        {
+          "severity": "HIGH",
+          "target": "SlantedBackPanel.__init__",
+          "problem": "The panel has an actual -7 degree X-axis rotation in the source, but the required slant is not visibly demonstrated in the supplied renders. Its profile is obscured by the side panels and low contrast, so it reads primarily as a straight rectangular upper fascia rather than a visibly tilted upper rear panel.",
+          "suggested_fix": "Do not add a second independent rotation. Minimally adjust the existing `rotate_shape(panel, axis=\"+x\", angle=-7.0, ...)` angle and/or the panel's rear placement to expose a mild but readable profile. Coordinate the same inclination in `tilted_vertical` and update the `connect_back_panel_to_right_side` slot-frame origin as needed. Then re-export and verify the exact frozen envelope, mate-frame consistency, and assembly topology."
+        },
+        {
+          "severity": "MED",
+          "target": "MATTE_BLACK",
+          "problem": "The nearly black surfaces are underexposed against the black background, causing side-panel and rear-panel boundaries to merge and making the existing back-panel inclination difficult to read.",
+          "suggested_fix": "Retain the monochromatic matte-black appearance but increase rim or directional illumination, or slightly lift the background/exposure, so the rear-panel profile separates from both side panels without introducing contrasting connector colors."
+        }
+      ]
+    },
+    "render_issue": null,
+    "repair_history": [
+      {
+        "version": "original",
+        "source_sha256": "88daba8f1cd247feadc3b732c3e8678e0ee9a09dfe966371a679245c40b655c6",
+        "reason": "assembly_topology_not_passed",
+        "topology_status": "FAIL",
+        "tool_statuses": {
+          "assembly_topology": "FAIL"
+        },
+        "overhang_change": null
+      }
+    ]
+  },
+  "remaining_repairs": 1,
+  "maximum_repair_proposals": 1,
+  "assignment": "Fixed assembly specialization: the old whole-object topology\nbridge_parent/scope-only rules do NOT apply. Index candidates are hints, not edit\npermissions. Read the assigned current source; infer relevant body classes,\nhelpers and add_part/connect/frame calls when index candidates are absent or\nambiguous. Explain location, evidence and uncertainty; never invent index IDs.\nUse exact current source symbols in allowed_scopes; top-level assembly statements\ncan use <module>. These are optional location hints, not edit permissions or\ninvented index IDs. Unresolved attribute hints must be verified by reading source.\nYou may minimally correct print grouping and connections, without a new Planner.\nKeep frozen units, fit allowance, dimensions and task requirements. No checker,\nconfiguration or mesh repair edits. Propose at most ONE coordinated source patch,\nincluding compatible resolved_visual_feedback.required_changes. Raw Image/Code\nreports are context; dismissed/downgraded Image issues are not mandatory edits.\nMED/LOW issues are advisory. Engineering advice does not change checker outcomes. Stop with no proposals if no\nreasonable edit follows from evidence. INDETERMINATE alone is not a shape defect.\nOPEN_PRINT_MESH with measured boundary locations permits a bounded local SOURCE\nrepair attempt, but is NOT confirmed disconnection. Read the current source and\nboundary evidence; local body/decoration simplification may be proposed without\nassuming the connector is at fault. Preserve required visible features. The exact\ncause remains uncertain until re-export and recheck. Never fill holes in exported\nmeshes, change tolerances/checker settings, or treat unavailable interfaces as FAIL.\nUNDECLARED_PART_INTERFERENCE identifies overlapping material between the named\nprint parts in assembly coordinates. Inspect the reported region, current body\ngeometry and the connections positioning those parts. Propose a minimal coordinated\nsource correction to dimensions, local clearance or interface frames as supported\nby evidence. A declared connection does not excuse overlap elsewhere. Check mate\nalignment after any placement change. AABB location identifies the result, not its\nunique source cause. Re-export and re-run the selected checks.\nEngineering approval cannot override measured FAIL. Recheck assembly_topology.\nRead the given evidence_files/result_ref paths directly; do not add a candidate directory prefix. Relative tool paths are workspace-relative. Only assigned_source may be modified. Initial-source-only evidence is a historical clue, not a measurement of modified geometry. Use inline facts first; reading every detailed report is not required."
+}

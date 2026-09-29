@@ -1,0 +1,43 @@
+{
+  "version": "attempt_0001",
+  "parent": "original",
+  "source_sha256": "35909286dcb68a4e03f7140446d9f8d541c4d78877ebc8995abdd1a741c12acb",
+  "accepted": false,
+  "reason": "partition_improved_surface_unresolved",
+  "geometry_status": "NOT_EVALUATED",
+  "appearance_approved": false,
+  "edit_purpose": "partition_optimization",
+  "comparison_baseline_version": "original",
+  "partition_reference": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_full_flow_20260929/cases/SF10/partition_references/969391f2f5e87ffc6b4f84e7c20c1af3d6414c3951f10997b219d417ca2a98ab/partition_reference.json",
+  "body_reference_comparison": {
+    "status": "MATCH",
+    "semantic_ownership_preserved": true,
+    "root_frame_preserved": true,
+    "symmetric_difference_mm3": 0.0,
+    "volume_tolerance_mm3": 7401.492657747247,
+    "bounds_change_mm": 0.0,
+    "length_tolerance_mm": 0.001430511474609375,
+    "previous_volume_mm3": 145322042.45380157,
+    "candidate_volume_mm3": 145322042.4538015,
+    "candidate_bounds_mm": [
+      [
+        -750.0,
+        -375.0,
+        0.0
+      ],
+      [
+        750.0,
+        375.0,
+        750.0
+      ]
+    ],
+    "reference_sha256": "969391f2f5e87ffc6b4f84e7c20c1af3d6414c3951f10997b219d417ca2a98ab"
+  },
+  "partition_change_vs_baseline": {
+    "conclusion": "IMPROVED",
+    "delta": 1.2449267778405328,
+    "rounding_tolerance": 5.419135877294913e-12
+  },
+  "partition_ready": true,
+  "partition_adopted": true
+}

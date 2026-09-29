@@ -1,0 +1,393 @@
+{
+  "checker": "assembly_standing",
+  "version": 1,
+  "status": "PASS",
+  "summary": "After 5 s self-weight: final tilt 0.0001925 deg; 0 interfaces outside; standing observation PASS; settling diagnostic: settled (not a pass requirement)",
+  "metrics": {
+    "observation_duration_seconds": 5.0,
+    "simulation_wall_seconds": 3.248792776837945,
+    "initial_contact_count": 308,
+    "initial_minimum_contact_distance_mm": -0.01999999999853959,
+    "max_contact_count": 308,
+    "max_interpart_flex_contacts": 300,
+    "simulated_duration_seconds": 5.0,
+    "assessment_time_seconds": 5.0,
+    "assessment_scope": "Full gravity-only observation; final state at the end, first events are not early stops",
+    "final_tipped": false,
+    "final_exited_interfaces": [],
+    "peak_tilt_deg": 0.00030225034116677625,
+    "final_tilt_deg": 0.0001925198046606726,
+    "tipped": false,
+    "exits": {},
+    "settled": true,
+    "final_interfaces": [
+      {
+        "connection_id": "left_leg_front_mount",
+        "exited": false,
+        "exit_axial_mm": 0.017581483280764587,
+        "lateral_offset_mm": 0.02342970225719451,
+        "relative_angle_deg": 0.0003049944285279185,
+        "insertion_volume_mm3": 35968.35333009421,
+        "volume_uncertainty_mm3": 0.34051803416082915,
+        "effective_insertion_interval_mm": [
+          0.0,
+          19.982549325023502
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.9999999999977011,
+            -2.1340667711809947e-06,
+            -2.0717799513127654e-07,
+            -429.9980847722852
+          ],
+          [
+            2.1340660763738907e-06,
+            0.9999999999920993,
+            -3.3536145977572156e-06,
+            -150.00147942896447
+          ],
+          [
+            2.0718515196711618e-07,
+            3.3536141556179755e-06,
+            0.9999999999943548,
+            694.9947439770641
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "left_leg_rear_mount",
+        "exited": false,
+        "exit_axial_mm": 0.01853824772626922,
+        "lateral_offset_mm": 0.02438354884810335,
+        "relative_angle_deg": 0.0003049944285279185,
+        "insertion_volume_mm3": 35966.63115409228,
+        "volume_uncertainty_mm3": 0.340518034119389,
+        "effective_insertion_interval_mm": [
+          0.0,
+          19.981592560577997
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.9999999999977011,
+            -2.1340667711809947e-06,
+            -2.0717799513127654e-07,
+            -429.9987249923165
+          ],
+          [
+            2.1340660763738907e-06,
+            0.9999999999920993,
+            -3.3536145977572156e-06,
+            149.99852056866533
+          ],
+          [
+            2.0718515196711618e-07,
+            3.3536141556179755e-06,
+            0.9999999999943548,
+            694.9957500613108
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "right_leg_front_mount",
+        "exited": false,
+        "exit_axial_mm": 0.017768955153201205,
+        "lateral_offset_mm": 0.018783400162472694,
+        "relative_angle_deg": 0.0008152782853546184,
+        "insertion_volume_mm3": 35968.01588072408,
+        "volume_uncertainty_mm3": 0.3405194692819817,
+        "effective_insertion_interval_mm": [
+          0.0,
+          19.982308084091013
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.9999999999977011,
+            -2.1340667711809947e-06,
+            -2.0717799513127654e-07,
+            430.00191522573766
+          ],
+          [
+            2.1340660763738907e-06,
+            0.9999999999920993,
+            -3.3536145977572156e-06,
+            -149.9996441321388
+          ],
+          [
+            2.0718515196711618e-07,
+            3.3536141556179755e-06,
+            0.9999999999943548,
+            694.9949221562947
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "right_leg_rear_mount",
+        "exited": false,
+        "exit_axial_mm": 0.018516472560804687,
+        "lateral_offset_mm": 0.022979022192587514,
+        "relative_angle_deg": 0.0008152782853546184,
+        "insertion_volume_mm3": 35966.670349390384,
+        "volume_uncertainty_mm3": 0.3405194688696828,
+        "effective_insertion_interval_mm": [
+          0.0,
+          19.98156056668341
+        ],
+        "slot_frame_world_mm": [
+          [
+            0.9999999999977011,
+            -2.1340667711809947e-06,
+            -2.0717799513127654e-07,
+            430.00127500570636
+          ],
+          [
+            2.1340660763738907e-06,
+            0.9999999999920993,
+            -3.3536145977572156e-06,
+            150.000355865491
+          ],
+          [
+            2.0718515196711618e-07,
+            3.3536141556179755e-06,
+            0.9999999999943548,
+            694.9959282405414
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "upper_brace_left_mount",
+        "exited": false,
+        "exit_axial_mm": 0.022570460572353568,
+        "lateral_offset_mm": 0.18322824778627955,
+        "relative_angle_deg": 0.0013410830106513614,
+        "insertion_volume_mm3": 68687.93123341481,
+        "volume_uncertainty_mm3": 0.5741743437234604,
+        "effective_insertion_interval_mm": [
+          0.0,
+          24.977982386252645
+        ],
+        "slot_frame_world_mm": [
+          [
+            -5.31357818909289e-06,
+            -2.630478173145158e-06,
+            -0.9999999999824218,
+            -385.02257437694453
+          ],
+          [
+            0.999999999985868,
+            1.6438470101655338e-07,
+            -5.3135786215215695e-06,
+            -0.0011321629821392449
+          ],
+          [
+            1.6439867826624925e-07,
+            -0.9999999999965254,
+            2.6304772996370264e-06,
+            594.9770687779076
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "upper_brace_right_mount",
+        "exited": false,
+        "exit_axial_mm": 0.022583696721881097,
+        "lateral_offset_mm": 0.1825924443452858,
+        "relative_angle_deg": 0.002227109755453499,
+        "insertion_volume_mm3": 68687.8948339741,
+        "volume_uncertainty_mm3": 0.5741756520304421,
+        "effective_insertion_interval_mm": [
+          0.0,
+          24.97834864193493
+        ],
+        "slot_frame_world_mm": [
+          [
+            1.185134500583324e-05,
+            -1.0263815606336199e-06,
+            0.9999999999292455,
+            385.0225789653731
+          ],
+          [
+            0.9999999999294007,
+            -8.618801970466411e-07,
+            -1.1851345890453024e-05,
+            0.0009919748517392855
+          ],
+          [
+            8.618923609885504e-07,
+            0.9999999999991012,
+            1.0263713461215897e-06,
+            594.9772363023221
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "lower_brace_left_mount",
+        "exited": false,
+        "exit_axial_mm": 0.022708667220058487,
+        "lateral_offset_mm": 0.2558386132766606,
+        "relative_angle_deg": 0.0007099732363918181,
+        "insertion_volume_mm3": 68687.5511651436,
+        "volume_uncertainty_mm3": 0.5741786117035885,
+        "effective_insertion_interval_mm": [
+          0.0,
+          24.977504036543145
+        ],
+        "slot_frame_world_mm": [
+          [
+            -5.31357818909289e-06,
+            -2.630478173145158e-06,
+            -0.9999999999824218,
+            -385.0234818919143
+          ],
+          [
+            0.999999999985868,
+            1.6438470101655338e-07,
+            -5.3135786215215695e-06,
+            -0.0010754502602885341
+          ],
+          [
+            1.6439867826624925e-07,
+            -0.9999999999965254,
+            2.6304772996370264e-06,
+            249.97706877910625
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      {
+        "connection_id": "lower_brace_right_mount",
+        "exited": false,
+        "exit_axial_mm": 0.023710003612734454,
+        "lateral_offset_mm": 0.2541533561150817,
+        "relative_angle_deg": 0.000939870233825183,
+        "insertion_volume_mm3": 68684.79749006024,
+        "volume_uncertainty_mm3": 0.5741793802759041,
+        "effective_insertion_interval_mm": [
+          0.0,
+          24.976606972848796
+        ],
+        "slot_frame_world_mm": [
+          [
+            1.185134500583324e-05,
+            -1.0263815606336199e-06,
+            0.9999999999292455,
+            385.0229330670115
+          ],
+          [
+            0.9999999999294007,
+            -8.618801970466411e-07,
+            -1.1851345890453024e-05,
+            0.0012893235197203763
+          ],
+          [
+            8.618923609885504e-07,
+            0.9999999999991012,
+            1.0263713461215897e-06,
+            249.9772363026322
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      }
+    ],
+    "final_linear_speed_m_s": 9.731511373364795e-08,
+    "final_angular_speed_rad_s": 1.315699156780973e-07,
+    "interface_retention_verified": true,
+    "interface_method": "TabSlot solid intersection with declared insertion region at sampled simulated relative poses; no pullout-force claim",
+    "initial_contact_check": {
+      "verified": true,
+      "maximum_penetration_mm": 0.01999999999853959,
+      "shell_plus_numeric_bound_mm": 0.02286102294921875
+    },
+    "simulation_frames": []
+  },
+  "violations": [],
+  "assumptions": {
+    "uniform_density_kg_m3": 1240.0,
+    "external_load_stability": "NOT_EVALUATED",
+    "standing_criterion": "No sampled root tilt above the configured limit and no interface exit during the full observation; settling is diagnostic only",
+    "contact": "independent bodies, no weld; rigid surface flex, display mesh collision disabled",
+    "collision_backend": "rigid_flex",
+    "rigid_flex_contact": {
+      "radius_mm": 0.01,
+      "margin_mm": 0.0,
+      "gap_mm": 0.0,
+      "paired_shell_thickness_mm": 0.02,
+      "minimum_fit_clearance_mm": 0.2,
+      "remaining_minimum_clearance_mm": 0.18000000000000002,
+      "choice": "min(0.01 mm, minimum positive single-sided fit / 20), or explicit radius_mm",
+      "representation": "rigid dim=2 surface flex; not volumetric FEM; no remeshing"
+    },
+    "mujoco_version": "3.12.0",
+    "coacd_version": null,
+    "configuration": {
+      "duration_seconds": 5.0,
+      "timestep_seconds": 0.002,
+      "friction": [
+        0.5,
+        0.005,
+        0.0001
+      ],
+      "tilt_threshold_deg": 25.0,
+      "settle_window_seconds": 0.5,
+      "settle_linear_m_s": 0.001,
+      "settle_angular_rad_s": 0.01,
+      "collision_backend": "rigid_flex"
+    },
+    "source_sha256": "661c5a12b2971ba430b00c034338a0140cba6dd79936fbfba28e45757113b309",
+    "manifest_sha256": "f800cd239d783ad289a9e3bd4e7370c4c81b81f411b38701426b12cbb225c8f9",
+    "physics_sha256": "581be0f2b2099e61e781a87edb986905c91ebd06436954e385eb091c5373f593",
+    "elapsed_seconds": 6.6478209383785725
+  },
+  "artifacts": {
+    "trajectory": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_standing/trajectory.json",
+    "simulation": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_standing/model.xml",
+    "report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_standing/report.json"
+  },
+  "analysis_context": null,
+  "findings": []
+}

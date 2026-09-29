@@ -1,0 +1,154 @@
+{
+  "approved": false,
+  "observations": [
+    "The current source defines five pre-connector print parts at module scope using TaperedTabletop, Pedestal, and HorizontalBrace, then registers them through FixedAssembly.add_part and creates all eight interfaces through FixedAssembly.connect.",
+    "Required assembly_topology passed all 23 evaluated items: all five print parts are connected, all eight interfaces have paired geometry, and every evaluated part pair has no undeclared interference. These results are preservation constraints for any regrouping.",
+    "Required assembly_standing passed with final tilt 0.0001925 degrees and zero interfaces outside; the feet, assembled orientation, and existing interface locations must therefore remain unchanged.",
+    "The frozen-reference partition baseline has N=5, G=0, and Dapper score 380.09285943552595. A split to N=6 cannot improve even at zero gap. A merge to N=4 can improve only if the resulting gap count remains strictly below 39.88695614126527 voxels.",
+    "A bounded merge of lower_brace into left_pedestal is a reasonable local hypothesis. Their original bodies meet at the left upright inner face x=-385 mm, and the lower brace is the lower of the two cantilever-like members, making it the less disruptive brace to combine with one pedestal. This is only a grouping hypothesis; its resulting gap and score have not been measured.",
+    "The HIGH tabletop-gloss requirement remains unresolved. TaperedTabletop.body uses only primitive color, and the inspected source contains no supported material, roughness, or specular API. This should not be replaced by transparency, relief geometry, or invented material methods and is deferred from the partition patch."
+  ],
+  "required_changes": [
+    "Evaluate the single proposed left-pedestal/lower-brace merge against the same frozen Dapper reference, preserving every pre-connector body and all frozen dimensions, frames, units, colors, and TabSlot parameters. Retain the baseline unless the rechecked candidate is feasible and improves the measured score.",
+    "Keep the glossy tabletop requirement recorded as an unresolved appearance capability limitation unless a supported renderer/exporter material configuration becomes available; do not include an unsupported material workaround in this grouping edit."
+  ],
+  "checker_interpretation": [
+    "assembly_topology PASS establishes that the current part connectivity, interface pairing, and absence of undeclared interference must not regress. The regrouped candidate must remove only the interface made internal by the merge and must recreate or retarget every remaining cross-group connection.",
+    "assembly_standing PASS establishes the current body geometry and assembled poses as preservation constraints; the grouping patch must not move, resize, reshape, or reorient any body in assembly coordinates.",
+    "assembly_overhang reports an optimization opportunity rather than a defect. With the baseline at N=5 and G=0, splitting is arithmetically excluded, while an N=4 merge is falsifiable: it improves the objective only if its measured gap remains below the supplied exclusive bound of 39.88695614126527 voxels.",
+    "Because lower_brace already meets left_pedestal at the declared lower_brace_left_mount interface and lies substantially lower than upper_brace, merging those two parts may reduce the part-count penalty while limiting new vertical-gap cost. The exact gap and Dapper score remain unknown until re-export and measurement.",
+    "The visual gloss issue is independent of partition geometry. No supported source-level appearance edit was found, so it does not justify changing table geometry or the checker configuration."
+  ],
+  "repair_proposals": [
+    {
+      "proposal_id": "partition_merge_left_pedestal_lower_brace_v1",
+      "finding_ids": [
+        "assembly_overhang:PRINT_PARTITION_OPPORTUNITY:tabletop:left_pedestal:right_pedestal:upper_brace:lower_brace"
+      ],
+      "hypothesis": "Merging the original pre-connector left_pedestal and lower_brace bodies into one connected print part will reduce print-part count from 5 to 4, and because the lower brace meets the pedestal at x=-385 mm and is positioned near z=250 mm, the resulting frozen-reference gap increase may remain below 39.88695614126527 voxels, producing a Dapper score above the baseline 380.09285943552595.",
+      "evidence": [
+        "The measured baseline is N=5, G=0, score=380.09285943552595 under the frozen Dapper reference.",
+        "The supplied N=4 guidance permits improvement only below an exclusive gap count of 39.88695614126527 voxels.",
+        "In source, Pedestal creates the left upright from x=-475 mm to -385 mm, while HorizontalBrace creates lower_brace with x extent -385 mm to 385 mm; the two pre-connector bodies therefore meet at the declared inner interface plane.",
+        "lower_brace is centered at z=250 mm, below upper_brace at z=595 mm, so it is the more localized brace-pedestal merge candidate when attempting to limit vertical-gap growth.",
+        "The current lower_brace_left_mount interface geometry, all other interfaces, topology, and standing checks pass."
+      ],
+      "target": {
+        "feature_ids": [
+          "feature:FixedAssembly/left_pedestal",
+          "feature:FixedAssembly/left_pedestal/base/base/op_0/op_0/left_leg_upright",
+          "feature:FixedAssembly/left_pedestal/base/base/op_0/op_0/left_leg_foot"
+        ],
+        "source_ids": [
+          "source:ecb01088983bf77c71a7",
+          "source:4fc851c58ee1f0bd2375"
+        ],
+        "parameters": [
+          "assembly.add_part registrations",
+          "assembly.connect declarations",
+          "left_pedestal_asset",
+          "lower_brace_asset"
+        ],
+        "allowed_scopes": [
+          "<module>",
+          "Pedestal",
+          "HorizontalBrace",
+          "assembly.add_part",
+          "assembly.connect"
+        ]
+      },
+      "action": "regroup_print_parts",
+      "grouping_change": {
+        "operation": "merge",
+        "source_part_ids": [
+          "left_pedestal",
+          "lower_brace"
+        ],
+        "target_print_parts": [
+          {
+            "id": "left_pedestal_lower_brace",
+            "components": [
+              "left_leg_upright",
+              "left_leg_foot",
+              "lower_brace"
+            ]
+          }
+        ],
+        "connection_changes": [
+          "Construct left_pedestal_lower_brace from the unchanged pre-connector left_pedestal_asset and lower_brace_asset children in their existing assembled coordinates; do not use connector-decorated outputs and do not alter or omit either body.",
+          "Remove lower_brace_left_mount because that interface becomes internal to the merged print part; do not retain its generated tab or slot geometry.",
+          "Retarget left_leg_front_mount and left_leg_rear_mount so their tab_part is left_pedestal_lower_brace, preserving their IDs, ports, frames, order, and tabletop_leg_joint parameters.",
+          "Retarget upper_brace_left_mount so its slot_part is left_pedestal_lower_brace, preserving its ID, ports, frame, order, and brace_leg_joint parameters.",
+          "Retarget lower_brace_right_mount so its tab_part is left_pedestal_lower_brace, preserving its ID, ports, frame, order, and brace_leg_joint parameters.",
+          "Leave right_leg_front_mount, right_leg_rear_mount, upper_brace_right_mount, and all unaffected endpoint frames unchanged."
+        ]
+      },
+      "parameter_bounds": {
+        "resulting_print_part_count": {
+          "min": 4,
+          "max": 4
+        },
+        "body_dimension_changes_mm": {
+          "min": 0.0,
+          "max": 0.0
+        },
+        "body_transform_changes_mm": {
+          "min": 0.0,
+          "max": 0.0
+        },
+        "body_rotation_changes_deg": {
+          "min": 0.0,
+          "max": 0.0
+        },
+        "mm_per_unit": {
+          "min": 1.0,
+          "max": 1.0
+        },
+        "fit_offset_mm": {
+          "min": 0.2,
+          "max": 0.2
+        },
+        "score_improvement_gap_condition": {
+          "gap_voxels_exclusive_max": 39.88695614126527
+        },
+        "baseline_score": 380.09285943552595
+      },
+      "expected_improvements": [
+        "Reduce print-part count from five to four without changing visible geometry or assembled dimensions.",
+        "Potentially increase the frozen-reference Dapper score if the measured merged-part gap remains below the supplied exclusive N=4 bound.",
+        "Eliminate one now-internal tab-slot interface while retaining all cross-group interfaces needed to assemble the tabletop, upper brace, right pedestal, and merged part."
+      ],
+      "possible_regressions": [
+        "The merged pedestal-and-brace print pose may introduce 39.88695614126527 or more gap voxels, in which case it will not improve the baseline and must be rejected.",
+        "Incorrectly retaining lower_brace_left_mount could duplicate material at the internal interface or cause topology/interference failure.",
+        "Incorrect retargeting could detach a component, change connection order, misalign lower_brace_right_mount, or break one of the previously paired interfaces.",
+        "The larger asymmetric print part may alter standing behavior after assembly even though body poses are intended to remain fixed.",
+        "Rebuilding from connector-decorated rather than original bodies could preserve obsolete internal tabs or slots and change the frozen comparison body."
+      ],
+      "preserve": [
+        "All original tabletop, pedestal, foot, upper-brace, and lower-brace pre-connector body material and world-space transforms.",
+        "Overall assembled bounds of 1500.0 by 750.0 by 750.0 mm and mm_per_unit=1.0.",
+        "The tabletop root ID and root frame.",
+        "The bilateral tabletop taper, both feet at z=0, both upright-to-tabletop contacts, and both visibly distinct horizontal braces.",
+        "WOOD and DARK_METAL colors and the current visible appearance; do not attempt an unsupported gloss workaround in this patch.",
+        "tabletop_leg_joint and brace_leg_joint dimensions, including fit_offset_mm=0.2.",
+        "All mounting shoulders, semantic components, unique endpoint ports, and unaffected connection IDs and frames.",
+        "The frozen Dapper reference, orientation set, voxel pitch, checker thresholds, checker configuration, and comparison baseline."
+      ],
+      "rerun_checkers": [
+        "assembly_topology",
+        "assembly_overhang",
+        "assembly_standing",
+        "image_critic",
+        "code_critic"
+      ],
+      "preconditions": [
+        "Use the original pre-connector left_pedestal_asset and lower_brace_asset bodies as the merged part's children.",
+        "Confirm the two bodies still meet at the original x=-385 mm interface without adding filler geometry or changing dimensions.",
+        "Ensure connection processing still starts from tabletop and every remaining connection has at least one already placed endpoint.",
+        "Adopt the candidate only after re-export shows feasible topology and a measured frozen-reference Dapper score above 380.09285943552595; otherwise retain the qualified five-part baseline."
+      ]
+    }
+  ],
+  "unresolved_findings": []
+}

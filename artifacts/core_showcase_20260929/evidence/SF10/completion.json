@@ -1,0 +1,642 @@
+{
+  "code_commit": "082b3744e839ea54b2513ef76b885f612c58ecaa",
+  "completed_utc": "2026-09-29T06:40:56Z",
+  "elapsed_seconds": 784.322488931939,
+  "error": null,
+  "approved": false,
+  "selected": "attempt_0001",
+  "qualified": null,
+  "stop_reason": "round_budget_exhausted",
+  "versions": [
+    {
+      "version": "original",
+      "source": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/original/source.py",
+      "source_sha256": "661c5a12b2971ba430b00c034338a0140cba6dd79936fbfba28e45757113b309",
+      "accepted": false,
+      "partition_ready": true,
+      "partition_adopted": false,
+      "appearance_approved": false,
+      "reason": "interface_or_appearance_rejected",
+      "edit_purpose": "required_repair",
+      "comparison_baseline_version": null,
+      "comparison": null,
+      "body_comparison": {
+        "status": "MATCH",
+        "semantic_ownership_preserved": true,
+        "root_frame_preserved": true,
+        "symmetric_difference_mm3": 0.0,
+        "volume_tolerance_mm3": 7401.492657747247,
+        "bounds_change_mm": 0.0,
+        "length_tolerance_mm": 0.001430511474609375,
+        "previous_volume_mm3": 145322042.45380157,
+        "candidate_volume_mm3": 145322042.45380157,
+        "candidate_bounds_mm": [
+          [
+            -750.0,
+            -375.0,
+            0.0
+          ],
+          [
+            750.0,
+            375.0,
+            750.0
+          ]
+        ],
+        "reference_sha256": "969391f2f5e87ffc6b4f84e7c20c1af3d6414c3951f10997b219d417ca2a98ab"
+      },
+      "score": {
+        "method": "dapper_fdm_2015",
+        "alpha": 0.3,
+        "r_vox": 0.1,
+        "orientation_set": "axis_aligned_24",
+        "layout": "independent_bed",
+        "reference_sha256": "969391f2f5e87ffc6b4f84e7c20c1af3d6414c3951f10997b219d417ca2a98ab",
+        "evaluation_config_sha256": "f15386fa287b5e1e385bb92cfaef84641869f814b6cb43662fe1276f09488ef4",
+        "voxel_pitch_mm": 75.0,
+        "reference_voxels": 616,
+        "gap_voxels": 0,
+        "print_part_count": 5,
+        "score": 380.09285943552595,
+        "direction": "maximize",
+        "numerator_nonpositive": false,
+        "gap_volume_mm3": 0.0
+      },
+      "guidance": {
+        "status": "AVAILABLE",
+        "current": {
+          "N": 5,
+          "G": 0,
+          "score": 380.09285943552595
+        },
+        "numerator_nonpositive": false,
+        "split_one_more": {
+          "target_part_count": 6,
+          "zero_gap_score_upper_bound": 359.86145953780516,
+          "improvement_possible": false
+        },
+        "merge_one_fewer": {
+          "target_part_count": 4,
+          "gap_voxels_exclusive_upper_bound": 39.88695614126527,
+          "allowed_gap_increase_exclusive": 39.88695614126527
+        }
+      },
+      "checks": {
+        "assembly_topology": "PASS",
+        "assembly_overhang": "PASS",
+        "assembly_standing": "PASS"
+      },
+      "parts": [
+        {
+          "id": "tabletop",
+          "components": [
+            "tabletop"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "left_pedestal",
+          "components": [
+            "left_leg_upright",
+            "left_leg_foot"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "right_pedestal",
+          "components": [
+            "right_leg_upright",
+            "right_leg_foot"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "upper_brace",
+          "components": [
+            "upper_brace"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "lower_brace",
+          "components": [
+            "lower_brace"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ],
+      "connection_ids": [
+        "left_leg_front_mount",
+        "left_leg_rear_mount",
+        "right_leg_front_mount",
+        "right_leg_rear_mount",
+        "upper_brace_left_mount",
+        "upper_brace_right_mount",
+        "lower_brace_left_mount",
+        "lower_brace_right_mount"
+      ],
+      "geometry_status": "NOT_EVALUATED",
+      "export_status": "PASS"
+    },
+    {
+      "version": "attempt_0001",
+      "source": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_02/candidates/01_partition_merge_left_pedestal_lower_brace_v1/source.py",
+      "source_sha256": "35909286dcb68a4e03f7140446d9f8d541c4d78877ebc8995abdd1a741c12acb",
+      "accepted": false,
+      "partition_ready": true,
+      "partition_adopted": true,
+      "appearance_approved": false,
+      "reason": "partition_improved_surface_unresolved",
+      "edit_purpose": "partition_optimization",
+      "comparison_baseline_version": "original",
+      "comparison": {
+        "conclusion": "IMPROVED",
+        "delta": 1.2449267778405328,
+        "rounding_tolerance": 5.419135877294913e-12
+      },
+      "body_comparison": {
+        "status": "MATCH",
+        "semantic_ownership_preserved": true,
+        "root_frame_preserved": true,
+        "symmetric_difference_mm3": 0.0,
+        "volume_tolerance_mm3": 7401.492657747247,
+        "bounds_change_mm": 0.0,
+        "length_tolerance_mm": 0.001430511474609375,
+        "previous_volume_mm3": 145322042.45380157,
+        "candidate_volume_mm3": 145322042.4538015,
+        "candidate_bounds_mm": [
+          [
+            -750.0,
+            -375.0,
+            0.0
+          ],
+          [
+            750.0,
+            375.0,
+            750.0
+          ]
+        ],
+        "reference_sha256": "969391f2f5e87ffc6b4f84e7c20c1af3d6414c3951f10997b219d417ca2a98ab"
+      },
+      "score": {
+        "method": "dapper_fdm_2015",
+        "alpha": 0.3,
+        "r_vox": 0.1,
+        "orientation_set": "axis_aligned_24",
+        "layout": "independent_bed",
+        "reference_sha256": "969391f2f5e87ffc6b4f84e7c20c1af3d6414c3951f10997b219d417ca2a98ab",
+        "evaluation_config_sha256": "f15386fa287b5e1e385bb92cfaef84641869f814b6cb43662fe1276f09488ef4",
+        "voxel_pitch_mm": 75.0,
+        "reference_voxels": 616,
+        "gap_voxels": 38,
+        "print_part_count": 4,
+        "score": 381.3377862133665,
+        "direction": "maximize",
+        "numerator_nonpositive": false,
+        "gap_volume_mm3": 16031250.0
+      },
+      "guidance": {
+        "status": "AVAILABLE",
+        "current": {
+          "N": 4,
+          "G": 38,
+          "score": 381.3377862133665
+        },
+        "numerator_nonpositive": false,
+        "split_one_more": {
+          "target_part_count": 5,
+          "zero_gap_score_upper_bound": 380.09285943552595,
+          "improvement_possible": false
+        },
+        "merge_one_fewer": {
+          "target_part_count": 3,
+          "gap_voxels_exclusive_upper_bound": 85.79207181669176,
+          "allowed_gap_increase_exclusive": 47.79207181669176
+        }
+      },
+      "checks": {
+        "assembly_topology": "PASS",
+        "assembly_overhang": "PASS",
+        "assembly_standing": "PASS"
+      },
+      "parts": [
+        {
+          "id": "tabletop",
+          "components": [
+            "tabletop"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "left_pedestal_lower_brace",
+          "components": [
+            "left_leg_upright",
+            "left_leg_foot",
+            "lower_brace"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "right_pedestal",
+          "components": [
+            "right_leg_upright",
+            "right_leg_foot"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        {
+          "id": "upper_brace",
+          "components": [
+            "upper_brace"
+          ],
+          "assembly_transform": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        }
+      ],
+      "connection_ids": [
+        "left_leg_front_mount",
+        "left_leg_rear_mount",
+        "right_leg_front_mount",
+        "right_leg_rear_mount",
+        "upper_brace_left_mount",
+        "upper_brace_right_mount",
+        "lower_brace_right_mount"
+      ],
+      "geometry_status": "NOT_EVALUATED",
+      "export_status": "PASS"
+    }
+  ],
+  "print_layout": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/print_parts/attempt_0001/print_layout.json",
+  "print_parts": [
+    {
+      "part_id": "tabletop",
+      "stl": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/print_parts/attempt_0001/tabletop.stl",
+      "stl_sha256": "e35cefb473e15adba0e876a19ceb9c5412327c48bdb46a7cdd0058f64ba2886b",
+      "mesh_sha256": "aec10dc085d5fc97329d3ea8b7f146a7a0b7b306a90149ce3d1d663c72283cd1",
+      "gap_voxels": 0,
+      "selected_rotation_id": 0,
+      "recommended_print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          750.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          375.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -695.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "part_id": "left_pedestal_lower_brace",
+      "stl": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/print_parts/attempt_0001/left_pedestal_lower_brace.stl",
+      "stl_sha256": "79a855c990d0da04355bcfa5e4e7b40a063bdf5fb3ed23834b34498ad302694d",
+      "mesh_sha256": "ffa7de8e3fe3b774d962ea9335058e2eaab53933394c0de07ee3c32e8e5030b6",
+      "gap_voxels": 38,
+      "selected_rotation_id": 1,
+      "recommended_print_transform_mm": [
+        [
+          -1.0,
+          0.0,
+          0.0,
+          410.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          300.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "part_id": "right_pedestal",
+      "stl": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/print_parts/attempt_0001/right_pedestal.stl",
+      "stl_sha256": "b129426ab9713dcd525da1beb6d1bd1c98dd3c0fc9569d334ab5a7de501cdaac",
+      "mesh_sha256": "ed9468a832d776b05955f1d52bfee01c4712e52e5cb82552b19eec28be11df96",
+      "gap_voxels": 0,
+      "selected_rotation_id": 0,
+      "recommended_print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -270.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          300.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "part_id": "upper_brace",
+      "stl": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/print_parts/attempt_0001/upper_brace.stl",
+      "stl_sha256": "a0e29db1472d69c16f8ca2877864fe7e85a56e4afd75d3c8604df7d9987b07f3",
+      "mesh_sha256": "af82ac9cb5aac0ccbabb661ebfad8585fdec6eea3c51e0019ba33e4cffa4fa68",
+      "gap_voxels": 0,
+      "selected_rotation_id": 0,
+      "recommended_print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          410.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          35.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -560.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "engineering_paths": [
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/engineering_critique.json"
+  ],
+  "actual_calls": [
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/actual_model_calls/02_code-critic_round_1/input.json",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/actual_model_calls/01_image-critic_round_1/input.json",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/actual_model_calls/06_code-critic_round_2/input.json",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/actual_model_calls/04_coder_assembly_2/input.json",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/actual_model_calls/05_image-critic_round_2/input.json",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/actual_model_calls/03_engineering-critic_assembly_round_01/input.json"
+  ]
+}

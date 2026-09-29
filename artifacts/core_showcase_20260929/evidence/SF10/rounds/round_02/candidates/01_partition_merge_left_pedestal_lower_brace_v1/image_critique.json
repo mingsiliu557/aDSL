@@ -1,0 +1,22 @@
+{
+  "approved": false,
+  "observations": [
+    "Orbit views 1–6 show a complete conference-table form with a warm-brown tapered tabletop, two mirrored dark-gray pedestal supports, broad coplanar-looking feet, and strong color contrast between top and base.",
+    "Top view 7 clearly shows the tabletop's straight, symmetric trapezoidal outline and subtle front-to-back taper, without visible skew, bowing, or oval rounding.",
+    "Orbit views 1 and 4 and bottom view 8 confirm two distinct horizontal braces spanning between the supports. No visible brace detachment, exterior protrusion, or unsupported environmental geometry is evident.",
+    "The current candidate remains visually consistent with the prior renders; the grouping change has not introduced an evidenced shape or placement defect.",
+    "The optional wood-like character is not mandatory, so the absence of wood grain or decorative relief is not an issue."
+  ],
+  "required_changes": [
+    "tabletop: Use a supported color/alpha or existing default-shader configuration only if it can create a visibly glossy warm-brown tabletop while leaving the legs and braces matte. Do not invent roughness/specular setter methods; if the available controls cannot express gloss, report the finish as unsupported and unresolved."
+  ],
+  "issues": [
+    {
+      "aspect": "surface",
+      "severity": "HIGH",
+      "target": "tabletop",
+      "problem": "Across orbit views 1–6 and top view 7, the tabletop is smooth and warm brown but still reads as diffuse or matte, with no clear glossy highlight or reflection. This matches the previous critic evidence and fails the explicit requirement for a smooth, glossy tabletop finish. Source evidence indicates that only color/alpha with default Principled shading is publicly supported, making the unmet gloss a current capability limitation.",
+      "suggested_fix": "Use a supported color/alpha or existing default-shader configuration only if it can create a visibly glossy warm-brown tabletop while leaving the legs and braces matte. Do not invent roughness/specular setter methods; if the available controls cannot express gloss, report the finish as unsupported and unresolved."
+    }
+  ]
+}

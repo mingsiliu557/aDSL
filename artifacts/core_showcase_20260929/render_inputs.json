@@ -1,0 +1,231 @@
+{
+  "SF13": {
+    "manifest": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/core_showcase_20260929/resources/SF13/assembly_manifest.json",
+    "bounds": [
+      [
+        -50.0,
+        -16.0,
+        0.0
+      ],
+      [
+        50.0,
+        16.0,
+        200.0
+      ]
+    ],
+    "parts": [
+      "side_left",
+      "side_right",
+      "shelf_bottom",
+      "shelf_level_2",
+      "shelf_level_3",
+      "shelf_level_4",
+      "shelf_level_5",
+      "cap_top"
+    ],
+    "mm_per_unit": 1.0,
+    "colors": {
+      "side_left": "#467BC1",
+      "side_right": "#D38B45",
+      "shelf_bottom": "#62AB90",
+      "shelf_level_2": "#9774B6",
+      "shelf_level_3": "#CE718A",
+      "shelf_level_4": "#6BAFBF",
+      "shelf_level_5": "#AFAC60",
+      "cap_top": "#BF886C"
+    }
+  },
+  "SF10_before": {
+    "manifest": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/core_showcase_20260929/resources/SF10_before/assembly_manifest.json",
+    "bounds": [
+      [
+        -750.0,
+        -375.0,
+        0.0
+      ],
+      [
+        750.0,
+        375.0,
+        750.0
+      ]
+    ],
+    "parts": [
+      "tabletop",
+      "left_pedestal",
+      "right_pedestal",
+      "upper_brace",
+      "lower_brace"
+    ],
+    "mm_per_unit": 1.0,
+    "colors": {
+      "tabletop": "#467BC1",
+      "left_pedestal": "#D38B45",
+      "right_pedestal": "#62AB90",
+      "upper_brace": "#9774B6",
+      "lower_brace": "#CE718A"
+    }
+  },
+  "SF10_after": {
+    "manifest": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/core_showcase_20260929/resources/SF10_after/assembly_manifest.json",
+    "bounds": [
+      [
+        -750.0,
+        -375.0,
+        0.0
+      ],
+      [
+        750.0,
+        375.0,
+        750.0
+      ]
+    ],
+    "parts": [
+      "tabletop",
+      "left_pedestal_lower_brace",
+      "right_pedestal",
+      "upper_brace"
+    ],
+    "mm_per_unit": 1.0,
+    "colors": {
+      "tabletop": "#467BC1",
+      "left_pedestal_lower_brace": "#D38B45",
+      "right_pedestal": "#62AB90",
+      "upper_brace": "#9774B6"
+    }
+  },
+  "SF16_before": {
+    "manifest": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/core_showcase_20260929/resources/SF16_before/assembly_manifest.json",
+    "bounds": [
+      [
+        -562.5,
+        -225.0,
+        0.0
+      ],
+      [
+        562.5,
+        225.0,
+        1800.0
+      ]
+    ],
+    "parts": [
+      "left_side_panel",
+      "top_shelf",
+      "right_side_panel",
+      "middle_shelf",
+      "lower_shelf",
+      "slanted_back_panel"
+    ],
+    "mm_per_unit": 1.0,
+    "target_pair": {
+      "kind": "pair",
+      "status": "FAIL",
+      "code": "UNDECLARED_PART_INTERFERENCE",
+      "pair_id": "slanted_back_panel:top_shelf",
+      "part_ids": [
+        "slanted_back_panel",
+        "top_shelf"
+      ],
+      "frame": "assembly",
+      "unit": "mm",
+      "raw_intersection_mm3": 842681.3089759703,
+      "undeclared_interference_mm3": 842681.3089759703,
+      "bounds_mm": [
+        [
+          -522.5,
+          180.3668524371798,
+          1632.0
+        ],
+        [
+          522.5,
+          205.0,
+          1668.0
+        ]
+      ],
+      "bounds_center_mm": [
+        0.0,
+        192.6834262185899,
+        1650.0
+      ],
+      "method": "manifold_intersection",
+      "length_tolerance_mm": 0.0034332275390625,
+      "volume_tolerance_mm3": 6251.241398513488,
+      "connection_ids": [],
+      "related_connection_ids": [
+        "connect_top_shelf_to_left_side",
+        "connect_right_side_to_top_shelf",
+        "connect_back_panel_to_right_side"
+      ],
+      "allowed_fit_connection_ids": [],
+      "elapsed_seconds": 6.482958812266588,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/original/verification/checkers/assembly_topology/items/pair_0014/checkers/assembly_topology/result.json"
+    },
+    "colors": {
+      "left_side_panel": "#C8CED5",
+      "top_shelf": "#467BC1",
+      "right_side_panel": "#C8CED5",
+      "middle_shelf": "#C8CED5",
+      "lower_shelf": "#C8CED5",
+      "slanted_back_panel": "#D38B45"
+    }
+  },
+  "SF16_after": {
+    "manifest": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/core_showcase_20260929/resources/SF16_after/assembly_manifest.json",
+    "bounds": [
+      [
+        -562.5,
+        -225.0,
+        0.0
+      ],
+      [
+        562.5,
+        225.0,
+        1800.0
+      ]
+    ],
+    "parts": [
+      "left_side_panel",
+      "top_shelf",
+      "right_side_panel",
+      "middle_shelf",
+      "lower_shelf",
+      "slanted_back_panel"
+    ],
+    "mm_per_unit": 1.0,
+    "target_pair": {
+      "kind": "pair",
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE",
+      "pair_id": "slanted_back_panel:top_shelf",
+      "part_ids": [
+        "slanted_back_panel",
+        "top_shelf"
+      ],
+      "frame": "assembly",
+      "unit": "mm",
+      "raw_intersection_mm3": 0.0,
+      "undeclared_interference_mm3": 0.0,
+      "bounds_mm": null,
+      "bounds_center_mm": null,
+      "method": "manifold_intersection",
+      "length_tolerance_mm": 0.0034332275390625,
+      "volume_tolerance_mm3": 6251.241391799073,
+      "connection_ids": [],
+      "related_connection_ids": [
+        "connect_top_shelf_to_left_side",
+        "connect_right_side_to_top_shelf",
+        "connect_back_panel_to_right_side"
+      ],
+      "allowed_fit_connection_ids": [],
+      "elapsed_seconds": 6.080790143460035,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/assembly_interference_20260929/cases/SF16/agent_repair/rounds/round_03/candidates/02_assembly_or_appearance/checkers/assembly_topology/items/pair_0014/checkers/assembly_topology/result.json"
+    },
+    "colors": {
+      "left_side_panel": "#C8CED5",
+      "top_shelf": "#467BC1",
+      "right_side_panel": "#C8CED5",
+      "middle_shelf": "#C8CED5",
+      "lower_shelf": "#C8CED5",
+      "slanted_back_panel": "#D38B45"
+    }
+  }
+}

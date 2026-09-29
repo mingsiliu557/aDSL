@@ -1,0 +1,1392 @@
+{
+  "checker": "assembly_topology",
+  "version": 2,
+  "status": "PASS",
+  "summary": "Assembly topology PASS; item counts {'PASS': 23, 'FAIL': 0, 'INDETERMINATE': 0}",
+  "metrics": {
+    "items": [
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "tabletop",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              -750.0,
+              -375.0,
+              695.0
+            ],
+            [
+              750.0,
+              375.0,
+              750.0
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            0.0,
+            0.0,
+            722.5
+          ]
+        ],
+        "bounds_mm": [
+          [
+            -750.0,
+            -375.0,
+            695.0
+          ],
+          [
+            750.0,
+            375.0,
+            750.0
+          ]
+        ],
+        "length_tolerance_mm": 0.001430511474609375,
+        "surface_area_mm2": 2447106.379656338,
+        "nearest_components": null,
+        "solid_sha256": "aec10dc085d5fc97329d3ea8b7f146a7a0b7b306a90149ce3d1d663c72283cd1",
+        "elapsed_seconds": 6.432132035493851,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/part_tabletop/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "left_pedestal",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              -590.0,
+              -300.0,
+              0.0
+            ],
+            [
+              -270.0,
+              300.0,
+              715.0
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            -430.0,
+            0.0,
+            357.5
+          ]
+        ],
+        "bounds_mm": [
+          [
+            -590.0,
+            -300.0,
+            0.0
+          ],
+          [
+            -270.0,
+            300.0,
+            715.0
+          ]
+        ],
+        "length_tolerance_mm": 0.0013637542724609375,
+        "surface_area_mm2": 1251260.0018310547,
+        "nearest_components": null,
+        "solid_sha256": "3aebafec6c8e6ea61dc8964bcf4577d3bc1ef211cb93df4bdce345a44e1bed41",
+        "elapsed_seconds": 6.231525260955095,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/part_left_pedestal/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "right_pedestal",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              270.0,
+              -300.0,
+              0.0
+            ],
+            [
+              590.0,
+              300.0,
+              715.0
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            430.0,
+            0.0,
+            357.5
+          ]
+        ],
+        "bounds_mm": [
+          [
+            270.0,
+            -300.0,
+            0.0
+          ],
+          [
+            590.0,
+            300.0,
+            715.0
+          ]
+        ],
+        "length_tolerance_mm": 0.0013637542724609375,
+        "surface_area_mm2": 1251260.0018310547,
+        "nearest_components": null,
+        "solid_sha256": "ed9468a832d776b05955f1d52bfee01c4712e52e5cb82552b19eec28be11df96",
+        "elapsed_seconds": 6.481877889484167,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/part_right_pedestal/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "upper_brace",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              -410.0,
+              -35.0,
+              560.0
+            ],
+            [
+              410.0,
+              35.0,
+              630.0
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            0.0,
+            0.0,
+            595.0
+          ]
+        ],
+        "bounds_mm": [
+          [
+            -410.0,
+            -35.0,
+            560.0
+          ],
+          [
+            410.0,
+            35.0,
+            630.0
+          ]
+        ],
+        "length_tolerance_mm": 0.001201629638671875,
+        "surface_area_mm2": 235900.00000000006,
+        "nearest_components": null,
+        "solid_sha256": "af82ac9cb5aac0ccbabb661ebfad8585fdec6eea3c51e0019ba33e4cffa4fa68",
+        "elapsed_seconds": 6.7327096201479435,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/part_upper_brace/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "lower_brace",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              -410.0,
+              -45.0,
+              210.0
+            ],
+            [
+              410.0,
+              45.0,
+              290.0
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            0.0,
+            0.0,
+            250.0
+          ]
+        ],
+        "bounds_mm": [
+          [
+            -410.0,
+            -45.0,
+            210.0
+          ],
+          [
+            410.0,
+            45.0,
+            290.0
+          ]
+        ],
+        "length_tolerance_mm": 0.000782012939453125,
+        "surface_area_mm2": 286700.0,
+        "nearest_components": null,
+        "solid_sha256": "958764ff32059c8a306d12fd0485d304ee4464391651b49e9bda4d5d36744803",
+        "elapsed_seconds": 6.682667907327414,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/part_lower_brace/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "interface",
+        "status": "PASS",
+        "code": "INTERFACE_GEOMETRY_PAIRED",
+        "tab_part": "left_pedestal",
+        "slot_part": "tabletop",
+        "parameter_name": "tabletop_leg_joint",
+        "tab_port": "top_front_tab",
+        "slot_port": "left_front_leg_slot",
+        "connection_id": "left_leg_front_mount",
+        "id": "left_leg_front_mount",
+        "parameters": {
+          "width_mm": 36.0,
+          "thickness_mm": 50.0,
+          "insertion_mm": 20.0,
+          "slot_depth_mm": 20.0,
+          "fit_offset_mm": 0.2,
+          "root_overlap_mm": 5.0,
+          "opening_extension_mm": 0.5,
+          "lead_in_mm": 0.0
+        },
+        "bounds_mm": [
+          [
+            -18.2,
+            -25.2,
+            -0.5
+          ],
+          [
+            18.2,
+            25.2,
+            20.0
+          ]
+        ],
+        "frame": "slot_interface",
+        "unit": "mm",
+        "frame_offset_mm": 0.0,
+        "frame_angle_radians": 0.0,
+        "missing_tab_mm3": 0.0,
+        "occupied_cavity_mm3": 0.004443359374221245,
+        "local_interference_mm3": 0.0,
+        "undeclared_local_interference_mm3": 0.0,
+        "effective_insertion_interval_mm": [
+          0.0,
+          20.0
+        ],
+        "expected_insertion_mm": 20.0,
+        "length_tolerance_mm": 0.00225067138671875,
+        "volume_tolerance_mm3": 17.780303955078125,
+        "fit_kind": "clearance",
+        "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+        "local_wall_evidence": [
+          {
+            "axis": 0,
+            "side": -1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 9.062402345239857,
+            "equivalent_band_area_mm2": 1006.6332205044733,
+            "uncertainty_mm3": 4.540206417441368,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 0,
+            "side": 1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 9.062402345240056,
+            "equivalent_band_area_mm2": 1006.6332205044954,
+            "uncertainty_mm3": 4.540206417441368,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": -1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 6.553955078124849,
+            "equivalent_band_area_mm2": 727.9999999999832,
+            "uncertainty_mm3": 3.2792631024494767,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": 1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 6.553955078124849,
+            "equivalent_band_area_mm2": 727.9999999999832,
+            "uncertainty_mm3": 3.2792631024494767,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          }
+        ],
+        "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+        "failures": [],
+        "elapsed_seconds": 6.4319836143404245,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/interface_left_leg_front_mount/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "interface",
+        "status": "PASS",
+        "code": "INTERFACE_GEOMETRY_PAIRED",
+        "tab_part": "left_pedestal",
+        "slot_part": "tabletop",
+        "parameter_name": "tabletop_leg_joint",
+        "tab_port": "top_rear_tab",
+        "slot_port": "left_rear_leg_slot",
+        "connection_id": "left_leg_rear_mount",
+        "id": "left_leg_rear_mount",
+        "parameters": {
+          "width_mm": 36.0,
+          "thickness_mm": 50.0,
+          "insertion_mm": 20.0,
+          "slot_depth_mm": 20.0,
+          "fit_offset_mm": 0.2,
+          "root_overlap_mm": 5.0,
+          "opening_extension_mm": 0.5,
+          "lead_in_mm": 0.0
+        },
+        "bounds_mm": [
+          [
+            -18.2,
+            -25.2,
+            -0.5
+          ],
+          [
+            18.2,
+            25.2,
+            20.0
+          ]
+        ],
+        "frame": "slot_interface",
+        "unit": "mm",
+        "frame_offset_mm": 0.0,
+        "frame_angle_radians": 0.0,
+        "missing_tab_mm3": 0.0,
+        "occupied_cavity_mm3": 0.004443359374221245,
+        "local_interference_mm3": 0.0,
+        "undeclared_local_interference_mm3": 0.0,
+        "effective_insertion_interval_mm": [
+          0.0,
+          20.0
+        ],
+        "expected_insertion_mm": 20.0,
+        "length_tolerance_mm": 0.00225067138671875,
+        "volume_tolerance_mm3": 17.780303955078125,
+        "fit_kind": "clearance",
+        "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+        "local_wall_evidence": [
+          {
+            "axis": 0,
+            "side": -1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 9.062402345239857,
+            "equivalent_band_area_mm2": 1006.6332205044733,
+            "uncertainty_mm3": 4.540206417441368,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 0,
+            "side": 1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 9.062402345240056,
+            "equivalent_band_area_mm2": 1006.6332205044954,
+            "uncertainty_mm3": 4.540206417441368,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": -1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 6.553955078124849,
+            "equivalent_band_area_mm2": 727.9999999999832,
+            "uncertainty_mm3": 3.2792631024494767,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": 1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 6.553955078124849,
+            "equivalent_band_area_mm2": 727.9999999999832,
+            "uncertainty_mm3": 3.2792631024494767,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          }
+        ],
+        "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+        "failures": [],
+        "elapsed_seconds": 6.431995389983058,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/interface_left_leg_rear_mount/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "interface",
+        "status": "PASS",
+        "code": "INTERFACE_GEOMETRY_PAIRED",
+        "tab_part": "right_pedestal",
+        "slot_part": "tabletop",
+        "parameter_name": "tabletop_leg_joint",
+        "tab_port": "top_front_tab",
+        "slot_port": "right_front_leg_slot",
+        "connection_id": "right_leg_front_mount",
+        "id": "right_leg_front_mount",
+        "parameters": {
+          "width_mm": 36.0,
+          "thickness_mm": 50.0,
+          "insertion_mm": 20.0,
+          "slot_depth_mm": 20.0,
+          "fit_offset_mm": 0.2,
+          "root_overlap_mm": 5.0,
+          "opening_extension_mm": 0.5,
+          "lead_in_mm": 0.0
+        },
+        "bounds_mm": [
+          [
+            -18.2,
+            -25.2,
+            -0.5
+          ],
+          [
+            18.2,
+            25.2,
+            20.0
+          ]
+        ],
+        "frame": "slot_interface",
+        "unit": "mm",
+        "frame_offset_mm": 0.0,
+        "frame_angle_radians": 0.0,
+        "missing_tab_mm3": 0.0,
+        "occupied_cavity_mm3": 0.004443359374221245,
+        "local_interference_mm3": 0.0,
+        "undeclared_local_interference_mm3": 0.0,
+        "effective_insertion_interval_mm": [
+          0.0,
+          20.0
+        ],
+        "expected_insertion_mm": 20.0,
+        "length_tolerance_mm": 0.00225067138671875,
+        "volume_tolerance_mm3": 17.780303955078125,
+        "fit_kind": "clearance",
+        "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+        "local_wall_evidence": [
+          {
+            "axis": 0,
+            "side": -1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 9.062402345239857,
+            "equivalent_band_area_mm2": 1006.6332205044733,
+            "uncertainty_mm3": 4.540206417441368,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 0,
+            "side": 1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 9.062402345240056,
+            "equivalent_band_area_mm2": 1006.6332205044954,
+            "uncertainty_mm3": 4.540206417441368,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": -1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 6.553955078124849,
+            "equivalent_band_area_mm2": 727.9999999999832,
+            "uncertainty_mm3": 3.2792631024494767,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": 1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 6.553955078124849,
+            "equivalent_band_area_mm2": 727.9999999999832,
+            "uncertainty_mm3": 3.2792631024494767,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          }
+        ],
+        "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+        "failures": [],
+        "elapsed_seconds": 6.581950549036264,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/interface_right_leg_front_mount/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "interface",
+        "status": "PASS",
+        "code": "INTERFACE_GEOMETRY_PAIRED",
+        "tab_part": "right_pedestal",
+        "slot_part": "tabletop",
+        "parameter_name": "tabletop_leg_joint",
+        "tab_port": "top_rear_tab",
+        "slot_port": "right_rear_leg_slot",
+        "connection_id": "right_leg_rear_mount",
+        "id": "right_leg_rear_mount",
+        "parameters": {
+          "width_mm": 36.0,
+          "thickness_mm": 50.0,
+          "insertion_mm": 20.0,
+          "slot_depth_mm": 20.0,
+          "fit_offset_mm": 0.2,
+          "root_overlap_mm": 5.0,
+          "opening_extension_mm": 0.5,
+          "lead_in_mm": 0.0
+        },
+        "bounds_mm": [
+          [
+            -18.2,
+            -25.2,
+            -0.5
+          ],
+          [
+            18.2,
+            25.2,
+            20.0
+          ]
+        ],
+        "frame": "slot_interface",
+        "unit": "mm",
+        "frame_offset_mm": 0.0,
+        "frame_angle_radians": 0.0,
+        "missing_tab_mm3": 0.0,
+        "occupied_cavity_mm3": 0.004443359374221245,
+        "local_interference_mm3": 0.0,
+        "undeclared_local_interference_mm3": 0.0,
+        "effective_insertion_interval_mm": [
+          0.0,
+          20.0
+        ],
+        "expected_insertion_mm": 20.0,
+        "length_tolerance_mm": 0.00225067138671875,
+        "volume_tolerance_mm3": 17.780303955078125,
+        "fit_kind": "clearance",
+        "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+        "local_wall_evidence": [
+          {
+            "axis": 0,
+            "side": -1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 9.062402345239857,
+            "equivalent_band_area_mm2": 1006.6332205044733,
+            "uncertainty_mm3": 4.540206417441368,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 0,
+            "side": 1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 9.062402345240056,
+            "equivalent_band_area_mm2": 1006.6332205044954,
+            "uncertainty_mm3": 4.540206417441368,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": -1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 6.553955078124849,
+            "equivalent_band_area_mm2": 727.9999999999832,
+            "uncertainty_mm3": 3.2792631024494767,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": 1,
+            "band_mm": 0.009002685546875,
+            "intersection_mm3": 6.553955078124849,
+            "equivalent_band_area_mm2": 727.9999999999832,
+            "uncertainty_mm3": 3.2792631024494767,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          }
+        ],
+        "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+        "failures": [],
+        "elapsed_seconds": 6.632258545607328,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/interface_right_leg_rear_mount/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "interface",
+        "status": "PASS",
+        "code": "INTERFACE_GEOMETRY_PAIRED",
+        "tab_part": "upper_brace",
+        "slot_part": "left_pedestal",
+        "parameter_name": "brace_leg_joint",
+        "tab_port": "left_end_tab",
+        "slot_port": "upper_brace_inner_slot",
+        "connection_id": "upper_brace_left_mount",
+        "id": "upper_brace_left_mount",
+        "parameters": {
+          "width_mm": 50.0,
+          "thickness_mm": 55.0,
+          "insertion_mm": 25.0,
+          "slot_depth_mm": 25.0,
+          "fit_offset_mm": 0.2,
+          "root_overlap_mm": 5.0,
+          "opening_extension_mm": 0.5,
+          "lead_in_mm": 0.0
+        },
+        "bounds_mm": [
+          [
+            -25.2,
+            -27.7,
+            -0.5
+          ],
+          [
+            25.2,
+            27.7,
+            25.0
+          ]
+        ],
+        "frame": "slot_interface",
+        "unit": "mm",
+        "frame_offset_mm": 0.0,
+        "frame_angle_radians": 0.0,
+        "missing_tab_mm3": 0.0013113021862712533,
+        "occupied_cavity_mm3": 0.00047550201452022377,
+        "local_interference_mm3": 0.0,
+        "undeclared_local_interference_mm3": 0.0,
+        "effective_insertion_interval_mm": [
+          0.0,
+          25.0
+        ],
+        "expected_insertion_mm": 25.0,
+        "length_tolerance_mm": 0.0015163421630859375,
+        "volume_tolerance_mm3": 17.892837524414062,
+        "fit_kind": "clearance",
+        "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+        "local_wall_evidence": [
+          {
+            "axis": 0,
+            "side": -1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 8.399241161344953,
+            "equivalent_band_area_mm2": 1384.7865880500701,
+            "uncertainty_mm3": 4.201746697362978,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 0,
+            "side": 1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 8.399241161344923,
+            "equivalent_band_area_mm2": 1384.7865880500651,
+            "uncertainty_mm3": 4.201746697362978,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": -1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 7.626983642682195,
+            "equivalent_band_area_mm2": 1257.4641509605542,
+            "uncertainty_mm3": 3.8225691848492716,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": 1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 7.62698364268241,
+            "equivalent_band_area_mm2": 1257.4641509605897,
+            "uncertainty_mm3": 3.8225691848492716,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          }
+        ],
+        "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+        "failures": [],
+        "elapsed_seconds": 6.331536116078496,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/interface_upper_brace_left_mount/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "interface",
+        "status": "PASS",
+        "code": "INTERFACE_GEOMETRY_PAIRED",
+        "tab_part": "upper_brace",
+        "slot_part": "right_pedestal",
+        "parameter_name": "brace_leg_joint",
+        "tab_port": "right_end_tab",
+        "slot_port": "upper_brace_inner_slot",
+        "connection_id": "upper_brace_right_mount",
+        "id": "upper_brace_right_mount",
+        "parameters": {
+          "width_mm": 50.0,
+          "thickness_mm": 55.0,
+          "insertion_mm": 25.0,
+          "slot_depth_mm": 25.0,
+          "fit_offset_mm": 0.2,
+          "root_overlap_mm": 5.0,
+          "opening_extension_mm": 0.5,
+          "lead_in_mm": 0.0
+        },
+        "bounds_mm": [
+          [
+            -25.2,
+            -27.7,
+            -0.5
+          ],
+          [
+            25.2,
+            27.7,
+            25.0
+          ]
+        ],
+        "frame": "slot_interface",
+        "unit": "mm",
+        "frame_offset_mm": 0.0,
+        "frame_angle_radians": 0.0,
+        "missing_tab_mm3": 0.0013113021861196708,
+        "occupied_cavity_mm3": 0.00047550201390145945,
+        "local_interference_mm3": 0.0,
+        "undeclared_local_interference_mm3": 0.0,
+        "effective_insertion_interval_mm": [
+          0.0,
+          25.0
+        ],
+        "expected_insertion_mm": 25.0,
+        "length_tolerance_mm": 0.0015163421630859375,
+        "volume_tolerance_mm3": 17.892837524414062,
+        "fit_kind": "clearance",
+        "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+        "local_wall_evidence": [
+          {
+            "axis": 0,
+            "side": -1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 8.39924116134515,
+            "equivalent_band_area_mm2": 1384.7865880501026,
+            "uncertainty_mm3": 4.201746697362978,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 0,
+            "side": 1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 8.399241161345175,
+            "equivalent_band_area_mm2": 1384.7865880501067,
+            "uncertainty_mm3": 4.201746697362978,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": -1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 7.6269836426823545,
+            "equivalent_band_area_mm2": 1257.4641509605806,
+            "uncertainty_mm3": 3.8225691848492716,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": 1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 7.626983642682615,
+            "equivalent_band_area_mm2": 1257.4641509606236,
+            "uncertainty_mm3": 3.8225691848492716,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          }
+        ],
+        "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+        "failures": [],
+        "elapsed_seconds": 6.080909820273519,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/interface_upper_brace_right_mount/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "interface",
+        "status": "PASS",
+        "code": "INTERFACE_GEOMETRY_PAIRED",
+        "tab_part": "lower_brace",
+        "slot_part": "left_pedestal",
+        "parameter_name": "brace_leg_joint",
+        "tab_port": "left_end_tab",
+        "slot_port": "lower_brace_inner_slot",
+        "connection_id": "lower_brace_left_mount",
+        "id": "lower_brace_left_mount",
+        "parameters": {
+          "width_mm": 50.0,
+          "thickness_mm": 55.0,
+          "insertion_mm": 25.0,
+          "slot_depth_mm": 25.0,
+          "fit_offset_mm": 0.2,
+          "root_overlap_mm": 5.0,
+          "opening_extension_mm": 0.5,
+          "lead_in_mm": 0.0
+        },
+        "bounds_mm": [
+          [
+            -25.2,
+            -27.7,
+            -0.5
+          ],
+          [
+            25.2,
+            27.7,
+            25.0
+          ]
+        ],
+        "frame": "slot_interface",
+        "unit": "mm",
+        "frame_offset_mm": 0.0,
+        "frame_angle_radians": 0.0,
+        "missing_tab_mm3": 0.0013113021862712533,
+        "occupied_cavity_mm3": 0.0043207168299852355,
+        "local_interference_mm3": 0.0,
+        "undeclared_local_interference_mm3": 0.0,
+        "effective_insertion_interval_mm": [
+          0.0,
+          25.0
+        ],
+        "expected_insertion_mm": 25.0,
+        "length_tolerance_mm": 0.0015163421630859375,
+        "volume_tolerance_mm3": 17.892837524414062,
+        "fit_kind": "clearance",
+        "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+        "local_wall_evidence": [
+          {
+            "axis": 0,
+            "side": -1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 8.39924116141681,
+            "equivalent_band_area_mm2": 1384.7865880619172,
+            "uncertainty_mm3": 4.201746697362978,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 0,
+            "side": 1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 8.39924116141625,
+            "equivalent_band_area_mm2": 1384.7865880618247,
+            "uncertainty_mm3": 4.201746697362978,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": -1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 7.626983642682117,
+            "equivalent_band_area_mm2": 1257.4641509605415,
+            "uncertainty_mm3": 3.8225691848492716,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": 1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 7.642364501953125,
+            "equivalent_band_area_mm2": 1260.0,
+            "uncertainty_mm3": 3.8225691848492716,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          }
+        ],
+        "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+        "failures": [],
+        "elapsed_seconds": 6.030716074630618,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/interface_lower_brace_left_mount/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "interface",
+        "status": "PASS",
+        "code": "INTERFACE_GEOMETRY_PAIRED",
+        "tab_part": "lower_brace",
+        "slot_part": "right_pedestal",
+        "parameter_name": "brace_leg_joint",
+        "tab_port": "right_end_tab",
+        "slot_port": "lower_brace_inner_slot",
+        "connection_id": "lower_brace_right_mount",
+        "id": "lower_brace_right_mount",
+        "parameters": {
+          "width_mm": 50.0,
+          "thickness_mm": 55.0,
+          "insertion_mm": 25.0,
+          "slot_depth_mm": 25.0,
+          "fit_offset_mm": 0.2,
+          "root_overlap_mm": 5.0,
+          "opening_extension_mm": 0.5,
+          "lead_in_mm": 0.0
+        },
+        "bounds_mm": [
+          [
+            -25.2,
+            -27.7,
+            -0.5
+          ],
+          [
+            25.2,
+            27.7,
+            25.0
+          ]
+        ],
+        "frame": "slot_interface",
+        "unit": "mm",
+        "frame_offset_mm": 0.0,
+        "frame_angle_radians": 0.0,
+        "missing_tab_mm3": 0.0013113021861196708,
+        "occupied_cavity_mm3": 0.004320716831740451,
+        "local_interference_mm3": 0.0,
+        "undeclared_local_interference_mm3": 0.0,
+        "effective_insertion_interval_mm": [
+          0.0,
+          25.0
+        ],
+        "expected_insertion_mm": 25.0,
+        "length_tolerance_mm": 0.0015163421630859375,
+        "volume_tolerance_mm3": 17.892837524414062,
+        "fit_kind": "clearance",
+        "numeric_basis": "16 * float32 epsilon * coordinate scale; query surface area * length bound",
+        "local_wall_evidence": [
+          {
+            "axis": 0,
+            "side": -1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 8.399241161416718,
+            "equivalent_band_area_mm2": 1384.786588061902,
+            "uncertainty_mm3": 4.201746697362978,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 0,
+            "side": 1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 8.399241161417184,
+            "equivalent_band_area_mm2": 1384.7865880619788,
+            "uncertainty_mm3": 4.201746697362978,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": -1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 7.642364501953125,
+            "equivalent_band_area_mm2": 1260.0,
+            "uncertainty_mm3": 3.8225691848492716,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          },
+          {
+            "axis": 1,
+            "side": 1,
+            "band_mm": 0.00606536865234375,
+            "intersection_mm3": 7.626983642682615,
+            "equivalent_band_area_mm2": 1257.4641509606236,
+            "uncertainty_mm3": 3.8225691848492716,
+            "note": "local precision-band proximity above representation bound, NOT exact contact area"
+          }
+        ],
+        "root_connection": "CONNECTED_TO_SAME_MATERIAL_COMPONENT",
+        "failures": [],
+        "elapsed_seconds": 6.732858782634139,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/interface_lower_brace_right_mount/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "left_pedestal:lower_brace",
+        "part_ids": [
+          "left_pedestal",
+          "lower_brace"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 1.4065193454371183e-11,
+        "undeclared_interference_mm3": 1.4065193454371183e-11,
+        "bounds_mm": [
+          [
+            -410.0,
+            -45.0,
+            210.0
+          ],
+          [
+            -385.0,
+            25.000001907348633,
+            290.0
+          ]
+        ],
+        "bounds_center_mm": [
+          -397.5,
+          -9.999999046325684,
+          250.0
+        ],
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.001430511474609375,
+        "volume_tolerance_mm3": 3500.613755688197,
+        "connection_ids": [
+          "lower_brace_left_mount"
+        ],
+        "related_connection_ids": [
+          "left_leg_front_mount",
+          "left_leg_rear_mount",
+          "upper_brace_left_mount",
+          "lower_brace_left_mount",
+          "lower_brace_right_mount"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.582025680691004,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/pair_0000/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "left_pedestal:right_pedestal",
+        "part_ids": [
+          "left_pedestal",
+          "right_pedestal"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": null,
+        "bounds_center_mm": null,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.001430511474609375,
+        "volume_tolerance_mm3": 3500.613755688197,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "left_leg_front_mount",
+          "left_leg_rear_mount",
+          "right_leg_front_mount",
+          "right_leg_rear_mount",
+          "upper_brace_left_mount",
+          "upper_brace_right_mount",
+          "lower_brace_left_mount",
+          "lower_brace_right_mount"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.331991894170642,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/pair_0001/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "left_pedestal:tabletop",
+        "part_ids": [
+          "left_pedestal",
+          "tabletop"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": [
+          [
+            -475.0,
+            -250.0,
+            695.0
+          ],
+          [
+            -385.0,
+            -175.2623351028171,
+            695.0
+          ]
+        ],
+        "bounds_center_mm": [
+          -430.0,
+          -212.63116755140857,
+          695.0
+        ],
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.001430511474609375,
+        "volume_tolerance_mm3": 3500.613755688197,
+        "connection_ids": [
+          "left_leg_front_mount",
+          "left_leg_rear_mount"
+        ],
+        "related_connection_ids": [
+          "left_leg_front_mount",
+          "left_leg_rear_mount",
+          "right_leg_front_mount",
+          "right_leg_rear_mount",
+          "upper_brace_left_mount",
+          "lower_brace_left_mount"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 5.981452474370599,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/pair_0002/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "left_pedestal:upper_brace",
+        "part_ids": [
+          "left_pedestal",
+          "upper_brace"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 7.617018127348274e-12,
+        "undeclared_interference_mm3": 7.617018127348274e-12,
+        "bounds_mm": [
+          [
+            -410.0,
+            -35.0,
+            560.0
+          ],
+          [
+            -385.0,
+            35.0,
+            630.0
+          ]
+        ],
+        "bounds_center_mm": [
+          -397.5,
+          0.0,
+          595.0
+        ],
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.001430511474609375,
+        "volume_tolerance_mm3": 3500.613755688197,
+        "connection_ids": [
+          "upper_brace_left_mount"
+        ],
+        "related_connection_ids": [
+          "left_leg_front_mount",
+          "left_leg_rear_mount",
+          "upper_brace_left_mount",
+          "upper_brace_right_mount",
+          "lower_brace_left_mount"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.230821833014488,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/pair_0003/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "lower_brace:right_pedestal",
+        "part_ids": [
+          "lower_brace",
+          "right_pedestal"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 1.8189894035458565e-11,
+        "undeclared_interference_mm3": 1.8189894035458565e-11,
+        "bounds_mm": [
+          [
+            385.0,
+            -45.0,
+            210.0
+          ],
+          [
+            385.0,
+            45.0,
+            290.0
+          ]
+        ],
+        "bounds_center_mm": [
+          385.0,
+          0.0,
+          250.0
+        ],
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.001430511474609375,
+        "volume_tolerance_mm3": 3500.613755688197,
+        "connection_ids": [
+          "lower_brace_right_mount"
+        ],
+        "related_connection_ids": [
+          "right_leg_front_mount",
+          "right_leg_rear_mount",
+          "upper_brace_right_mount",
+          "lower_brace_left_mount",
+          "lower_brace_right_mount"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.53397848457098,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/pair_0004/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "lower_brace:tabletop",
+        "part_ids": [
+          "lower_brace",
+          "tabletop"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": null,
+        "bounds_center_mm": null,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.001430511474609375,
+        "volume_tolerance_mm3": 3500.613755688197,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "left_leg_front_mount",
+          "left_leg_rear_mount",
+          "right_leg_front_mount",
+          "right_leg_rear_mount",
+          "lower_brace_left_mount",
+          "lower_brace_right_mount"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.532276324927807,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/pair_0005/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "lower_brace:upper_brace",
+        "part_ids": [
+          "lower_brace",
+          "upper_brace"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": null,
+        "bounds_center_mm": null,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.001430511474609375,
+        "volume_tolerance_mm3": 3500.613755688197,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "upper_brace_left_mount",
+          "upper_brace_right_mount",
+          "lower_brace_left_mount",
+          "lower_brace_right_mount"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.733711063861847,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/pair_0006/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "right_pedestal:tabletop",
+        "part_ids": [
+          "right_pedestal",
+          "tabletop"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 1.9049650745728286e-10,
+        "undeclared_interference_mm3": 1.9049650745728286e-10,
+        "bounds_mm": [
+          [
+            385.0,
+            -124.52240205067838,
+            695.0
+          ],
+          [
+            475.0,
+            250.0,
+            695.0
+          ]
+        ],
+        "bounds_center_mm": [
+          430.0,
+          62.73879897466081,
+          695.0
+        ],
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.001430511474609375,
+        "volume_tolerance_mm3": 3500.613755688197,
+        "connection_ids": [
+          "right_leg_front_mount",
+          "right_leg_rear_mount"
+        ],
+        "related_connection_ids": [
+          "left_leg_front_mount",
+          "left_leg_rear_mount",
+          "right_leg_front_mount",
+          "right_leg_rear_mount",
+          "upper_brace_right_mount",
+          "lower_brace_right_mount"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.53258415684104,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/pair_0007/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "right_pedestal:upper_brace",
+        "part_ids": [
+          "right_pedestal",
+          "upper_brace"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": null,
+        "bounds_center_mm": null,
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.001430511474609375,
+        "volume_tolerance_mm3": 3500.613755688197,
+        "connection_ids": [
+          "upper_brace_right_mount"
+        ],
+        "related_connection_ids": [
+          "right_leg_front_mount",
+          "right_leg_rear_mount",
+          "upper_brace_left_mount",
+          "upper_brace_right_mount",
+          "lower_brace_right_mount"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 7.584300518035889,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/pair_0008/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "pair",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "pair_id": "tabletop:upper_brace",
+        "part_ids": [
+          "tabletop",
+          "upper_brace"
+        ],
+        "frame": "assembly",
+        "unit": "mm",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "bounds_mm": null,
+        "bounds_center_mm": null,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.001430511474609375,
+        "volume_tolerance_mm3": 3500.613755688197,
+        "connection_ids": [],
+        "related_connection_ids": [
+          "left_leg_front_mount",
+          "left_leg_rear_mount",
+          "right_leg_front_mount",
+          "right_leg_rear_mount",
+          "upper_brace_left_mount",
+          "upper_brace_right_mount"
+        ],
+        "allowed_fit_connection_ids": [],
+        "elapsed_seconds": 6.582377420738339,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/items/pair_0009/checkers/assembly_topology/result.json"
+      }
+    ]
+  },
+  "violations": [],
+  "assumptions": {
+    "source_sha256": "661c5a12b2971ba430b00c034338a0140cba6dd79936fbfba28e45757113b309",
+    "manifest_sha256": "f800cd239d783ad289a9e3bd4e7370c4c81b81f411b38701426b12cbb225c8f9",
+    "topology_scope_version": 2,
+    "scope": "within-part solid connectivity, local TabSlot pairing and global assembly material interference; not retention, insertion path, strength or manufacturing",
+    "localization": "index-assisted if current candidates exist; otherwise model source inference"
+  },
+  "artifacts": {
+    "report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/partition_coordination_20260929/SF10_one_attempt/rounds/round_01/checkers/assembly_topology/report.json"
+  },
+  "analysis_context": null,
+  "findings": []
+}

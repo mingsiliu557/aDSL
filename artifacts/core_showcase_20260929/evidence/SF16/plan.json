@@ -1,0 +1,169 @@
+{
+  "object_name": "Modern minimalist three-shelf bookcase",
+  "components": [
+    {
+      "name": "left_side_panel",
+      "description": "Full-height matte-black vertical side panel forming the left boundary and a floor-contact support. Use an approximately 40 mm panel thickness, the full 450 mm depth, and the full 1800 mm height; place its outer face at X=-562.5 mm and bottom face at Z=0."
+    },
+    {
+      "name": "right_side_panel",
+      "description": "Mirror-symmetric full-height matte-black vertical side panel forming the right boundary and second floor-contact support. Match the left panel dimensions; place its outer face at X=+562.5 mm and bottom face at Z=0."
+    },
+    {
+      "name": "lower_shelf",
+      "description": "Smooth, flat matte-black horizontal shelf spanning the clear space between the side panels. Use approximately 1045 mm width, 410 mm depth, and 36 mm thickness, centered near Y=0 and Z=450 mm."
+    },
+    {
+      "name": "middle_shelf",
+      "description": "Smooth, flat matte-black horizontal shelf identical in size and finish to the lower shelf, centered near Y=0 and Z=1050 mm."
+    },
+    {
+      "name": "top_shelf",
+      "description": "Upper load-bearing matte-black horizontal shelf identical in size and finish to the other shelves, centered near Y=0 and Z=1650 mm so its upward face lies within the frozen Z=1620..1801 mm load-selection band."
+    },
+    {
+      "name": "slanted_back_panel",
+      "description": "Upper rear stabilizing panel spanning between the side panels above and behind the top shelf. It is a shallow rectangular panel tilted slightly rearward in the Y-Z plane, producing the requested subtle trapezoidal silhouette while remaining inside the 450 mm overall depth and 1800 mm overall height."
+    }
+  ],
+  "relations": [
+    "Use assembly coordinates with +X right, +Y back, and +Z up; center the 1125 mm by 450 mm footprint at X=Y=0 and place all floor-contacting side-panel bottom faces at Z=0.",
+    "The completed assembled envelope must be exactly 1125 mm wide, 450 mm deep, and 1800 mm high; no connector geometry may extend beyond this frozen envelope.",
+    "The left and right side panels are vertical, parallel, mirror-symmetric about X=0, and separated by an approximately 1045 mm clear internal width.",
+    "The lower, middle, and top shelves are horizontal, mutually parallel, centered between the side panels, and evenly spaced at approximately 600 mm center-to-center intervals: Z=450, 1050, and 1650 mm.",
+    "Each shelf extends from the inner face of the left side panel to the inner face of the right side panel and visually contacts both supports without protruding through their outer faces.",
+    "The top shelf remains a semantically named load-bearing shelf, with its upward surface inside the frozen FEA load region Z=1620..1801 mm.",
+    "The slanted back panel occupies the upper rear portion of the bookcase, spans most of the clear width, and tilts only slightly rearward so the front elevation remains minimalist and nearly rectangular while the side silhouette is subtly trapezoidal.",
+    "The two side panels provide the only floor-contact supports and remain within the frozen support region around Z=0.",
+    "All visible components have a uniform monochromatic black matte finish with subtle lighting-based shading; avoid gloss, bright accents, ornament, handles, or visible decorative hardware.",
+    "Use FixedAssembly with left_side_panel as the receiver-first root. Every non-root print part is introduced once as a tab child through the ordered acyclic connection list.",
+    "All TabSlot interfaces use the frozen single-sided fit allowance of 0.2 mm. This clearance is a geometric demonstration and must not be described as proof of retention or strength.",
+    "Shelf-to-side connectors should be concealed within panel/shelf intersections, with adequate local material around slots, tab shoulders, and embedded roots. The generated tabs and slots must come only from assembly.connect, not manually modeled geometry.",
+    "The slightly trapezoidal character comes from the upper rear panel tilt; the main side panels remain vertical as requested.",
+    "The rendering should use a dark background that preserves enough contrast to distinguish the black side panels, three shelf surfaces, and slanted upper back panel."
+  ],
+  "critic_checklist": [
+    "Verify the final assembly AABB is exactly 1125.0 mm in X, 450.0 mm in Y, and 1800.0 mm in Z, with mm_per_unit=1.0.",
+    "Verify the assembled footprint is centered at X=Y=0 and the lowest faces of both side panels are at Z=0.",
+    "Verify there are exactly three visible horizontal shelves named lower_shelf, middle_shelf, and top_shelf; do not add a fourth shelf or treat the back panel as a shelf.",
+    "Verify the three shelf center elevations are evenly spaced, nominally 450, 1050, and 1650 mm, with matching shelf thicknesses and aligned front and back edges.",
+    "Verify the upward surface of top_shelf intersects the frozen FEA load band Z=1620..1801 mm and retains a shelf-related semantic name.",
+    "Verify left_side_panel and right_side_panel are full-height, parallel, vertical, mirror-symmetric, and visibly support the shelf ends.",
+    "Verify both side-panel bottom faces remain available in the frozen Z=-0.1..0.1 mm floor-support region.",
+    "Verify the slanted_back_panel is at the upper rear, is visibly but mildly tilted in the Y-Z plane, spans between the side panels, and does not exceed the final depth or height.",
+    "Verify the overall front appearance is symmetrical and height-dominant, with a clean rectangular composition and only a subtle trapezoidal side/profile effect.",
+    "Verify shelf surfaces are flat and unobstructed, especially the top shelf; connector features should not visibly rise above usable shelf surfaces.",
+    "Verify all six semantic components are assigned exactly once among the six declared print parts.",
+    "Verify the connection graph is connected, acyclic, receiver-first, rooted at left_side_panel, and contains exactly one placement connection for each non-root print part.",
+    "Verify assembly.connect generates both sides of every interface using TabSlot parameters; no between-part global union and no manually modeled replacement tabs or slots are used.",
+    "Verify every connection using parameter_name shelf_side_joint reuses identical TabSlot dimensions and the frozen fit_offset_mm=0.2.",
+    "Verify the back_panel_joint also uses fit_offset_mm=0.2 and has sufficient surrounding material despite the panel's tilt.",
+    "Verify no print-part ID uses the reserved names scene or exploded.",
+    "Verify all visible geometry is monochromatic black with a matte appearance and no contrasting connector colors.",
+    "Verify the presentation background is dark but provides sufficient rim or directional lighting to read the black silhouette and shelf spacing.",
+    "Verify any overhang repair changes only print orientation through assembly.set_print_orientation; it must not alter assembly pose, dimensions, connector frames, loads, supports, or fit allowance.",
+    "Treat visual-only approval as appearance/export approval only; do not claim that clearance, standing, FEA, overhang, or ideal-bond results certify manufacturability or fastening strength."
+  ],
+  "print_parts": [
+    {
+      "id": "left_side_panel",
+      "components": [
+        "left_side_panel"
+      ]
+    },
+    {
+      "id": "top_shelf",
+      "components": [
+        "top_shelf"
+      ]
+    },
+    {
+      "id": "right_side_panel",
+      "components": [
+        "right_side_panel"
+      ]
+    },
+    {
+      "id": "middle_shelf",
+      "components": [
+        "middle_shelf"
+      ]
+    },
+    {
+      "id": "lower_shelf",
+      "components": [
+        "lower_shelf"
+      ]
+    },
+    {
+      "id": "slanted_back_panel",
+      "components": [
+        "slanted_back_panel"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "connect_top_shelf_to_left_side",
+      "tab_part": "top_shelf",
+      "slot_part": "left_side_panel",
+      "tab_port": "left_end_tab",
+      "slot_port": "upper_shelf_slot",
+      "parameter_name": "shelf_side_joint",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x",
+      "fit_intent": "Concealed horizontal slide-fit shelf-to-side interface using the frozen 0.2 mm single-sided slot allowance; tab is rooted in the top shelf's left end and inserts into the left side panel."
+    },
+    {
+      "id": "connect_right_side_to_top_shelf",
+      "tab_part": "right_side_panel",
+      "slot_part": "top_shelf",
+      "tab_port": "upper_inner_tab",
+      "slot_port": "right_end_slot",
+      "parameter_name": "shelf_side_joint",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x",
+      "fit_intent": "Concealed horizontal interface placing the right side panel against the top shelf's right end, using the same frozen 0.2 mm single-sided allowance and shared shelf-side dimensions."
+    },
+    {
+      "id": "connect_middle_shelf_to_right_side",
+      "tab_part": "middle_shelf",
+      "slot_part": "right_side_panel",
+      "tab_port": "right_end_tab",
+      "slot_port": "middle_shelf_slot",
+      "parameter_name": "shelf_side_joint",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x",
+      "fit_intent": "Concealed horizontal slide-fit interface at the middle shelf's right end using the shared shelf-side TabSlot and frozen 0.2 mm single-sided allowance."
+    },
+    {
+      "id": "connect_lower_shelf_to_right_side",
+      "tab_part": "lower_shelf",
+      "slot_part": "right_side_panel",
+      "tab_port": "right_end_tab",
+      "slot_port": "lower_shelf_slot",
+      "parameter_name": "shelf_side_joint",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x",
+      "fit_intent": "Concealed horizontal slide-fit interface at the lower shelf's right end using the shared shelf-side TabSlot and frozen 0.2 mm single-sided allowance."
+    },
+    {
+      "id": "connect_back_panel_to_right_side",
+      "tab_part": "slanted_back_panel",
+      "slot_part": "right_side_panel",
+      "tab_port": "right_edge_tab",
+      "slot_port": "upper_back_slot",
+      "parameter_name": "back_panel_joint",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x",
+      "fit_intent": "Concealed edge interface locating the tilted upper back panel against the right side support, with a dedicated TabSlot sized for the back panel and the frozen 0.2 mm single-sided allowance."
+    }
+  ],
+  "root_part": "left_side_panel",
+  "mm_per_unit": 1.0,
+  "final_size_mm": [
+    1125.0,
+    450.0,
+    1800.0
+  ]
+}

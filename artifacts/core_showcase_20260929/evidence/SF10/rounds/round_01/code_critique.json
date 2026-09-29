@@ -1,0 +1,26 @@
+{
+  "approved": false,
+  "observations": [
+    "The table geometry is visually consistent with the requested design: views 1–6 show two mirrored dark pedestal supports, broad feet, and two distinct horizontal braces; view 7 shows a straight-edged, bilaterally symmetric tapered tabletop.",
+    "The source constructs the tabletop through `TaperedTabletop`, using `boolean_intersection(slab, right_halfspace, left_halfspace)`. Its dimensions and taper operations correspond to the visible trapezoidal plan, while `Pedestal` and `HorizontalBrace` account for the support components visible in the orbit and bottom views.",
+    "The warm-brown `WOOD` color contrasts clearly with `DARK_METAL`, but views 1–7 show no clear glossy highlight or reflection on the tabletop. It reads as smooth but predominantly diffuse.",
+    "The public source API used here exposes color and alpha but no roughness or specular control. Changing `WOOD` or adding alpha would not reliably implement the required opaque glossy finish. This is an unresolved appearance capability limitation, not a geometry defect.",
+    "The images are diagnostic visual renders and do not establish manufacturing or physical-checker approval."
+  ],
+  "required_changes": [
+    "TaperedTabletop.body: Add or use a supported material/exporter or renderer-level configuration that can assign an opaque glossy Principled material to `TaperedTabletop.body` while leaving `DARK_METAL` matte. Do not use transparency, decorative geometry, or invented aDSL material methods as substitutes; if no such supported configuration is available, retain this as an explicit capability limitation."
+  ],
+  "image_critic_corrections": [
+    "Confirmed the reported HIGH surface issue. In source, `WOOD = (0.50, 0.24, 0.08)` is passed as `color=WOOD` to the `slab`, `right_halfspace`, and `left_halfspace` used by `TaperedTabletop.body`; there is no supported gloss, roughness, or specular operation. In visible views 1–7, the resulting tabletop is brown and smooth but lacks a clearly glossy highlight or reflection. Because gloss is explicitly required and the smoke-test instructions state that unresolved surface requirements prevent full approval, the issue remains HIGH rather than being downgraded.",
+    "The optional wood-like character does not create a separate issue: the requirement makes wood mimicry optional, and neither source nor views introduce inappropriate relief grain."
+  ],
+  "issues": [
+    {
+      "aspect": "surface",
+      "severity": "HIGH",
+      "target": "TaperedTabletop.body",
+      "problem": "The tabletop is correctly warm brown and geometrically smooth, but its rendered surface appears diffuse/matte in views 1–7 rather than visibly glossy. The source only assigns `WOOD` through primitive color parameters and has no supported roughness or specular control, leaving the explicit glossy-finish requirement unmet.",
+      "suggested_fix": "Add or use a supported material/exporter or renderer-level configuration that can assign an opaque glossy Principled material to `TaperedTabletop.body` while leaving `DARK_METAL` matte. Do not use transparency, decorative geometry, or invented aDSL material methods as substitutes; if no such supported configuration is available, retain this as an explicit capability limitation."
+    }
+  ]
+}

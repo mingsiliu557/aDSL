@@ -1,0 +1,27 @@
+[
+  {
+    "name": "write_file",
+    "description": "Write the complete initial program to the assigned empty source file.",
+    "parameters": {
+      "properties": {
+        "path": {
+          "description": "Workspace-relative path of the assigned source file.",
+          "title": "Path",
+          "type": "string"
+        },
+        "content": {
+          "description": "Complete UTF-8 source text.",
+          "title": "Content",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "content"
+      ],
+      "title": "write_file_args",
+      "type": "object",
+      "additionalProperties": false
+    }
+  }
+]

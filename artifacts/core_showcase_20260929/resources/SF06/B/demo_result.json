@@ -1,0 +1,92 @@
+{
+  "case_id": "SF06",
+  "arm": "B",
+  "status": "rendered",
+  "started_at": "2026-09-29T08:38:51.053521+00:00",
+  "commit": "5ed420972014223c510cae338ec904b4d36f89b5",
+  "core_path": "/tmp/adsl_geometry_20260929/adsl-core/core/__init__.py",
+  "agents_path": "/tmp/adsl_geometry_20260929/adsl-agents/models.py",
+  "runner_sha256": "ca707cf8502a22ce8d3aded35491a0cc62d827aa9bd0554f1137210682450a34",
+  "input_sha256": "79ebfe96e1aac4e0f91cdc06d945bda1fe4c39ca1ddfb4a2a237c645cf0e81d9",
+  "render_config": {
+    "width": 512,
+    "height": 512,
+    "samples": 32,
+    "threads": 4,
+    "view_layout": "review_eight",
+    "views": 8,
+    "material": "neutral",
+    "background": "gray",
+    "engine": "CYCLES"
+  },
+  "execution_timeout_seconds": 300.0,
+  "render_timeout_seconds": 300.0,
+  "initial_generations": 1,
+  "execution_patches": 0,
+  "execution_attempts": [
+    {
+      "attempt": 0,
+      "source_sha256": "8b1d215c97048b413ad2d54f5e1c21a51d599ecae26ea84262f0f6d49247ac0e",
+      "seconds": 5.790516257286072,
+      "status": "exported"
+    }
+  ],
+  "render_seconds": 18.12128627486527,
+  "critics": [],
+  "checkers": [],
+  "export_urdf": false,
+  "fixed_assembly": null,
+  "glb": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/SF06/exec_0/render/scene.glb",
+  "source_index": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/SF06/exec_0/source_index.json",
+  "analysis_geometry": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/SF06/exec_0/analysis_geometry.json",
+  "vertices": 44326,
+  "triangles": 21132,
+  "glb_bounds": [
+    [
+      -2.5,
+      -0.029999999329447746,
+      -2.0
+    ],
+    [
+      2.5,
+      3.200000047683716,
+      2.0
+    ]
+  ],
+  "glb_extents": [
+    5.0,
+    3.2300000470131636,
+    4.0
+  ],
+  "glb_coordinate_frame": "glTF Y-up",
+  "images": [
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/SF06/views/render_0001.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/SF06/views/render_0002.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/SF06/views/render_0003.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/SF06/views/render_0004.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/SF06/views/render_0005.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/SF06/views/render_0006.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/SF06/views/render_0007.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/SF06/views/render_0008.png"
+  ],
+  "source_sha256": "8b1d215c97048b413ad2d54f5e1c21a51d599ecae26ea84262f0f6d49247ac0e",
+  "source": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/SF06/source.py",
+  "source_lines": 155,
+  "new_api_call_sites": {
+    "Polygon": 0,
+    "linear_extrude": 0,
+    "rotate_extrude": 0,
+    "hull": 7
+  },
+  "finished_at": "2026-09-29T08:41:22.785677+00:00",
+  "usage": {
+    "requests": 3,
+    "input_tokens": 21577,
+    "output_tokens": 6061,
+    "reasoning_tokens": 1925,
+    "cached_tokens": 6784,
+    "cache_write_tokens": 0,
+    "total_tokens": 27638,
+    "cost": null
+  }
+}

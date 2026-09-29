@@ -1,0 +1,394 @@
+{
+  "object_name": "Tall five-shelf open wood bookshelf",
+  "components": [
+    {
+      "name": "left_side_panel",
+      "description": "Full-height left structural panel, 6 x 32 x 200 mm, assembled at center (-47, 0, 100). It has a warm reddish-brown wood appearance with subtle vertical grain. Its inner face receives two separated tab slots from every horizontal member."
+    },
+    {
+      "name": "right_side_panel",
+      "description": "Full-height right structural panel, 6 x 32 x 200 mm, assembled at center (47, 0, 100). It mirrors the left panel, has subtle vertical wood grain, and receives two separated tab slots from every horizontal member."
+    },
+    {
+      "name": "shelf_1_bottom",
+      "description": "Lowest of five usable shelf boards, 88 x 32 x 6 mm, centered at (0, 0, 3). It spans exactly between the side-panel inner faces and carries front and rear end tabs at both left and right ends."
+    },
+    {
+      "name": "shelf_2",
+      "description": "Second usable shelf board, 88 x 32 x 6 mm, centered at (0, 0, 41.8). It is horizontal and carries front and rear end tabs at both ends."
+    },
+    {
+      "name": "shelf_3",
+      "description": "Third usable shelf board, 88 x 32 x 6 mm, centered at (0, 0, 80.6). It is horizontal and carries front and rear end tabs at both ends."
+    },
+    {
+      "name": "shelf_4",
+      "description": "Fourth usable shelf board, 88 x 32 x 6 mm, centered at (0, 0, 119.4). It is horizontal and carries front and rear end tabs at both ends."
+    },
+    {
+      "name": "shelf_5",
+      "description": "Fifth usable shelf board, 88 x 32 x 6 mm, centered at (0, 0, 158.2). It is horizontal and carries front and rear end tabs at both ends."
+    },
+    {
+      "name": "top_cap",
+      "description": "Top structural cap, 88 x 32 x 6 mm, centered at (0, 0, 197). It closes the upper frame without being counted among the five usable shelves and carries front and rear end tabs at both ends."
+    }
+  ],
+  "relations": [
+    "The assembled bookshelf has an exact overall envelope of 100 mm in x, 32 mm in y, and 200 mm in z.",
+    "World coordinates use +x right, +y inward/back, and +z up; the open display face is toward -y.",
+    "The left and right side panels are vertical, parallel, and mirror-symmetric about x=0. Their inner faces lie at x=-44 and x=44 respectively.",
+    "All six horizontal members span the 88 mm clear distance between the side-panel inner faces and share x=0 and y=0.",
+    "The five shelf centers occur at z=3, 41.8, 80.6, 119.4, and 158.2 mm. The top-cap center is z=197 mm. Adjacent horizontal boards therefore create five evenly spaced open compartments with 32.8 mm clear height.",
+    "There is no back panel, door, plinth, or diagonal brace; both front and rear remain visually open to preserve the streamlined minimalist character.",
+    "Every horizontal-member-to-side-panel junction uses two distinct tab-slot interfaces, one near the front and one near the rear, to resist rotation and cover the full physical attachment arrangement.",
+    "Front and rear connector centerlines should be separated along y, nominally at y=-10 mm and y=10 mm, while remaining fully inside the 32 mm panel depth.",
+    "At each left end, tabs insert from the horizontal member into the left side panel along -x. At each right end, tabs insert into the right side panel along +x.",
+    "Use one shared TabSlot parameter named shelf_side_tabslot for all interfaces: approximately 10 mm tab width along y, 3.5 mm tab thickness along z, 4 mm insertion, slot depth at least 4 mm, and the frozen single-sided fit allowance of 0.2 mm. Retain sufficient shoulder and embedded-root material in every shelf and sufficient surrounding wall material in each side panel.",
+    "All visible structural pieces use a warm reddish-brown base color. Wood texture should remain restrained and directional: predominantly vertical on side panels and lengthwise along x on shelves and the top cap.",
+    "The two side panels reach the floor at z=0, and shelf_1_bottom also has its lower face at z=0, providing a broad, level standing footprint."
+  ],
+  "critic_checklist": [
+    "Verify that the final assembled bounding size is exactly 100 x 32 x 200 mm at mm_per_unit=1.0.",
+    "Verify that there are exactly five clearly identifiable usable shelves plus one separate top cap; do not count the top cap as a sixth shelf.",
+    "Verify shelf centers at z=3, 41.8, 80.6, 119.4, and 158.2 mm, with the top cap centered at z=197 mm.",
+    "Verify that the five open compartments have equal clear height of approximately 32.8 mm and are unobstructed from the front.",
+    "Verify that both side panels are 6 mm thick, extend continuously from z=0 to z=200, and have outer faces at x=-50 and x=50.",
+    "Verify that each horizontal board is level, 6 mm thick, 32 mm deep, and spans between x=-44 and x=44 before generated connector protrusions.",
+    "Verify that no back panel, front rail, door, or decorative cross-brace blocks the open minimalist compartments.",
+    "Verify a warm reddish-brown finish across all parts, with visible but subtle wood-like directional texture rather than a flat plastic appearance.",
+    "Verify that all eight semantic components are assigned to explicit print parts and that the result retains multiple separately printable bodies.",
+    "Verify that every horizontal member has four declared interfaces: left-front, left-rear, right-front, and right-rear, for a total of 24 tab-slot connections.",
+    "Verify that every connection has unique endpoint port names and that front and rear interfaces are geometrically separated rather than duplicated at one location.",
+    "Verify ordered placement starts from left_side_panel: the first left interface places each horizontal member, and the first right interface of shelf_1_bottom places right_side_panel before later right-side interfaces are checked.",
+    "Verify all left-end tab insertion directions are -x and all right-end tab insertion directions are +x.",
+    "Verify all connections use the frozen fit_offset_mm of 0.2 without alteration and use the shared shelf_side_tabslot dimensions consistently.",
+    "Verify adequate solid material surrounds all side-panel slots, especially those adjacent to z=0 and z=200, and that tabs have shoulders embedded in their shelf bodies.",
+    "Verify the assembled object stands with both side-panel bottoms and the bottom shelf lower face on the z=0 floor, without any component extending below the floor.",
+    "Verify assembly_topology reports complete declared-interface coverage and a single connected assembly graph.",
+    "Verify assembly_standing evidence covers all independent printed bodies and all declared interfaces under the frozen five-second gravity-only settings; do not claim fixation, strength, or external-load capacity beyond that evidence."
+  ],
+  "print_parts": [
+    {
+      "id": "side_left",
+      "components": [
+        "left_side_panel"
+      ]
+    },
+    {
+      "id": "side_right",
+      "components": [
+        "right_side_panel"
+      ]
+    },
+    {
+      "id": "shelf_bottom",
+      "components": [
+        "shelf_1_bottom"
+      ]
+    },
+    {
+      "id": "shelf_level_2",
+      "components": [
+        "shelf_2"
+      ]
+    },
+    {
+      "id": "shelf_level_3",
+      "components": [
+        "shelf_3"
+      ]
+    },
+    {
+      "id": "shelf_level_4",
+      "components": [
+        "shelf_4"
+      ]
+    },
+    {
+      "id": "shelf_level_5",
+      "components": [
+        "shelf_5"
+      ]
+    },
+    {
+      "id": "cap_top",
+      "components": [
+        "top_cap"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "s1_left_front",
+      "tab_part": "shelf_bottom",
+      "slot_part": "side_left",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_1_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x from shelf end into left panel",
+      "fit_intent": "Snug sliding assembly with frozen 0.2 mm single-sided clearance"
+    },
+    {
+      "id": "s1_left_rear",
+      "tab_part": "shelf_bottom",
+      "slot_part": "side_left",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_1_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x from shelf end into left panel",
+      "fit_intent": "Second separated interface constraining shelf rotation"
+    },
+    {
+      "id": "s1_right_front",
+      "tab_part": "shelf_bottom",
+      "slot_part": "side_right",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_1_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x from shelf end into right panel",
+      "fit_intent": "Places the right panel while preserving the 88 mm internal span"
+    },
+    {
+      "id": "s1_right_rear",
+      "tab_part": "shelf_bottom",
+      "slot_part": "side_right",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_1_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x from shelf end into right panel",
+      "fit_intent": "Second separated interface constraining base-frame rotation"
+    },
+    {
+      "id": "s2_left_front",
+      "tab_part": "shelf_level_2",
+      "slot_part": "side_left",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_2_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x from shelf end into left panel",
+      "fit_intent": "Snug sliding assembly with frozen clearance"
+    },
+    {
+      "id": "s2_left_rear",
+      "tab_part": "shelf_level_2",
+      "slot_part": "side_left",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_2_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x from shelf end into left panel",
+      "fit_intent": "Separated anti-rotation interface"
+    },
+    {
+      "id": "s2_right_front",
+      "tab_part": "shelf_level_2",
+      "slot_part": "side_right",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_2_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x from shelf end into right panel",
+      "fit_intent": "Checks and joins the already positioned right panel"
+    },
+    {
+      "id": "s2_right_rear",
+      "tab_part": "shelf_level_2",
+      "slot_part": "side_right",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_2_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x from shelf end into right panel",
+      "fit_intent": "Separated anti-rotation interface"
+    },
+    {
+      "id": "s3_left_front",
+      "tab_part": "shelf_level_3",
+      "slot_part": "side_left",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_3_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x from shelf end into left panel",
+      "fit_intent": "Snug sliding assembly with frozen clearance"
+    },
+    {
+      "id": "s3_left_rear",
+      "tab_part": "shelf_level_3",
+      "slot_part": "side_left",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_3_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x from shelf end into left panel",
+      "fit_intent": "Separated anti-rotation interface"
+    },
+    {
+      "id": "s3_right_front",
+      "tab_part": "shelf_level_3",
+      "slot_part": "side_right",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_3_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x from shelf end into right panel",
+      "fit_intent": "Checks and joins the already positioned right panel"
+    },
+    {
+      "id": "s3_right_rear",
+      "tab_part": "shelf_level_3",
+      "slot_part": "side_right",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_3_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x from shelf end into right panel",
+      "fit_intent": "Separated anti-rotation interface"
+    },
+    {
+      "id": "s4_left_front",
+      "tab_part": "shelf_level_4",
+      "slot_part": "side_left",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_4_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x from shelf end into left panel",
+      "fit_intent": "Snug sliding assembly with frozen clearance"
+    },
+    {
+      "id": "s4_left_rear",
+      "tab_part": "shelf_level_4",
+      "slot_part": "side_left",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_4_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x from shelf end into left panel",
+      "fit_intent": "Separated anti-rotation interface"
+    },
+    {
+      "id": "s4_right_front",
+      "tab_part": "shelf_level_4",
+      "slot_part": "side_right",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_4_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x from shelf end into right panel",
+      "fit_intent": "Checks and joins the already positioned right panel"
+    },
+    {
+      "id": "s4_right_rear",
+      "tab_part": "shelf_level_4",
+      "slot_part": "side_right",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_4_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x from shelf end into right panel",
+      "fit_intent": "Separated anti-rotation interface"
+    },
+    {
+      "id": "s5_left_front",
+      "tab_part": "shelf_level_5",
+      "slot_part": "side_left",
+      "tab_port": "left_front_tab",
+      "slot_port": "shelf_5_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x from shelf end into left panel",
+      "fit_intent": "Snug sliding assembly with frozen clearance"
+    },
+    {
+      "id": "s5_left_rear",
+      "tab_part": "shelf_level_5",
+      "slot_part": "side_left",
+      "tab_port": "left_rear_tab",
+      "slot_port": "shelf_5_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x from shelf end into left panel",
+      "fit_intent": "Separated anti-rotation interface"
+    },
+    {
+      "id": "s5_right_front",
+      "tab_part": "shelf_level_5",
+      "slot_part": "side_right",
+      "tab_port": "right_front_tab",
+      "slot_port": "shelf_5_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x from shelf end into right panel",
+      "fit_intent": "Checks and joins the already positioned right panel"
+    },
+    {
+      "id": "s5_right_rear",
+      "tab_part": "shelf_level_5",
+      "slot_part": "side_right",
+      "tab_port": "right_rear_tab",
+      "slot_port": "shelf_5_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x from shelf end into right panel",
+      "fit_intent": "Separated anti-rotation interface"
+    },
+    {
+      "id": "cap_left_front",
+      "tab_part": "cap_top",
+      "slot_part": "side_left",
+      "tab_port": "left_front_tab",
+      "slot_port": "top_cap_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x from cap end into left panel",
+      "fit_intent": "Snug sliding top-frame assembly with frozen clearance"
+    },
+    {
+      "id": "cap_left_rear",
+      "tab_part": "cap_top",
+      "slot_part": "side_left",
+      "tab_port": "left_rear_tab",
+      "slot_port": "top_cap_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "-x from cap end into left panel",
+      "fit_intent": "Separated interface constraining top-frame rotation"
+    },
+    {
+      "id": "cap_right_front",
+      "tab_part": "cap_top",
+      "slot_part": "side_right",
+      "tab_port": "right_front_tab",
+      "slot_port": "top_cap_front_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x from cap end into right panel",
+      "fit_intent": "Checks and closes the upper rectangular frame"
+    },
+    {
+      "id": "cap_right_rear",
+      "tab_part": "cap_top",
+      "slot_part": "side_right",
+      "tab_port": "right_rear_tab",
+      "slot_port": "top_cap_rear_slot",
+      "parameter_name": "shelf_side_tabslot",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+x from cap end into right panel",
+      "fit_intent": "Separated interface constraining top-frame rotation"
+    }
+  ],
+  "root_part": "side_left",
+  "mm_per_unit": 1.0,
+  "final_size_mm": [
+    100.0,
+    32.0,
+    200.0
+  ]
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "tool": "read_file",
+    "path": "source.py",
+    "success": true,
+    "code": null,
+    "changed": null
+  },
+  {
+    "tool": "apply_patch",
+    "path": "source.py",
+    "success": true,
+    "code": "PATCH_APPLIED",
+    "changed": true
+  }
+]
