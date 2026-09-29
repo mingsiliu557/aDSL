@@ -31,14 +31,16 @@ def checker_spec(name, timeout_seconds=900, *, prepend_environment=None):
             '--topology-cache', '{round_dir}/checkers/assembly_topology'])
 
 
-def run_assembly_checks(specs, *, execution, source, root, physics, initial_topology_run=None):
+def run_assembly_checks(specs, *, execution, source, root, physics, initial_topology_run=None, partition_reference=None):
     from .assembly_topology import run_assembly_topology
+    physics = {**physics, **({'partition_reference_path':str(partition_reference)} if partition_reference else {})}
     write_json(root/'assembly_physics.json', physics)
     analysis = ExecutionResult(execution.output_root, execution.glb_path, None, (), '', '',
                                source_index_path=execution.source_index_path)
     runs = []
     # Topology's version-bound solids are optional reusable inputs, not a global gate.
-    for spec in sorted(specs, key=lambda s:s.name != 'assembly_topology'):
+    order = {'assembly_topology':0, 'assembly_overhang':1, 'assembly_standing':2, 'assembly_fea':3}
+    for spec in sorted(specs, key=lambda s:order[s.name]):
         if spec.name == 'assembly_topology':
             run = initial_topology_run or run_assembly_topology(spec,execution=analysis,source=source,root=root)
         else:

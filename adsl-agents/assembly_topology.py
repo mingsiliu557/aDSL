@@ -384,6 +384,21 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
         'Do not change shapes just for overhang, loads, material, support, friction or tool settings. '
         'A source change requires rechecking all selected applicable tools.' if len(runs)>1 or
         any(r.spec.name!='assembly_topology' for r in runs) else '')
+    partition_enabled = bool(request.fixed_assembly.get('physics',{}).get('overhang',{}).get('partition_objective'))
+    if partition_enabled and request.repair_policy.print_partition_editable:
+        instruction = ENGINEERING_INSTRUCTION + '''
+Partition objective enabled: use the measured frozen-reference Dapper score (maximize),
+not overhang area, to evaluate ONE local split or merge. Even G=0 may admit a useful
+merge; NO_PROPOSAL is valid. Use action regroup_print_parts with grouping_change
+(operation, source_part_ids, target_print_parts, connection_changes). Preserve all
+pre-connector body material, appearance, root ID/frame and required features.
+Build from original bodies/children, remove internal connectors and recreate every
+cross-group interface. Splitting overlapping children requires explicit disjoint
+material ownership; do not export their original overlap as separate print parts.
+Do not change checker/reference/configuration. Keep mounting shoulders and unnamed
+body details. All selected checks must run again. Standing/required physical or
+visual failures remain necessary repairs; a high score cannot excuse them.
+'''
     agent=runtime.agent(name='object-engineering-critic',tools=READ_TOOLS,
         instructions=object_prompt('engineering_critic',articulation=False)+ '\n'+instruction,
         output_type=EngineeringCriticDecision,strict_json_schema=False)
@@ -395,6 +410,13 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
         'assembly_item_statuses':[{k:r.get(k) for k in ('kind','part_id','connection_id','pair_id','part_ids','status','code')}
             for result in runs for r in result.result.metrics.get('items',[])],
         'print_orientation_editable':request.repair_policy.print_orientation_editable,
+        'print_partition_editable':request.repair_policy.print_partition_editable,
+        'partition_measurement':[{**{k:v for k,v in r.result.metrics.items() if k=='partition_objective'},
+            'items':[{k:v for k,v in item.items() if k in ('part_id','status','gap_voxels',
+                'selected_rotation_id','recommended_print_transform_mm','largest_regions','input_pose_area_mm2',
+                'recommended_pose_area_mm2')} for item in r.result.metrics.get('items',[])]}
+            for r in runs if r.spec.name=='assembly_overhang'],
+        'partition_change_vs_baseline':feedback.get('partition_change_vs_baseline'),
         'resolved_visual_feedback':feedback.get('resolved_visual_feedback'),
         'pending_reviews':{k:feedback.get(k) for k in ('image_critic','code_critic','render_issue','repair_history')},
         'remaining_repairs':remaining,'maximum_repair_proposals':1,
@@ -423,6 +445,15 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
             feedback['engineering']={'status':'UNAVAILABLE','reason':'unknown/unrepairable finding or unsupported action'}
             write_json(root/'proposal_rejected.json',feedback['engineering'])
             return None
+        if proposal.action == 'regroup_print_parts':
+            try:
+                if not partition_enabled or not request.repair_policy.print_partition_editable or proposal.grouping_change is None:
+                    raise ValueError('partition editing disabled or grouping_change absent')
+                proposal.grouping_change.validate_current_assembly(context.get('current_assembly') or {})
+            except ValueError as error:
+                feedback['engineering'] = {'status':'UNAVAILABLE','reason':str(error)}
+                write_json(root/'proposal_rejected.json',feedback['engineering'])
+                return None
         known={sid for result in runs for f in result.result.findings for c in f.source_candidates for sid in c.source_ids}
         features={c.feature_id for result in runs for f in result.result.findings for c in f.source_candidates}
         if not set(proposal.target.source_ids)<=known or not set(proposal.target.feature_ids)<=features:

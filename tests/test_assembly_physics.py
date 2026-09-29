@@ -113,7 +113,7 @@ def test_timeout_isolated_and_all_tools_run(tmp_path,monkeypatch):
     specs=[checker_spec(n) for n in ('assembly_standing','assembly_overhang','assembly_fea')]
     runs=run_assembly_checks(specs,execution=ExecutionResult(tmp_path,tmp_path/'scene.glb',None,(),'',''),
         source=source,root=tmp_path,physics={})
-    assert calls==[s.name for s in specs]
+    assert calls==['assembly_overhang','assembly_standing','assembly_fea']
     assert [r.result.status for r in runs]==['INDETERMINATE','PASS','PASS']
     assert runs[0].result.metrics['last_stage']['report_unavailable']=='JSONDecodeError'
 

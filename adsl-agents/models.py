@@ -257,6 +257,42 @@ class RepairTarget(BaseModel):
     allowed_scopes: list[str] = Field(default_factory=list)
 
 
+class PrintGroupingChange(BaseModel):
+    operation: Literal['split', 'merge']
+    source_part_ids: list[str] = Field(min_length=1)
+    target_print_parts: list[PrintPartPlan] = Field(min_length=1)
+    connection_changes: list[str] = Field(default_factory=list)
+
+    def validate_current_assembly(self, assembly):
+        parts = {p['id']:p for p in assembly.get('parts', [])}
+        sources = set(self.source_part_ids)
+        targets = [p.id for p in self.target_print_parts]
+        if len(sources) != len(self.source_part_ids) or not sources <= parts.keys():
+            raise ValueError('grouping source parts must exist and be unique')
+        if len(targets) != len(set(targets)) or set(targets) & (parts.keys()-sources):
+            raise ValueError('grouping target IDs duplicate unaffected parts')
+        members = [c for p in self.target_print_parts for c in p.components]
+        expected = [c for name in sources for c in parts[name]['components']]
+        if len(members) != len(set(members)) or sorted(members) != sorted(expected):
+            raise ValueError('grouping must preserve complete unique semantic ownership')
+        if assembly.get('root_id') in sources and assembly['root_id'] not in targets:
+            raise ValueError('grouping must retain root ID and coordinate frame')
+        if self.operation == 'split':
+            if len(sources) != 1 or len(targets) < 2:
+                raise ValueError('split requires one source and multiple targets')
+        else:
+            if len(sources) < 2 or len(targets) != 1:
+                raise ValueError('merge requires multiple sources and one target')
+            reached = {next(iter(sources))}
+            for _ in sources:
+                for c in assembly.get('connections') or []:
+                    endpoints = {c['tab_part'],c['slot_part']}
+                    if endpoints <= sources and endpoints & reached:
+                        reached.update(endpoints)
+            if reached != sources:
+                raise ValueError('merge source parts must be connected')
+
+
 class RepairProposal(BaseModel):
     proposal_id: str
     finding_ids: list[str] = Field(min_length=1)
@@ -270,7 +306,9 @@ class RepairProposal(BaseModel):
         "reshape",
         "change_print_orientation",
         "request_evidence",
+        "regroup_print_parts",
     ]
+    grouping_change: PrintGroupingChange | None = None
     parameter_bounds: dict[str, Any] = Field(default_factory=dict)
     expected_improvements: list[str] = Field(default_factory=list)
     possible_regressions: list[str] = Field(default_factory=list)
@@ -280,6 +318,7 @@ class RepairProposal(BaseModel):
 
 
 class RepairPolicy(BaseModel):
+    print_partition_editable: bool = False
     max_candidates_per_round: int = Field(default=1, ge=1, le=10)
     max_total_candidates: int | None = Field(default=5, ge=1, le=50)
     time_budget_seconds: float = Field(default=7200.0, gt=0)
