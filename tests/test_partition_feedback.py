@@ -71,6 +71,8 @@ def test_measured_partition_reaches_engineering(tmp_path,monkeypatch,permission,
             assert 'alternative score is not required' in data['assignment']
             assert 'do not invent the candidate score' in data['assignment']
         assert data['partition_measurement'][0]['partition_objective']['reference_sha256']
+        assert data['partition_measurement'][0]['partition_guidance']==result.metrics['partition_guidance']
+        assert all(x['gap_voxels'] is not None for x in data['partition_measurement'][0]['items'])
         assert data['assembly_context']['current_assembly']['connections']==manifest['connections']
         await tool(read_file,kw['context'],'read_source',path=str(args.source))
         proposal=RepairProposal(proposal_id='merge',finding_ids=[result.findings[0].finding_id],

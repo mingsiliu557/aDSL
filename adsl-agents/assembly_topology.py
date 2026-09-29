@@ -417,7 +417,7 @@ visual failures remain necessary repairs; a high score cannot excuse them.
             for result in runs for r in result.result.metrics.get('items',[])],
         'print_orientation_editable':request.repair_policy.print_orientation_editable,
         'print_partition_editable':request.repair_policy.print_partition_editable,
-        'partition_measurement':[{**{k:v for k,v in r.result.metrics.items() if k=='partition_objective'},
+        'partition_measurement':[{**{k:v for k,v in r.result.metrics.items() if k in ('partition_objective','partition_guidance')},
             'items':[{k:v for k,v in item.items() if k in ('part_id','status','gap_voxels',
                 'selected_rotation_id','recommended_print_transform_mm','largest_regions','input_pose_area_mm2',
                 'recommended_pose_area_mm2')} for item in r.result.metrics.get('items',[])]}

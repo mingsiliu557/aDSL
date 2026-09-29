@@ -119,6 +119,28 @@ def score_partition(part_results, reference, *, part_count, config=OBJECTIVE):
         gap_volume_mm3=gap*reference['voxel_pitch_mm']**3 if complete else None)
 
 
+def partition_score_guidance(objective):
+    """Arithmetic bounds for a hypothesis, never a measured candidate score."""
+    keys=('reference_voxels','gap_voxels','print_part_count','alpha','score')
+    if any(objective.get(k) is None for k in keys):
+        return dict(status='UNAVAILABLE',reason='complete partition measurement required')
+    v,g,n,alpha,score=(objective[k] for k in keys)
+    if (not all(np.isfinite(x) for x in (v,g,n,alpha,score)) or
+            v < 0 or g < 0 or n < 1 or n != int(n) or alpha <= 0):
+        return dict(status='UNAVAILABLE',reason='invalid partition measurement')
+    upper=v/(n+1)**alpha
+    result=dict(status='AVAILABLE',current=dict(N=n,G=g,score=score),
+        numerator_nonpositive=objective.get('numerator_nonpositive',v-g <= 0),
+        split_one_more=dict(target_part_count=n+1,zero_gap_score_upper_bound=upper,
+                            improvement_possible=bool(upper > score)))
+    if n > 1:
+        gap_bound=v-score*(n-1)**alpha
+        result['merge_one_fewer']=dict(target_part_count=n-1,
+            gap_voxels_exclusive_upper_bound=gap_bound,
+            allowed_gap_increase_exclusive=gap_bound-g)
+    return result
+
+
 def compare_partition_scores(previous, candidate):
     a = previous.get('metrics', {}).get('partition_objective', {})
     b = candidate.get('metrics', {}).get('partition_objective', {})

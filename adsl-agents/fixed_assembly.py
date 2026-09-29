@@ -514,6 +514,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         if partition is not None:
             feedback['partition_change_vs_baseline']=reviews.get('partition_change_vs_baseline')
             feedback['body_reference_comparison']=shape_comparison
+            feedback['partition_guidance']=reviews.get('assembly_overhang',{}).get('metrics',{}).get('partition_guidance')
         prepare_evidence(feedback,workspace=workspace,source_sha256=file_hash(current),
                          evidence_files=book['evidence_files'])
         feedback['engineering']={'status':'NOT_REQUESTED'}

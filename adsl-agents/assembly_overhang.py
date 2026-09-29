@@ -74,7 +74,7 @@ def partition_measurement(args, physics, report, meshes, result, area_available)
     from pathlib import Path
     from .feedback_schema import sha256_file
     from .partition_score import (objective_config, create_reference, load_reference,
-                                  best_print_pose, score_partition)
+                                  best_print_pose, score_partition, partition_score_guidance)
     config = physics['overhang']
     objective = objective_config(config['partition_objective'])
     reference = None
@@ -114,6 +114,7 @@ def partition_measurement(args, physics, report, meshes, result, area_available)
     count = len(report.get('part_declarations',report['parts']))
     score = score_partition(result.metrics['items'], reference, part_count=count, config=objective)
     result.metrics['partition_objective'] = score
+    result.metrics['partition_guidance'] = partition_score_guidance(score)
     result.status = 'PASS' if score['score'] is not None else 'INDETERMINATE'
     result.summary = ('Partition measurement complete; vertical-gap proxy, not slicer support or printability approval'
                       if result.status=='PASS' else 'Partition measurement incomplete; total gap and score unknown')
@@ -129,7 +130,7 @@ def partition_measurement(args, physics, report, meshes, result, area_available)
             'Evaluate at most one supported local split/merge, including at zero gap. Preserve pre-connector body shape and update every affected interface; NO_PROPOSAL is valid.',
             part_ids=[r['part_id'] for r in result.metrics['items']], frame='assembly',
             category='optimization_opportunity', repairability='design_variable', required=False,
-            domain=dict(partition_objective=score, items=result.metrics['items'])))
+            domain=dict(partition_objective=score, partition_guidance=result.metrics['partition_guidance'], items=result.metrics['items'])))
     return result
 
 if __name__=='__main__': cli(NAME,analyze)

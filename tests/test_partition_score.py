@@ -100,3 +100,23 @@ def test_reference_units_immutability_and_regrouped_shape(tmp_path):
     assert comparison['symmetric_difference_mm3']==0
     (path.parent/'occupied.npz').write_bytes(b'changed')
     with pytest.raises(ValueError,match='changed'):load_reference(path)
+
+
+def test_partition_guidance_bounds_and_original_negative_formula():
+    from adsl.agents.partition_score import partition_score_guidance
+    def guide(v,g,n):return partition_score_guidance(score(v,g,n)['metrics']['partition_objective'])
+    a=guide(216,6,2)
+    assert a['split_one_more']['zero_gap_score_upper_bound']==pytest.approx(155.35218815817)
+    assert not a['split_one_more']['improvement_possible']
+    b=guide(616,0,5)['merge_one_fewer']
+    assert b['gap_voxels_exclusive_upper_bound']==pytest.approx(39.886956141265)
+    assert b['allowed_gap_increase_exclusive']==b['gap_voxels_exclusive_upper_bound']
+    assert compare_partition_scores(score(616,0,5),score(616,39,4))['conclusion']=='IMPROVED'
+    assert compare_partition_scores(score(616,0,5),score(616,40,4))['conclusion']=='WORSE'
+    assert 'merge_one_fewer' not in guide(100,0,1)
+    assert partition_score_guidance({})['status']=='UNAVAILABLE'
+    missing=score(100,0,2)['metrics']['partition_objective'];missing['gap_voxels']=None
+    assert partition_score_guidance(missing)['status']=='UNAVAILABLE'
+    neg=guide(100,150,2)
+    assert neg['numerator_nonpositive'] and neg['current']['score'] < 0
+    assert neg['merge_one_fewer']['gap_voxels_exclusive_upper_bound'] > 100
