@@ -1,0 +1,4126 @@
+{
+  "version": 1,
+  "source_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/A/source.py",
+  "source_sha256": "3dedebf442ced645dedd7477d56fb49275549d0756de8d21d73122c5860570cf",
+  "index_sha256": "61ca92aa00d18e0e40f5d5d5059902d40e4e522c0aab72b89b20bf6e0a3848b9",
+  "root_feature_id": "feature:stylized_upward_trunk_elephant",
+  "source_nodes": [
+    {
+      "source_id": "source:9c41fb5fb6799c21e65a",
+      "kind": "function",
+      "name": "ellipsoid",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 8,
+        "end_line": 11,
+        "start_col": 0,
+        "end_col": 40
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "ELEPHANT_GRAY",
+        "Sphere",
+        "center",
+        "color",
+        "form",
+        "scale_shape",
+        "size",
+        "translate_shape"
+      ],
+      "expression": "def ellipsoid(size, center=(0.0, 0.0, 0.0), color=ELEPHANT_GRAY):\n    form = Sphere(0.5, color=color)\n    form = scale_shape(form, size, center=(0.0, 0.0, 0.0))\n    return translate_shape(form, center)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:1fa4a6d1c1f94109eb9b",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 9,
+        "end_line": 9,
+        "start_col": 11,
+        "end_col": 35
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "Sphere",
+        "color"
+      ],
+      "expression": "Sphere(0.5, color=color)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:364d1cb45a9ed6aa5342",
+      "kind": "dsl_call",
+      "name": "scale_shape",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 10,
+        "end_line": 10,
+        "start_col": 11,
+        "end_col": 58
+      },
+      "parameters": [
+        "center"
+      ],
+      "dependencies": [
+        "form",
+        "scale_shape",
+        "size"
+      ],
+      "expression": "scale_shape(form, size, center=(0.0, 0.0, 0.0))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:657b34e1fde9bfe36a32",
+      "kind": "dsl_call",
+      "name": "translate_shape",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 11,
+        "end_line": 11,
+        "start_col": 11,
+        "end_col": 40
+      },
+      "parameters": [],
+      "dependencies": [
+        "center",
+        "form",
+        "translate_shape"
+      ],
+      "expression": "translate_shape(form, center)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:782510ad74fef5fc0b30",
+      "kind": "function",
+      "name": "rounded_segment",
+      "scope": "rounded_segment",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 14,
+        "end_line": 19,
+        "start_col": 0,
+        "end_col": 18
+      },
+      "parameters": [
+        "center",
+        "color",
+        "p0",
+        "p1"
+      ],
+      "dependencies": [
+        "Asset",
+        "Cylinder",
+        "ELEPHANT_GRAY",
+        "Sphere",
+        "color",
+        "p0",
+        "p1",
+        "radius",
+        "segment"
+      ],
+      "expression": "def rounded_segment(p0, p1, radius, color=ELEPHANT_GRAY):\n    segment = Asset(\"rounded_segment\")\n    segment.attach_part(\"shaft\", Cylinder(radius, p0=p0, p1=p1, color=color))\n    segment.attach_part(\"start_round\", Sphere(radius, center=p0, color=color))\n    segment.attach_part(\"end_round\", Sphere(radius, center=p1, color=color))\n    return segment",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:1e6f6c3399c35c11dee2",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "rounded_segment",
+      "owner_class": null,
+      "semantic_name": "shaft",
+      "span": {
+        "start_line": 16,
+        "end_line": 16,
+        "start_col": 4,
+        "end_col": 77
+      },
+      "parameters": [
+        "color",
+        "p0",
+        "p1"
+      ],
+      "dependencies": [
+        "Cylinder",
+        "color",
+        "p0",
+        "p1",
+        "radius",
+        "segment"
+      ],
+      "expression": "segment.attach_part(\"shaft\", Cylinder(radius, p0=p0, p1=p1, color=color))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:5f2c52ad0ead2f266577",
+      "kind": "dsl_call",
+      "name": "Cylinder",
+      "scope": "rounded_segment",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 16,
+        "end_line": 16,
+        "start_col": 33,
+        "end_col": 76
+      },
+      "parameters": [
+        "color",
+        "p0",
+        "p1"
+      ],
+      "dependencies": [
+        "Cylinder",
+        "color",
+        "p0",
+        "p1",
+        "radius"
+      ],
+      "expression": "Cylinder(radius, p0=p0, p1=p1, color=color)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:f820c888f84d734ca720",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "rounded_segment",
+      "owner_class": null,
+      "semantic_name": "start_round",
+      "span": {
+        "start_line": 17,
+        "end_line": 17,
+        "start_col": 4,
+        "end_col": 78
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Sphere",
+        "color",
+        "p0",
+        "radius",
+        "segment"
+      ],
+      "expression": "segment.attach_part(\"start_round\", Sphere(radius, center=p0, color=color))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:1e77f1626e4836ea1d50",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "rounded_segment",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 17,
+        "end_line": 17,
+        "start_col": 39,
+        "end_col": 77
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Sphere",
+        "color",
+        "p0",
+        "radius"
+      ],
+      "expression": "Sphere(radius, center=p0, color=color)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:80cea95c042de84149f9",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "rounded_segment",
+      "owner_class": null,
+      "semantic_name": "end_round",
+      "span": {
+        "start_line": 18,
+        "end_line": 18,
+        "start_col": 4,
+        "end_col": 76
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Sphere",
+        "color",
+        "p1",
+        "radius",
+        "segment"
+      ],
+      "expression": "segment.attach_part(\"end_round\", Sphere(radius, center=p1, color=color))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:80fa156dc4f543281a23",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "rounded_segment",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 18,
+        "end_line": 18,
+        "start_col": 37,
+        "end_col": 75
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Sphere",
+        "color",
+        "p1",
+        "radius"
+      ],
+      "expression": "Sphere(radius, center=p1, color=color)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:89a8576e758ef9db365d",
+      "kind": "class",
+      "name": "ElephantTorso",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 22,
+        "end_line": 32,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "back_crown",
+        "belly_softener",
+        "boolean_union",
+        "ellipsoid",
+        "main_mass",
+        "rear_round",
+        "self",
+        "super"
+      ],
+      "expression": "class ElephantTorso(Asset):\n    def __init__(self):\n        super().__init__(label=\"rounded_torso\")\n        main_mass = ellipsoid((2.20, 1.04, 1.34), center=(0.22, 0.0, 1.72))\n        back_crown = ellipsoid((1.72, 0.96, 0.72), center=(0.18, 0.0, 2.04))\n        rear_round = ellipsoid((0.72, 0.94, 1.12), center=(1.02, 0.0, 1.68))\n        belly_softener = ellipsoid((1.72, 0.88, 0.48), center=(0.20, 0.0, 1.31))\n        self.body_mass = self.attach_part(\n            \"body_mass\",\n            boolean_union(main_mass, back_crown, rear_round, belly_softener),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:2524610c3e1f7d174fc4",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "ElephantTorso/__init__",
+      "owner_class": "ElephantTorso",
+      "semantic_name": null,
+      "span": {
+        "start_line": 23,
+        "end_line": 32,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "label"
+      ],
+      "dependencies": [
+        "back_crown",
+        "belly_softener",
+        "boolean_union",
+        "ellipsoid",
+        "main_mass",
+        "rear_round",
+        "self",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"rounded_torso\")\n        main_mass = ellipsoid((2.20, 1.04, 1.34), center=(0.22, 0.0, 1.72))\n        back_crown = ellipsoid((1.72, 0.96, 0.72), center=(0.18, 0.0, 2.04))\n        rear_round = ellipsoid((0.72, 0.94, 1.12), center=(1.02, 0.0, 1.68))\n        belly_softener = ellipsoid((1.72, 0.88, 0.48), center=(0.20, 0.0, 1.31))\n        self.body_mass = self.attach_part(\n            \"body_mass\",\n            boolean_union(main_mass, back_crown, rear_round, belly_softener),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:0208cf5726b288aeed30",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ElephantTorso/__init__",
+      "owner_class": "ElephantTorso",
+      "semantic_name": "body_mass",
+      "span": {
+        "start_line": 29,
+        "end_line": 32,
+        "start_col": 25,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "back_crown",
+        "belly_softener",
+        "boolean_union",
+        "main_mass",
+        "rear_round",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"body_mass\",\n            boolean_union(main_mass, back_crown, rear_round, belly_softener),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:2124492e8111041fad68",
+      "kind": "dsl_call",
+      "name": "boolean_union",
+      "scope": "ElephantTorso/__init__",
+      "owner_class": "ElephantTorso",
+      "semantic_name": null,
+      "span": {
+        "start_line": 31,
+        "end_line": 31,
+        "start_col": 12,
+        "end_col": 76
+      },
+      "parameters": [],
+      "dependencies": [
+        "back_crown",
+        "belly_softener",
+        "boolean_union",
+        "main_mass",
+        "rear_round"
+      ],
+      "expression": "boolean_union(main_mass, back_crown, rear_round, belly_softener)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:4ad7dd371db97d470715",
+      "kind": "class",
+      "name": "ElephantHead",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 35,
+        "end_line": 54,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "ELEPHANT_DARK",
+        "Sphere",
+        "boolean_union",
+        "cheek",
+        "cranium",
+        "ellipsoid",
+        "forehead",
+        "self",
+        "super",
+        "trunk_bridge"
+      ],
+      "expression": "class ElephantHead(Asset):\n    def __init__(self):\n        super().__init__(label=\"bulbous_head\")\n        cranium = ellipsoid((1.02, 0.90, 1.18), center=(-0.91, -0.005, 2.08))\n        forehead = ellipsoid((0.70, 0.84, 0.86), center=(-1.18, -0.005, 2.20))\n        cheek = ellipsoid((0.72, 0.82, 0.78), center=(-1.04, -0.005, 1.84))\n        trunk_bridge = ellipsoid((0.52, 0.66, 0.66), center=(-1.25, -0.005, 1.70))\n        self.head_mass = self.attach_part(\n            \"head_mass\",\n            boolean_union(cranium, forehead, cheek, trunk_bridge),\n        )\n\n        self.near_eye = self.attach_part(\n            \"near_eye\",\n            Sphere(0.037, center=(-1.305, -0.414, 2.245), color=ELEPHANT_DARK),\n        )\n        self.far_eye = self.attach_part(\n            \"far_eye\",\n            Sphere(0.032, center=(-1.305, 0.414, 2.245), color=ELEPHANT_DARK),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:953910cfdaa220e4e77f",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "ElephantHead/__init__",
+      "owner_class": "ElephantHead",
+      "semantic_name": null,
+      "span": {
+        "start_line": 36,
+        "end_line": 54,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "ELEPHANT_DARK",
+        "Sphere",
+        "boolean_union",
+        "cheek",
+        "cranium",
+        "ellipsoid",
+        "forehead",
+        "self",
+        "super",
+        "trunk_bridge"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"bulbous_head\")\n        cranium = ellipsoid((1.02, 0.90, 1.18), center=(-0.91, -0.005, 2.08))\n        forehead = ellipsoid((0.70, 0.84, 0.86), center=(-1.18, -0.005, 2.20))\n        cheek = ellipsoid((0.72, 0.82, 0.78), center=(-1.04, -0.005, 1.84))\n        trunk_bridge = ellipsoid((0.52, 0.66, 0.66), center=(-1.25, -0.005, 1.70))\n        self.head_mass = self.attach_part(\n            \"head_mass\",\n            boolean_union(cranium, forehead, cheek, trunk_bridge),\n        )\n\n        self.near_eye = self.attach_part(\n            \"near_eye\",\n            Sphere(0.037, center=(-1.305, -0.414, 2.245), color=ELEPHANT_DARK),\n        )\n        self.far_eye = self.attach_part(\n            \"far_eye\",\n            Sphere(0.032, center=(-1.305, 0.414, 2.245), color=ELEPHANT_DARK),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:9504b0f73ac675c87bd1",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ElephantHead/__init__",
+      "owner_class": "ElephantHead",
+      "semantic_name": "head_mass",
+      "span": {
+        "start_line": 42,
+        "end_line": 45,
+        "start_col": 25,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_union",
+        "cheek",
+        "cranium",
+        "forehead",
+        "self",
+        "trunk_bridge"
+      ],
+      "expression": "self.attach_part(\n            \"head_mass\",\n            boolean_union(cranium, forehead, cheek, trunk_bridge),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:6c773427076a56f54765",
+      "kind": "dsl_call",
+      "name": "boolean_union",
+      "scope": "ElephantHead/__init__",
+      "owner_class": "ElephantHead",
+      "semantic_name": null,
+      "span": {
+        "start_line": 44,
+        "end_line": 44,
+        "start_col": 12,
+        "end_col": 65
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_union",
+        "cheek",
+        "cranium",
+        "forehead",
+        "trunk_bridge"
+      ],
+      "expression": "boolean_union(cranium, forehead, cheek, trunk_bridge)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:b40e068483a7297e8b12",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ElephantHead/__init__",
+      "owner_class": "ElephantHead",
+      "semantic_name": "near_eye",
+      "span": {
+        "start_line": 47,
+        "end_line": 50,
+        "start_col": 24,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "ELEPHANT_DARK",
+        "Sphere",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"near_eye\",\n            Sphere(0.037, center=(-1.305, -0.414, 2.245), color=ELEPHANT_DARK),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:3aacef14d394196c1e14",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "ElephantHead/__init__",
+      "owner_class": "ElephantHead",
+      "semantic_name": null,
+      "span": {
+        "start_line": 49,
+        "end_line": 49,
+        "start_col": 12,
+        "end_col": 78
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "ELEPHANT_DARK",
+        "Sphere"
+      ],
+      "expression": "Sphere(0.037, center=(-1.305, -0.414, 2.245), color=ELEPHANT_DARK)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:9549f5f88e106a2d8594",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ElephantHead/__init__",
+      "owner_class": "ElephantHead",
+      "semantic_name": "far_eye",
+      "span": {
+        "start_line": 51,
+        "end_line": 54,
+        "start_col": 23,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "ELEPHANT_DARK",
+        "Sphere",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"far_eye\",\n            Sphere(0.032, center=(-1.305, 0.414, 2.245), color=ELEPHANT_DARK),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:e446c5fa138af2eabb5d",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "ElephantHead/__init__",
+      "owner_class": "ElephantHead",
+      "semantic_name": null,
+      "span": {
+        "start_line": 53,
+        "end_line": 53,
+        "start_col": 12,
+        "end_col": 77
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "ELEPHANT_DARK",
+        "Sphere"
+      ],
+      "expression": "Sphere(0.032, center=(-1.305, 0.414, 2.245), color=ELEPHANT_DARK)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:b1eb5b2e9db79bfac416",
+      "kind": "class",
+      "name": "ElephantEar",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 57,
+        "end_line": 69,
+        "start_col": 0,
+        "end_col": 56
+      },
+      "parameters": [
+        "angle",
+        "axis",
+        "center",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "boolean_union",
+        "broad",
+        "ear_form",
+        "ellipsoid",
+        "lower",
+        "rear_shift",
+        "rotate_shape",
+        "self",
+        "side",
+        "super",
+        "thickness",
+        "upper",
+        "y"
+      ],
+      "expression": "class ElephantEar(Asset):\n    def __init__(self, side):\n        super().__init__(label=\"near_ear\" if side < 0 else \"far_ear\")\n        y = -0.475 if side < 0 else 0.445\n        rear_shift = 0.0 if side < 0 else 0.06\n        thickness = 0.135 if side < 0 else 0.115\n\n        upper = ellipsoid((0.82, thickness, 0.72), center=(-0.58 + rear_shift, y, 2.31))\n        broad = ellipsoid((0.74, thickness * 1.02, 0.76), center=(-0.48 + rear_shift, y, 2.13))\n        lower = ellipsoid((0.48, thickness * 0.92, 0.62), center=(-0.39 + rear_shift, y, 1.86))\n        ear_form = boolean_union(upper, broad, lower)\n        ear_form = rotate_shape(ear_form, axis=\"+y\", angle=-13.0, center=(-0.49 + rear_shift, y, 2.13))\n        self.pinna = self.attach_part(\"pinna\", ear_form)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:3bff4b4230be69d28ad3",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "ElephantEar/__init__",
+      "owner_class": "ElephantEar",
+      "semantic_name": null,
+      "span": {
+        "start_line": 58,
+        "end_line": 69,
+        "start_col": 4,
+        "end_col": 56
+      },
+      "parameters": [
+        "angle",
+        "axis",
+        "center",
+        "label"
+      ],
+      "dependencies": [
+        "boolean_union",
+        "broad",
+        "ear_form",
+        "ellipsoid",
+        "lower",
+        "rear_shift",
+        "rotate_shape",
+        "self",
+        "side",
+        "super",
+        "thickness",
+        "upper",
+        "y"
+      ],
+      "expression": "def __init__(self, side):\n        super().__init__(label=\"near_ear\" if side < 0 else \"far_ear\")\n        y = -0.475 if side < 0 else 0.445\n        rear_shift = 0.0 if side < 0 else 0.06\n        thickness = 0.135 if side < 0 else 0.115\n\n        upper = ellipsoid((0.82, thickness, 0.72), center=(-0.58 + rear_shift, y, 2.31))\n        broad = ellipsoid((0.74, thickness * 1.02, 0.76), center=(-0.48 + rear_shift, y, 2.13))\n        lower = ellipsoid((0.48, thickness * 0.92, 0.62), center=(-0.39 + rear_shift, y, 1.86))\n        ear_form = boolean_union(upper, broad, lower)\n        ear_form = rotate_shape(ear_form, axis=\"+y\", angle=-13.0, center=(-0.49 + rear_shift, y, 2.13))\n        self.pinna = self.attach_part(\"pinna\", ear_form)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:d61f93493f69e29afaf9",
+      "kind": "dsl_call",
+      "name": "boolean_union",
+      "scope": "ElephantEar/__init__",
+      "owner_class": "ElephantEar",
+      "semantic_name": null,
+      "span": {
+        "start_line": 67,
+        "end_line": 67,
+        "start_col": 19,
+        "end_col": 53
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_union",
+        "broad",
+        "lower",
+        "upper"
+      ],
+      "expression": "boolean_union(upper, broad, lower)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:dcac5cc1bfb639329369",
+      "kind": "dsl_call",
+      "name": "rotate_shape",
+      "scope": "ElephantEar/__init__",
+      "owner_class": "ElephantEar",
+      "semantic_name": null,
+      "span": {
+        "start_line": 68,
+        "end_line": 68,
+        "start_col": 19,
+        "end_col": 103
+      },
+      "parameters": [
+        "angle",
+        "axis",
+        "center"
+      ],
+      "dependencies": [
+        "ear_form",
+        "rear_shift",
+        "rotate_shape",
+        "y"
+      ],
+      "expression": "rotate_shape(ear_form, axis=\"+y\", angle=-13.0, center=(-0.49 + rear_shift, y, 2.13))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:8b494691b7153bd7c000",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ElephantEar/__init__",
+      "owner_class": "ElephantEar",
+      "semantic_name": "pinna",
+      "span": {
+        "start_line": 69,
+        "end_line": 69,
+        "start_col": 21,
+        "end_col": 56
+      },
+      "parameters": [],
+      "dependencies": [
+        "ear_form",
+        "self"
+      ],
+      "expression": "self.attach_part(\"pinna\", ear_form)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:133e1b2805a2f0ea30ce",
+      "kind": "class",
+      "name": "ElephantTrunk",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 72,
+        "end_line": 98,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "ellipsoid",
+        "enumerate",
+        "index",
+        "points",
+        "radii",
+        "radius",
+        "rounded_segment",
+        "self",
+        "super"
+      ],
+      "expression": "class ElephantTrunk(Asset):\n    def __init__(self):\n        super().__init__(label=\"upward_curving_trunk\")\n        points = (\n            (-1.255, -0.005, 1.82),\n            (-1.38, -0.005, 1.55),\n            (-1.43, -0.005, 1.25),\n            (-1.48, -0.005, 0.96),\n            (-1.61, -0.005, 0.76),\n            (-1.82, -0.005, 0.66),\n            (-2.04, -0.005, 0.69),\n            (-2.22, -0.005, 0.84),\n            (-2.27, -0.005, 1.02),\n            (-2.23, -0.005, 1.14),\n        )\n        radii = (0.245, 0.225, 0.202, 0.174, 0.151, 0.130, 0.111, 0.094, 0.079)\n\n        for index, radius in enumerate(radii):\n            self.attach_part(\n                f\"trunk_section_{index + 1}\",\n                rounded_segment(points[index], points[index + 1], radius),\n            )\n\n        self.tip = self.attach_part(\n            \"raised_rounded_tip\",\n            ellipsoid((0.17, 0.17, 0.20), center=points[-1]),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:3f0ca39b3fc0f944181a",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "ElephantTrunk/__init__",
+      "owner_class": "ElephantTrunk",
+      "semantic_name": null,
+      "span": {
+        "start_line": 73,
+        "end_line": 98,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "label"
+      ],
+      "dependencies": [
+        "ellipsoid",
+        "enumerate",
+        "index",
+        "points",
+        "radii",
+        "radius",
+        "rounded_segment",
+        "self",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"upward_curving_trunk\")\n        points = (\n            (-1.255, -0.005, 1.82),\n            (-1.38, -0.005, 1.55),\n            (-1.43, -0.005, 1.25),\n            (-1.48, -0.005, 0.96),\n            (-1.61, -0.005, 0.76),\n            (-1.82, -0.005, 0.66),\n            (-2.04, -0.005, 0.69),\n            (-2.22, -0.005, 0.84),\n            (-2.27, -0.005, 1.02),\n            (-2.23, -0.005, 1.14),\n        )\n        radii = (0.245, 0.225, 0.202, 0.174, 0.151, 0.130, 0.111, 0.094, 0.079)\n\n        for index, radius in enumerate(radii):\n            self.attach_part(\n                f\"trunk_section_{index + 1}\",\n                rounded_segment(points[index], points[index + 1], radius),\n            )\n\n        self.tip = self.attach_part(\n            \"raised_rounded_tip\",\n            ellipsoid((0.17, 0.17, 0.20), center=points[-1]),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:ea01b475d047c12f9c27",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ElephantTrunk/__init__",
+      "owner_class": "ElephantTrunk",
+      "semantic_name": null,
+      "span": {
+        "start_line": 90,
+        "end_line": 93,
+        "start_col": 12,
+        "end_col": 13
+      },
+      "parameters": [],
+      "dependencies": [
+        "index",
+        "points",
+        "radius",
+        "rounded_segment",
+        "self"
+      ],
+      "expression": "self.attach_part(\n                f\"trunk_section_{index + 1}\",\n                rounded_segment(points[index], points[index + 1], radius),\n            )",
+      "resolution": "partial"
+    },
+    {
+      "source_id": "source:6d2759893ff2204abb60",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ElephantTrunk/__init__",
+      "owner_class": "ElephantTrunk",
+      "semantic_name": "raised_rounded_tip",
+      "span": {
+        "start_line": 95,
+        "end_line": 98,
+        "start_col": 19,
+        "end_col": 9
+      },
+      "parameters": [
+        "center"
+      ],
+      "dependencies": [
+        "ellipsoid",
+        "points",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"raised_rounded_tip\",\n            ellipsoid((0.17, 0.17, 0.20), center=points[-1]),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:f944c891f0b64394a688",
+      "kind": "class",
+      "name": "ElephantLeg",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 101,
+        "end_line": 132,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label",
+        "p0",
+        "p1"
+      ],
+      "dependencies": [
+        "Asset",
+        "Cylinder",
+        "ELEPHANT_GRAY",
+        "ankle",
+        "boolean_union",
+        "ellipsoid",
+        "far_side",
+        "foot",
+        "gray",
+        "lower_radius",
+        "name",
+        "self",
+        "shaft",
+        "super",
+        "upper",
+        "upper_radius",
+        "x",
+        "y"
+      ],
+      "expression": "class ElephantLeg(Asset):\n    def __init__(self, name, x, y, far_side=False):\n        super().__init__(label=name)\n        gray = (0.53, 0.54, 0.53) if far_side else ELEPHANT_GRAY\n        upper_radius = 0.245 if not far_side else 0.225\n        lower_radius = 0.185 if not far_side else 0.170\n\n        upper = ellipsoid(\n            (upper_radius * 2.0, upper_radius * 1.86, 0.78),\n            center=(x, y, 1.12),\n            color=gray,\n        )\n        shaft = Cylinder(\n            lower_radius,\n            p0=(x, y, 0.22),\n            p1=(x, y, 1.12),\n            color=gray,\n        )\n        ankle = ellipsoid(\n            (lower_radius * 2.05, lower_radius * 1.94, 0.42),\n            center=(x, y, 0.34),\n            color=gray,\n        )\n        foot = ellipsoid(\n            (0.47 if not far_side else 0.43, 0.42 if not far_side else 0.39, 0.30),\n            center=(x - 0.025, y - (0.018 if y < 0 else -0.018), 0.15),\n            color=gray,\n        )\n        self.leg_mass = self.attach_part(\n            \"integrated_leg_and_foot\",\n            boolean_union(upper, shaft, ankle, foot),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:83b7789054e8d9d7cb4b",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "ElephantLeg/__init__",
+      "owner_class": "ElephantLeg",
+      "semantic_name": null,
+      "span": {
+        "start_line": 102,
+        "end_line": 132,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label",
+        "p0",
+        "p1"
+      ],
+      "dependencies": [
+        "Cylinder",
+        "ELEPHANT_GRAY",
+        "ankle",
+        "boolean_union",
+        "ellipsoid",
+        "far_side",
+        "foot",
+        "gray",
+        "lower_radius",
+        "name",
+        "self",
+        "shaft",
+        "super",
+        "upper",
+        "upper_radius",
+        "x",
+        "y"
+      ],
+      "expression": "def __init__(self, name, x, y, far_side=False):\n        super().__init__(label=name)\n        gray = (0.53, 0.54, 0.53) if far_side else ELEPHANT_GRAY\n        upper_radius = 0.245 if not far_side else 0.225\n        lower_radius = 0.185 if not far_side else 0.170\n\n        upper = ellipsoid(\n            (upper_radius * 2.0, upper_radius * 1.86, 0.78),\n            center=(x, y, 1.12),\n            color=gray,\n        )\n        shaft = Cylinder(\n            lower_radius,\n            p0=(x, y, 0.22),\n            p1=(x, y, 1.12),\n            color=gray,\n        )\n        ankle = ellipsoid(\n            (lower_radius * 2.05, lower_radius * 1.94, 0.42),\n            center=(x, y, 0.34),\n            color=gray,\n        )\n        foot = ellipsoid(\n            (0.47 if not far_side else 0.43, 0.42 if not far_side else 0.39, 0.30),\n            center=(x - 0.025, y - (0.018 if y < 0 else -0.018), 0.15),\n            color=gray,\n        )\n        self.leg_mass = self.attach_part(\n            \"integrated_leg_and_foot\",\n            boolean_union(upper, shaft, ankle, foot),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:2e17b54f5af91fb39b7e",
+      "kind": "dsl_call",
+      "name": "Cylinder",
+      "scope": "ElephantLeg/__init__",
+      "owner_class": "ElephantLeg",
+      "semantic_name": null,
+      "span": {
+        "start_line": 113,
+        "end_line": 118,
+        "start_col": 16,
+        "end_col": 9
+      },
+      "parameters": [
+        "color",
+        "p0",
+        "p1"
+      ],
+      "dependencies": [
+        "Cylinder",
+        "gray",
+        "lower_radius",
+        "x",
+        "y"
+      ],
+      "expression": "Cylinder(\n            lower_radius,\n            p0=(x, y, 0.22),\n            p1=(x, y, 1.12),\n            color=gray,\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:d68fc261a48ed2543743",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ElephantLeg/__init__",
+      "owner_class": "ElephantLeg",
+      "semantic_name": "integrated_leg_and_foot",
+      "span": {
+        "start_line": 129,
+        "end_line": 132,
+        "start_col": 24,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "ankle",
+        "boolean_union",
+        "foot",
+        "self",
+        "shaft",
+        "upper"
+      ],
+      "expression": "self.attach_part(\n            \"integrated_leg_and_foot\",\n            boolean_union(upper, shaft, ankle, foot),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:c9c939452fc00094d029",
+      "kind": "dsl_call",
+      "name": "boolean_union",
+      "scope": "ElephantLeg/__init__",
+      "owner_class": "ElephantLeg",
+      "semantic_name": null,
+      "span": {
+        "start_line": 131,
+        "end_line": 131,
+        "start_col": 12,
+        "end_col": 52
+      },
+      "parameters": [],
+      "dependencies": [
+        "ankle",
+        "boolean_union",
+        "foot",
+        "shaft",
+        "upper"
+      ],
+      "expression": "boolean_union(upper, shaft, ankle, foot)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:0c6034e5e6eca759f83f",
+      "kind": "class",
+      "name": "ElephantTail",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 135,
+        "end_line": 148,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "ellipsoid",
+        "points",
+        "rounded_segment",
+        "self",
+        "super"
+      ],
+      "expression": "class ElephantTail(Asset):\n    def __init__(self):\n        super().__init__(label=\"small_tail\")\n        points = (\n            (1.28, 0.12, 1.98),\n            (1.48, 0.13, 1.84),\n            (1.57, 0.13, 1.65),\n        )\n        self.attach_part(\"tail_root\", rounded_segment(points[0], points[1], 0.036))\n        self.attach_part(\"tail_end\", rounded_segment(points[1], points[2], 0.029))\n        self.attach_part(\n            \"tail_tuft\",\n            ellipsoid((0.13, 0.10, 0.18), center=(1.58, 0.13, 1.59), color=(0.43, 0.44, 0.43)),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:319d6ff2c751bbb6d706",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "ElephantTail/__init__",
+      "owner_class": "ElephantTail",
+      "semantic_name": null,
+      "span": {
+        "start_line": 136,
+        "end_line": 148,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "ellipsoid",
+        "points",
+        "rounded_segment",
+        "self",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"small_tail\")\n        points = (\n            (1.28, 0.12, 1.98),\n            (1.48, 0.13, 1.84),\n            (1.57, 0.13, 1.65),\n        )\n        self.attach_part(\"tail_root\", rounded_segment(points[0], points[1], 0.036))\n        self.attach_part(\"tail_end\", rounded_segment(points[1], points[2], 0.029))\n        self.attach_part(\n            \"tail_tuft\",\n            ellipsoid((0.13, 0.10, 0.18), center=(1.58, 0.13, 1.59), color=(0.43, 0.44, 0.43)),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:7bc6d210ce52b36ead7c",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ElephantTail/__init__",
+      "owner_class": "ElephantTail",
+      "semantic_name": "tail_root",
+      "span": {
+        "start_line": 143,
+        "end_line": 143,
+        "start_col": 8,
+        "end_col": 83
+      },
+      "parameters": [],
+      "dependencies": [
+        "points",
+        "rounded_segment",
+        "self"
+      ],
+      "expression": "self.attach_part(\"tail_root\", rounded_segment(points[0], points[1], 0.036))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:8cd054398173a5aed445",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ElephantTail/__init__",
+      "owner_class": "ElephantTail",
+      "semantic_name": "tail_end",
+      "span": {
+        "start_line": 144,
+        "end_line": 144,
+        "start_col": 8,
+        "end_col": 82
+      },
+      "parameters": [],
+      "dependencies": [
+        "points",
+        "rounded_segment",
+        "self"
+      ],
+      "expression": "self.attach_part(\"tail_end\", rounded_segment(points[1], points[2], 0.029))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:552373d18e36e4705743",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ElephantTail/__init__",
+      "owner_class": "ElephantTail",
+      "semantic_name": "tail_tuft",
+      "span": {
+        "start_line": 145,
+        "end_line": 148,
+        "start_col": 8,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "ellipsoid",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"tail_tuft\",\n            ellipsoid((0.13, 0.10, 0.18), center=(1.58, 0.13, 1.59), color=(0.43, 0.44, 0.43)),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:24e27d6a951ea80c5da3",
+      "kind": "class",
+      "name": "StylizedElephant",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 151,
+        "end_line": 177,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "far_side",
+        "label",
+        "side",
+        "x",
+        "y"
+      ],
+      "dependencies": [
+        "Asset",
+        "ElephantEar",
+        "ElephantHead",
+        "ElephantLeg",
+        "ElephantTail",
+        "ElephantTorso",
+        "ElephantTrunk",
+        "self",
+        "super"
+      ],
+      "expression": "class StylizedElephant(Asset):\n    def __init__(self):\n        super().__init__(label=\"stylized_upward_trunk_elephant\")\n\n        self.far_ear = self.attach_part(\"far_ear\", ElephantEar(side=1))\n        self.tail = self.attach_part(\"tail\", ElephantTail())\n\n        self.front_far_leg = self.attach_part(\n            \"front_far_leg\",\n            ElephantLeg(\"front_far_leg\", x=-0.46, y=0.29, far_side=True),\n        )\n        self.rear_far_leg = self.attach_part(\n            \"rear_far_leg\",\n            ElephantLeg(\"rear_far_leg\", x=0.84, y=0.29, far_side=True),\n        )\n        self.body = self.attach_part(\"body\", ElephantTorso())\n        self.head = self.attach_part(\"head\", ElephantHead())\n        self.near_ear = self.attach_part(\"near_ear\", ElephantEar(side=-1))\n        self.trunk = self.attach_part(\"trunk\", ElephantTrunk())\n        self.front_near_leg = self.attach_part(\n            \"front_near_leg\",\n            ElephantLeg(\"front_near_leg\", x=-0.46, y=-0.31, far_side=False),\n        )\n        self.rear_near_leg = self.attach_part(\n            \"rear_near_leg\",\n            ElephantLeg(\"rear_near_leg\", x=0.84, y=-0.31, far_side=False),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:2eff3727fc3260fe139c",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": null,
+      "span": {
+        "start_line": 152,
+        "end_line": 177,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "far_side",
+        "label",
+        "side",
+        "x",
+        "y"
+      ],
+      "dependencies": [
+        "ElephantEar",
+        "ElephantHead",
+        "ElephantLeg",
+        "ElephantTail",
+        "ElephantTorso",
+        "ElephantTrunk",
+        "self",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"stylized_upward_trunk_elephant\")\n\n        self.far_ear = self.attach_part(\"far_ear\", ElephantEar(side=1))\n        self.tail = self.attach_part(\"tail\", ElephantTail())\n\n        self.front_far_leg = self.attach_part(\n            \"front_far_leg\",\n            ElephantLeg(\"front_far_leg\", x=-0.46, y=0.29, far_side=True),\n        )\n        self.rear_far_leg = self.attach_part(\n            \"rear_far_leg\",\n            ElephantLeg(\"rear_far_leg\", x=0.84, y=0.29, far_side=True),\n        )\n        self.body = self.attach_part(\"body\", ElephantTorso())\n        self.head = self.attach_part(\"head\", ElephantHead())\n        self.near_ear = self.attach_part(\"near_ear\", ElephantEar(side=-1))\n        self.trunk = self.attach_part(\"trunk\", ElephantTrunk())\n        self.front_near_leg = self.attach_part(\n            \"front_near_leg\",\n            ElephantLeg(\"front_near_leg\", x=-0.46, y=-0.31, far_side=False),\n        )\n        self.rear_near_leg = self.attach_part(\n            \"rear_near_leg\",\n            ElephantLeg(\"rear_near_leg\", x=0.84, y=-0.31, far_side=False),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:462be1196bda34d590bc",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "far_ear",
+      "span": {
+        "start_line": 155,
+        "end_line": 155,
+        "start_col": 23,
+        "end_col": 71
+      },
+      "parameters": [
+        "side"
+      ],
+      "dependencies": [
+        "ElephantEar",
+        "self"
+      ],
+      "expression": "self.attach_part(\"far_ear\", ElephantEar(side=1))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:4bb91e1b6ea5139ab766",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "tail",
+      "span": {
+        "start_line": 156,
+        "end_line": 156,
+        "start_col": 20,
+        "end_col": 60
+      },
+      "parameters": [],
+      "dependencies": [
+        "ElephantTail",
+        "self"
+      ],
+      "expression": "self.attach_part(\"tail\", ElephantTail())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:0647cc941c7adfbb3eb6",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "front_far_leg",
+      "span": {
+        "start_line": 158,
+        "end_line": 161,
+        "start_col": 29,
+        "end_col": 9
+      },
+      "parameters": [
+        "far_side",
+        "x",
+        "y"
+      ],
+      "dependencies": [
+        "ElephantLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"front_far_leg\",\n            ElephantLeg(\"front_far_leg\", x=-0.46, y=0.29, far_side=True),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:11bf5b19b30e7eccda5a",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "rear_far_leg",
+      "span": {
+        "start_line": 162,
+        "end_line": 165,
+        "start_col": 28,
+        "end_col": 9
+      },
+      "parameters": [
+        "far_side",
+        "x",
+        "y"
+      ],
+      "dependencies": [
+        "ElephantLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"rear_far_leg\",\n            ElephantLeg(\"rear_far_leg\", x=0.84, y=0.29, far_side=True),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:3128bba77fefbea08d59",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "body",
+      "span": {
+        "start_line": 166,
+        "end_line": 166,
+        "start_col": 20,
+        "end_col": 61
+      },
+      "parameters": [],
+      "dependencies": [
+        "ElephantTorso",
+        "self"
+      ],
+      "expression": "self.attach_part(\"body\", ElephantTorso())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:879bed32f1e28dfb31db",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "head",
+      "span": {
+        "start_line": 167,
+        "end_line": 167,
+        "start_col": 20,
+        "end_col": 60
+      },
+      "parameters": [],
+      "dependencies": [
+        "ElephantHead",
+        "self"
+      ],
+      "expression": "self.attach_part(\"head\", ElephantHead())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:2b2bda2ea51b55486dff",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "near_ear",
+      "span": {
+        "start_line": 168,
+        "end_line": 168,
+        "start_col": 24,
+        "end_col": 74
+      },
+      "parameters": [
+        "side"
+      ],
+      "dependencies": [
+        "ElephantEar",
+        "self"
+      ],
+      "expression": "self.attach_part(\"near_ear\", ElephantEar(side=-1))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:92bc6af8d76eae9b7e7e",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "trunk",
+      "span": {
+        "start_line": 169,
+        "end_line": 169,
+        "start_col": 21,
+        "end_col": 63
+      },
+      "parameters": [],
+      "dependencies": [
+        "ElephantTrunk",
+        "self"
+      ],
+      "expression": "self.attach_part(\"trunk\", ElephantTrunk())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:5a4b8fd5c711b959d393",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "front_near_leg",
+      "span": {
+        "start_line": 170,
+        "end_line": 173,
+        "start_col": 30,
+        "end_col": 9
+      },
+      "parameters": [
+        "far_side",
+        "x",
+        "y"
+      ],
+      "dependencies": [
+        "ElephantLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"front_near_leg\",\n            ElephantLeg(\"front_near_leg\", x=-0.46, y=-0.31, far_side=False),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:2cb22b4487d3c2b73a4a",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "rear_near_leg",
+      "span": {
+        "start_line": 174,
+        "end_line": 177,
+        "start_col": 29,
+        "end_col": 9
+      },
+      "parameters": [
+        "far_side",
+        "x",
+        "y"
+      ],
+      "dependencies": [
+        "ElephantLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"rear_near_leg\",\n            ElephantLeg(\"rear_near_leg\", x=0.84, y=-0.31, far_side=False),\n        )",
+      "resolution": "complete"
+    }
+  ],
+  "features": [
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant",
+      "semantic_path": "stylized_upward_trunk_elephant",
+      "name": "stylized_upward_trunk_elephant",
+      "asset_class": "StylizedElephant",
+      "parent_feature_id": null,
+      "attach_mode": "root",
+      "bounds": [
+        [
+          -2.364,
+          -0.54385,
+          0.0
+        ],
+        [
+          1.645,
+          0.52,
+          2.728144172374064
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:24e27d6a951ea80c5da3"
+      ],
+      "source_locations": [
+        "L151-L177"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/far_ear",
+      "semantic_path": "stylized_upward_trunk_elephant/far_ear",
+      "name": "far_ear",
+      "asset_class": "ElephantEar",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.0386586017383048,
+          0.38635,
+          1.5333722148164226
+        ],
+        [
+          0.03175743354642163,
+          0.50365,
+          2.728144172374064
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:462be1196bda34d590bc",
+        "source:b1eb5b2e9db79bfac416"
+      ],
+      "source_locations": [
+        "L155-L155",
+        "L57-L69"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/far_ear/pinna",
+      "semantic_path": "stylized_upward_trunk_elephant/far_ear/pinna",
+      "name": "pinna",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/far_ear",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.0386586017383048,
+          0.38635,
+          1.5333722148164226
+        ],
+        [
+          0.03175743354642163,
+          0.50365,
+          2.728144172374064
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:8b494691b7153bd7c000"
+      ],
+      "source_locations": [
+        "L69-L69"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/far_ear/pinna/op_0",
+      "semantic_path": "stylized_upward_trunk_elephant/far_ear/pinna/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/far_ear/pinna",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.0386586017383048,
+          0.3875,
+          1.842137861166725
+        ],
+        [
+          -0.07771038948682918,
+          0.5025000000000001,
+          2.728144172374064
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/far_ear/pinna/op_1",
+      "semantic_path": "stylized_upward_trunk_elephant/far_ear/pinna/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/far_ear/pinna",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.8662546239733533,
+          0.38635,
+          1.678756995817819
+        ],
+        [
+          0.025742025269058055,
+          0.50365,
+          2.5857420252690577
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/far_ear/pinna/op_2",
+      "semantic_path": "stylized_upward_trunk_elephant/far_ear/pinna/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/far_ear/pinna",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.5754098512436876,
+          0.3921,
+          1.5333722148164226
+        ],
+        [
+          0.03175743354642163,
+          0.4979,
+          2.2454581610683237
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/tail",
+      "semantic_path": "stylized_upward_trunk_elephant/tail",
+      "name": "tail",
+      "asset_class": "ElephantTail",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.244,
+          0.08,
+          1.5
+        ],
+        [
+          1.645,
+          0.18,
+          2.016
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:4bb91e1b6ea5139ab766",
+        "source:0c6034e5e6eca759f83f"
+      ],
+      "source_locations": [
+        "L156-L156",
+        "L135-L148"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_root",
+      "semantic_path": "stylized_upward_trunk_elephant/tail/tail_root",
+      "name": "tail_root",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/tail",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.244,
+          0.08399999999999999,
+          1.804
+        ],
+        [
+          1.516,
+          0.166,
+          2.016
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:7bc6d210ce52b36ead7c"
+      ],
+      "source_locations": [
+        "L143-L143"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_root/shaft",
+      "semantic_path": "stylized_upward_trunk_elephant/tail/tail_root/shaft",
+      "name": "shaft",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_root",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.2593200993363778,
+          0.0840301633902982,
+          1.81049555011843
+        ],
+        [
+          1.5006799006636222,
+          0.1659698366097018,
+          2.00950444988157
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_root/start_round",
+      "semantic_path": "stylized_upward_trunk_elephant/tail/tail_root/start_round",
+      "name": "start_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_root",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.244,
+          0.08399999999999999,
+          1.944
+        ],
+        [
+          1.316,
+          0.156,
+          2.016
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_root/end_round",
+      "semantic_path": "stylized_upward_trunk_elephant/tail/tail_root/end_round",
+      "name": "end_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_root",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.444,
+          0.094,
+          1.804
+        ],
+        [
+          1.516,
+          0.166,
+          1.8760000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_end",
+      "semantic_path": "stylized_upward_trunk_elephant/tail/tail_end",
+      "name": "tail_end",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/tail",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.451,
+          0.101,
+          1.621
+        ],
+        [
+          1.599,
+          0.159,
+          1.869
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:8cd054398173a5aed445"
+      ],
+      "source_locations": [
+        "L144-L144"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_end/shaft",
+      "semantic_path": "stylized_upward_trunk_elephant/tail/tail_end/shaft",
+      "name": "shaft",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_end",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.4537916026720874,
+          0.101,
+          1.6375854960025675
+        ],
+        [
+          1.5962083973279126,
+          0.159,
+          1.8524145039974325
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_end/start_round",
+      "semantic_path": "stylized_upward_trunk_elephant/tail/tail_end/start_round",
+      "name": "start_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_end",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.451,
+          0.101,
+          1.8110000000000002
+        ],
+        [
+          1.509,
+          0.159,
+          1.869
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_end/end_round",
+      "semantic_path": "stylized_upward_trunk_elephant/tail/tail_end/end_round",
+      "name": "end_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_end",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.5410000000000001,
+          0.101,
+          1.621
+        ],
+        [
+          1.599,
+          0.159,
+          1.6789999999999998
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/tail/tail_tuft",
+      "semantic_path": "stylized_upward_trunk_elephant/tail/tail_tuft",
+      "name": "tail_tuft",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/tail",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.5150000000000001,
+          0.08,
+          1.5
+        ],
+        [
+          1.645,
+          0.18,
+          1.6800000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:552373d18e36e4705743"
+      ],
+      "source_locations": [
+        "L145-L148"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/front_far_leg",
+      "semantic_path": "stylized_upward_trunk_elephant/front_far_leg",
+      "name": "front_far_leg",
+      "asset_class": "ElephantLeg",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.7000000000000001,
+          0.08074999999999996,
+          0.0
+        ],
+        [
+          -0.23500000000000001,
+          0.503,
+          1.5100000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:0647cc941c7adfbb3eb6",
+        "source:f944c891f0b64394a688"
+      ],
+      "source_locations": [
+        "L158-L161",
+        "L101-L132"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot",
+      "semantic_path": "stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot",
+      "name": "integrated_leg_and_foot",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/front_far_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.7000000000000001,
+          0.08074999999999996,
+          0.0
+        ],
+        [
+          -0.23500000000000001,
+          0.503,
+          1.5100000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:d68fc261a48ed2543743"
+      ],
+      "source_locations": [
+        "L129-L132"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot/op_0",
+      "semantic_path": "stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.685,
+          0.08074999999999996,
+          0.7300000000000001
+        ],
+        [
+          -0.23500000000000001,
+          0.49924999999999997,
+          1.5100000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot/op_1",
+      "semantic_path": "stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.63,
+          0.11999999999999997,
+          0.22
+        ],
+        [
+          -0.29000000000000004,
+          0.45999999999999996,
+          1.12
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot/op_2",
+      "semantic_path": "stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.63425,
+          0.12509999999999996,
+          0.13000000000000003
+        ],
+        [
+          -0.28575000000000006,
+          0.45489999999999997,
+          0.55
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot/op_3",
+      "semantic_path": "stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot/op_3",
+      "name": "op_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.7000000000000001,
+          0.11299999999999999,
+          0.0
+        ],
+        [
+          -0.27,
+          0.503,
+          0.3
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/rear_far_leg",
+      "semantic_path": "stylized_upward_trunk_elephant/rear_far_leg",
+      "name": "rear_far_leg",
+      "asset_class": "ElephantLeg",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6,
+          0.08074999999999996,
+          0.0
+        ],
+        [
+          1.065,
+          0.503,
+          1.5100000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:11bf5b19b30e7eccda5a",
+        "source:f944c891f0b64394a688"
+      ],
+      "source_locations": [
+        "L162-L165",
+        "L101-L132"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot",
+      "semantic_path": "stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot",
+      "name": "integrated_leg_and_foot",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/rear_far_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6,
+          0.08074999999999996,
+          0.0
+        ],
+        [
+          1.065,
+          0.503,
+          1.5100000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:d68fc261a48ed2543743"
+      ],
+      "source_locations": [
+        "L129-L132"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot/op_0",
+      "semantic_path": "stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.615,
+          0.08074999999999996,
+          0.7300000000000001
+        ],
+        [
+          1.065,
+          0.49924999999999997,
+          1.5100000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot/op_1",
+      "semantic_path": "stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6699999999999999,
+          0.11999999999999997,
+          0.22
+        ],
+        [
+          1.01,
+          0.45999999999999996,
+          1.12
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot/op_2",
+      "semantic_path": "stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.66575,
+          0.12509999999999996,
+          0.13000000000000003
+        ],
+        [
+          1.0142499999999999,
+          0.45489999999999997,
+          0.55
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot/op_3",
+      "semantic_path": "stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot/op_3",
+      "name": "op_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6,
+          0.11299999999999999,
+          0.0
+        ],
+        [
+          1.03,
+          0.503,
+          0.3
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/body",
+      "semantic_path": "stylized_upward_trunk_elephant/body",
+      "name": "body",
+      "asset_class": "ElephantTorso",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.8800000000000001,
+          -0.52,
+          1.0499999999999998
+        ],
+        [
+          1.38,
+          0.52,
+          2.4
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:3128bba77fefbea08d59",
+        "source:89a8576e758ef9db365d"
+      ],
+      "source_locations": [
+        "L166-L166",
+        "L22-L32"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/body/body_mass",
+      "semantic_path": "stylized_upward_trunk_elephant/body/body_mass",
+      "name": "body_mass",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/body",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.8800000000000001,
+          -0.52,
+          1.0499999999999998
+        ],
+        [
+          1.38,
+          0.52,
+          2.4
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:0208cf5726b288aeed30"
+      ],
+      "source_locations": [
+        "L29-L32"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/body/body_mass/op_0",
+      "semantic_path": "stylized_upward_trunk_elephant/body/body_mass/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/body/body_mass",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.8800000000000001,
+          -0.52,
+          1.0499999999999998
+        ],
+        [
+          1.32,
+          0.52,
+          2.39
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/body/body_mass/op_1",
+      "semantic_path": "stylized_upward_trunk_elephant/body/body_mass/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/body/body_mass",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.6799999999999999,
+          -0.48,
+          1.6800000000000002
+        ],
+        [
+          1.04,
+          0.48,
+          2.4
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/body/body_mass/op_2",
+      "semantic_path": "stylized_upward_trunk_elephant/body/body_mass/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/body/body_mass",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.66,
+          -0.47,
+          1.1199999999999999
+        ],
+        [
+          1.38,
+          0.47,
+          2.24
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/body/body_mass/op_3",
+      "semantic_path": "stylized_upward_trunk_elephant/body/body_mass/op_3",
+      "name": "op_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/body/body_mass",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.6599999999999999,
+          -0.44,
+          1.07
+        ],
+        [
+          1.06,
+          0.44,
+          1.55
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/head",
+      "semantic_path": "stylized_upward_trunk_elephant/head",
+      "name": "head",
+      "asset_class": "ElephantHead",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.5299999999999998,
+          -0.455,
+          1.3699999999999999
+        ],
+        [
+          -0.4,
+          0.44599999999999995,
+          2.67
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:879bed32f1e28dfb31db",
+        "source:4ad7dd371db97d470715"
+      ],
+      "source_locations": [
+        "L167-L167",
+        "L35-L54"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/head/head_mass",
+      "semantic_path": "stylized_upward_trunk_elephant/head/head_mass",
+      "name": "head_mass",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/head",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.5299999999999998,
+          -0.455,
+          1.3699999999999999
+        ],
+        [
+          -0.4,
+          0.445,
+          2.67
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:9504b0f73ac675c87bd1"
+      ],
+      "source_locations": [
+        "L42-L45"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/head/head_mass/op_0",
+      "semantic_path": "stylized_upward_trunk_elephant/head/head_mass/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/head/head_mass",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.42,
+          -0.455,
+          1.4900000000000002
+        ],
+        [
+          -0.4,
+          0.445,
+          2.67
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/head/head_mass/op_1",
+      "semantic_path": "stylized_upward_trunk_elephant/head/head_mass/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/head/head_mass",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.5299999999999998,
+          -0.425,
+          1.7700000000000002
+        ],
+        [
+          -0.83,
+          0.415,
+          2.6300000000000003
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/head/head_mass/op_2",
+      "semantic_path": "stylized_upward_trunk_elephant/head/head_mass/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/head/head_mass",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.4,
+          -0.415,
+          1.4500000000000002
+        ],
+        [
+          -0.68,
+          0.40499999999999997,
+          2.23
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/head/head_mass/op_3",
+      "semantic_path": "stylized_upward_trunk_elephant/head/head_mass/op_3",
+      "name": "op_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/head/head_mass",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.51,
+          -0.335,
+          1.3699999999999999
+        ],
+        [
+          -0.99,
+          0.325,
+          2.03
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/head/near_eye",
+      "semantic_path": "stylized_upward_trunk_elephant/head/near_eye",
+      "name": "near_eye",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/head",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.3419999999999999,
+          -0.45099999999999996,
+          2.208
+        ],
+        [
+          -1.268,
+          -0.377,
+          2.282
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:b40e068483a7297e8b12"
+      ],
+      "source_locations": [
+        "L47-L50"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/head/far_eye",
+      "semantic_path": "stylized_upward_trunk_elephant/head/far_eye",
+      "name": "far_eye",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/head",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.337,
+          0.382,
+          2.213
+        ],
+        [
+          -1.273,
+          0.44599999999999995,
+          2.277
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:9549f5f88e106a2d8594"
+      ],
+      "source_locations": [
+        "L51-L54"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/near_ear",
+      "semantic_path": "stylized_upward_trunk_elephant/near_ear",
+      "name": "near_ear",
+      "asset_class": "ElephantEar",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.0986586017383044,
+          -0.54385,
+          1.5333722148164226
+        ],
+        [
+          -0.028242566453578366,
+          -0.40614999999999996,
+          2.728144172374064
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:2b2bda2ea51b55486dff",
+        "source:b1eb5b2e9db79bfac416"
+      ],
+      "source_locations": [
+        "L168-L168",
+        "L57-L69"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/near_ear/pinna",
+      "semantic_path": "stylized_upward_trunk_elephant/near_ear/pinna",
+      "name": "pinna",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/near_ear",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.0986586017383044,
+          -0.54385,
+          1.5333722148164226
+        ],
+        [
+          -0.028242566453578366,
+          -0.40614999999999996,
+          2.728144172374064
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:8b494691b7153bd7c000"
+      ],
+      "source_locations": [
+        "L69-L69"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/near_ear/pinna/op_0",
+      "semantic_path": "stylized_upward_trunk_elephant/near_ear/pinna/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/near_ear/pinna",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.0986586017383044,
+          -0.5425,
+          1.842137861166725
+        ],
+        [
+          -0.1377103894868289,
+          -0.4075,
+          2.728144172374064
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/near_ear/pinna/op_1",
+      "semantic_path": "stylized_upward_trunk_elephant/near_ear/pinna/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/near_ear/pinna",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.9262546239733533,
+          -0.54385,
+          1.678756995817819
+        ],
+        [
+          -0.03425797473094194,
+          -0.40614999999999996,
+          2.5857420252690577
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/near_ear/pinna/op_2",
+      "semantic_path": "stylized_upward_trunk_elephant/near_ear/pinna/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/near_ear/pinna",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.6354098512436877,
+          -0.5371,
+          1.5333722148164226
+        ],
+        [
+          -0.028242566453578366,
+          -0.4129,
+          2.2454581610683237
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk",
+      "name": "trunk",
+      "asset_class": "ElephantTrunk",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.364,
+          -0.25,
+          0.509
+        ],
+        [
+          -1.0099999999999998,
+          0.24,
+          2.065
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:92bc6af8d76eae9b7e7e",
+        "source:133e1b2805a2f0ea30ce"
+      ],
+      "source_locations": [
+        "L169-L169",
+        "L72-L98"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_1",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_1",
+      "name": "trunk_section_1",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.625,
+          -0.25,
+          1.3050000000000002
+        ],
+        [
+          -1.0099999999999998,
+          0.24,
+          2.065
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:ea01b475d047c12f9c27"
+      ],
+      "source_locations": [
+        "L90-L93"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_1/shaft",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_1/shaft",
+      "name": "shaft",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.6023293922443609,
+          -0.25,
+          1.4470697258127958
+        ],
+        [
+          -1.032670607755639,
+          0.24,
+          1.9229302741872043
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_1/start_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_1/start_round",
+      "name": "start_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.5,
+          -0.25,
+          1.5750000000000002
+        ],
+        [
+          -1.0099999999999998,
+          0.24,
+          2.065
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_1/end_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_1/end_round",
+      "name": "end_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.625,
+          -0.25,
+          1.3050000000000002
+        ],
+        [
+          -1.1349999999999998,
+          0.24,
+          1.795
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_2",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_2",
+      "name": "trunk_section_2",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.655,
+          -0.23,
+          1.025
+        ],
+        [
+          -1.1549999999999998,
+          0.22,
+          1.7750000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:ea01b475d047c12f9c27"
+      ],
+      "source_locations": [
+        "L90-L93"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_2/shaft",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_2/shaft",
+      "name": "shaft",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.6519386328622323,
+          -0.23,
+          1.2130102278562946
+        ],
+        [
+          -1.1580613671377675,
+          0.22,
+          1.5869897721437054
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_2/start_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_2/start_round",
+      "name": "start_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.605,
+          -0.23,
+          1.325
+        ],
+        [
+          -1.1549999999999998,
+          0.22,
+          1.7750000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_2/end_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_2/end_round",
+      "name": "end_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.655,
+          -0.23,
+          1.025
+        ],
+        [
+          -1.2049999999999998,
+          0.22,
+          1.475
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_3",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_3",
+      "name": "trunk_section_3",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.682,
+          -0.20700000000000002,
+          0.758
+        ],
+        [
+          -1.228,
+          0.197,
+          1.452
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:ea01b475d047c12f9c27"
+      ],
+      "source_locations": [
+        "L90-L93"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_3/shaft",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_3/shaft",
+      "name": "shaft",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_3",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.6790629433803583,
+          -0.20700000000000002,
+          0.9256788028654555
+        ],
+        [
+          -1.2309370566196416,
+          0.197,
+          1.2843211971345445
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_3/start_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_3/start_round",
+      "name": "start_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_3",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.632,
+          -0.20700000000000002,
+          1.048
+        ],
+        [
+          -1.228,
+          0.197,
+          1.452
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_3/end_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_3/end_round",
+      "name": "end_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_3",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.682,
+          -0.20700000000000002,
+          0.758
+        ],
+        [
+          -1.278,
+          0.197,
+          1.162
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_4",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_4",
+      "name": "trunk_section_4",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.784,
+          -0.179,
+          0.5860000000000001
+        ],
+        [
+          -1.306,
+          0.16899999999999998,
+          1.134
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:ea01b475d047c12f9c27"
+      ],
+      "source_locations": [
+        "L90-L93"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_4/shaft",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_4/shaft",
+      "name": "shaft",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_4",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.7558891892363109,
+          -0.179,
+          0.6651720269963979
+        ],
+        [
+          -1.3341108107636892,
+          0.16899999999999998,
+          1.054827973003602
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_4/start_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_4/start_round",
+      "name": "start_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_4",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.654,
+          -0.179,
+          0.786
+        ],
+        [
+          -1.306,
+          0.16899999999999998,
+          1.134
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_4/end_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_4/end_round",
+      "name": "end_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_4",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.784,
+          -0.179,
+          0.5860000000000001
+        ],
+        [
+          -1.4360000000000002,
+          0.16899999999999998,
+          0.9339999999999999
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_5",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_5",
+      "name": "trunk_section_5",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.971,
+          -0.156,
+          0.509
+        ],
+        [
+          -1.459,
+          0.146,
+          0.911
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:ea01b475d047c12f9c27"
+      ],
+      "source_locations": [
+        "L90-L93"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_5/shaft",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_5/shaft",
+      "name": "shaft",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_5",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.8849199706392445,
+          -0.156,
+          0.5236680616575866
+        ],
+        [
+          -1.5450800293607556,
+          0.146,
+          0.8963319383424135
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_5/start_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_5/start_round",
+      "name": "start_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_5",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.7610000000000001,
+          -0.156,
+          0.609
+        ],
+        [
+          -1.459,
+          0.146,
+          0.911
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_5/end_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_5/end_round",
+      "name": "end_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_5",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.971,
+          -0.156,
+          0.509
+        ],
+        [
+          -1.669,
+          0.146,
+          0.811
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_6",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_6",
+      "name": "trunk_section_6",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.17,
+          -0.135,
+          0.53
+        ],
+        [
+          -1.69,
+          0.125,
+          0.82
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:ea01b475d047c12f9c27"
+      ],
+      "source_locations": [
+        "L90-L93"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_6/shaft",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_6/shaft",
+      "name": "shaft",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_6",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.057564716615331,
+          -0.135,
+          0.5311920781542412
+        ],
+        [
+          -1.8024352833846693,
+          0.125,
+          0.8188079218457588
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_6/start_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_6/start_round",
+      "name": "start_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_6",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.9500000000000002,
+          -0.135,
+          0.53
+        ],
+        [
+          -1.69,
+          0.125,
+          0.79
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_6/end_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_6/end_round",
+      "name": "end_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_6",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.17,
+          -0.135,
+          0.5599999999999999
+        ],
+        [
+          -1.9100000000000001,
+          0.125,
+          0.82
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_7",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_7",
+      "name": "trunk_section_7",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.3310000000000004,
+          -0.116,
+          0.579
+        ],
+        [
+          -1.929,
+          0.106,
+          0.951
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:ea01b475d047c12f9c27"
+      ],
+      "source_locations": [
+        "L90-L93"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_7/shaft",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_7/shaft",
+      "name": "shaft",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_7",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.2910604683627573,
+          -0.116,
+          0.6047274379646912
+        ],
+        [
+          -1.968939531637243,
+          0.106,
+          0.9252725620353087
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_7/start_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_7/start_round",
+      "name": "start_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_7",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.1510000000000002,
+          -0.116,
+          0.579
+        ],
+        [
+          -1.929,
+          0.106,
+          0.8009999999999999
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_7/end_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_7/end_round",
+      "name": "end_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_7",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.3310000000000004,
+          -0.116,
+          0.729
+        ],
+        [
+          -2.109,
+          0.106,
+          0.951
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_8",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_8",
+      "name": "trunk_section_8",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.364,
+          -0.099,
+          0.746
+        ],
+        [
+          -2.1260000000000003,
+          0.089,
+          1.114
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:ea01b475d047c12f9c27"
+      ],
+      "source_locations": [
+        "L90-L93"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_8/shaft",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_8/shaft",
+      "name": "shaft",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_8",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.3605706835052143,
+          -0.099,
+          0.8148414768041071
+        ],
+        [
+          -2.129429316494786,
+          0.089,
+          1.0451585231958929
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_8/start_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_8/start_round",
+      "name": "start_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_8",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.314,
+          -0.099,
+          0.746
+        ],
+        [
+          -2.1260000000000003,
+          0.089,
+          0.9339999999999999
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_8/end_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_8/end_round",
+      "name": "end_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_8",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.364,
+          -0.099,
+          0.926
+        ],
+        [
+          -2.176,
+          0.089,
+          1.114
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_9",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_9",
+      "name": "trunk_section_9",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.349,
+          -0.084,
+          0.9410000000000001
+        ],
+        [
+          -2.151,
+          0.074,
+          1.2189999999999999
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:ea01b475d047c12f9c27"
+      ],
+      "source_locations": [
+        "L90-L93"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_9/shaft",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_9/shaft",
+      "name": "shaft",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_9",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.3449459805459907,
+          -0.084,
+          0.9950180064846698
+        ],
+        [
+          -2.1550540194540093,
+          0.074,
+          1.1649819935153303
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_9/start_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_9/start_round",
+      "name": "start_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_9",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.349,
+          -0.084,
+          0.9410000000000001
+        ],
+        [
+          -2.191,
+          0.074,
+          1.099
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_9/end_round",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/trunk_section_9/end_round",
+      "name": "end_round",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk/trunk_section_9",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.309,
+          -0.084,
+          1.061
+        ],
+        [
+          -2.151,
+          0.074,
+          1.2189999999999999
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/trunk/raised_rounded_tip",
+      "semantic_path": "stylized_upward_trunk_elephant/trunk/raised_rounded_tip",
+      "name": "raised_rounded_tip",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/trunk",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.315,
+          -0.09000000000000001,
+          1.0399999999999998
+        ],
+        [
+          -2.145,
+          0.08,
+          1.24
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6d2759893ff2204abb60"
+      ],
+      "source_locations": [
+        "L95-L98"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/front_near_leg",
+      "semantic_path": "stylized_upward_trunk_elephant/front_near_leg",
+      "name": "front_near_leg",
+      "asset_class": "ElephantLeg",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.72,
+          -0.538,
+          0.0
+        ],
+        [
+          -0.21500000000000002,
+          -0.08215,
+          1.5100000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:5a4b8fd5c711b959d393",
+        "source:f944c891f0b64394a688"
+      ],
+      "source_locations": [
+        "L170-L173",
+        "L101-L132"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot",
+      "semantic_path": "stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot",
+      "name": "integrated_leg_and_foot",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/front_near_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.72,
+          -0.538,
+          0.0
+        ],
+        [
+          -0.21500000000000002,
+          -0.08215,
+          1.5100000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:d68fc261a48ed2543743"
+      ],
+      "source_locations": [
+        "L129-L132"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot/op_0",
+      "semantic_path": "stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.7050000000000001,
+          -0.5378499999999999,
+          0.7300000000000001
+        ],
+        [
+          -0.21500000000000002,
+          -0.08215,
+          1.5100000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot/op_1",
+      "semantic_path": "stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.645,
+          -0.495,
+          0.22
+        ],
+        [
+          -0.275,
+          -0.125,
+          1.12
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot/op_2",
+      "semantic_path": "stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.649625,
+          -0.48945,
+          0.13000000000000003
+        ],
+        [
+          -0.27037500000000003,
+          -0.13055,
+          0.55
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot/op_3",
+      "semantic_path": "stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot/op_3",
+      "name": "op_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.72,
+          -0.538,
+          0.0
+        ],
+        [
+          -0.25000000000000006,
+          -0.11800000000000002,
+          0.3
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/rear_near_leg",
+      "semantic_path": "stylized_upward_trunk_elephant/rear_near_leg",
+      "name": "rear_near_leg",
+      "asset_class": "ElephantLeg",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.58,
+          -0.538,
+          0.0
+        ],
+        [
+          1.085,
+          -0.08215,
+          1.5100000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:2cb22b4487d3c2b73a4a",
+        "source:f944c891f0b64394a688"
+      ],
+      "source_locations": [
+        "L174-L177",
+        "L101-L132"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot",
+      "semantic_path": "stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot",
+      "name": "integrated_leg_and_foot",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/rear_near_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.58,
+          -0.538,
+          0.0
+        ],
+        [
+          1.085,
+          -0.08215,
+          1.5100000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:d68fc261a48ed2543743"
+      ],
+      "source_locations": [
+        "L129-L132"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot/op_0",
+      "semantic_path": "stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.595,
+          -0.5378499999999999,
+          0.7300000000000001
+        ],
+        [
+          1.085,
+          -0.08215,
+          1.5100000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot/op_1",
+      "semantic_path": "stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.655,
+          -0.495,
+          0.22
+        ],
+        [
+          1.025,
+          -0.125,
+          1.12
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot/op_2",
+      "semantic_path": "stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6503749999999999,
+          -0.48945,
+          0.13000000000000003
+        ],
+        [
+          1.029625,
+          -0.13055,
+          0.55
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot/op_3",
+      "semantic_path": "stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot/op_3",
+      "name": "op_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.58,
+          -0.538,
+          0.0
+        ],
+        [
+          1.0499999999999998,
+          -0.11800000000000002,
+          0.3
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    }
+  ],
+  "unresolved": [
+    "stylized_upward_trunk_elephant/far_ear/pinna/op_0: 0 direct source candidates for Asset.op_0",
+    "stylized_upward_trunk_elephant/far_ear/pinna/op_1: 0 direct source candidates for Asset.op_1",
+    "stylized_upward_trunk_elephant/far_ear/pinna/op_2: 0 direct source candidates for Asset.op_2",
+    "stylized_upward_trunk_elephant/tail/tail_root/shaft: 0 direct source candidates for Asset.shaft",
+    "stylized_upward_trunk_elephant/tail/tail_root/start_round: 0 direct source candidates for Asset.start_round",
+    "stylized_upward_trunk_elephant/tail/tail_root/end_round: 0 direct source candidates for Asset.end_round",
+    "stylized_upward_trunk_elephant/tail/tail_end/shaft: 0 direct source candidates for Asset.shaft",
+    "stylized_upward_trunk_elephant/tail/tail_end/start_round: 0 direct source candidates for Asset.start_round",
+    "stylized_upward_trunk_elephant/tail/tail_end/end_round: 0 direct source candidates for Asset.end_round",
+    "stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot/op_0: 0 direct source candidates for Asset.op_0",
+    "stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot/op_1: 0 direct source candidates for Asset.op_1",
+    "stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot/op_2: 0 direct source candidates for Asset.op_2",
+    "stylized_upward_trunk_elephant/front_far_leg/integrated_leg_and_foot/op_3: 0 direct source candidates for Asset.op_3",
+    "stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot/op_0: 0 direct source candidates for Asset.op_0",
+    "stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot/op_1: 0 direct source candidates for Asset.op_1",
+    "stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot/op_2: 0 direct source candidates for Asset.op_2",
+    "stylized_upward_trunk_elephant/rear_far_leg/integrated_leg_and_foot/op_3: 0 direct source candidates for Asset.op_3",
+    "stylized_upward_trunk_elephant/body/body_mass/op_0: 0 direct source candidates for Asset.op_0",
+    "stylized_upward_trunk_elephant/body/body_mass/op_1: 0 direct source candidates for Asset.op_1",
+    "stylized_upward_trunk_elephant/body/body_mass/op_2: 0 direct source candidates for Asset.op_2",
+    "stylized_upward_trunk_elephant/body/body_mass/op_3: 0 direct source candidates for Asset.op_3",
+    "stylized_upward_trunk_elephant/head/head_mass/op_0: 0 direct source candidates for Asset.op_0",
+    "stylized_upward_trunk_elephant/head/head_mass/op_1: 0 direct source candidates for Asset.op_1",
+    "stylized_upward_trunk_elephant/head/head_mass/op_2: 0 direct source candidates for Asset.op_2",
+    "stylized_upward_trunk_elephant/head/head_mass/op_3: 0 direct source candidates for Asset.op_3",
+    "stylized_upward_trunk_elephant/near_ear/pinna/op_0: 0 direct source candidates for Asset.op_0",
+    "stylized_upward_trunk_elephant/near_ear/pinna/op_1: 0 direct source candidates for Asset.op_1",
+    "stylized_upward_trunk_elephant/near_ear/pinna/op_2: 0 direct source candidates for Asset.op_2",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_1: runtime name maps to a dynamic source expression",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_1/shaft: 0 direct source candidates for Asset.shaft",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_1/start_round: 0 direct source candidates for Asset.start_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_1/end_round: 0 direct source candidates for Asset.end_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_2: runtime name maps to a dynamic source expression",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_2/shaft: 0 direct source candidates for Asset.shaft",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_2/start_round: 0 direct source candidates for Asset.start_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_2/end_round: 0 direct source candidates for Asset.end_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_3: runtime name maps to a dynamic source expression",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_3/shaft: 0 direct source candidates for Asset.shaft",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_3/start_round: 0 direct source candidates for Asset.start_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_3/end_round: 0 direct source candidates for Asset.end_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_4: runtime name maps to a dynamic source expression",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_4/shaft: 0 direct source candidates for Asset.shaft",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_4/start_round: 0 direct source candidates for Asset.start_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_4/end_round: 0 direct source candidates for Asset.end_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_5: runtime name maps to a dynamic source expression",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_5/shaft: 0 direct source candidates for Asset.shaft",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_5/start_round: 0 direct source candidates for Asset.start_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_5/end_round: 0 direct source candidates for Asset.end_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_6: runtime name maps to a dynamic source expression",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_6/shaft: 0 direct source candidates for Asset.shaft",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_6/start_round: 0 direct source candidates for Asset.start_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_6/end_round: 0 direct source candidates for Asset.end_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_7: runtime name maps to a dynamic source expression",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_7/shaft: 0 direct source candidates for Asset.shaft",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_7/start_round: 0 direct source candidates for Asset.start_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_7/end_round: 0 direct source candidates for Asset.end_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_8: runtime name maps to a dynamic source expression",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_8/shaft: 0 direct source candidates for Asset.shaft",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_8/start_round: 0 direct source candidates for Asset.start_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_8/end_round: 0 direct source candidates for Asset.end_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_9: runtime name maps to a dynamic source expression",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_9/shaft: 0 direct source candidates for Asset.shaft",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_9/start_round: 0 direct source candidates for Asset.start_round",
+    "stylized_upward_trunk_elephant/trunk/trunk_section_9/end_round: 0 direct source candidates for Asset.end_round",
+    "stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot/op_0: 0 direct source candidates for Asset.op_0",
+    "stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot/op_1: 0 direct source candidates for Asset.op_1",
+    "stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot/op_2: 0 direct source candidates for Asset.op_2",
+    "stylized_upward_trunk_elephant/front_near_leg/integrated_leg_and_foot/op_3: 0 direct source candidates for Asset.op_3",
+    "stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot/op_0: 0 direct source candidates for Asset.op_0",
+    "stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot/op_1: 0 direct source candidates for Asset.op_1",
+    "stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot/op_2: 0 direct source candidates for Asset.op_2",
+    "stylized_upward_trunk_elephant/rear_near_leg/integrated_leg_and_foot/op_3: 0 direct source candidates for Asset.op_3"
+  ]
+}

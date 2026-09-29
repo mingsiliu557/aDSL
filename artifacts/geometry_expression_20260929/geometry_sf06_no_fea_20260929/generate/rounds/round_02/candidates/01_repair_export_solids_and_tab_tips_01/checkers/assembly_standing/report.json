@@ -1,0 +1,213 @@
+{
+  "checker": "assembly_standing",
+  "version": 1,
+  "status": "INDETERMINATE",
+  "summary": "DEPENDENCY_MESH_UNAVAILABLE: one connected volume per rigid print body required",
+  "metrics": {
+    "items": [
+      {
+        "part_id": "chair_body",
+        "status": "INDETERMINATE",
+        "code": "PRINT_MESH_UNMEASURABLE",
+        "stage": "load_final_part",
+        "reason": "KeyError: 'chair_body'"
+      },
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "leg_front_left",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              -39.0,
+              -39.0,
+              0.0
+            ],
+            [
+              39.0,
+              39.0,
+              330.0
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            0.0,
+            0.0,
+            165.0
+          ]
+        ],
+        "bounds_mm": [
+          [
+            -39.0,
+            -39.0,
+            0.0
+          ],
+          [
+            39.0,
+            39.0,
+            330.0
+          ]
+        ],
+        "length_tolerance_mm": 0.000629425048828125,
+        "surface_area_mm2": 101496.0,
+        "nearest_components": null,
+        "solid_sha256": "4a6b25b60d968c674cba1f27370d4ea21fbc222379f1987815e6341553a7329d",
+        "elapsed_seconds": 6.48150734230876,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_topology/items/part_leg_front_left/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "leg_front_right",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              -39.0,
+              -39.0,
+              0.0
+            ],
+            [
+              39.0,
+              39.0,
+              330.0
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            0.0,
+            0.0,
+            165.0
+          ]
+        ],
+        "bounds_mm": [
+          [
+            -39.0,
+            -39.0,
+            0.0
+          ],
+          [
+            39.0,
+            39.0,
+            330.0
+          ]
+        ],
+        "length_tolerance_mm": 0.000629425048828125,
+        "surface_area_mm2": 101496.0,
+        "nearest_components": null,
+        "solid_sha256": "4a6b25b60d968c674cba1f27370d4ea21fbc222379f1987815e6341553a7329d",
+        "elapsed_seconds": 7.082676505669951,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_topology/items/part_leg_front_right/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "leg_rear_left",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              -39.0,
+              -39.0,
+              0.0
+            ],
+            [
+              39.0,
+              39.0,
+              330.0
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            0.0,
+            0.0,
+            165.0
+          ]
+        ],
+        "bounds_mm": [
+          [
+            -39.0,
+            -39.0,
+            0.0
+          ],
+          [
+            39.0,
+            39.0,
+            330.0
+          ]
+        ],
+        "length_tolerance_mm": 0.000629425048828125,
+        "surface_area_mm2": 101496.0,
+        "nearest_components": null,
+        "solid_sha256": "4a6b25b60d968c674cba1f27370d4ea21fbc222379f1987815e6341553a7329d",
+        "elapsed_seconds": 7.287220358848572,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_topology/items/part_leg_rear_left/checkers/assembly_topology/result.json"
+      },
+      {
+        "kind": "part",
+        "status": "PASS",
+        "code": "CONNECTED_PRINT_PART",
+        "part_id": "leg_rear_right",
+        "component_count": 1,
+        "component_bounds_mm": [
+          [
+            [
+              -39.0,
+              -39.0,
+              0.0
+            ],
+            [
+              39.0,
+              39.0,
+              330.0
+            ]
+          ]
+        ],
+        "representative_points_mm": [
+          [
+            0.0,
+            0.0,
+            165.0
+          ]
+        ],
+        "bounds_mm": [
+          [
+            -39.0,
+            -39.0,
+            0.0
+          ],
+          [
+            39.0,
+            39.0,
+            330.0
+          ]
+        ],
+        "length_tolerance_mm": 0.000629425048828125,
+        "surface_area_mm2": 101496.0,
+        "nearest_components": null,
+        "solid_sha256": "4a6b25b60d968c674cba1f27370d4ea21fbc222379f1987815e6341553a7329d",
+        "elapsed_seconds": 6.581821963191032,
+        "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_topology/items/part_leg_rear_right/checkers/assembly_topology/result.json"
+      }
+    ]
+  },
+  "violations": [],
+  "assumptions": {
+    "source_sha256": "dc61956a61712e0aa698740340e229837aead0899560143fb921cc1d889f388f",
+    "manifest_sha256": "c93fe24c4d0a30ea1524129e02b05a7de1ecca067429aa96d54f3cdf92dc43af",
+    "physics_sha256": "2e9ff3db50c9a1dc68a91ff9cb0082d7927af8271a440eb1c777c3d8ce320862",
+    "elapsed_seconds": 2.1376207564026117
+  },
+  "artifacts": {
+    "report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_standing/report.json"
+  },
+  "analysis_context": null,
+  "findings": []
+}

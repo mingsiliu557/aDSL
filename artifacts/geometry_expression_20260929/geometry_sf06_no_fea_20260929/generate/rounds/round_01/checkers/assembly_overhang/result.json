@@ -1,0 +1,148 @@
+{
+  "checker": "assembly_overhang",
+  "version": 2,
+  "status": "INDETERMINATE",
+  "summary": "Partition measurement incomplete; total gap and score unknown",
+  "metrics": {
+    "items": [
+      {
+        "part_id": "chair_body",
+        "status": "INDETERMINATE",
+        "code": "PRINT_MESH_UNMEASURABLE",
+        "stage": "load_final_part",
+        "reason": "KeyError: 'chair_body'",
+        "input_pose_area_mm2": null,
+        "gap_voxels": null
+      },
+      {
+        "part_id": "leg_front_left",
+        "status": "INDETERMINATE",
+        "code": "PRINT_MESH_UNMEASURABLE",
+        "stage": "load_final_part",
+        "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified",
+        "input_pose_area_mm2": null,
+        "gap_voxels": null
+      },
+      {
+        "part_id": "leg_front_right",
+        "status": "INDETERMINATE",
+        "code": "PRINT_MESH_UNMEASURABLE",
+        "stage": "load_final_part",
+        "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified",
+        "input_pose_area_mm2": null,
+        "gap_voxels": null
+      },
+      {
+        "part_id": "leg_rear_left",
+        "status": "INDETERMINATE",
+        "code": "PRINT_MESH_UNMEASURABLE",
+        "stage": "load_final_part",
+        "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified",
+        "input_pose_area_mm2": null,
+        "gap_voxels": null
+      },
+      {
+        "part_id": "leg_rear_right",
+        "status": "INDETERMINATE",
+        "code": "PRINT_MESH_UNMEASURABLE",
+        "stage": "load_final_part",
+        "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified",
+        "input_pose_area_mm2": null,
+        "gap_voxels": null
+      }
+    ],
+    "total_overhang_mm2": null,
+    "area_uncertainty_mm2": null,
+    "measurement_config_sha256": "bf9d4b035a773994723ae598c65765708b3c956fbc1beeb9748f4764ea76f77f",
+    "support_material": "NOT_EVALUATED",
+    "partition_objective": {
+      "method": "dapper_fdm_2015",
+      "alpha": 0.3,
+      "r_vox": 0.1,
+      "orientation_set": "axis_aligned_24",
+      "layout": "independent_bed",
+      "reference_sha256": "e1b03c9e6d81e2218d2ba297d36de3059d0314b210c057b642062a286da6ae32",
+      "evaluation_config_sha256": "f15386fa287b5e1e385bb92cfaef84641869f814b6cb43662fe1276f09488ef4",
+      "voxel_pitch_mm": 80.0,
+      "reference_voxels": 662,
+      "gap_voxels": null,
+      "print_part_count": 5,
+      "score": null,
+      "direction": "maximize",
+      "numerator_nonpositive": null,
+      "gap_volume_mm3": null
+    },
+    "partition_guidance": {
+      "status": "UNAVAILABLE",
+      "reason": "complete partition measurement required"
+    }
+  },
+  "violations": [],
+  "assumptions": {
+    "scale": "manifest mm; no normalization",
+    "surface": "within-part Manifold exterior; no cross-part union",
+    "scope": "geometric overhang, not bed stability, slicer support volume or printing success",
+    "partition_scope": "Dapper objective; independent beds; 24 rotations; no packing/refinement",
+    "limitations": "Vertical empty voxel proxy; not actual support/time, bridging, removability or bed stability. Coarse voxels may mask connectors.",
+    "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+    "manifest_sha256": "d121f3e94abf18469623098f16992065754bda5057a8efd772303e2e70d431c0",
+    "physics_sha256": "2e9ff3db50c9a1dc68a91ff9cb0082d7927af8271a440eb1c777c3d8ce320862",
+    "elapsed_seconds": 2.433502344414592
+  },
+  "artifacts": {
+    "partition_reference": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/partition_references/e1b03c9e6d81e2218d2ba297d36de3059d0314b210c057b642062a286da6ae32/partition_reference.json",
+    "print_layout": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_overhang/print_layout.json",
+    "report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_overhang/report.json"
+  },
+  "analysis_context": {
+    "checker": "assembly_overhang",
+    "checker_version": 1,
+    "source_frame": "authored_scene",
+    "analysis_frame": null,
+    "source_length_unit": "scene_unit",
+    "analysis_length_unit": null,
+    "source_to_analysis": null,
+    "use_pose": "authored",
+    "print_pose": "fixed_authored",
+    "assumptions_source": "checker_result",
+    "details": {
+      "assumptions": {
+        "scale": "manifest mm; no normalization",
+        "surface": "within-part Manifold exterior; no cross-part union",
+        "scope": "geometric overhang, not bed stability, slicer support volume or printing success",
+        "partition_scope": "Dapper objective; independent beds; 24 rotations; no packing/refinement",
+        "limitations": "Vertical empty voxel proxy; not actual support/time, bridging, removability or bed stability. Coarse voxels may mask connectors.",
+        "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+        "manifest_sha256": "d121f3e94abf18469623098f16992065754bda5057a8efd772303e2e70d431c0",
+        "physics_sha256": "2e9ff3db50c9a1dc68a91ff9cb0082d7927af8271a440eb1c777c3d8ce320862",
+        "elapsed_seconds": 2.433502344414592
+      },
+      "legacy_context": true
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "assembly_overhang:INDETERMINATE:1",
+      "rule_id": "INDETERMINATE",
+      "category": "evidence_insufficient",
+      "applicability": "unknown",
+      "applicability_basis": "derived conservatively from legacy checker status",
+      "metric": null,
+      "region": null,
+      "relations": [],
+      "evidence_refs": [
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/partition_references/e1b03c9e6d81e2218d2ba297d36de3059d0314b210c057b642062a286da6ae32/partition_reference.json",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_overhang/print_layout.json",
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_overhang/report.json"
+      ],
+      "source_candidates": [],
+      "required": false,
+      "repairability": "analysis",
+      "message": "Partition measurement incomplete; total gap and score unknown",
+      "domain": {
+        "code": "INDETERMINATE",
+        "message": "Partition measurement incomplete; total gap and score unknown"
+      }
+    }
+  ]
+}

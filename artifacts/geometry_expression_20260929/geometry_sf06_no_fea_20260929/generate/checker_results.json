@@ -1,0 +1,3227 @@
+{
+  "required_checkers_passed": false,
+  "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+  "results": [
+    {
+      "checker": "assembly_topology",
+      "version": 2,
+      "status": "INDETERMINATE",
+      "summary": "Assembly topology INDETERMINATE; item counts {'PASS': 0, 'FAIL': 0, 'INDETERMINATE': 19}",
+      "metrics": {
+        "items": [
+          {
+            "kind": "part",
+            "status": "INDETERMINATE",
+            "code": "PRINT_MESH_UNAVAILABLE",
+            "part_id": "chair_body"
+          },
+          {
+            "kind": "part",
+            "status": "INDETERMINATE",
+            "code": "OPEN_PRINT_MESH",
+            "part_id": "leg_front_left",
+            "stage": "final_print_mesh_validation",
+            "reason": "open exported print mesh; connectivity and dependent interfaces unverified",
+            "boundary_edge_count": 12,
+            "nonmanifold_edge_count": 0,
+            "bounds_mm": [
+              [
+                -19.0,
+                -19.0,
+                327.0
+              ],
+              [
+                19.0,
+                19.0,
+                330.0
+              ]
+            ],
+            "boundary_regions": [
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    -16.000001907348633,
+                    -16.000001907348633,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    16.219514846801758,
+                    327.0
+                  ],
+                  [
+                    -16.21951675415039,
+                    19.0,
+                    329.7804870605469
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    16.00000762939453,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    19.0,
+                    19.0,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 6
+              }
+            ],
+            "method": "exact-coordinate export vertex deduplication within face groups; no mesh repair",
+            "boundary_report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_front_left/checkers/assembly_topology/boundary_edges.json",
+            "elapsed_seconds": 6.2316780891269445,
+            "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_front_left/checkers/assembly_topology/result.json"
+          },
+          {
+            "kind": "part",
+            "status": "INDETERMINATE",
+            "code": "OPEN_PRINT_MESH",
+            "part_id": "leg_front_right",
+            "stage": "final_print_mesh_validation",
+            "reason": "open exported print mesh; connectivity and dependent interfaces unverified",
+            "boundary_edge_count": 12,
+            "nonmanifold_edge_count": 0,
+            "bounds_mm": [
+              [
+                -19.0,
+                -19.0,
+                327.0
+              ],
+              [
+                19.0,
+                19.0,
+                330.0
+              ]
+            ],
+            "boundary_regions": [
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    -16.000001907348633,
+                    -16.000001907348633,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    16.219514846801758,
+                    327.0
+                  ],
+                  [
+                    -16.21951675415039,
+                    19.0,
+                    329.7804870605469
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    16.00000762939453,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    19.0,
+                    19.0,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 6
+              }
+            ],
+            "method": "exact-coordinate export vertex deduplication within face groups; no mesh repair",
+            "boundary_report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_front_right/checkers/assembly_topology/boundary_edges.json",
+            "elapsed_seconds": 6.53181729093194,
+            "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_front_right/checkers/assembly_topology/result.json"
+          },
+          {
+            "kind": "part",
+            "status": "INDETERMINATE",
+            "code": "OPEN_PRINT_MESH",
+            "part_id": "leg_rear_left",
+            "stage": "final_print_mesh_validation",
+            "reason": "open exported print mesh; connectivity and dependent interfaces unverified",
+            "boundary_edge_count": 12,
+            "nonmanifold_edge_count": 0,
+            "bounds_mm": [
+              [
+                -19.0,
+                -19.0,
+                327.0
+              ],
+              [
+                19.0,
+                19.0,
+                330.0
+              ]
+            ],
+            "boundary_regions": [
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    -16.000001907348633,
+                    -16.000001907348633,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    16.219514846801758,
+                    327.0
+                  ],
+                  [
+                    -16.21951675415039,
+                    19.0,
+                    329.7804870605469
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    16.00000762939453,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    19.0,
+                    19.0,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 6
+              }
+            ],
+            "method": "exact-coordinate export vertex deduplication within face groups; no mesh repair",
+            "boundary_report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_left/checkers/assembly_topology/boundary_edges.json",
+            "elapsed_seconds": 6.58145110681653,
+            "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_left/checkers/assembly_topology/result.json"
+          },
+          {
+            "kind": "part",
+            "status": "INDETERMINATE",
+            "code": "OPEN_PRINT_MESH",
+            "part_id": "leg_rear_right",
+            "stage": "final_print_mesh_validation",
+            "reason": "open exported print mesh; connectivity and dependent interfaces unverified",
+            "boundary_edge_count": 12,
+            "nonmanifold_edge_count": 0,
+            "bounds_mm": [
+              [
+                -19.0,
+                -19.0,
+                327.0
+              ],
+              [
+                19.0,
+                19.0,
+                330.0
+              ]
+            ],
+            "boundary_regions": [
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    -16.000001907348633,
+                    -16.000001907348633,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    16.219514846801758,
+                    327.0
+                  ],
+                  [
+                    -16.21951675415039,
+                    19.0,
+                    329.7804870605469
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    16.00000762939453,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    19.0,
+                    19.0,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 6
+              }
+            ],
+            "method": "exact-coordinate export vertex deduplication within face groups; no mesh repair",
+            "boundary_report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_right/checkers/assembly_topology/boundary_edges.json",
+            "elapsed_seconds": 5.880665335804224,
+            "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_right/checkers/assembly_topology/result.json"
+          },
+          {
+            "kind": "interface",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "tab_part": "leg_front_left",
+            "slot_part": "chair_body",
+            "parameter_name": "shared_leg_mount",
+            "tab_port": "top_mount_tab",
+            "slot_port": "underside_front_left_slot",
+            "connection_id": "mount_front_left_leg"
+          },
+          {
+            "kind": "interface",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "tab_part": "leg_front_right",
+            "slot_part": "chair_body",
+            "parameter_name": "shared_leg_mount",
+            "tab_port": "top_mount_tab",
+            "slot_port": "underside_front_right_slot",
+            "connection_id": "mount_front_right_leg"
+          },
+          {
+            "kind": "interface",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "tab_part": "leg_rear_left",
+            "slot_part": "chair_body",
+            "parameter_name": "shared_leg_mount",
+            "tab_port": "top_mount_tab",
+            "slot_port": "underside_rear_left_slot",
+            "connection_id": "mount_rear_left_leg"
+          },
+          {
+            "kind": "interface",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "tab_part": "leg_rear_right",
+            "slot_part": "chair_body",
+            "parameter_name": "shared_leg_mount",
+            "tab_port": "top_mount_tab",
+            "slot_port": "underside_rear_right_slot",
+            "connection_id": "mount_rear_right_leg"
+          },
+          {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "chair_body:leg_front_left",
+            "part_ids": [
+              "chair_body",
+              "leg_front_left"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          },
+          {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "chair_body:leg_front_right",
+            "part_ids": [
+              "chair_body",
+              "leg_front_right"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          },
+          {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "chair_body:leg_rear_left",
+            "part_ids": [
+              "chair_body",
+              "leg_rear_left"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          },
+          {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "chair_body:leg_rear_right",
+            "part_ids": [
+              "chair_body",
+              "leg_rear_right"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          },
+          {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "leg_front_left:leg_front_right",
+            "part_ids": [
+              "leg_front_left",
+              "leg_front_right"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          },
+          {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "leg_front_left:leg_rear_left",
+            "part_ids": [
+              "leg_front_left",
+              "leg_rear_left"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          },
+          {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "leg_front_left:leg_rear_right",
+            "part_ids": [
+              "leg_front_left",
+              "leg_rear_right"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          },
+          {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "leg_front_right:leg_rear_left",
+            "part_ids": [
+              "leg_front_right",
+              "leg_rear_left"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          },
+          {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "leg_front_right:leg_rear_right",
+            "part_ids": [
+              "leg_front_right",
+              "leg_rear_right"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          },
+          {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "leg_rear_left:leg_rear_right",
+            "part_ids": [
+              "leg_rear_left",
+              "leg_rear_right"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          }
+        ]
+      },
+      "violations": [],
+      "assumptions": {
+        "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+        "manifest_sha256": "d121f3e94abf18469623098f16992065754bda5057a8efd772303e2e70d431c0",
+        "topology_scope_version": 2,
+        "scope": "within-part solid connectivity, local TabSlot pairing and global assembly material interference; not retention, insertion path, strength or manufacturing",
+        "localization": "index-assisted if current candidates exist; otherwise model source inference"
+      },
+      "artifacts": {
+        "report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+      },
+      "analysis_context": null,
+      "findings": [
+        {
+          "finding_id": "assembly_topology:chair_body:PRINT_MESH_UNAVAILABLE",
+          "rule_id": "PRINT_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "part_local:chair_body",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "chair_body"
+            ],
+            "details": {
+              "component_bounds_preview_mm": [],
+              "boundary_regions_preview": [],
+              "preview_only": false
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/chair_body",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_shell",
+              "source_ids": [
+                "source:5e4ebb17aee2ce7d8885",
+                "source:36804e00408906349616"
+              ],
+              "source_locations": [
+                "L160-L160",
+                "L38-L58"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/underseat_mounting_deck",
+              "source_ids": [
+                "source:08c4376557f08300d6af",
+                "source:b7a5f7497b8c5fbdc70c"
+              ],
+              "source_locations": [
+                "L161-L161",
+                "L120-L140"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/front_apron",
+              "source_ids": [
+                "source:9656a690f05fc9af61be",
+                "source:24634df7cead97de0b17"
+              ],
+              "source_locations": [
+                "L162-L162",
+                "L108-L117"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_cushion",
+              "source_ids": [
+                "source:fefa08a32666b94d3a95",
+                "source:ecf7163681603646dbec"
+              ],
+              "source_locations": [
+                "L163-L163",
+                "L61-L78"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/backrest",
+              "source_ids": [
+                "source:07008e7749dabf64502f",
+                "source:2bae894a7d5ff2a55e1d"
+              ],
+              "source_locations": [
+                "L164-L164",
+                "L81-L93"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "chair_body: PRINT_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "part",
+            "status": "INDETERMINATE",
+            "code": "PRINT_MESH_UNAVAILABLE",
+            "part_id": "chair_body"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:leg_front_left:OPEN_PRINT_MESH",
+          "rule_id": "OPEN_PRINT_MESH",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "aabb",
+            "frame": "part_local:leg_front_left",
+            "unit": "mm",
+            "point": null,
+            "bounds": [
+              [
+                -19.0,
+                -19.0,
+                327.0
+              ],
+              [
+                19.0,
+                19.0,
+                330.0
+              ]
+            ],
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "leg_front_left"
+            ],
+            "details": {
+              "component_bounds_preview_mm": [],
+              "boundary_regions_preview": [
+                {
+                  "bounds_mm": [
+                    [
+                      -19.0,
+                      -19.0,
+                      327.0
+                    ],
+                    [
+                      -16.000001907348633,
+                      -16.000001907348633,
+                      330.0
+                    ]
+                  ],
+                  "boundary_edge_count": 3
+                },
+                {
+                  "bounds_mm": [
+                    [
+                      -19.0,
+                      16.219514846801758,
+                      327.0
+                    ],
+                    [
+                      -16.21951675415039,
+                      19.0,
+                      329.7804870605469
+                    ]
+                  ],
+                  "boundary_edge_count": 3
+                },
+                {
+                  "bounds_mm": [
+                    [
+                      16.00000762939453,
+                      -19.0,
+                      327.0
+                    ],
+                    [
+                      19.0,
+                      19.0,
+                      330.0
+                    ]
+                  ],
+                  "boundary_edge_count": 6
+                }
+              ],
+              "preview_only": false
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/leg_front_left",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "geometry",
+          "message": "leg_front_left: open boundary located; connectivity and dependent interfaces unverified; source-level geometric cause not established.",
+          "domain": {
+            "kind": "part",
+            "status": "INDETERMINATE",
+            "code": "OPEN_PRINT_MESH",
+            "part_id": "leg_front_left",
+            "stage": "final_print_mesh_validation",
+            "reason": "open exported print mesh; connectivity and dependent interfaces unverified",
+            "boundary_edge_count": 12,
+            "nonmanifold_edge_count": 0,
+            "bounds_mm": [
+              [
+                -19.0,
+                -19.0,
+                327.0
+              ],
+              [
+                19.0,
+                19.0,
+                330.0
+              ]
+            ],
+            "boundary_regions": [
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    -16.000001907348633,
+                    -16.000001907348633,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    16.219514846801758,
+                    327.0
+                  ],
+                  [
+                    -16.21951675415039,
+                    19.0,
+                    329.7804870605469
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    16.00000762939453,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    19.0,
+                    19.0,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 6
+              }
+            ],
+            "method": "exact-coordinate export vertex deduplication within face groups; no mesh repair",
+            "boundary_report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_front_left/checkers/assembly_topology/boundary_edges.json",
+            "elapsed_seconds": 6.2316780891269445,
+            "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_front_left/checkers/assembly_topology/result.json"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:leg_front_right:OPEN_PRINT_MESH",
+          "rule_id": "OPEN_PRINT_MESH",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "aabb",
+            "frame": "part_local:leg_front_right",
+            "unit": "mm",
+            "point": null,
+            "bounds": [
+              [
+                -19.0,
+                -19.0,
+                327.0
+              ],
+              [
+                19.0,
+                19.0,
+                330.0
+              ]
+            ],
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "leg_front_right"
+            ],
+            "details": {
+              "component_bounds_preview_mm": [],
+              "boundary_regions_preview": [
+                {
+                  "bounds_mm": [
+                    [
+                      -19.0,
+                      -19.0,
+                      327.0
+                    ],
+                    [
+                      -16.000001907348633,
+                      -16.000001907348633,
+                      330.0
+                    ]
+                  ],
+                  "boundary_edge_count": 3
+                },
+                {
+                  "bounds_mm": [
+                    [
+                      -19.0,
+                      16.219514846801758,
+                      327.0
+                    ],
+                    [
+                      -16.21951675415039,
+                      19.0,
+                      329.7804870605469
+                    ]
+                  ],
+                  "boundary_edge_count": 3
+                },
+                {
+                  "bounds_mm": [
+                    [
+                      16.00000762939453,
+                      -19.0,
+                      327.0
+                    ],
+                    [
+                      19.0,
+                      19.0,
+                      330.0
+                    ]
+                  ],
+                  "boundary_edge_count": 6
+                }
+              ],
+              "preview_only": false
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/leg_front_right",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "geometry",
+          "message": "leg_front_right: open boundary located; connectivity and dependent interfaces unverified; source-level geometric cause not established.",
+          "domain": {
+            "kind": "part",
+            "status": "INDETERMINATE",
+            "code": "OPEN_PRINT_MESH",
+            "part_id": "leg_front_right",
+            "stage": "final_print_mesh_validation",
+            "reason": "open exported print mesh; connectivity and dependent interfaces unverified",
+            "boundary_edge_count": 12,
+            "nonmanifold_edge_count": 0,
+            "bounds_mm": [
+              [
+                -19.0,
+                -19.0,
+                327.0
+              ],
+              [
+                19.0,
+                19.0,
+                330.0
+              ]
+            ],
+            "boundary_regions": [
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    -16.000001907348633,
+                    -16.000001907348633,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    16.219514846801758,
+                    327.0
+                  ],
+                  [
+                    -16.21951675415039,
+                    19.0,
+                    329.7804870605469
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    16.00000762939453,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    19.0,
+                    19.0,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 6
+              }
+            ],
+            "method": "exact-coordinate export vertex deduplication within face groups; no mesh repair",
+            "boundary_report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_front_right/checkers/assembly_topology/boundary_edges.json",
+            "elapsed_seconds": 6.53181729093194,
+            "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_front_right/checkers/assembly_topology/result.json"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:leg_rear_left:OPEN_PRINT_MESH",
+          "rule_id": "OPEN_PRINT_MESH",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "aabb",
+            "frame": "part_local:leg_rear_left",
+            "unit": "mm",
+            "point": null,
+            "bounds": [
+              [
+                -19.0,
+                -19.0,
+                327.0
+              ],
+              [
+                19.0,
+                19.0,
+                330.0
+              ]
+            ],
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "leg_rear_left"
+            ],
+            "details": {
+              "component_bounds_preview_mm": [],
+              "boundary_regions_preview": [
+                {
+                  "bounds_mm": [
+                    [
+                      -19.0,
+                      -19.0,
+                      327.0
+                    ],
+                    [
+                      -16.000001907348633,
+                      -16.000001907348633,
+                      330.0
+                    ]
+                  ],
+                  "boundary_edge_count": 3
+                },
+                {
+                  "bounds_mm": [
+                    [
+                      -19.0,
+                      16.219514846801758,
+                      327.0
+                    ],
+                    [
+                      -16.21951675415039,
+                      19.0,
+                      329.7804870605469
+                    ]
+                  ],
+                  "boundary_edge_count": 3
+                },
+                {
+                  "bounds_mm": [
+                    [
+                      16.00000762939453,
+                      -19.0,
+                      327.0
+                    ],
+                    [
+                      19.0,
+                      19.0,
+                      330.0
+                    ]
+                  ],
+                  "boundary_edge_count": 6
+                }
+              ],
+              "preview_only": false
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/leg_rear_left",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "geometry",
+          "message": "leg_rear_left: open boundary located; connectivity and dependent interfaces unverified; source-level geometric cause not established.",
+          "domain": {
+            "kind": "part",
+            "status": "INDETERMINATE",
+            "code": "OPEN_PRINT_MESH",
+            "part_id": "leg_rear_left",
+            "stage": "final_print_mesh_validation",
+            "reason": "open exported print mesh; connectivity and dependent interfaces unverified",
+            "boundary_edge_count": 12,
+            "nonmanifold_edge_count": 0,
+            "bounds_mm": [
+              [
+                -19.0,
+                -19.0,
+                327.0
+              ],
+              [
+                19.0,
+                19.0,
+                330.0
+              ]
+            ],
+            "boundary_regions": [
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    -16.000001907348633,
+                    -16.000001907348633,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    16.219514846801758,
+                    327.0
+                  ],
+                  [
+                    -16.21951675415039,
+                    19.0,
+                    329.7804870605469
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    16.00000762939453,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    19.0,
+                    19.0,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 6
+              }
+            ],
+            "method": "exact-coordinate export vertex deduplication within face groups; no mesh repair",
+            "boundary_report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_left/checkers/assembly_topology/boundary_edges.json",
+            "elapsed_seconds": 6.58145110681653,
+            "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_left/checkers/assembly_topology/result.json"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:leg_rear_right:OPEN_PRINT_MESH",
+          "rule_id": "OPEN_PRINT_MESH",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "aabb",
+            "frame": "part_local:leg_rear_right",
+            "unit": "mm",
+            "point": null,
+            "bounds": [
+              [
+                -19.0,
+                -19.0,
+                327.0
+              ],
+              [
+                19.0,
+                19.0,
+                330.0
+              ]
+            ],
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "leg_rear_right"
+            ],
+            "details": {
+              "component_bounds_preview_mm": [],
+              "boundary_regions_preview": [
+                {
+                  "bounds_mm": [
+                    [
+                      -19.0,
+                      -19.0,
+                      327.0
+                    ],
+                    [
+                      -16.000001907348633,
+                      -16.000001907348633,
+                      330.0
+                    ]
+                  ],
+                  "boundary_edge_count": 3
+                },
+                {
+                  "bounds_mm": [
+                    [
+                      -19.0,
+                      16.219514846801758,
+                      327.0
+                    ],
+                    [
+                      -16.21951675415039,
+                      19.0,
+                      329.7804870605469
+                    ]
+                  ],
+                  "boundary_edge_count": 3
+                },
+                {
+                  "bounds_mm": [
+                    [
+                      16.00000762939453,
+                      -19.0,
+                      327.0
+                    ],
+                    [
+                      19.0,
+                      19.0,
+                      330.0
+                    ]
+                  ],
+                  "boundary_edge_count": 6
+                }
+              ],
+              "preview_only": false
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/leg_rear_right",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "geometry",
+          "message": "leg_rear_right: open boundary located; connectivity and dependent interfaces unverified; source-level geometric cause not established.",
+          "domain": {
+            "kind": "part",
+            "status": "INDETERMINATE",
+            "code": "OPEN_PRINT_MESH",
+            "part_id": "leg_rear_right",
+            "stage": "final_print_mesh_validation",
+            "reason": "open exported print mesh; connectivity and dependent interfaces unverified",
+            "boundary_edge_count": 12,
+            "nonmanifold_edge_count": 0,
+            "bounds_mm": [
+              [
+                -19.0,
+                -19.0,
+                327.0
+              ],
+              [
+                19.0,
+                19.0,
+                330.0
+              ]
+            ],
+            "boundary_regions": [
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    -16.000001907348633,
+                    -16.000001907348633,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    -19.0,
+                    16.219514846801758,
+                    327.0
+                  ],
+                  [
+                    -16.21951675415039,
+                    19.0,
+                    329.7804870605469
+                  ]
+                ],
+                "boundary_edge_count": 3
+              },
+              {
+                "bounds_mm": [
+                  [
+                    16.00000762939453,
+                    -19.0,
+                    327.0
+                  ],
+                  [
+                    19.0,
+                    19.0,
+                    330.0
+                  ]
+                ],
+                "boundary_edge_count": 6
+              }
+            ],
+            "method": "exact-coordinate export vertex deduplication within face groups; no mesh repair",
+            "boundary_report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_right/checkers/assembly_topology/boundary_edges.json",
+            "elapsed_seconds": 5.880665335804224,
+            "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_right/checkers/assembly_topology/result.json"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:mount_front_left_leg:DEPENDENCY_MESH_UNAVAILABLE",
+          "rule_id": "DEPENDENCY_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "slot_interface:mount_front_left_leg",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "leg_front_left",
+              "chair_body"
+            ],
+            "details": {
+              "component_bounds_preview_mm": [],
+              "boundary_regions_preview": [],
+              "preview_only": false
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/chair_body",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_shell",
+              "source_ids": [
+                "source:5e4ebb17aee2ce7d8885",
+                "source:36804e00408906349616"
+              ],
+              "source_locations": [
+                "L160-L160",
+                "L38-L58"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/underseat_mounting_deck",
+              "source_ids": [
+                "source:08c4376557f08300d6af",
+                "source:b7a5f7497b8c5fbdc70c"
+              ],
+              "source_locations": [
+                "L161-L161",
+                "L120-L140"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/front_apron",
+              "source_ids": [
+                "source:9656a690f05fc9af61be",
+                "source:24634df7cead97de0b17"
+              ],
+              "source_locations": [
+                "L162-L162",
+                "L108-L117"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_cushion",
+              "source_ids": [
+                "source:fefa08a32666b94d3a95",
+                "source:ecf7163681603646dbec"
+              ],
+              "source_locations": [
+                "L163-L163",
+                "L61-L78"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/backrest",
+              "source_ids": [
+                "source:07008e7749dabf64502f",
+                "source:2bae894a7d5ff2a55e1d"
+              ],
+              "source_locations": [
+                "L164-L164",
+                "L81-L93"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "mount_front_left_leg: DEPENDENCY_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "interface",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "tab_part": "leg_front_left",
+            "slot_part": "chair_body",
+            "parameter_name": "shared_leg_mount",
+            "tab_port": "top_mount_tab",
+            "slot_port": "underside_front_left_slot",
+            "connection_id": "mount_front_left_leg"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:mount_front_right_leg:DEPENDENCY_MESH_UNAVAILABLE",
+          "rule_id": "DEPENDENCY_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "slot_interface:mount_front_right_leg",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "leg_front_right",
+              "chair_body"
+            ],
+            "details": {
+              "component_bounds_preview_mm": [],
+              "boundary_regions_preview": [],
+              "preview_only": false
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/chair_body",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_shell",
+              "source_ids": [
+                "source:5e4ebb17aee2ce7d8885",
+                "source:36804e00408906349616"
+              ],
+              "source_locations": [
+                "L160-L160",
+                "L38-L58"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/underseat_mounting_deck",
+              "source_ids": [
+                "source:08c4376557f08300d6af",
+                "source:b7a5f7497b8c5fbdc70c"
+              ],
+              "source_locations": [
+                "L161-L161",
+                "L120-L140"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/front_apron",
+              "source_ids": [
+                "source:9656a690f05fc9af61be",
+                "source:24634df7cead97de0b17"
+              ],
+              "source_locations": [
+                "L162-L162",
+                "L108-L117"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_cushion",
+              "source_ids": [
+                "source:fefa08a32666b94d3a95",
+                "source:ecf7163681603646dbec"
+              ],
+              "source_locations": [
+                "L163-L163",
+                "L61-L78"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/backrest",
+              "source_ids": [
+                "source:07008e7749dabf64502f",
+                "source:2bae894a7d5ff2a55e1d"
+              ],
+              "source_locations": [
+                "L164-L164",
+                "L81-L93"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "mount_front_right_leg: DEPENDENCY_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "interface",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "tab_part": "leg_front_right",
+            "slot_part": "chair_body",
+            "parameter_name": "shared_leg_mount",
+            "tab_port": "top_mount_tab",
+            "slot_port": "underside_front_right_slot",
+            "connection_id": "mount_front_right_leg"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:mount_rear_left_leg:DEPENDENCY_MESH_UNAVAILABLE",
+          "rule_id": "DEPENDENCY_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "slot_interface:mount_rear_left_leg",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "leg_rear_left",
+              "chair_body"
+            ],
+            "details": {
+              "component_bounds_preview_mm": [],
+              "boundary_regions_preview": [],
+              "preview_only": false
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/chair_body",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_shell",
+              "source_ids": [
+                "source:5e4ebb17aee2ce7d8885",
+                "source:36804e00408906349616"
+              ],
+              "source_locations": [
+                "L160-L160",
+                "L38-L58"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/underseat_mounting_deck",
+              "source_ids": [
+                "source:08c4376557f08300d6af",
+                "source:b7a5f7497b8c5fbdc70c"
+              ],
+              "source_locations": [
+                "L161-L161",
+                "L120-L140"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/front_apron",
+              "source_ids": [
+                "source:9656a690f05fc9af61be",
+                "source:24634df7cead97de0b17"
+              ],
+              "source_locations": [
+                "L162-L162",
+                "L108-L117"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_cushion",
+              "source_ids": [
+                "source:fefa08a32666b94d3a95",
+                "source:ecf7163681603646dbec"
+              ],
+              "source_locations": [
+                "L163-L163",
+                "L61-L78"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/backrest",
+              "source_ids": [
+                "source:07008e7749dabf64502f",
+                "source:2bae894a7d5ff2a55e1d"
+              ],
+              "source_locations": [
+                "L164-L164",
+                "L81-L93"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "mount_rear_left_leg: DEPENDENCY_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "interface",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "tab_part": "leg_rear_left",
+            "slot_part": "chair_body",
+            "parameter_name": "shared_leg_mount",
+            "tab_port": "top_mount_tab",
+            "slot_port": "underside_rear_left_slot",
+            "connection_id": "mount_rear_left_leg"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:mount_rear_right_leg:DEPENDENCY_MESH_UNAVAILABLE",
+          "rule_id": "DEPENDENCY_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "slot_interface:mount_rear_right_leg",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "leg_rear_right",
+              "chair_body"
+            ],
+            "details": {
+              "component_bounds_preview_mm": [],
+              "boundary_regions_preview": [],
+              "preview_only": false
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/chair_body",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_shell",
+              "source_ids": [
+                "source:5e4ebb17aee2ce7d8885",
+                "source:36804e00408906349616"
+              ],
+              "source_locations": [
+                "L160-L160",
+                "L38-L58"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/underseat_mounting_deck",
+              "source_ids": [
+                "source:08c4376557f08300d6af",
+                "source:b7a5f7497b8c5fbdc70c"
+              ],
+              "source_locations": [
+                "L161-L161",
+                "L120-L140"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/front_apron",
+              "source_ids": [
+                "source:9656a690f05fc9af61be",
+                "source:24634df7cead97de0b17"
+              ],
+              "source_locations": [
+                "L162-L162",
+                "L108-L117"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_cushion",
+              "source_ids": [
+                "source:fefa08a32666b94d3a95",
+                "source:ecf7163681603646dbec"
+              ],
+              "source_locations": [
+                "L163-L163",
+                "L61-L78"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/backrest",
+              "source_ids": [
+                "source:07008e7749dabf64502f",
+                "source:2bae894a7d5ff2a55e1d"
+              ],
+              "source_locations": [
+                "L164-L164",
+                "L81-L93"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "mount_rear_right_leg: DEPENDENCY_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "interface",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "tab_part": "leg_rear_right",
+            "slot_part": "chair_body",
+            "parameter_name": "shared_leg_mount",
+            "tab_port": "top_mount_tab",
+            "slot_port": "underside_rear_right_slot",
+            "connection_id": "mount_rear_right_leg"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:pair:chair_body:leg_front_left:DEPENDENCY_MESH_UNAVAILABLE",
+          "rule_id": "DEPENDENCY_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "assembly",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "chair_body",
+              "leg_front_left"
+            ],
+            "details": {
+              "connection_ids": null,
+              "related_connection_ids": null,
+              "allowed_fit_connection_ids": null,
+              "raw_intersection_mm3": null,
+              "length_tolerance_mm": null
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/chair_body",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_shell",
+              "source_ids": [
+                "source:5e4ebb17aee2ce7d8885",
+                "source:36804e00408906349616"
+              ],
+              "source_locations": [
+                "L160-L160",
+                "L38-L58"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/underseat_mounting_deck",
+              "source_ids": [
+                "source:08c4376557f08300d6af",
+                "source:b7a5f7497b8c5fbdc70c"
+              ],
+              "source_locations": [
+                "L161-L161",
+                "L120-L140"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/front_apron",
+              "source_ids": [
+                "source:9656a690f05fc9af61be",
+                "source:24634df7cead97de0b17"
+              ],
+              "source_locations": [
+                "L162-L162",
+                "L108-L117"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_cushion",
+              "source_ids": [
+                "source:fefa08a32666b94d3a95",
+                "source:ecf7163681603646dbec"
+              ],
+              "source_locations": [
+                "L163-L163",
+                "L61-L78"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/backrest",
+              "source_ids": [
+                "source:07008e7749dabf64502f",
+                "source:2bae894a7d5ff2a55e1d"
+              ],
+              "source_locations": [
+                "L164-L164",
+                "L81-L93"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "pair:chair_body:leg_front_left: DEPENDENCY_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "chair_body:leg_front_left",
+            "part_ids": [
+              "chair_body",
+              "leg_front_left"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:pair:chair_body:leg_front_right:DEPENDENCY_MESH_UNAVAILABLE",
+          "rule_id": "DEPENDENCY_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "assembly",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "chair_body",
+              "leg_front_right"
+            ],
+            "details": {
+              "connection_ids": null,
+              "related_connection_ids": null,
+              "allowed_fit_connection_ids": null,
+              "raw_intersection_mm3": null,
+              "length_tolerance_mm": null
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/chair_body",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_shell",
+              "source_ids": [
+                "source:5e4ebb17aee2ce7d8885",
+                "source:36804e00408906349616"
+              ],
+              "source_locations": [
+                "L160-L160",
+                "L38-L58"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/underseat_mounting_deck",
+              "source_ids": [
+                "source:08c4376557f08300d6af",
+                "source:b7a5f7497b8c5fbdc70c"
+              ],
+              "source_locations": [
+                "L161-L161",
+                "L120-L140"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/front_apron",
+              "source_ids": [
+                "source:9656a690f05fc9af61be",
+                "source:24634df7cead97de0b17"
+              ],
+              "source_locations": [
+                "L162-L162",
+                "L108-L117"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_cushion",
+              "source_ids": [
+                "source:fefa08a32666b94d3a95",
+                "source:ecf7163681603646dbec"
+              ],
+              "source_locations": [
+                "L163-L163",
+                "L61-L78"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/backrest",
+              "source_ids": [
+                "source:07008e7749dabf64502f",
+                "source:2bae894a7d5ff2a55e1d"
+              ],
+              "source_locations": [
+                "L164-L164",
+                "L81-L93"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "pair:chair_body:leg_front_right: DEPENDENCY_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "chair_body:leg_front_right",
+            "part_ids": [
+              "chair_body",
+              "leg_front_right"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:pair:chair_body:leg_rear_left:DEPENDENCY_MESH_UNAVAILABLE",
+          "rule_id": "DEPENDENCY_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "assembly",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "chair_body",
+              "leg_rear_left"
+            ],
+            "details": {
+              "connection_ids": null,
+              "related_connection_ids": null,
+              "allowed_fit_connection_ids": null,
+              "raw_intersection_mm3": null,
+              "length_tolerance_mm": null
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/chair_body",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_shell",
+              "source_ids": [
+                "source:5e4ebb17aee2ce7d8885",
+                "source:36804e00408906349616"
+              ],
+              "source_locations": [
+                "L160-L160",
+                "L38-L58"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/underseat_mounting_deck",
+              "source_ids": [
+                "source:08c4376557f08300d6af",
+                "source:b7a5f7497b8c5fbdc70c"
+              ],
+              "source_locations": [
+                "L161-L161",
+                "L120-L140"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/front_apron",
+              "source_ids": [
+                "source:9656a690f05fc9af61be",
+                "source:24634df7cead97de0b17"
+              ],
+              "source_locations": [
+                "L162-L162",
+                "L108-L117"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_cushion",
+              "source_ids": [
+                "source:fefa08a32666b94d3a95",
+                "source:ecf7163681603646dbec"
+              ],
+              "source_locations": [
+                "L163-L163",
+                "L61-L78"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/backrest",
+              "source_ids": [
+                "source:07008e7749dabf64502f",
+                "source:2bae894a7d5ff2a55e1d"
+              ],
+              "source_locations": [
+                "L164-L164",
+                "L81-L93"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "pair:chair_body:leg_rear_left: DEPENDENCY_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "chair_body:leg_rear_left",
+            "part_ids": [
+              "chair_body",
+              "leg_rear_left"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:pair:chair_body:leg_rear_right:DEPENDENCY_MESH_UNAVAILABLE",
+          "rule_id": "DEPENDENCY_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "assembly",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "chair_body",
+              "leg_rear_right"
+            ],
+            "details": {
+              "connection_ids": null,
+              "related_connection_ids": null,
+              "allowed_fit_connection_ids": null,
+              "raw_intersection_mm3": null,
+              "length_tolerance_mm": null
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/chair_body",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_shell",
+              "source_ids": [
+                "source:5e4ebb17aee2ce7d8885",
+                "source:36804e00408906349616"
+              ],
+              "source_locations": [
+                "L160-L160",
+                "L38-L58"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/underseat_mounting_deck",
+              "source_ids": [
+                "source:08c4376557f08300d6af",
+                "source:b7a5f7497b8c5fbdc70c"
+              ],
+              "source_locations": [
+                "L161-L161",
+                "L120-L140"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/front_apron",
+              "source_ids": [
+                "source:9656a690f05fc9af61be",
+                "source:24634df7cead97de0b17"
+              ],
+              "source_locations": [
+                "L162-L162",
+                "L108-L117"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/seat_cushion",
+              "source_ids": [
+                "source:fefa08a32666b94d3a95",
+                "source:ecf7163681603646dbec"
+              ],
+              "source_locations": [
+                "L163-L163",
+                "L61-L78"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/chair_body/base/base/base/base/backrest",
+              "source_ids": [
+                "source:07008e7749dabf64502f",
+                "source:2bae894a7d5ff2a55e1d"
+              ],
+              "source_locations": [
+                "L164-L164",
+                "L81-L93"
+              ],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "pair:chair_body:leg_rear_right: DEPENDENCY_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "chair_body:leg_rear_right",
+            "part_ids": [
+              "chair_body",
+              "leg_rear_right"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:pair:leg_front_left:leg_front_right:DEPENDENCY_MESH_UNAVAILABLE",
+          "rule_id": "DEPENDENCY_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "assembly",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "leg_front_left",
+              "leg_front_right"
+            ],
+            "details": {
+              "connection_ids": null,
+              "related_connection_ids": null,
+              "allowed_fit_connection_ids": null,
+              "raw_intersection_mm3": null,
+              "length_tolerance_mm": null
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/leg_front_left",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/leg_front_right",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "pair:leg_front_left:leg_front_right: DEPENDENCY_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "leg_front_left:leg_front_right",
+            "part_ids": [
+              "leg_front_left",
+              "leg_front_right"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:pair:leg_front_left:leg_rear_left:DEPENDENCY_MESH_UNAVAILABLE",
+          "rule_id": "DEPENDENCY_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "assembly",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "leg_front_left",
+              "leg_rear_left"
+            ],
+            "details": {
+              "connection_ids": null,
+              "related_connection_ids": null,
+              "allowed_fit_connection_ids": null,
+              "raw_intersection_mm3": null,
+              "length_tolerance_mm": null
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/leg_front_left",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/leg_rear_left",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "pair:leg_front_left:leg_rear_left: DEPENDENCY_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "leg_front_left:leg_rear_left",
+            "part_ids": [
+              "leg_front_left",
+              "leg_rear_left"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:pair:leg_front_left:leg_rear_right:DEPENDENCY_MESH_UNAVAILABLE",
+          "rule_id": "DEPENDENCY_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "assembly",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "leg_front_left",
+              "leg_rear_right"
+            ],
+            "details": {
+              "connection_ids": null,
+              "related_connection_ids": null,
+              "allowed_fit_connection_ids": null,
+              "raw_intersection_mm3": null,
+              "length_tolerance_mm": null
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/leg_front_left",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/leg_rear_right",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "pair:leg_front_left:leg_rear_right: DEPENDENCY_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "leg_front_left:leg_rear_right",
+            "part_ids": [
+              "leg_front_left",
+              "leg_rear_right"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:pair:leg_front_right:leg_rear_left:DEPENDENCY_MESH_UNAVAILABLE",
+          "rule_id": "DEPENDENCY_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "assembly",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "leg_front_right",
+              "leg_rear_left"
+            ],
+            "details": {
+              "connection_ids": null,
+              "related_connection_ids": null,
+              "allowed_fit_connection_ids": null,
+              "raw_intersection_mm3": null,
+              "length_tolerance_mm": null
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/leg_front_right",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/leg_rear_left",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "pair:leg_front_right:leg_rear_left: DEPENDENCY_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "leg_front_right:leg_rear_left",
+            "part_ids": [
+              "leg_front_right",
+              "leg_rear_left"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:pair:leg_front_right:leg_rear_right:DEPENDENCY_MESH_UNAVAILABLE",
+          "rule_id": "DEPENDENCY_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "assembly",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "leg_front_right",
+              "leg_rear_right"
+            ],
+            "details": {
+              "connection_ids": null,
+              "related_connection_ids": null,
+              "allowed_fit_connection_ids": null,
+              "raw_intersection_mm3": null,
+              "length_tolerance_mm": null
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/leg_front_right",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/leg_rear_right",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "pair:leg_front_right:leg_rear_right: DEPENDENCY_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "leg_front_right:leg_rear_right",
+            "part_ids": [
+              "leg_front_right",
+              "leg_rear_right"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          }
+        },
+        {
+          "finding_id": "assembly_topology:pair:leg_rear_left:leg_rear_right:DEPENDENCY_MESH_UNAVAILABLE",
+          "rule_id": "DEPENDENCY_MESH_UNAVAILABLE",
+          "category": "evidence_insufficient",
+          "applicability": "applicable",
+          "applicability_basis": null,
+          "metric": null,
+          "region": {
+            "kind": "parts",
+            "frame": "assembly",
+            "unit": "mm",
+            "point": null,
+            "bounds": null,
+            "face_ids": [],
+            "layer_range": null,
+            "part_names": [
+              "leg_rear_left",
+              "leg_rear_right"
+            ],
+            "details": {
+              "connection_ids": null,
+              "related_connection_ids": null,
+              "allowed_fit_connection_ids": null,
+              "raw_intersection_mm3": null,
+              "length_tolerance_mm": null
+            }
+          },
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/report.json"
+          ],
+          "source_candidates": [
+            {
+              "feature_id": "feature:FixedAssembly/leg_rear_left",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            },
+            {
+              "feature_id": "feature:FixedAssembly/leg_rear_right",
+              "source_ids": [],
+              "source_locations": [],
+              "method": "direct",
+              "relation_role": null,
+              "overlap_score": null,
+              "evidence": [
+                "Exact runtime feature-name match; not unique triangle ownership"
+              ],
+              "ambiguous": true
+            }
+          ],
+          "required": true,
+          "repairability": "analysis",
+          "message": "pair:leg_rear_left:leg_rear_right: DEPENDENCY_MESH_UNAVAILABLE; geometry evidence only, manufacture unverified.",
+          "domain": {
+            "kind": "pair",
+            "status": "INDETERMINATE",
+            "code": "DEPENDENCY_MESH_UNAVAILABLE",
+            "pair_id": "leg_rear_left:leg_rear_right",
+            "part_ids": [
+              "leg_rear_left",
+              "leg_rear_right"
+            ],
+            "frame": "assembly",
+            "unit": "mm"
+          }
+        }
+      ]
+    },
+    {
+      "checker": "assembly_overhang",
+      "version": 2,
+      "status": "INDETERMINATE",
+      "summary": "Partition measurement incomplete; total gap and score unknown",
+      "metrics": {
+        "items": [
+          {
+            "part_id": "chair_body",
+            "status": "INDETERMINATE",
+            "code": "PRINT_MESH_UNMEASURABLE",
+            "stage": "load_final_part",
+            "reason": "KeyError: 'chair_body'",
+            "input_pose_area_mm2": null,
+            "gap_voxels": null
+          },
+          {
+            "part_id": "leg_front_left",
+            "status": "INDETERMINATE",
+            "code": "PRINT_MESH_UNMEASURABLE",
+            "stage": "load_final_part",
+            "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified",
+            "input_pose_area_mm2": null,
+            "gap_voxels": null
+          },
+          {
+            "part_id": "leg_front_right",
+            "status": "INDETERMINATE",
+            "code": "PRINT_MESH_UNMEASURABLE",
+            "stage": "load_final_part",
+            "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified",
+            "input_pose_area_mm2": null,
+            "gap_voxels": null
+          },
+          {
+            "part_id": "leg_rear_left",
+            "status": "INDETERMINATE",
+            "code": "PRINT_MESH_UNMEASURABLE",
+            "stage": "load_final_part",
+            "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified",
+            "input_pose_area_mm2": null,
+            "gap_voxels": null
+          },
+          {
+            "part_id": "leg_rear_right",
+            "status": "INDETERMINATE",
+            "code": "PRINT_MESH_UNMEASURABLE",
+            "stage": "load_final_part",
+            "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified",
+            "input_pose_area_mm2": null,
+            "gap_voxels": null
+          }
+        ],
+        "total_overhang_mm2": null,
+        "area_uncertainty_mm2": null,
+        "measurement_config_sha256": "bf9d4b035a773994723ae598c65765708b3c956fbc1beeb9748f4764ea76f77f",
+        "support_material": "NOT_EVALUATED",
+        "partition_objective": {
+          "method": "dapper_fdm_2015",
+          "alpha": 0.3,
+          "r_vox": 0.1,
+          "orientation_set": "axis_aligned_24",
+          "layout": "independent_bed",
+          "reference_sha256": "e1b03c9e6d81e2218d2ba297d36de3059d0314b210c057b642062a286da6ae32",
+          "evaluation_config_sha256": "f15386fa287b5e1e385bb92cfaef84641869f814b6cb43662fe1276f09488ef4",
+          "voxel_pitch_mm": 80.0,
+          "reference_voxels": 662,
+          "gap_voxels": null,
+          "print_part_count": 5,
+          "score": null,
+          "direction": "maximize",
+          "numerator_nonpositive": null,
+          "gap_volume_mm3": null
+        },
+        "partition_guidance": {
+          "status": "UNAVAILABLE",
+          "reason": "complete partition measurement required"
+        }
+      },
+      "violations": [],
+      "assumptions": {
+        "scale": "manifest mm; no normalization",
+        "surface": "within-part Manifold exterior; no cross-part union",
+        "scope": "geometric overhang, not bed stability, slicer support volume or printing success",
+        "partition_scope": "Dapper objective; independent beds; 24 rotations; no packing/refinement",
+        "limitations": "Vertical empty voxel proxy; not actual support/time, bridging, removability or bed stability. Coarse voxels may mask connectors.",
+        "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+        "manifest_sha256": "d121f3e94abf18469623098f16992065754bda5057a8efd772303e2e70d431c0",
+        "physics_sha256": "2e9ff3db50c9a1dc68a91ff9cb0082d7927af8271a440eb1c777c3d8ce320862",
+        "elapsed_seconds": 2.433502344414592
+      },
+      "artifacts": {
+        "partition_reference": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/partition_references/e1b03c9e6d81e2218d2ba297d36de3059d0314b210c057b642062a286da6ae32/partition_reference.json",
+        "print_layout": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_overhang/print_layout.json",
+        "report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_overhang/report.json"
+      },
+      "analysis_context": {
+        "checker": "assembly_overhang",
+        "checker_version": 1,
+        "source_frame": "authored_scene",
+        "analysis_frame": null,
+        "source_length_unit": "scene_unit",
+        "analysis_length_unit": null,
+        "source_to_analysis": null,
+        "use_pose": "authored",
+        "print_pose": "fixed_authored",
+        "assumptions_source": "checker_result",
+        "details": {
+          "assumptions": {
+            "scale": "manifest mm; no normalization",
+            "surface": "within-part Manifold exterior; no cross-part union",
+            "scope": "geometric overhang, not bed stability, slicer support volume or printing success",
+            "partition_scope": "Dapper objective; independent beds; 24 rotations; no packing/refinement",
+            "limitations": "Vertical empty voxel proxy; not actual support/time, bridging, removability or bed stability. Coarse voxels may mask connectors.",
+            "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+            "manifest_sha256": "d121f3e94abf18469623098f16992065754bda5057a8efd772303e2e70d431c0",
+            "physics_sha256": "2e9ff3db50c9a1dc68a91ff9cb0082d7927af8271a440eb1c777c3d8ce320862",
+            "elapsed_seconds": 2.433502344414592
+          },
+          "legacy_context": true
+        }
+      },
+      "findings": [
+        {
+          "finding_id": "assembly_overhang:INDETERMINATE:1",
+          "rule_id": "INDETERMINATE",
+          "category": "evidence_insufficient",
+          "applicability": "unknown",
+          "applicability_basis": "derived conservatively from legacy checker status",
+          "metric": null,
+          "region": null,
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/partition_references/e1b03c9e6d81e2218d2ba297d36de3059d0314b210c057b642062a286da6ae32/partition_reference.json",
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_overhang/print_layout.json",
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_overhang/report.json"
+          ],
+          "source_candidates": [],
+          "required": false,
+          "repairability": "analysis",
+          "message": "Partition measurement incomplete; total gap and score unknown",
+          "domain": {
+            "code": "INDETERMINATE",
+            "message": "Partition measurement incomplete; total gap and score unknown"
+          }
+        }
+      ]
+    },
+    {
+      "checker": "assembly_standing",
+      "version": 2,
+      "status": "INDETERMINATE",
+      "summary": "DEPENDENCY_MESH_UNAVAILABLE: one connected volume per rigid print body required",
+      "metrics": {
+        "items": [
+          {
+            "part_id": "chair_body",
+            "status": "INDETERMINATE",
+            "code": "PRINT_MESH_UNMEASURABLE",
+            "stage": "load_final_part",
+            "reason": "KeyError: 'chair_body'"
+          },
+          {
+            "part_id": "leg_front_left",
+            "status": "INDETERMINATE",
+            "code": "PRINT_MESH_UNMEASURABLE",
+            "stage": "load_final_part",
+            "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified"
+          },
+          {
+            "part_id": "leg_front_right",
+            "status": "INDETERMINATE",
+            "code": "PRINT_MESH_UNMEASURABLE",
+            "stage": "load_final_part",
+            "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified"
+          },
+          {
+            "part_id": "leg_rear_left",
+            "status": "INDETERMINATE",
+            "code": "PRINT_MESH_UNMEASURABLE",
+            "stage": "load_final_part",
+            "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified"
+          },
+          {
+            "part_id": "leg_rear_right",
+            "status": "INDETERMINATE",
+            "code": "PRINT_MESH_UNMEASURABLE",
+            "stage": "load_final_part",
+            "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified"
+          }
+        ]
+      },
+      "violations": [],
+      "assumptions": {
+        "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+        "manifest_sha256": "d121f3e94abf18469623098f16992065754bda5057a8efd772303e2e70d431c0",
+        "physics_sha256": "2e9ff3db50c9a1dc68a91ff9cb0082d7927af8271a440eb1c777c3d8ce320862",
+        "elapsed_seconds": 2.2875658571720123
+      },
+      "artifacts": {
+        "report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_standing/report.json"
+      },
+      "analysis_context": {
+        "checker": "assembly_standing",
+        "checker_version": 1,
+        "source_frame": "authored_scene",
+        "analysis_frame": null,
+        "source_length_unit": "scene_unit",
+        "analysis_length_unit": null,
+        "source_to_analysis": null,
+        "use_pose": "authored",
+        "print_pose": "fixed_authored",
+        "assumptions_source": "checker_result",
+        "details": {
+          "assumptions": {
+            "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+            "manifest_sha256": "d121f3e94abf18469623098f16992065754bda5057a8efd772303e2e70d431c0",
+            "physics_sha256": "2e9ff3db50c9a1dc68a91ff9cb0082d7927af8271a440eb1c777c3d8ce320862",
+            "elapsed_seconds": 2.2875658571720123
+          },
+          "legacy_context": true
+        }
+      },
+      "findings": [
+        {
+          "finding_id": "assembly_standing:INDETERMINATE:1",
+          "rule_id": "INDETERMINATE",
+          "category": "evidence_insufficient",
+          "applicability": "unknown",
+          "applicability_basis": "derived conservatively from legacy checker status",
+          "metric": null,
+          "region": null,
+          "relations": [],
+          "evidence_refs": [
+            "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_standing/report.json"
+          ],
+          "source_candidates": [],
+          "required": true,
+          "repairability": "analysis",
+          "message": "DEPENDENCY_MESH_UNAVAILABLE: one connected volume per rigid print body required",
+          "domain": {
+            "code": "INDETERMINATE",
+            "message": "DEPENDENCY_MESH_UNAVAILABLE: one connected volume per rigid print body required"
+          }
+        }
+      ]
+    }
+  ],
+  "not_executed": {
+    "assembly_fea": "not_enabled",
+    "topology": "not_enabled",
+    "standing": "not_enabled",
+    "overhang": "not_enabled",
+    "fea": "not_enabled"
+  },
+  "requested_unsupported": {}
+}

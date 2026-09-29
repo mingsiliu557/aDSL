@@ -1,0 +1,3353 @@
+{
+  "version": 1,
+  "source_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/T02-bookshelf/source.py",
+  "source_sha256": "353f92957174c7d0db442669b31a2d64bdf44d49c069bef4ba11c77907c7fc24",
+  "index_sha256": "bf8159a0a42280e8f9422441c04f3bd6ffbc9e38ae34c36d3ab9fafdf900d5d2",
+  "root_feature_id": "feature:Freestanding four-shelf bookshelf",
+  "source_nodes": [
+    {
+      "source_id": "source:c4625e8193467cd4671d",
+      "kind": "function",
+      "name": "curved_shelf_profile",
+      "scope": "curved_shelf_profile",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 10,
+        "end_line": 23,
+        "start_col": 0,
+        "end_col": 26
+      },
+      "parameters": [],
+      "dependencies": [
+        "Polygon",
+        "arc_samples",
+        "back_y",
+        "bow_depth",
+        "front_side_y",
+        "half_width",
+        "index",
+        "normalized_x",
+        "points",
+        "range",
+        "width",
+        "x",
+        "y"
+      ],
+      "expression": "def curved_shelf_profile(width, back_y, front_side_y, bow_depth, arc_samples=32):\n    \"\"\"Plan outline with a straight rear edge and a parabolic bowed front edge.\"\"\"\n    half_width = width / 2.0\n    points = [\n        (-half_width, back_y),\n        (half_width, back_y),\n        (half_width, front_side_y),\n    ]\n    for index in range(1, arc_samples + 1):\n        x = half_width - width * index / arc_samples\n        normalized_x = x / half_width\n        y = front_side_y - bow_depth * (1.0 - normalized_x * normalized_x)\n        points.append((x, y))\n    return Polygon(points)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:135a894272a88861a4f6",
+      "kind": "dsl_call",
+      "name": "Polygon",
+      "scope": "curved_shelf_profile",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 23,
+        "end_line": 23,
+        "start_col": 11,
+        "end_col": 26
+      },
+      "parameters": [],
+      "dependencies": [
+        "Polygon",
+        "points"
+      ],
+      "expression": "Polygon(points)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:c10fedf89b6975997c1f",
+      "kind": "class",
+      "name": "CurvedShelf",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 26,
+        "end_line": 39,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "arc_samples",
+        "back_y",
+        "bow_depth",
+        "color",
+        "front_side_y",
+        "label",
+        "width"
+      ],
+      "dependencies": [
+        "Asset",
+        "DEEP_RED",
+        "back_y",
+        "bow_depth",
+        "curved_shelf_profile",
+        "front_side_y",
+        "linear_extrude",
+        "profile",
+        "self",
+        "super",
+        "thickness",
+        "width"
+      ],
+      "expression": "class CurvedShelf(Asset):\n    def __init__(self, width, back_y, front_side_y, bow_depth, thickness):\n        super().__init__(label=\"Deep-red curved shelf\")\n        profile = curved_shelf_profile(\n            width=width,\n            back_y=back_y,\n            front_side_y=front_side_y,\n            bow_depth=bow_depth,\n            arc_samples=36,\n        )\n        self.slab = self.attach_part(\n            \"curved_slab\",\n            linear_extrude(profile, thickness, color=DEEP_RED),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:b1c506ad8500f2c8aa3c",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "CurvedShelf/__init__",
+      "owner_class": "CurvedShelf",
+      "semantic_name": null,
+      "span": {
+        "start_line": 27,
+        "end_line": 39,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "arc_samples",
+        "back_y",
+        "bow_depth",
+        "color",
+        "front_side_y",
+        "label",
+        "width"
+      ],
+      "dependencies": [
+        "DEEP_RED",
+        "back_y",
+        "bow_depth",
+        "curved_shelf_profile",
+        "front_side_y",
+        "linear_extrude",
+        "profile",
+        "self",
+        "super",
+        "thickness",
+        "width"
+      ],
+      "expression": "def __init__(self, width, back_y, front_side_y, bow_depth, thickness):\n        super().__init__(label=\"Deep-red curved shelf\")\n        profile = curved_shelf_profile(\n            width=width,\n            back_y=back_y,\n            front_side_y=front_side_y,\n            bow_depth=bow_depth,\n            arc_samples=36,\n        )\n        self.slab = self.attach_part(\n            \"curved_slab\",\n            linear_extrude(profile, thickness, color=DEEP_RED),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:6c943265922d1214a1fb",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "CurvedShelf/__init__",
+      "owner_class": "CurvedShelf",
+      "semantic_name": "curved_slab",
+      "span": {
+        "start_line": 36,
+        "end_line": 39,
+        "start_col": 20,
+        "end_col": 9
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "DEEP_RED",
+        "linear_extrude",
+        "profile",
+        "self",
+        "thickness"
+      ],
+      "expression": "self.attach_part(\n            \"curved_slab\",\n            linear_extrude(profile, thickness, color=DEEP_RED),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:328dd06a3139c6dccbfe",
+      "kind": "dsl_call",
+      "name": "linear_extrude",
+      "scope": "CurvedShelf/__init__",
+      "owner_class": "CurvedShelf",
+      "semantic_name": null,
+      "span": {
+        "start_line": 38,
+        "end_line": 38,
+        "start_col": 12,
+        "end_col": 62
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "DEEP_RED",
+        "linear_extrude",
+        "profile",
+        "thickness"
+      ],
+      "expression": "linear_extrude(profile, thickness, color=DEEP_RED)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:6f1bef1ae66a15bff840",
+      "kind": "class",
+      "name": "Book",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 42,
+        "end_line": 62,
+        "start_col": 0,
+        "end_col": 62
+      },
+      "parameters": [
+        "anchor",
+        "color",
+        "label",
+        "offset",
+        "target_anchor"
+      ],
+      "dependencies": [
+        "Asset",
+        "Cube",
+        "align_anchors",
+        "band",
+        "band_height",
+        "color",
+        "depth",
+        "dimensions",
+        "height",
+        "label",
+        "min",
+        "self",
+        "super",
+        "width"
+      ],
+      "expression": "class Book(Asset):\n    def __init__(self, dimensions, color, label=\"Book\"):\n        super().__init__(label=label)\n        width, depth, height = dimensions\n        self.volume = self.attach_part(\n            \"book_volume\",\n            Cube((width, depth, height), color=color),\n        )\n        band_height = min(0.035, height * 0.12)\n        band = Cube(\n            (width + 0.012, depth + 0.012, band_height),\n            color=(0.88, 0.78, 0.56),\n        )\n        band = align_anchors(\n            band,\n            self.volume,\n            anchor=\"bottom\",\n            target_anchor=\"bottom\",\n            offset=(0.0, 0.0, height * 0.16),\n        )\n        self.spine_band = self.attach_part(\"spine_band\", band)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:e348f83fe4ad1566a588",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "Book/__init__",
+      "owner_class": "Book",
+      "semantic_name": null,
+      "span": {
+        "start_line": 43,
+        "end_line": 62,
+        "start_col": 4,
+        "end_col": 62
+      },
+      "parameters": [
+        "anchor",
+        "color",
+        "label",
+        "offset",
+        "target_anchor"
+      ],
+      "dependencies": [
+        "Cube",
+        "align_anchors",
+        "band",
+        "band_height",
+        "color",
+        "depth",
+        "dimensions",
+        "height",
+        "label",
+        "min",
+        "self",
+        "super",
+        "width"
+      ],
+      "expression": "def __init__(self, dimensions, color, label=\"Book\"):\n        super().__init__(label=label)\n        width, depth, height = dimensions\n        self.volume = self.attach_part(\n            \"book_volume\",\n            Cube((width, depth, height), color=color),\n        )\n        band_height = min(0.035, height * 0.12)\n        band = Cube(\n            (width + 0.012, depth + 0.012, band_height),\n            color=(0.88, 0.78, 0.56),\n        )\n        band = align_anchors(\n            band,\n            self.volume,\n            anchor=\"bottom\",\n            target_anchor=\"bottom\",\n            offset=(0.0, 0.0, height * 0.16),\n        )\n        self.spine_band = self.attach_part(\"spine_band\", band)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:359a790214ecbdf5923f",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "Book/__init__",
+      "owner_class": "Book",
+      "semantic_name": "book_volume",
+      "span": {
+        "start_line": 46,
+        "end_line": 49,
+        "start_col": 22,
+        "end_col": 9
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "Cube",
+        "color",
+        "depth",
+        "height",
+        "self",
+        "width"
+      ],
+      "expression": "self.attach_part(\n            \"book_volume\",\n            Cube((width, depth, height), color=color),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:3e6bfbb346369bd74ffd",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "Book/__init__",
+      "owner_class": "Book",
+      "semantic_name": null,
+      "span": {
+        "start_line": 48,
+        "end_line": 48,
+        "start_col": 12,
+        "end_col": 53
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "Cube",
+        "color",
+        "depth",
+        "height",
+        "width"
+      ],
+      "expression": "Cube((width, depth, height), color=color)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:b1d4dd7329b4efe4efd7",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "Book/__init__",
+      "owner_class": "Book",
+      "semantic_name": null,
+      "span": {
+        "start_line": 51,
+        "end_line": 54,
+        "start_col": 15,
+        "end_col": 9
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "Cube",
+        "band_height",
+        "depth",
+        "width"
+      ],
+      "expression": "Cube(\n            (width + 0.012, depth + 0.012, band_height),\n            color=(0.88, 0.78, 0.56),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:6c7dda537d81ee1374ad",
+      "kind": "dsl_call",
+      "name": "align_anchors",
+      "scope": "Book/__init__",
+      "owner_class": "Book",
+      "semantic_name": null,
+      "span": {
+        "start_line": 55,
+        "end_line": 61,
+        "start_col": 15,
+        "end_col": 9
+      },
+      "parameters": [
+        "anchor",
+        "offset",
+        "target_anchor"
+      ],
+      "dependencies": [
+        "align_anchors",
+        "band",
+        "height",
+        "self"
+      ],
+      "expression": "align_anchors(\n            band,\n            self.volume,\n            anchor=\"bottom\",\n            target_anchor=\"bottom\",\n            offset=(0.0, 0.0, height * 0.16),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:2918239c1983f869bb76",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "Book/__init__",
+      "owner_class": "Book",
+      "semantic_name": "spine_band",
+      "span": {
+        "start_line": 62,
+        "end_line": 62,
+        "start_col": 26,
+        "end_col": 62
+      },
+      "parameters": [],
+      "dependencies": [
+        "band",
+        "self"
+      ],
+      "expression": "self.attach_part(\"spine_band\", band)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:0e820b113a4f7e830704",
+      "kind": "class",
+      "name": "StorageBox",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 65,
+        "end_line": 83,
+        "start_col": 0,
+        "end_col": 47
+      },
+      "parameters": [
+        "anchor",
+        "color",
+        "label",
+        "target_anchor"
+      ],
+      "dependencies": [
+        "Asset",
+        "Cube",
+        "align_anchors",
+        "body_color",
+        "depth",
+        "dimensions",
+        "height",
+        "lid",
+        "lid_color",
+        "self",
+        "super",
+        "width"
+      ],
+      "expression": "class StorageBox(Asset):\n    def __init__(self, dimensions, body_color, lid_color):\n        super().__init__(label=\"Storage box\")\n        width, depth, height = dimensions\n        self.body = self.attach_part(\n            \"body\",\n            Cube((width, depth, height), color=body_color),\n        )\n        lid = Cube(\n            (width + 0.055, depth + 0.055, 0.075),\n            color=lid_color,\n        )\n        lid = align_anchors(\n            lid,\n            self.body,\n            anchor=\"bottom\",\n            target_anchor=\"top\",\n        )\n        self.lid = self.attach_part(\"lid\", lid)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:b5361fce5dc1c3c3d870",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "StorageBox/__init__",
+      "owner_class": "StorageBox",
+      "semantic_name": null,
+      "span": {
+        "start_line": 66,
+        "end_line": 83,
+        "start_col": 4,
+        "end_col": 47
+      },
+      "parameters": [
+        "anchor",
+        "color",
+        "label",
+        "target_anchor"
+      ],
+      "dependencies": [
+        "Cube",
+        "align_anchors",
+        "body_color",
+        "depth",
+        "dimensions",
+        "height",
+        "lid",
+        "lid_color",
+        "self",
+        "super",
+        "width"
+      ],
+      "expression": "def __init__(self, dimensions, body_color, lid_color):\n        super().__init__(label=\"Storage box\")\n        width, depth, height = dimensions\n        self.body = self.attach_part(\n            \"body\",\n            Cube((width, depth, height), color=body_color),\n        )\n        lid = Cube(\n            (width + 0.055, depth + 0.055, 0.075),\n            color=lid_color,\n        )\n        lid = align_anchors(\n            lid,\n            self.body,\n            anchor=\"bottom\",\n            target_anchor=\"top\",\n        )\n        self.lid = self.attach_part(\"lid\", lid)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:7a3403cda0e8566b447f",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StorageBox/__init__",
+      "owner_class": "StorageBox",
+      "semantic_name": "body",
+      "span": {
+        "start_line": 69,
+        "end_line": 72,
+        "start_col": 20,
+        "end_col": 9
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "Cube",
+        "body_color",
+        "depth",
+        "height",
+        "self",
+        "width"
+      ],
+      "expression": "self.attach_part(\n            \"body\",\n            Cube((width, depth, height), color=body_color),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:ae837cb04a2f83c87a42",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "StorageBox/__init__",
+      "owner_class": "StorageBox",
+      "semantic_name": null,
+      "span": {
+        "start_line": 71,
+        "end_line": 71,
+        "start_col": 12,
+        "end_col": 58
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "Cube",
+        "body_color",
+        "depth",
+        "height",
+        "width"
+      ],
+      "expression": "Cube((width, depth, height), color=body_color)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:12e65b0bc2018ee6fe0a",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "StorageBox/__init__",
+      "owner_class": "StorageBox",
+      "semantic_name": null,
+      "span": {
+        "start_line": 73,
+        "end_line": 76,
+        "start_col": 14,
+        "end_col": 9
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "Cube",
+        "depth",
+        "lid_color",
+        "width"
+      ],
+      "expression": "Cube(\n            (width + 0.055, depth + 0.055, 0.075),\n            color=lid_color,\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:5343d7769ded709eaafc",
+      "kind": "dsl_call",
+      "name": "align_anchors",
+      "scope": "StorageBox/__init__",
+      "owner_class": "StorageBox",
+      "semantic_name": null,
+      "span": {
+        "start_line": 77,
+        "end_line": 82,
+        "start_col": 14,
+        "end_col": 9
+      },
+      "parameters": [
+        "anchor",
+        "target_anchor"
+      ],
+      "dependencies": [
+        "align_anchors",
+        "lid",
+        "self"
+      ],
+      "expression": "align_anchors(\n            lid,\n            self.body,\n            anchor=\"bottom\",\n            target_anchor=\"top\",\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:6953c224990a23287d8a",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StorageBox/__init__",
+      "owner_class": "StorageBox",
+      "semantic_name": "lid",
+      "span": {
+        "start_line": 83,
+        "end_line": 83,
+        "start_col": 19,
+        "end_col": 47
+      },
+      "parameters": [],
+      "dependencies": [
+        "lid",
+        "self"
+      ],
+      "expression": "self.attach_part(\"lid\", lid)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:5669d092b773f4b824eb",
+      "kind": "class",
+      "name": "HorizontalBookStack",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 86,
+        "end_line": 97,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "axis",
+        "gap",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "Book",
+        "books",
+        "self",
+        "stack_shapes",
+        "super"
+      ],
+      "expression": "class HorizontalBookStack(Asset):\n    def __init__(self):\n        super().__init__(label=\"Horizontal stack of books\")\n        books = [\n            Book((1.05, 0.58, 0.085), (0.12, 0.32, 0.58), \"Blue horizontal book\"),\n            Book((0.92, 0.54, 0.095), (0.76, 0.42, 0.09), \"Ochre horizontal book\"),\n            Book((0.98, 0.56, 0.075), (0.24, 0.52, 0.30), \"Green horizontal book\"),\n        ]\n        self.books = self.attach_part(\n            \"stacked_books\",\n            stack_shapes(books, axis=\"+z\", gap=0.012),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:7bfeab86bd975410f140",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "HorizontalBookStack/__init__",
+      "owner_class": "HorizontalBookStack",
+      "semantic_name": null,
+      "span": {
+        "start_line": 87,
+        "end_line": 97,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "axis",
+        "gap",
+        "label"
+      ],
+      "dependencies": [
+        "Book",
+        "books",
+        "self",
+        "stack_shapes",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"Horizontal stack of books\")\n        books = [\n            Book((1.05, 0.58, 0.085), (0.12, 0.32, 0.58), \"Blue horizontal book\"),\n            Book((0.92, 0.54, 0.095), (0.76, 0.42, 0.09), \"Ochre horizontal book\"),\n            Book((0.98, 0.56, 0.075), (0.24, 0.52, 0.30), \"Green horizontal book\"),\n        ]\n        self.books = self.attach_part(\n            \"stacked_books\",\n            stack_shapes(books, axis=\"+z\", gap=0.012),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:27b93466bbe8d9d5ff34",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "HorizontalBookStack/__init__",
+      "owner_class": "HorizontalBookStack",
+      "semantic_name": "stacked_books",
+      "span": {
+        "start_line": 94,
+        "end_line": 97,
+        "start_col": 21,
+        "end_col": 9
+      },
+      "parameters": [
+        "axis",
+        "gap"
+      ],
+      "dependencies": [
+        "books",
+        "self",
+        "stack_shapes"
+      ],
+      "expression": "self.attach_part(\n            \"stacked_books\",\n            stack_shapes(books, axis=\"+z\", gap=0.012),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:b8b9a818771fb4b8e1f2",
+      "kind": "dsl_call",
+      "name": "stack_shapes",
+      "scope": "HorizontalBookStack/__init__",
+      "owner_class": "HorizontalBookStack",
+      "semantic_name": null,
+      "span": {
+        "start_line": 96,
+        "end_line": 96,
+        "start_col": 12,
+        "end_col": 53
+      },
+      "parameters": [
+        "axis",
+        "gap"
+      ],
+      "dependencies": [
+        "books",
+        "stack_shapes"
+      ],
+      "expression": "stack_shapes(books, axis=\"+z\", gap=0.012)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:34f571a13ae3ee3e4d14",
+      "kind": "class",
+      "name": "SideSupport",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 100,
+        "end_line": 141,
+        "start_col": 0,
+        "end_col": 87
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "Cube",
+        "DARK_FRAME",
+        "FOOT_COLOR",
+        "foot",
+        "foot_height",
+        "hull",
+        "inner_node",
+        "inner_x",
+        "lower_top",
+        "outer_node",
+        "outer_x",
+        "position_name",
+        "post",
+        "post_depth",
+        "post_height",
+        "post_width",
+        "self",
+        "side_name",
+        "side_sign",
+        "super",
+        "upper_transition",
+        "y"
+      ],
+      "expression": "class SideSupport(Asset):\n    def __init__(self, side_sign):\n        side_name = \"left\" if side_sign < 0 else \"right\"\n        super().__init__(label=f\"{side_name.capitalize()} stepped side support\")\n\n        outer_x = side_sign * 2.38\n        inner_x = side_sign * 1.78\n        foot_height = 0.12\n        lower_top = 2.56\n        post_width = 0.18\n        post_depth = 0.22\n\n        foot = Cube(\n            (0.56, 1.98, foot_height),\n            center=(outer_x, -0.10, foot_height / 2.0),\n            color=FOOT_COLOR,\n        )\n        self.foot = self.attach_part(\"floor_foot\", foot)\n\n        for position_name, y in ((\"front\", -0.63), (\"rear\", 0.55)):\n            post_height = lower_top - foot_height\n            post = Cube(\n                (post_width, post_depth, post_height),\n                center=(outer_x, y, foot_height + post_height / 2.0),\n                color=DARK_FRAME,\n            )\n            self.attach_part(f\"lower_{position_name}_post\", post)\n\n            outer_node = Cube(\n                (post_width, post_depth, 0.18),\n                center=(outer_x, y, 2.47),\n            )\n            inner_node = Cube(\n                (post_width, post_depth, 0.18),\n                center=(inner_x, y, 3.15),\n            )\n            upper_transition = hull(\n                outer_node,\n                inner_node,\n                color=DARK_FRAME,\n            )\n            self.attach_part(f\"upper_{position_name}_inward_support\", upper_transition)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:65c53ba27ca43dfc48a6",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "SideSupport/__init__",
+      "owner_class": "SideSupport",
+      "semantic_name": null,
+      "span": {
+        "start_line": 101,
+        "end_line": 141,
+        "start_col": 4,
+        "end_col": 87
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Cube",
+        "DARK_FRAME",
+        "FOOT_COLOR",
+        "foot",
+        "foot_height",
+        "hull",
+        "inner_node",
+        "inner_x",
+        "lower_top",
+        "outer_node",
+        "outer_x",
+        "position_name",
+        "post",
+        "post_depth",
+        "post_height",
+        "post_width",
+        "self",
+        "side_name",
+        "side_sign",
+        "super",
+        "upper_transition",
+        "y"
+      ],
+      "expression": "def __init__(self, side_sign):\n        side_name = \"left\" if side_sign < 0 else \"right\"\n        super().__init__(label=f\"{side_name.capitalize()} stepped side support\")\n\n        outer_x = side_sign * 2.38\n        inner_x = side_sign * 1.78\n        foot_height = 0.12\n        lower_top = 2.56\n        post_width = 0.18\n        post_depth = 0.22\n\n        foot = Cube(\n            (0.56, 1.98, foot_height),\n            center=(outer_x, -0.10, foot_height / 2.0),\n            color=FOOT_COLOR,\n        )\n        self.foot = self.attach_part(\"floor_foot\", foot)\n\n        for position_name, y in ((\"front\", -0.63), (\"rear\", 0.55)):\n            post_height = lower_top - foot_height\n            post = Cube(\n                (post_width, post_depth, post_height),\n                center=(outer_x, y, foot_height + post_height / 2.0),\n                color=DARK_FRAME,\n            )\n            self.attach_part(f\"lower_{position_name}_post\", post)\n\n            outer_node = Cube(\n                (post_width, post_depth, 0.18),\n                center=(outer_x, y, 2.47),\n            )\n            inner_node = Cube(\n                (post_width, post_depth, 0.18),\n                center=(inner_x, y, 3.15),\n            )\n            upper_transition = hull(\n                outer_node,\n                inner_node,\n                color=DARK_FRAME,\n            )\n            self.attach_part(f\"upper_{position_name}_inward_support\", upper_transition)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:ed587c6401dd03efcfbe",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "SideSupport/__init__",
+      "owner_class": "SideSupport",
+      "semantic_name": null,
+      "span": {
+        "start_line": 112,
+        "end_line": 116,
+        "start_col": 15,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Cube",
+        "FOOT_COLOR",
+        "foot_height",
+        "outer_x"
+      ],
+      "expression": "Cube(\n            (0.56, 1.98, foot_height),\n            center=(outer_x, -0.10, foot_height / 2.0),\n            color=FOOT_COLOR,\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:d59a7a422068d9f2e652",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "SideSupport/__init__",
+      "owner_class": "SideSupport",
+      "semantic_name": "floor_foot",
+      "span": {
+        "start_line": 117,
+        "end_line": 117,
+        "start_col": 20,
+        "end_col": 56
+      },
+      "parameters": [],
+      "dependencies": [
+        "foot",
+        "self"
+      ],
+      "expression": "self.attach_part(\"floor_foot\", foot)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:5ddcd90340f727203585",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "SideSupport/__init__",
+      "owner_class": "SideSupport",
+      "semantic_name": null,
+      "span": {
+        "start_line": 121,
+        "end_line": 125,
+        "start_col": 19,
+        "end_col": 13
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Cube",
+        "DARK_FRAME",
+        "foot_height",
+        "outer_x",
+        "post_depth",
+        "post_height",
+        "post_width",
+        "y"
+      ],
+      "expression": "Cube(\n                (post_width, post_depth, post_height),\n                center=(outer_x, y, foot_height + post_height / 2.0),\n                color=DARK_FRAME,\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:f3da0c1a0ccf63b7e0cb",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "SideSupport/__init__",
+      "owner_class": "SideSupport",
+      "semantic_name": null,
+      "span": {
+        "start_line": 126,
+        "end_line": 126,
+        "start_col": 12,
+        "end_col": 65
+      },
+      "parameters": [],
+      "dependencies": [
+        "position_name",
+        "post",
+        "self"
+      ],
+      "expression": "self.attach_part(f\"lower_{position_name}_post\", post)",
+      "resolution": "partial"
+    },
+    {
+      "source_id": "source:d134d247cf24c677213e",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "SideSupport/__init__",
+      "owner_class": "SideSupport",
+      "semantic_name": null,
+      "span": {
+        "start_line": 128,
+        "end_line": 131,
+        "start_col": 25,
+        "end_col": 13
+      },
+      "parameters": [
+        "center"
+      ],
+      "dependencies": [
+        "Cube",
+        "outer_x",
+        "post_depth",
+        "post_width",
+        "y"
+      ],
+      "expression": "Cube(\n                (post_width, post_depth, 0.18),\n                center=(outer_x, y, 2.47),\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:55682dbdebdf34dbd3f6",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "SideSupport/__init__",
+      "owner_class": "SideSupport",
+      "semantic_name": null,
+      "span": {
+        "start_line": 132,
+        "end_line": 135,
+        "start_col": 25,
+        "end_col": 13
+      },
+      "parameters": [
+        "center"
+      ],
+      "dependencies": [
+        "Cube",
+        "inner_x",
+        "post_depth",
+        "post_width",
+        "y"
+      ],
+      "expression": "Cube(\n                (post_width, post_depth, 0.18),\n                center=(inner_x, y, 3.15),\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:c1e0f9bf9877798b1c40",
+      "kind": "dsl_call",
+      "name": "hull",
+      "scope": "SideSupport/__init__",
+      "owner_class": "SideSupport",
+      "semantic_name": null,
+      "span": {
+        "start_line": 136,
+        "end_line": 140,
+        "start_col": 31,
+        "end_col": 13
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "DARK_FRAME",
+        "hull",
+        "inner_node",
+        "outer_node"
+      ],
+      "expression": "hull(\n                outer_node,\n                inner_node,\n                color=DARK_FRAME,\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:c5d5d6ebb823bc64d6b1",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "SideSupport/__init__",
+      "owner_class": "SideSupport",
+      "semantic_name": null,
+      "span": {
+        "start_line": 141,
+        "end_line": 141,
+        "start_col": 12,
+        "end_col": 87
+      },
+      "parameters": [],
+      "dependencies": [
+        "position_name",
+        "self",
+        "upper_transition"
+      ],
+      "expression": "self.attach_part(f\"upper_{position_name}_inward_support\", upper_transition)",
+      "resolution": "partial"
+    },
+    {
+      "source_id": "source:3b0133c9102755e19325",
+      "kind": "class",
+      "name": "FreestandingBookshelf",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 144,
+        "end_line": 273,
+        "start_col": 0,
+        "end_col": 9
+      },
+      "parameters": [
+        "anchor",
+        "back_y",
+        "bow_depth",
+        "front_side_y",
+        "label",
+        "target_anchor",
+        "thickness",
+        "width"
+      ],
+      "dependencies": [
+        "Asset",
+        "Book",
+        "CurvedShelf",
+        "HorizontalBookStack",
+        "SideSupport",
+        "StorageBox",
+        "align_anchors",
+        "enumerate",
+        "index",
+        "item",
+        "lower_shelves",
+        "name",
+        "offset_from",
+        "place_content",
+        "placed",
+        "self",
+        "shelf",
+        "shelf_thickness",
+        "shelf_top_levels",
+        "super",
+        "top_shelf",
+        "top_z",
+        "translate_shape",
+        "x",
+        "y"
+      ],
+      "expression": "class FreestandingBookshelf(Asset):\n    def __init__(self):\n        super().__init__(label=\"Freestanding four-shelf bookshelf\")\n\n        shelf_thickness = 0.16\n        shelf_top_levels = (0.45, 1.45, 2.45, 3.35)\n\n        self.left_side_support = self.attach_part(\n            \"left_side_support\",\n            SideSupport(-1),\n        )\n        self.right_side_support = self.attach_part(\n            \"right_side_support\",\n            SideSupport(1),\n        )\n\n        lower_shelves = []\n        for index, top_z in enumerate(shelf_top_levels[:3], 1):\n            shelf = CurvedShelf(\n                width=5.0,\n                back_y=0.75,\n                front_side_y=-0.85,\n                bow_depth=0.40,\n                thickness=shelf_thickness,\n            )\n            shelf = translate_shape(shelf, (0.0, 0.0, top_z - shelf_thickness))\n            lower_shelves.append(shelf)\n            self.attach_part(f\"lower_curved_shelf_{index}\", shelf)\n\n        top_shelf = CurvedShelf(\n            width=3.80,\n            back_y=0.75,\n            front_side_y=-0.35,\n            bow_depth=0.30,\n            thickness=shelf_thickness,\n        )\n        top_shelf = translate_shape(\n            top_shelf,\n            (0.0, 0.0, shelf_top_levels[3] - shelf_thickness),\n        )\n        self.top_shelf = self.attach_part(\"smaller_top_curved_shelf\", top_shelf)\n\n        self.contents = self.attach_part(\"books_and_storage\", Asset(\"Shelf contents\"))\n\n        def place_content(name, item, shelf, x, y):\n            placed = align_anchors(\n                item,\n                shelf,\n                anchor=\"bottom\",\n                target_anchor=\"top\",\n            )\n            placed = offset_from(placed, shelf, (x, y, None))\n            self.contents.attach_part(name, placed)\n            return placed\n\n        # Lowest shelf: three varied upright books and a broad storage box.\n        place_content(\n            \"lowest_blue_book\",\n            Book((0.18, 0.52, 0.82), (0.10, 0.30, 0.62), \"Tall blue book\"),\n            lower_shelves[0],\n            -1.48,\n            0.18,\n        )\n        place_content(\n            \"lowest_gold_book\",\n            Book((0.22, 0.48, 0.68), (0.82, 0.48, 0.10), \"Gold book\"),\n            lower_shelves[0],\n            -1.24,\n            0.20,\n        )\n        place_content(\n            \"lowest_green_book\",\n            Book((0.16, 0.55, 0.91), (0.18, 0.48, 0.26), \"Tall green book\"),\n            lower_shelves[0],\n            -1.02,\n            0.16,\n        )\n        place_content(\n            \"lowest_large_storage_box\",\n            StorageBox((1.05, 0.68, 0.50), (0.70, 0.56, 0.35), (0.28, 0.18, 0.12)),\n            lower_shelves[0],\n            0.88,\n            0.18,\n        )\n\n        # Middle shelf: a true horizontal stack plus two upright books.\n        place_content(\n            \"middle_horizontal_book_stack\",\n            HorizontalBookStack(),\n            lower_shelves[1],\n            -0.92,\n            0.15,\n        )\n        place_content(\n            \"middle_red_book\",\n            Book((0.20, 0.50, 0.76), (0.66, 0.10, 0.12), \"Red upright book\"),\n            lower_shelves[1],\n            0.42,\n            0.20,\n        )\n        place_content(\n            \"middle_violet_book\",\n            Book((0.26, 0.56, 0.88), (0.42, 0.20, 0.56), \"Violet upright book\"),\n            lower_shelves[1],\n            0.68,\n            0.17,\n        )\n\n        # Third shelf: a differently proportioned box and two more books.\n        place_content(\n            \"third_compact_storage_box\",\n            StorageBox((0.78, 0.72, 0.62), (0.22, 0.44, 0.50), (0.78, 0.70, 0.48)),\n            lower_shelves[2],\n            -1.18,\n            0.16,\n        )\n        place_content(\n            \"third_teal_book\",\n            Book((0.19, 0.46, 0.70), (0.08, 0.48, 0.50), \"Teal upright book\"),\n            lower_shelves[2],\n            0.25,\n            0.22,\n        )\n        place_content(\n            \"third_orange_book\",\n            Book((0.24, 0.54, 0.80), (0.88, 0.31, 0.08), \"Orange upright book\"),\n            lower_shelves[2],\n            0.50,\n            0.18,\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:34b7cbf0c8d8d2649f26",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "FreestandingBookshelf/__init__",
+      "owner_class": "FreestandingBookshelf",
+      "semantic_name": null,
+      "span": {
+        "start_line": 145,
+        "end_line": 273,
+        "start_col": 4,
+        "end_col": 9
+      },
+      "parameters": [
+        "anchor",
+        "back_y",
+        "bow_depth",
+        "front_side_y",
+        "label",
+        "target_anchor",
+        "thickness",
+        "width"
+      ],
+      "dependencies": [
+        "Asset",
+        "Book",
+        "CurvedShelf",
+        "HorizontalBookStack",
+        "SideSupport",
+        "StorageBox",
+        "align_anchors",
+        "enumerate",
+        "index",
+        "item",
+        "lower_shelves",
+        "name",
+        "offset_from",
+        "place_content",
+        "placed",
+        "self",
+        "shelf",
+        "shelf_thickness",
+        "shelf_top_levels",
+        "super",
+        "top_shelf",
+        "top_z",
+        "translate_shape",
+        "x",
+        "y"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"Freestanding four-shelf bookshelf\")\n\n        shelf_thickness = 0.16\n        shelf_top_levels = (0.45, 1.45, 2.45, 3.35)\n\n        self.left_side_support = self.attach_part(\n            \"left_side_support\",\n            SideSupport(-1),\n        )\n        self.right_side_support = self.attach_part(\n            \"right_side_support\",\n            SideSupport(1),\n        )\n\n        lower_shelves = []\n        for index, top_z in enumerate(shelf_top_levels[:3], 1):\n            shelf = CurvedShelf(\n                width=5.0,\n                back_y=0.75,\n                front_side_y=-0.85,\n                bow_depth=0.40,\n                thickness=shelf_thickness,\n            )\n            shelf = translate_shape(shelf, (0.0, 0.0, top_z - shelf_thickness))\n            lower_shelves.append(shelf)\n            self.attach_part(f\"lower_curved_shelf_{index}\", shelf)\n\n        top_shelf = CurvedShelf(\n            width=3.80,\n            back_y=0.75,\n            front_side_y=-0.35,\n            bow_depth=0.30,\n            thickness=shelf_thickness,\n        )\n        top_shelf = translate_shape(\n            top_shelf,\n            (0.0, 0.0, shelf_top_levels[3] - shelf_thickness),\n        )\n        self.top_shelf = self.attach_part(\"smaller_top_curved_shelf\", top_shelf)\n\n        self.contents = self.attach_part(\"books_and_storage\", Asset(\"Shelf contents\"))\n\n        def place_content(name, item, shelf, x, y):\n            placed = align_anchors(\n                item,\n                shelf,\n                anchor=\"bottom\",\n                target_anchor=\"top\",\n            )\n            placed = offset_from(placed, shelf, (x, y, None))\n            self.contents.attach_part(name, placed)\n            return placed\n\n        # Lowest shelf: three varied upright books and a broad storage box.\n        place_content(\n            \"lowest_blue_book\",\n            Book((0.18, 0.52, 0.82), (0.10, 0.30, 0.62), \"Tall blue book\"),\n            lower_shelves[0],\n            -1.48,\n            0.18,\n        )\n        place_content(\n            \"lowest_gold_book\",\n            Book((0.22, 0.48, 0.68), (0.82, 0.48, 0.10), \"Gold book\"),\n            lower_shelves[0],\n            -1.24,\n            0.20,\n        )\n        place_content(\n            \"lowest_green_book\",\n            Book((0.16, 0.55, 0.91), (0.18, 0.48, 0.26), \"Tall green book\"),\n            lower_shelves[0],\n            -1.02,\n            0.16,\n        )\n        place_content(\n            \"lowest_large_storage_box\",\n            StorageBox((1.05, 0.68, 0.50), (0.70, 0.56, 0.35), (0.28, 0.18, 0.12)),\n            lower_shelves[0],\n            0.88,\n            0.18,\n        )\n\n        # Middle shelf: a true horizontal stack plus two upright books.\n        place_content(\n            \"middle_horizontal_book_stack\",\n            HorizontalBookStack(),\n            lower_shelves[1],\n            -0.92,\n            0.15,\n        )\n        place_content(\n            \"middle_red_book\",\n            Book((0.20, 0.50, 0.76), (0.66, 0.10, 0.12), \"Red upright book\"),\n            lower_shelves[1],\n            0.42,\n            0.20,\n        )\n        place_content(\n            \"middle_violet_book\",\n            Book((0.26, 0.56, 0.88), (0.42, 0.20, 0.56), \"Violet upright book\"),\n            lower_shelves[1],\n            0.68,\n            0.17,\n        )\n\n        # Third shelf: a differently proportioned box and two more books.\n        place_content(\n            \"third_compact_storage_box\",\n            StorageBox((0.78, 0.72, 0.62), (0.22, 0.44, 0.50), (0.78, 0.70, 0.48)),\n            lower_shelves[2],\n            -1.18,\n            0.16,\n        )\n        place_content(\n            \"third_teal_book\",\n            Book((0.19, 0.46, 0.70), (0.08, 0.48, 0.50), \"Teal upright book\"),\n            lower_shelves[2],\n            0.25,\n            0.22,\n        )\n        place_content(\n            \"third_orange_book\",\n            Book((0.24, 0.54, 0.80), (0.88, 0.31, 0.08), \"Orange upright book\"),\n            lower_shelves[2],\n            0.50,\n            0.18,\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:a24199f2133243c9a799",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "FreestandingBookshelf/__init__",
+      "owner_class": "FreestandingBookshelf",
+      "semantic_name": "left_side_support",
+      "span": {
+        "start_line": 151,
+        "end_line": 154,
+        "start_col": 33,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "SideSupport",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"left_side_support\",\n            SideSupport(-1),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:12640539f4b7639007af",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "FreestandingBookshelf/__init__",
+      "owner_class": "FreestandingBookshelf",
+      "semantic_name": "right_side_support",
+      "span": {
+        "start_line": 155,
+        "end_line": 158,
+        "start_col": 34,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "SideSupport",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"right_side_support\",\n            SideSupport(1),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:5db31f507a091c0d0e2a",
+      "kind": "dsl_call",
+      "name": "translate_shape",
+      "scope": "FreestandingBookshelf/__init__",
+      "owner_class": "FreestandingBookshelf",
+      "semantic_name": null,
+      "span": {
+        "start_line": 169,
+        "end_line": 169,
+        "start_col": 20,
+        "end_col": 79
+      },
+      "parameters": [],
+      "dependencies": [
+        "shelf",
+        "shelf_thickness",
+        "top_z",
+        "translate_shape"
+      ],
+      "expression": "translate_shape(shelf, (0.0, 0.0, top_z - shelf_thickness))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:9e827c0c964a5051e76e",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "FreestandingBookshelf/__init__",
+      "owner_class": "FreestandingBookshelf",
+      "semantic_name": null,
+      "span": {
+        "start_line": 171,
+        "end_line": 171,
+        "start_col": 12,
+        "end_col": 66
+      },
+      "parameters": [],
+      "dependencies": [
+        "index",
+        "self",
+        "shelf"
+      ],
+      "expression": "self.attach_part(f\"lower_curved_shelf_{index}\", shelf)",
+      "resolution": "partial"
+    },
+    {
+      "source_id": "source:7655b23c5e0208520fad",
+      "kind": "dsl_call",
+      "name": "translate_shape",
+      "scope": "FreestandingBookshelf/__init__",
+      "owner_class": "FreestandingBookshelf",
+      "semantic_name": null,
+      "span": {
+        "start_line": 180,
+        "end_line": 183,
+        "start_col": 20,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "shelf_thickness",
+        "shelf_top_levels",
+        "top_shelf",
+        "translate_shape"
+      ],
+      "expression": "translate_shape(\n            top_shelf,\n            (0.0, 0.0, shelf_top_levels[3] - shelf_thickness),\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:d8ea95f8e00c50aa732a",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "FreestandingBookshelf/__init__",
+      "owner_class": "FreestandingBookshelf",
+      "semantic_name": "smaller_top_curved_shelf",
+      "span": {
+        "start_line": 184,
+        "end_line": 184,
+        "start_col": 25,
+        "end_col": 80
+      },
+      "parameters": [],
+      "dependencies": [
+        "self",
+        "top_shelf"
+      ],
+      "expression": "self.attach_part(\"smaller_top_curved_shelf\", top_shelf)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:3b9017cdc8926737b068",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "FreestandingBookshelf/__init__",
+      "owner_class": "FreestandingBookshelf",
+      "semantic_name": "books_and_storage",
+      "span": {
+        "start_line": 186,
+        "end_line": 186,
+        "start_col": 24,
+        "end_col": 86
+      },
+      "parameters": [],
+      "dependencies": [
+        "Asset",
+        "self"
+      ],
+      "expression": "self.attach_part(\"books_and_storage\", Asset(\"Shelf contents\"))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:ec8ecc8c722f6b3de1cf",
+      "kind": "function",
+      "name": "place_content",
+      "scope": "FreestandingBookshelf/__init__/place_content",
+      "owner_class": "FreestandingBookshelf",
+      "semantic_name": null,
+      "span": {
+        "start_line": 188,
+        "end_line": 197,
+        "start_col": 8,
+        "end_col": 25
+      },
+      "parameters": [
+        "anchor",
+        "target_anchor"
+      ],
+      "dependencies": [
+        "align_anchors",
+        "item",
+        "name",
+        "offset_from",
+        "placed",
+        "self",
+        "shelf",
+        "x",
+        "y"
+      ],
+      "expression": "def place_content(name, item, shelf, x, y):\n            placed = align_anchors(\n                item,\n                shelf,\n                anchor=\"bottom\",\n                target_anchor=\"top\",\n            )\n            placed = offset_from(placed, shelf, (x, y, None))\n            self.contents.attach_part(name, placed)\n            return placed",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:cff7a1f855ee4c857843",
+      "kind": "dsl_call",
+      "name": "align_anchors",
+      "scope": "FreestandingBookshelf/__init__/place_content",
+      "owner_class": "FreestandingBookshelf",
+      "semantic_name": null,
+      "span": {
+        "start_line": 189,
+        "end_line": 194,
+        "start_col": 21,
+        "end_col": 13
+      },
+      "parameters": [
+        "anchor",
+        "target_anchor"
+      ],
+      "dependencies": [
+        "align_anchors",
+        "item",
+        "shelf"
+      ],
+      "expression": "align_anchors(\n                item,\n                shelf,\n                anchor=\"bottom\",\n                target_anchor=\"top\",\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:65ff2fff7f61e51f1e5a",
+      "kind": "dsl_call",
+      "name": "offset_from",
+      "scope": "FreestandingBookshelf/__init__/place_content",
+      "owner_class": "FreestandingBookshelf",
+      "semantic_name": null,
+      "span": {
+        "start_line": 195,
+        "end_line": 195,
+        "start_col": 21,
+        "end_col": 61
+      },
+      "parameters": [],
+      "dependencies": [
+        "offset_from",
+        "placed",
+        "shelf",
+        "x",
+        "y"
+      ],
+      "expression": "offset_from(placed, shelf, (x, y, None))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:ee456413c0a31ccc9b14",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "FreestandingBookshelf/__init__/place_content",
+      "owner_class": "FreestandingBookshelf",
+      "semantic_name": null,
+      "span": {
+        "start_line": 196,
+        "end_line": 196,
+        "start_col": 12,
+        "end_col": 51
+      },
+      "parameters": [],
+      "dependencies": [
+        "name",
+        "placed",
+        "self"
+      ],
+      "expression": "self.contents.attach_part(name, placed)",
+      "resolution": "partial"
+    }
+  ],
+  "features": [
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf",
+      "semantic_path": "Freestanding four-shelf bookshelf",
+      "name": "Freestanding four-shelf bookshelf",
+      "asset_class": "FreestandingBookshelf",
+      "parent_feature_id": null,
+      "attach_mode": "root",
+      "bounds": [
+        [
+          -2.66,
+          -1.25,
+          0.0
+        ],
+        [
+          2.66,
+          0.89,
+          3.35
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:3b0133c9102755e19325"
+      ],
+      "source_locations": [
+        "L144-L273"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support",
+      "semantic_path": "Freestanding four-shelf bookshelf/left_side_support",
+      "name": "left_side_support",
+      "asset_class": "SideSupport",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.66,
+          -1.09,
+          0.0
+        ],
+        [
+          -1.69,
+          0.89,
+          3.2399999999999998
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:a24199f2133243c9a799",
+        "source:34f571a13ae3ee3e4d14"
+      ],
+      "source_locations": [
+        "L151-L154",
+        "L100-L141"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support/floor_foot",
+      "semantic_path": "Freestanding four-shelf bookshelf/left_side_support/floor_foot",
+      "name": "floor_foot",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.66,
+          -1.09,
+          0.0
+        ],
+        [
+          -2.0999999999999996,
+          0.89,
+          0.12
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:d59a7a422068d9f2e652"
+      ],
+      "source_locations": [
+        "L117-L117"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support/lower_front_post",
+      "semantic_path": "Freestanding four-shelf bookshelf/left_side_support/lower_front_post",
+      "name": "lower_front_post",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.4699999999999998,
+          -0.74,
+          0.11999999999999988
+        ],
+        [
+          -2.29,
+          -0.52,
+          2.5599999999999996
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:f3da0c1a0ccf63b7e0cb",
+        "source:c5d5d6ebb823bc64d6b1"
+      ],
+      "source_locations": [
+        "L126-L126",
+        "L141-L141"
+      ],
+      "resolution": "ambiguous"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support/upper_front_inward_support",
+      "semantic_path": "Freestanding four-shelf bookshelf/left_side_support/upper_front_inward_support",
+      "name": "upper_front_inward_support",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.4699999999999998,
+          -0.74,
+          2.3800000000000003
+        ],
+        [
+          -1.69,
+          -0.52,
+          3.2399999999999998
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:f3da0c1a0ccf63b7e0cb",
+        "source:c5d5d6ebb823bc64d6b1"
+      ],
+      "source_locations": [
+        "L126-L126",
+        "L141-L141"
+      ],
+      "resolution": "ambiguous"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support/upper_front_inward_support/op_0",
+      "semantic_path": "Freestanding four-shelf bookshelf/left_side_support/upper_front_inward_support/op_0",
+      "name": "op_0",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support/upper_front_inward_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.4699999999999998,
+          -0.74,
+          2.3800000000000003
+        ],
+        [
+          -2.29,
+          -0.52,
+          2.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support/upper_front_inward_support/op_1",
+      "semantic_path": "Freestanding four-shelf bookshelf/left_side_support/upper_front_inward_support/op_1",
+      "name": "op_1",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support/upper_front_inward_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.87,
+          -0.74,
+          3.06
+        ],
+        [
+          -1.69,
+          -0.52,
+          3.2399999999999998
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support/lower_rear_post",
+      "semantic_path": "Freestanding four-shelf bookshelf/left_side_support/lower_rear_post",
+      "name": "lower_rear_post",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.4699999999999998,
+          0.44000000000000006,
+          0.11999999999999988
+        ],
+        [
+          -2.29,
+          0.66,
+          2.5599999999999996
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:f3da0c1a0ccf63b7e0cb",
+        "source:c5d5d6ebb823bc64d6b1"
+      ],
+      "source_locations": [
+        "L126-L126",
+        "L141-L141"
+      ],
+      "resolution": "ambiguous"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support/upper_rear_inward_support",
+      "semantic_path": "Freestanding four-shelf bookshelf/left_side_support/upper_rear_inward_support",
+      "name": "upper_rear_inward_support",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.4699999999999998,
+          0.44000000000000006,
+          2.3800000000000003
+        ],
+        [
+          -1.69,
+          0.66,
+          3.2399999999999998
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:f3da0c1a0ccf63b7e0cb",
+        "source:c5d5d6ebb823bc64d6b1"
+      ],
+      "source_locations": [
+        "L126-L126",
+        "L141-L141"
+      ],
+      "resolution": "ambiguous"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support/upper_rear_inward_support/op_0",
+      "semantic_path": "Freestanding four-shelf bookshelf/left_side_support/upper_rear_inward_support/op_0",
+      "name": "op_0",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support/upper_rear_inward_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.4699999999999998,
+          0.44000000000000006,
+          2.3800000000000003
+        ],
+        [
+          -2.29,
+          0.66,
+          2.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support/upper_rear_inward_support/op_1",
+      "semantic_path": "Freestanding four-shelf bookshelf/left_side_support/upper_rear_inward_support/op_1",
+      "name": "op_1",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/left_side_support/upper_rear_inward_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.87,
+          0.44000000000000006,
+          3.06
+        ],
+        [
+          -1.69,
+          0.66,
+          3.2399999999999998
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support",
+      "semantic_path": "Freestanding four-shelf bookshelf/right_side_support",
+      "name": "right_side_support",
+      "asset_class": "SideSupport",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.69,
+          -1.09,
+          0.0
+        ],
+        [
+          2.66,
+          0.89,
+          3.2399999999999998
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:12640539f4b7639007af",
+        "source:34f571a13ae3ee3e4d14"
+      ],
+      "source_locations": [
+        "L155-L158",
+        "L100-L141"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support/floor_foot",
+      "semantic_path": "Freestanding four-shelf bookshelf/right_side_support/floor_foot",
+      "name": "floor_foot",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          2.0999999999999996,
+          -1.09,
+          0.0
+        ],
+        [
+          2.66,
+          0.89,
+          0.12
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:d59a7a422068d9f2e652"
+      ],
+      "source_locations": [
+        "L117-L117"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support/lower_front_post",
+      "semantic_path": "Freestanding four-shelf bookshelf/right_side_support/lower_front_post",
+      "name": "lower_front_post",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          2.29,
+          -0.74,
+          0.11999999999999988
+        ],
+        [
+          2.4699999999999998,
+          -0.52,
+          2.5599999999999996
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:f3da0c1a0ccf63b7e0cb",
+        "source:c5d5d6ebb823bc64d6b1"
+      ],
+      "source_locations": [
+        "L126-L126",
+        "L141-L141"
+      ],
+      "resolution": "ambiguous"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support/upper_front_inward_support",
+      "semantic_path": "Freestanding four-shelf bookshelf/right_side_support/upper_front_inward_support",
+      "name": "upper_front_inward_support",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.69,
+          -0.74,
+          2.3800000000000003
+        ],
+        [
+          2.4699999999999998,
+          -0.52,
+          3.2399999999999998
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:f3da0c1a0ccf63b7e0cb",
+        "source:c5d5d6ebb823bc64d6b1"
+      ],
+      "source_locations": [
+        "L126-L126",
+        "L141-L141"
+      ],
+      "resolution": "ambiguous"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support/upper_front_inward_support/op_0",
+      "semantic_path": "Freestanding four-shelf bookshelf/right_side_support/upper_front_inward_support/op_0",
+      "name": "op_0",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support/upper_front_inward_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          2.29,
+          -0.74,
+          2.3800000000000003
+        ],
+        [
+          2.4699999999999998,
+          -0.52,
+          2.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support/upper_front_inward_support/op_1",
+      "semantic_path": "Freestanding four-shelf bookshelf/right_side_support/upper_front_inward_support/op_1",
+      "name": "op_1",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support/upper_front_inward_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.69,
+          -0.74,
+          3.06
+        ],
+        [
+          1.87,
+          -0.52,
+          3.2399999999999998
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support/lower_rear_post",
+      "semantic_path": "Freestanding four-shelf bookshelf/right_side_support/lower_rear_post",
+      "name": "lower_rear_post",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          2.29,
+          0.44000000000000006,
+          0.11999999999999988
+        ],
+        [
+          2.4699999999999998,
+          0.66,
+          2.5599999999999996
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:f3da0c1a0ccf63b7e0cb",
+        "source:c5d5d6ebb823bc64d6b1"
+      ],
+      "source_locations": [
+        "L126-L126",
+        "L141-L141"
+      ],
+      "resolution": "ambiguous"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support/upper_rear_inward_support",
+      "semantic_path": "Freestanding four-shelf bookshelf/right_side_support/upper_rear_inward_support",
+      "name": "upper_rear_inward_support",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.69,
+          0.44000000000000006,
+          2.3800000000000003
+        ],
+        [
+          2.4699999999999998,
+          0.66,
+          3.2399999999999998
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:f3da0c1a0ccf63b7e0cb",
+        "source:c5d5d6ebb823bc64d6b1"
+      ],
+      "source_locations": [
+        "L126-L126",
+        "L141-L141"
+      ],
+      "resolution": "ambiguous"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support/upper_rear_inward_support/op_0",
+      "semantic_path": "Freestanding four-shelf bookshelf/right_side_support/upper_rear_inward_support/op_0",
+      "name": "op_0",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support/upper_rear_inward_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          2.29,
+          0.44000000000000006,
+          2.3800000000000003
+        ],
+        [
+          2.4699999999999998,
+          0.66,
+          2.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support/upper_rear_inward_support/op_1",
+      "semantic_path": "Freestanding four-shelf bookshelf/right_side_support/upper_rear_inward_support/op_1",
+      "name": "op_1",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/right_side_support/upper_rear_inward_support",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.69,
+          0.44000000000000006,
+          3.06
+        ],
+        [
+          1.87,
+          0.66,
+          3.2399999999999998
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/lower_curved_shelf_1",
+      "semantic_path": "Freestanding four-shelf bookshelf/lower_curved_shelf_1",
+      "name": "lower_curved_shelf_1",
+      "asset_class": "CurvedShelf",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.5,
+          -1.25,
+          0.29000000000000004
+        ],
+        [
+          2.5,
+          0.75,
+          0.45000000000000007
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:9e827c0c964a5051e76e",
+        "source:ee456413c0a31ccc9b14",
+        "source:c10fedf89b6975997c1f"
+      ],
+      "source_locations": [
+        "L171-L171",
+        "L196-L196",
+        "L26-L39"
+      ],
+      "resolution": "ambiguous"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/lower_curved_shelf_1/curved_slab",
+      "semantic_path": "Freestanding four-shelf bookshelf/lower_curved_shelf_1/curved_slab",
+      "name": "curved_slab",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/lower_curved_shelf_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.5,
+          -1.25,
+          0.29000000000000004
+        ],
+        [
+          2.5,
+          0.75,
+          0.45000000000000007
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6c943265922d1214a1fb"
+      ],
+      "source_locations": [
+        "L36-L39"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/lower_curved_shelf_2",
+      "semantic_path": "Freestanding four-shelf bookshelf/lower_curved_shelf_2",
+      "name": "lower_curved_shelf_2",
+      "asset_class": "CurvedShelf",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.5,
+          -1.25,
+          1.29
+        ],
+        [
+          2.5,
+          0.75,
+          1.45
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:9e827c0c964a5051e76e",
+        "source:ee456413c0a31ccc9b14",
+        "source:c10fedf89b6975997c1f"
+      ],
+      "source_locations": [
+        "L171-L171",
+        "L196-L196",
+        "L26-L39"
+      ],
+      "resolution": "ambiguous"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/lower_curved_shelf_2/curved_slab",
+      "semantic_path": "Freestanding four-shelf bookshelf/lower_curved_shelf_2/curved_slab",
+      "name": "curved_slab",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/lower_curved_shelf_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.5,
+          -1.25,
+          1.29
+        ],
+        [
+          2.5,
+          0.75,
+          1.45
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6c943265922d1214a1fb"
+      ],
+      "source_locations": [
+        "L36-L39"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/lower_curved_shelf_3",
+      "semantic_path": "Freestanding four-shelf bookshelf/lower_curved_shelf_3",
+      "name": "lower_curved_shelf_3",
+      "asset_class": "CurvedShelf",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.5,
+          -1.25,
+          2.29
+        ],
+        [
+          2.5,
+          0.75,
+          2.45
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:9e827c0c964a5051e76e",
+        "source:ee456413c0a31ccc9b14",
+        "source:c10fedf89b6975997c1f"
+      ],
+      "source_locations": [
+        "L171-L171",
+        "L196-L196",
+        "L26-L39"
+      ],
+      "resolution": "ambiguous"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/lower_curved_shelf_3/curved_slab",
+      "semantic_path": "Freestanding four-shelf bookshelf/lower_curved_shelf_3/curved_slab",
+      "name": "curved_slab",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/lower_curved_shelf_3",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.5,
+          -1.25,
+          2.29
+        ],
+        [
+          2.5,
+          0.75,
+          2.45
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6c943265922d1214a1fb"
+      ],
+      "source_locations": [
+        "L36-L39"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/smaller_top_curved_shelf",
+      "semantic_path": "Freestanding four-shelf bookshelf/smaller_top_curved_shelf",
+      "name": "smaller_top_curved_shelf",
+      "asset_class": "CurvedShelf",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.8999999985098839,
+          -0.6499999985098839,
+          3.19
+        ],
+        [
+          1.8999999985098839,
+          0.75,
+          3.35
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:d8ea95f8e00c50aa732a",
+        "source:c10fedf89b6975997c1f"
+      ],
+      "source_locations": [
+        "L184-L184",
+        "L26-L39"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/smaller_top_curved_shelf/curved_slab",
+      "semantic_path": "Freestanding four-shelf bookshelf/smaller_top_curved_shelf/curved_slab",
+      "name": "curved_slab",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/smaller_top_curved_shelf",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.8999999985098839,
+          -0.6499999985098839,
+          3.19
+        ],
+        [
+          1.8999999985098839,
+          0.75,
+          3.35
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6c943265922d1214a1fb"
+      ],
+      "source_locations": [
+        "L36-L39"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage",
+      "name": "books_and_storage",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.5975,
+          -0.47750000000000004,
+          0.45
+        ],
+        [
+          1.4325,
+          0.29750000000000004,
+          3.25
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:3b9017cdc8926737b068"
+      ],
+      "source_locations": [
+        "L186-L186"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_blue_book",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/lowest_blue_book",
+      "name": "lowest_blue_book",
+      "asset_class": "Book",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.576,
+          -0.336,
+          0.4500000000000001
+        ],
+        [
+          -1.384,
+          0.196,
+          1.27
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6f1bef1ae66a15bff840"
+      ],
+      "source_locations": [
+        "L42-L62"
+      ],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_blue_book/book_volume",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/lowest_blue_book/book_volume",
+      "name": "book_volume",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_blue_book",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.57,
+          -0.33,
+          0.4500000000000001
+        ],
+        [
+          -1.39,
+          0.19,
+          1.27
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:359a790214ecbdf5923f"
+      ],
+      "source_locations": [
+        "L46-L49"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_blue_book/spine_band",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/lowest_blue_book/spine_band",
+      "name": "spine_band",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_blue_book",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.576,
+          -0.336,
+          0.5812000000000002
+        ],
+        [
+          -1.384,
+          0.196,
+          0.6162000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:2918239c1983f869bb76"
+      ],
+      "source_locations": [
+        "L62-L62"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_gold_book",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/lowest_gold_book",
+      "name": "lowest_gold_book",
+      "asset_class": "Book",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.356,
+          -0.296,
+          0.45
+        ],
+        [
+          -1.1239999999999999,
+          0.196,
+          1.1300000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6f1bef1ae66a15bff840"
+      ],
+      "source_locations": [
+        "L42-L62"
+      ],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_gold_book/book_volume",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/lowest_gold_book/book_volume",
+      "name": "book_volume",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_gold_book",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.35,
+          -0.29,
+          0.45
+        ],
+        [
+          -1.13,
+          0.19,
+          1.1300000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:359a790214ecbdf5923f"
+      ],
+      "source_locations": [
+        "L46-L49"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_gold_book/spine_band",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/lowest_gold_book/spine_band",
+      "name": "spine_band",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_gold_book",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.356,
+          -0.296,
+          0.5588000000000001
+        ],
+        [
+          -1.1239999999999999,
+          0.196,
+          0.5938
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:2918239c1983f869bb76"
+      ],
+      "source_locations": [
+        "L62-L62"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_green_book",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/lowest_green_book",
+      "name": "lowest_green_book",
+      "asset_class": "Book",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.106,
+          -0.371,
+          0.45
+        ],
+        [
+          -0.934,
+          0.19100000000000003,
+          1.36
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6f1bef1ae66a15bff840"
+      ],
+      "source_locations": [
+        "L42-L62"
+      ],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_green_book/book_volume",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/lowest_green_book/book_volume",
+      "name": "book_volume",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_green_book",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.1,
+          -0.365,
+          0.45
+        ],
+        [
+          -0.9400000000000001,
+          0.18500000000000003,
+          1.36
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:359a790214ecbdf5923f"
+      ],
+      "source_locations": [
+        "L46-L49"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_green_book/spine_band",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/lowest_green_book/spine_band",
+      "name": "spine_band",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_green_book",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.106,
+          -0.371,
+          0.5956
+        ],
+        [
+          -0.934,
+          0.19100000000000003,
+          0.6305999999999999
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:2918239c1983f869bb76"
+      ],
+      "source_locations": [
+        "L62-L62"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_large_storage_box",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/lowest_large_storage_box",
+      "name": "lowest_large_storage_box",
+      "asset_class": "StorageBox",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.3275,
+          -0.43750000000000006,
+          0.45000000000000007
+        ],
+        [
+          1.4325,
+          0.29750000000000004,
+          1.0250000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:0e820b113a4f7e830704"
+      ],
+      "source_locations": [
+        "L65-L83"
+      ],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_large_storage_box/body",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/lowest_large_storage_box/body",
+      "name": "body",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_large_storage_box",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.355,
+          -0.41000000000000003,
+          0.45000000000000007
+        ],
+        [
+          1.405,
+          0.27,
+          0.9500000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:7a3403cda0e8566b447f"
+      ],
+      "source_locations": [
+        "L69-L72"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_large_storage_box/lid",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/lowest_large_storage_box/lid",
+      "name": "lid",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/lowest_large_storage_box",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.3275,
+          -0.43750000000000006,
+          0.9500000000000001
+        ],
+        [
+          1.4325,
+          0.29750000000000004,
+          1.0250000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6953c224990a23287d8a"
+      ],
+      "source_locations": [
+        "L83-L83"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack",
+      "name": "middle_horizontal_book_stack",
+      "asset_class": "HorizontalBookStack",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.451,
+          -0.396,
+          1.45
+        ],
+        [
+          -0.389,
+          0.19599999999999998,
+          1.729
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:5669d092b773f4b824eb"
+      ],
+      "source_locations": [
+        "L86-L97"
+      ],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books",
+      "name": "stacked_books",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.451,
+          -0.396,
+          1.45
+        ],
+        [
+          -0.389,
+          0.19599999999999998,
+          1.729
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:27b93466bbe8d9d5ff34"
+      ],
+      "source_locations": [
+        "L94-L97"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_0",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_0",
+      "name": "part_0",
+      "asset_class": "Book",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.451,
+          -0.396,
+          1.45
+        ],
+        [
+          -0.389,
+          0.19599999999999998,
+          1.535
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6f1bef1ae66a15bff840"
+      ],
+      "source_locations": [
+        "L42-L62"
+      ],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_0/book_volume",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_0/book_volume",
+      "name": "book_volume",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.445,
+          -0.39,
+          1.45
+        ],
+        [
+          -0.395,
+          0.18999999999999997,
+          1.535
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:359a790214ecbdf5923f"
+      ],
+      "source_locations": [
+        "L46-L49"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_0/spine_band",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_0/spine_band",
+      "name": "spine_band",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.451,
+          -0.396,
+          1.4635999999999998
+        ],
+        [
+          -0.389,
+          0.19599999999999998,
+          1.4738
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:2918239c1983f869bb76"
+      ],
+      "source_locations": [
+        "L62-L62"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_1",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_1",
+      "name": "part_1",
+      "asset_class": "Book",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.3860000000000001,
+          -0.376,
+          1.547
+        ],
+        [
+          -0.454,
+          0.17600000000000002,
+          1.6420000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6f1bef1ae66a15bff840"
+      ],
+      "source_locations": [
+        "L42-L62"
+      ],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_1/book_volume",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_1/book_volume",
+      "name": "book_volume",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.3800000000000001,
+          -0.37,
+          1.547
+        ],
+        [
+          -0.46,
+          0.17,
+          1.6420000000000001
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:359a790214ecbdf5923f"
+      ],
+      "source_locations": [
+        "L46-L49"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_1/spine_band",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_1/spine_band",
+      "name": "spine_band",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.3860000000000001,
+          -0.376,
+          1.5621999999999998
+        ],
+        [
+          -0.454,
+          0.17600000000000002,
+          1.5735999999999999
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:2918239c1983f869bb76"
+      ],
+      "source_locations": [
+        "L62-L62"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_2",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_2",
+      "name": "part_2",
+      "asset_class": "Book",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.416,
+          -0.386,
+          1.654
+        ],
+        [
+          -0.42400000000000004,
+          0.18600000000000003,
+          1.729
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6f1bef1ae66a15bff840"
+      ],
+      "source_locations": [
+        "L42-L62"
+      ],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_2/book_volume",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_2/book_volume",
+      "name": "book_volume",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.4100000000000001,
+          -0.38,
+          1.654
+        ],
+        [
+          -0.43000000000000005,
+          0.18000000000000002,
+          1.729
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:359a790214ecbdf5923f"
+      ],
+      "source_locations": [
+        "L46-L49"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_2/spine_band",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_2/spine_band",
+      "name": "spine_band",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.416,
+          -0.386,
+          1.666
+        ],
+        [
+          -0.42400000000000004,
+          0.18600000000000003,
+          1.6749999999999998
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:2918239c1983f869bb76"
+      ],
+      "source_locations": [
+        "L62-L62"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_red_book",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_red_book",
+      "name": "middle_red_book",
+      "asset_class": "Book",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.31399999999999995,
+          -0.306,
+          1.4500000000000002
+        ],
+        [
+          0.526,
+          0.20600000000000002,
+          2.21
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6f1bef1ae66a15bff840"
+      ],
+      "source_locations": [
+        "L42-L62"
+      ],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_red_book/book_volume",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_red_book/book_volume",
+      "name": "book_volume",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_red_book",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.31999999999999995,
+          -0.3,
+          1.4500000000000002
+        ],
+        [
+          0.52,
+          0.2,
+          2.21
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:359a790214ecbdf5923f"
+      ],
+      "source_locations": [
+        "L46-L49"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_red_book/spine_band",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_red_book/spine_band",
+      "name": "spine_band",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_red_book",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.31399999999999995,
+          -0.306,
+          1.5716
+        ],
+        [
+          0.526,
+          0.20600000000000002,
+          1.6066000000000003
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:2918239c1983f869bb76"
+      ],
+      "source_locations": [
+        "L62-L62"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_violet_book",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_violet_book",
+      "name": "middle_violet_book",
+      "asset_class": "Book",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.544,
+          -0.366,
+          1.45
+        ],
+        [
+          0.8160000000000001,
+          0.20600000000000004,
+          2.33
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6f1bef1ae66a15bff840"
+      ],
+      "source_locations": [
+        "L42-L62"
+      ],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_violet_book/book_volume",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_violet_book/book_volume",
+      "name": "book_volume",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_violet_book",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.55,
+          -0.36,
+          1.45
+        ],
+        [
+          0.81,
+          0.20000000000000004,
+          2.33
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:359a790214ecbdf5923f"
+      ],
+      "source_locations": [
+        "L46-L49"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_violet_book/spine_band",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/middle_violet_book/spine_band",
+      "name": "spine_band",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/middle_violet_book",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.544,
+          -0.366,
+          1.5907999999999998
+        ],
+        [
+          0.8160000000000001,
+          0.20600000000000004,
+          1.6258
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:2918239c1983f869bb76"
+      ],
+      "source_locations": [
+        "L62-L62"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_compact_storage_box",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/third_compact_storage_box",
+      "name": "third_compact_storage_box",
+      "asset_class": "StorageBox",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.5975,
+          -0.47750000000000004,
+          2.45
+        ],
+        [
+          -0.7625,
+          0.2975,
+          3.1450000000000005
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:0e820b113a4f7e830704"
+      ],
+      "source_locations": [
+        "L65-L83"
+      ],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_compact_storage_box/body",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/third_compact_storage_box/body",
+      "name": "body",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_compact_storage_box",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.5699999999999998,
+          -0.45,
+          2.45
+        ],
+        [
+          -0.7899999999999999,
+          0.26999999999999996,
+          3.0700000000000003
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:7a3403cda0e8566b447f"
+      ],
+      "source_locations": [
+        "L69-L72"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_compact_storage_box/lid",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/third_compact_storage_box/lid",
+      "name": "lid",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_compact_storage_box",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.5975,
+          -0.47750000000000004,
+          3.0700000000000003
+        ],
+        [
+          -0.7625,
+          0.2975,
+          3.1450000000000005
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6953c224990a23287d8a"
+      ],
+      "source_locations": [
+        "L83-L83"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_teal_book",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/third_teal_book",
+      "name": "third_teal_book",
+      "asset_class": "Book",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.149,
+          -0.266,
+          2.45
+        ],
+        [
+          0.351,
+          0.20600000000000002,
+          3.1500000000000004
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6f1bef1ae66a15bff840"
+      ],
+      "source_locations": [
+        "L42-L62"
+      ],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_teal_book/book_volume",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/third_teal_book/book_volume",
+      "name": "book_volume",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_teal_book",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.155,
+          -0.26,
+          2.45
+        ],
+        [
+          0.345,
+          0.2,
+          3.1500000000000004
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:359a790214ecbdf5923f"
+      ],
+      "source_locations": [
+        "L46-L49"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_teal_book/spine_band",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/third_teal_book/spine_band",
+      "name": "spine_band",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_teal_book",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.149,
+          -0.266,
+          2.5620000000000003
+        ],
+        [
+          0.351,
+          0.20600000000000002,
+          2.5970000000000004
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:2918239c1983f869bb76"
+      ],
+      "source_locations": [
+        "L62-L62"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_orange_book",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/third_orange_book",
+      "name": "third_orange_book",
+      "asset_class": "Book",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.374,
+          -0.34600000000000003,
+          2.45
+        ],
+        [
+          0.626,
+          0.20600000000000002,
+          3.25
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:6f1bef1ae66a15bff840"
+      ],
+      "source_locations": [
+        "L42-L62"
+      ],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_orange_book/book_volume",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/third_orange_book/book_volume",
+      "name": "book_volume",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_orange_book",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.38,
+          -0.34,
+          2.45
+        ],
+        [
+          0.62,
+          0.2,
+          3.25
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:359a790214ecbdf5923f"
+      ],
+      "source_locations": [
+        "L46-L49"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_orange_book/spine_band",
+      "semantic_path": "Freestanding four-shelf bookshelf/books_and_storage/third_orange_book/spine_band",
+      "name": "spine_band",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:Freestanding four-shelf bookshelf/books_and_storage/third_orange_book",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.374,
+          -0.34600000000000003,
+          2.578
+        ],
+        [
+          0.626,
+          0.20600000000000002,
+          2.613
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:2918239c1983f869bb76"
+      ],
+      "source_locations": [
+        "L62-L62"
+      ],
+      "resolution": "complete"
+    }
+  ],
+  "unresolved": [
+    "Freestanding four-shelf bookshelf/left_side_support/lower_front_post: 2 direct source candidates for SideSupport.lower_front_post",
+    "Freestanding four-shelf bookshelf/left_side_support/upper_front_inward_support: 2 direct source candidates for SideSupport.upper_front_inward_support",
+    "Freestanding four-shelf bookshelf/left_side_support/upper_front_inward_support/op_0: 0 direct source candidates for Asset.op_0",
+    "Freestanding four-shelf bookshelf/left_side_support/upper_front_inward_support/op_1: 0 direct source candidates for Asset.op_1",
+    "Freestanding four-shelf bookshelf/left_side_support/lower_rear_post: 2 direct source candidates for SideSupport.lower_rear_post",
+    "Freestanding four-shelf bookshelf/left_side_support/upper_rear_inward_support: 2 direct source candidates for SideSupport.upper_rear_inward_support",
+    "Freestanding four-shelf bookshelf/left_side_support/upper_rear_inward_support/op_0: 0 direct source candidates for Asset.op_0",
+    "Freestanding four-shelf bookshelf/left_side_support/upper_rear_inward_support/op_1: 0 direct source candidates for Asset.op_1",
+    "Freestanding four-shelf bookshelf/right_side_support/lower_front_post: 2 direct source candidates for SideSupport.lower_front_post",
+    "Freestanding four-shelf bookshelf/right_side_support/upper_front_inward_support: 2 direct source candidates for SideSupport.upper_front_inward_support",
+    "Freestanding four-shelf bookshelf/right_side_support/upper_front_inward_support/op_0: 0 direct source candidates for Asset.op_0",
+    "Freestanding four-shelf bookshelf/right_side_support/upper_front_inward_support/op_1: 0 direct source candidates for Asset.op_1",
+    "Freestanding four-shelf bookshelf/right_side_support/lower_rear_post: 2 direct source candidates for SideSupport.lower_rear_post",
+    "Freestanding four-shelf bookshelf/right_side_support/upper_rear_inward_support: 2 direct source candidates for SideSupport.upper_rear_inward_support",
+    "Freestanding four-shelf bookshelf/right_side_support/upper_rear_inward_support/op_0: 0 direct source candidates for Asset.op_0",
+    "Freestanding four-shelf bookshelf/right_side_support/upper_rear_inward_support/op_1: 0 direct source candidates for Asset.op_1",
+    "Freestanding four-shelf bookshelf/lower_curved_shelf_1: 2 direct source candidates for FreestandingBookshelf.lower_curved_shelf_1",
+    "Freestanding four-shelf bookshelf/lower_curved_shelf_2: 2 direct source candidates for FreestandingBookshelf.lower_curved_shelf_2",
+    "Freestanding four-shelf bookshelf/lower_curved_shelf_3: 2 direct source candidates for FreestandingBookshelf.lower_curved_shelf_3",
+    "Freestanding four-shelf bookshelf/books_and_storage/lowest_blue_book: 0 direct source candidates for Asset.lowest_blue_book",
+    "Freestanding four-shelf bookshelf/books_and_storage/lowest_gold_book: 0 direct source candidates for Asset.lowest_gold_book",
+    "Freestanding four-shelf bookshelf/books_and_storage/lowest_green_book: 0 direct source candidates for Asset.lowest_green_book",
+    "Freestanding four-shelf bookshelf/books_and_storage/lowest_large_storage_box: 0 direct source candidates for Asset.lowest_large_storage_box",
+    "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack: 0 direct source candidates for Asset.middle_horizontal_book_stack",
+    "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_0: 0 direct source candidates for Asset.part_0",
+    "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_1: 0 direct source candidates for Asset.part_1",
+    "Freestanding four-shelf bookshelf/books_and_storage/middle_horizontal_book_stack/stacked_books/part_2: 0 direct source candidates for Asset.part_2",
+    "Freestanding four-shelf bookshelf/books_and_storage/middle_red_book: 0 direct source candidates for Asset.middle_red_book",
+    "Freestanding four-shelf bookshelf/books_and_storage/middle_violet_book: 0 direct source candidates for Asset.middle_violet_book",
+    "Freestanding four-shelf bookshelf/books_and_storage/third_compact_storage_box: 0 direct source candidates for Asset.third_compact_storage_box",
+    "Freestanding four-shelf bookshelf/books_and_storage/third_teal_book: 0 direct source candidates for Asset.third_teal_book",
+    "Freestanding four-shelf bookshelf/books_and_storage/third_orange_book: 0 direct source candidates for Asset.third_orange_book"
+  ]
+}

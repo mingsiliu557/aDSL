@@ -1,0 +1,19 @@
+{
+  "status": "STOPPED_BY_USER_CONFIGURATION_CHANGE",
+  "reason": "User explicitly disabled FEA; stop submitted request and create a corrected no-FEA request.",
+  "stopped_utc": "2026-09-29T09:14:33Z",
+  "fea_executed": false,
+  "source_bytes": 0,
+  "model_calls": [
+    {
+      "file": "001.json",
+      "stage": "plan",
+      "last_recorded_status": "COMPLETED"
+    },
+    {
+      "file": "002.json",
+      "stage": "initial_code",
+      "last_recorded_status": "RUNNING"
+    }
+  ]
+}

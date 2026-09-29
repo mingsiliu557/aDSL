@@ -1,0 +1,25 @@
+CLIProxy model preflight PASS; credentials omitted.
+could not get a list of mounted file-systems
+{
+  "status": "COMPLETED",
+  "completed_utc": "2026-09-29T09:28:44Z",
+  "elapsed_seconds": 764.064370425418,
+  "approved": false,
+  "error": null,
+  "selected": "original",
+  "qualified": null,
+  "stop_reason": "export_unassessed_no_geometry_repair",
+  "checker_statuses": {
+    "assembly_topology": "INDETERMINATE",
+    "assembly_overhang": "INDETERMINATE",
+    "assembly_standing": "INDETERMINATE"
+  },
+  "source": null,
+  "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+  "snapshot": {
+    "status": "SAVED",
+    "path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/sessions_snapshot.sqlite3",
+    "local_path": "/tmp/adsl_sf06_full_sessions_20260929/session-v58rnsae/dfc76e60f313af60b7bf3e8f8d7f8bf0e7c6ceb35f670c11da32dbc9e92e4ae7/sessions_snapshot.sqlite3"
+  },
+  "assembly_result": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/assembly_result.json"
+}

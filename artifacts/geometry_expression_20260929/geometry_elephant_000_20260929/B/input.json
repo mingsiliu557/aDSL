@@ -1,0 +1,27 @@
+{
+  "id": "elephant_000",
+  "requirement": "Recreate the elephant shown in the reference image as a 3D object. Match its silhouette, proportions, ear shapes, upward-curving trunk and four legs. Generate only the elephant, without background geometry.",
+  "reference_images": [
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/reference/00_input.png"
+  ],
+  "provenance": {
+    "repository": "https://huggingface.co/datasets/Yang2001/toys4k_meshes",
+    "revision": "c497d6ab69c2c38a7795315e23a5e65fb0b192b9",
+    "mesh_url": "https://huggingface.co/datasets/Yang2001/toys4k_meshes/resolve/c497d6ab69c2c38a7795315e23a5e65fb0b192b9/elephant/elephant_000/mesh.ply",
+    "mesh_sha256": "1e5292c5ce4ce24b8f970e12d7281801cb20148e975835f4c84559eeb5befdc8",
+    "metadata": {
+      "sha256": "878891c52a789f7e71606286ceb56f6c13758e87512f8ac86cdecedf3a2c9835",
+      "file_identifier": "elephant/elephant_000/elephant_000.blend",
+      "aesthetic_score": "5.931257247924805",
+      "captions": "[\"A stylized, minimalist white elephant with a smooth surface, large curved ears, a long slender trunk curving upwards, nearly non-existent tusks, a robust oval body, thick cylindrical legs, and a small pointed tail.\", \"A simplistic white elephant with large ears, a slender upward-curving trunk, thick legs, and a small tail.\", \"A minimalistic white elephant with large, curved ears, an upward-curving trunk, and robust body.\", \"A white elephant with rounded ears, slender trunk, sturdy body.\", \"An elephant with broad ears, slender trunk, minimalistic design.\", \"A minimalistic elephant, with big ears and upward-curved trunk.\", \"Minimalistic white elephant with tubby body and tapered trunk.\", \"A stylized white elephant with thick legs.\", \"White elephant with curved trunk.\", \"Stylized elephant with large ears.\", \"White elephant.\"]"
+    },
+    "original_blend_available": false,
+    "original_adsl_input_available": false,
+    "source_type": "public third-party triangle mesh exported from Toys4K; not original blend",
+    "reference_image": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/reference/input.png",
+    "reference_image_sha256": "39c4dfd1d8393a40ee197e19581710acc7b215219eef6cdbb10a3fc649b53fa8",
+    "selected_view": 2,
+    "selection_reason": "Before generation, choose a front three-quarter reference showing the upturned trunk, ear outline, body and legs.",
+    "original_adsl_exact_case_verified": false
+  }
+}

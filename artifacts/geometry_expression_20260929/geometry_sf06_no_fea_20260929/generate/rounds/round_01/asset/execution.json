@@ -1,0 +1,49 @@
+{
+  "result_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset",
+  "render_root": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset/render",
+  "glb_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset/render/scene.glb",
+  "urdf_path": null,
+  "render_backend": "none",
+  "render_job_id": null,
+  "source_index_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset/source_index.json",
+  "analysis_geometry_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset/analysis_geometry.json",
+  "assembly_diagnostic": {
+    "diagnostic_only": true,
+    "parts": [
+      {
+        "id": "chair_body",
+        "geometry_valid": null,
+        "shown": false,
+        "reason": "string is not a file: `/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset/assembly/chair_body.glb`"
+      },
+      {
+        "id": "leg_front_left",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "leg_front_right",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "leg_rear_left",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "leg_rear_right",
+        "geometry_valid": null,
+        "shown": true
+      }
+    ],
+    "invalid_parts": [],
+    "missing_parts": [
+      "chair_body"
+    ],
+    "display_available": false,
+    "semantic_completeness": "NOT_EVALUATED",
+    "glb": "diagnostic_scene.glb",
+    "omitted_mesh_nodes": []
+  }
+}

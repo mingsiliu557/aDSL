@@ -1,0 +1,99 @@
+{
+  "case_id": "SF06",
+  "arm": "A",
+  "status": "rendered",
+  "started_at": "2026-09-29T08:37:53.343217+00:00",
+  "commit": "8943a8306ddcce69ad0c043f0079c0a14f0518f1",
+  "core_path": "/tmp/adsl_master_merge_20260929/adsl-core/core/__init__.py",
+  "agents_path": "/tmp/adsl_master_merge_20260929/adsl-agents/models.py",
+  "runner_sha256": "ca707cf8502a22ce8d3aded35491a0cc62d827aa9bd0554f1137210682450a34",
+  "input_sha256": "79ebfe96e1aac4e0f91cdc06d945bda1fe4c39ca1ddfb4a2a237c645cf0e81d9",
+  "render_config": {
+    "width": 512,
+    "height": 512,
+    "samples": 32,
+    "threads": 4,
+    "view_layout": "review_eight",
+    "views": 8,
+    "material": "neutral",
+    "background": "gray",
+    "engine": "CYCLES"
+  },
+  "execution_timeout_seconds": 300.0,
+  "render_timeout_seconds": 300.0,
+  "initial_generations": 1,
+  "execution_patches": 1,
+  "execution_attempts": [
+    {
+      "attempt": 0,
+      "source_sha256": "87d3e072b635f3f249d36e705dcc39ec20623d07b5a32e768846ad1789ddc283",
+      "seconds": 4.239688022062182,
+      "error": "Generated source exited with code 1.\nSTDOUT:\nWarning: Falling back to the standard locale (\"C\")\n\nSTDERR:\ncould not get a list of mounted file-systems\nTraceback (most recent call last):\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/A/adsl/agents/utils/asset_executor.py\", line 217, in <module>\n    raise SystemExit(main())\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/A/adsl/agents/utils/asset_executor.py\", line 149, in main\n    export_glb(\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/A/adsl/core/__init__.py\", line 66, in export_glb\n    return _export_glb(*args, **kwargs)\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/A/adsl/core/export/export_glb.py\", line 809, in export_glb\n    _normalize_zero_area_tessellation(obj)\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/A/adsl/core/export/export_glb.py\", line 565, in _normalize_zero_area_tessellation\n    reject('degenerate triangle has no alternate polygon tessellation')\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/A/adsl/core/export/export_glb.py\", line 547, in reject\n    raise ValueError(\nValueError: EVALUATED_MESH_DEGENERATE: object='geometry_0_cube.002' zero_area_triangles=4 polygons=[35, 51, 53] coincident_vertices=2 reason=degenerate triangle has no alternate polygon tessellation\n",
+      "exception": "AssetExecutionError"
+    },
+    {
+      "attempt": 1,
+      "source_sha256": "a0774b6659eab593ade0be18bfef91e1a0b4ae1879fcaa2601565102162da99b",
+      "seconds": 3.9120522420853376,
+      "status": "exported"
+    }
+  ],
+  "render_seconds": 20.18487930111587,
+  "critics": [],
+  "checkers": [],
+  "export_urdf": false,
+  "fixed_assembly": null,
+  "glb": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/A/SF06/exec_1/render/scene.glb",
+  "source_index": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/A/SF06/exec_1/source_index.json",
+  "analysis_geometry": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/A/SF06/exec_1/analysis_geometry.json",
+  "vertices": 51124,
+  "triangles": 25326,
+  "glb_bounds": [
+    [
+      -2.0,
+      -0.03999999910593033,
+      -2.0
+    ],
+    [
+      2.0,
+      3.0,
+      2.0
+    ]
+  ],
+  "glb_extents": [
+    4.0,
+    3.0399999991059303,
+    4.0
+  ],
+  "glb_coordinate_frame": "glTF Y-up",
+  "images": [
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/A/SF06/views/render_0001.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/A/SF06/views/render_0002.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/A/SF06/views/render_0003.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/A/SF06/views/render_0004.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/A/SF06/views/render_0005.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/A/SF06/views/render_0006.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/A/SF06/views/render_0007.png",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/A/SF06/views/render_0008.png"
+  ],
+  "source_sha256": "a0774b6659eab593ade0be18bfef91e1a0b4ae1879fcaa2601565102162da99b",
+  "source": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/A/SF06/source.py",
+  "source_lines": 274,
+  "new_api_call_sites": {
+    "Polygon": 0,
+    "linear_extrude": 0,
+    "rotate_extrude": 0,
+    "hull": 0
+  },
+  "finished_at": "2026-09-29T08:41:04.060965+00:00",
+  "usage": {
+    "requests": 6,
+    "input_tokens": 42437,
+    "output_tokens": 6992,
+    "reasoning_tokens": 2690,
+    "cached_tokens": 19840,
+    "cache_write_tokens": 0,
+    "total_tokens": 49429,
+    "cost": null
+  }
+}

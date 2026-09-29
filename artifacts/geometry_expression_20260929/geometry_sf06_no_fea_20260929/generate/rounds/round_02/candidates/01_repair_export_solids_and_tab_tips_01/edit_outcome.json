@@ -1,0 +1,43 @@
+{
+  "tool_events": [
+    {
+      "tool": "read_file",
+      "path": "rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/source.py",
+      "success": true,
+      "code": null,
+      "changed": null
+    },
+    {
+      "tool": "apply_patch",
+      "path": "rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/source.py",
+      "success": true,
+      "code": "PATCH_APPLIED",
+      "changed": true
+    },
+    {
+      "tool": "apply_patch",
+      "path": "rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/source.py",
+      "success": true,
+      "code": "PATCH_APPLIED",
+      "changed": true
+    },
+    {
+      "tool": "read_file",
+      "path": "rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/source.py",
+      "success": true,
+      "code": null,
+      "changed": null
+    },
+    {
+      "tool": "read_file",
+      "path": "rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/source.py",
+      "success": true,
+      "code": null,
+      "changed": null
+    }
+  ],
+  "before_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+  "after_sha256": "dc61956a61712e0aa698740340e229837aead0899560143fb921cc1d889f388f",
+  "status": "CHANGED",
+  "reason": "candidate source changed; evaluation required"
+}

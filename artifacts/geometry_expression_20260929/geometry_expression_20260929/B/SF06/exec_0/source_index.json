@@ -1,0 +1,3338 @@
+{
+  "version": 1,
+  "source_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/B/SF06/source.py",
+  "source_sha256": "8b1d215c97048b413ad2d54f5e1c21a51d599ecae26ea84262f0f6d49247ac0e",
+  "index_sha256": "e767869dc072c5441a7453b3842c0b439a82cd6ae8787449e9127fb586ae99c7",
+  "root_feature_id": "feature:ModernRoundedArmchair",
+  "source_nodes": [
+    {
+      "source_id": "source:9c41fb5fb6799c21e65a",
+      "kind": "function",
+      "name": "ellipsoid",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 12,
+        "end_line": 15,
+        "start_col": 0,
+        "end_col": 40
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Sphere",
+        "center",
+        "color",
+        "form",
+        "radii",
+        "scale_shape",
+        "translate_shape"
+      ],
+      "expression": "def ellipsoid(radii, center, color):\n    form = Sphere(1.0, color=color)\n    form = scale_shape(form, radii, center=(0.0, 0.0, 0.0))\n    return translate_shape(form, center)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:1fa4a6d1c1f94109eb9b",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 13,
+        "end_line": 13,
+        "start_col": 11,
+        "end_col": 35
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "Sphere",
+        "color"
+      ],
+      "expression": "Sphere(1.0, color=color)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:364d1cb45a9ed6aa5342",
+      "kind": "dsl_call",
+      "name": "scale_shape",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 14,
+        "end_line": 14,
+        "start_col": 11,
+        "end_col": 59
+      },
+      "parameters": [
+        "center"
+      ],
+      "dependencies": [
+        "form",
+        "radii",
+        "scale_shape"
+      ],
+      "expression": "scale_shape(form, radii, center=(0.0, 0.0, 0.0))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:657b34e1fde9bfe36a32",
+      "kind": "dsl_call",
+      "name": "translate_shape",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 15,
+        "end_line": 15,
+        "start_col": 11,
+        "end_col": 40
+      },
+      "parameters": [],
+      "dependencies": [
+        "center",
+        "form",
+        "translate_shape"
+      ],
+      "expression": "translate_shape(form, center)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:e1f1e73414a66e060fa2",
+      "kind": "class",
+      "name": "RoundedSeatBase",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 18,
+        "end_line": 35,
+        "start_col": 0,
+        "end_col": 62
+      },
+      "parameters": [
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "UPHOLSTERY_DARK",
+        "body",
+        "ellipsoid",
+        "front_left",
+        "front_right",
+        "hull",
+        "rear_left",
+        "rear_right",
+        "self",
+        "super"
+      ],
+      "expression": "class RoundedSeatBase(Asset):\n    def __init__(self):\n        super().__init__(label=\"RoundedSeatBase\")\n\n        # The rear pair is slightly narrower, while the forward centers and\n        # broad corner radii create a gently bowed, upholstered front fascia.\n        front_left = ellipsoid((0.27, 0.27, 0.155), (-0.745, -0.575, 0.775), UPHOLSTERY_DARK)\n        front_right = ellipsoid((0.27, 0.27, 0.155), (0.745, -0.575, 0.775), UPHOLSTERY_DARK)\n        rear_left = ellipsoid((0.25, 0.25, 0.155), (-0.705, 0.455, 0.775), UPHOLSTERY_DARK)\n        rear_right = ellipsoid((0.25, 0.25, 0.155), (0.705, 0.455, 0.775), UPHOLSTERY_DARK)\n        body = hull(\n            front_left,\n            front_right,\n            rear_left,\n            rear_right,\n            color=UPHOLSTERY_DARK,\n        )\n        self.body = self.attach_part(\"upholstered_body\", body)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:8e24e88526efd1c81fb4",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "RoundedSeatBase/__init__",
+      "owner_class": "RoundedSeatBase",
+      "semantic_name": null,
+      "span": {
+        "start_line": 19,
+        "end_line": 35,
+        "start_col": 4,
+        "end_col": 62
+      },
+      "parameters": [
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "UPHOLSTERY_DARK",
+        "body",
+        "ellipsoid",
+        "front_left",
+        "front_right",
+        "hull",
+        "rear_left",
+        "rear_right",
+        "self",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"RoundedSeatBase\")\n\n        # The rear pair is slightly narrower, while the forward centers and\n        # broad corner radii create a gently bowed, upholstered front fascia.\n        front_left = ellipsoid((0.27, 0.27, 0.155), (-0.745, -0.575, 0.775), UPHOLSTERY_DARK)\n        front_right = ellipsoid((0.27, 0.27, 0.155), (0.745, -0.575, 0.775), UPHOLSTERY_DARK)\n        rear_left = ellipsoid((0.25, 0.25, 0.155), (-0.705, 0.455, 0.775), UPHOLSTERY_DARK)\n        rear_right = ellipsoid((0.25, 0.25, 0.155), (0.705, 0.455, 0.775), UPHOLSTERY_DARK)\n        body = hull(\n            front_left,\n            front_right,\n            rear_left,\n            rear_right,\n            color=UPHOLSTERY_DARK,\n        )\n        self.body = self.attach_part(\"upholstered_body\", body)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:d322b82709556ec774c8",
+      "kind": "dsl_call",
+      "name": "hull",
+      "scope": "RoundedSeatBase/__init__",
+      "owner_class": "RoundedSeatBase",
+      "semantic_name": null,
+      "span": {
+        "start_line": 28,
+        "end_line": 34,
+        "start_col": 15,
+        "end_col": 9
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "UPHOLSTERY_DARK",
+        "front_left",
+        "front_right",
+        "hull",
+        "rear_left",
+        "rear_right"
+      ],
+      "expression": "hull(\n            front_left,\n            front_right,\n            rear_left,\n            rear_right,\n            color=UPHOLSTERY_DARK,\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:0b96ebd116594a40c8a0",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "RoundedSeatBase/__init__",
+      "owner_class": "RoundedSeatBase",
+      "semantic_name": "upholstered_body",
+      "span": {
+        "start_line": 35,
+        "end_line": 35,
+        "start_col": 20,
+        "end_col": 62
+      },
+      "parameters": [],
+      "dependencies": [
+        "body",
+        "self"
+      ],
+      "expression": "self.attach_part(\"upholstered_body\", body)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:24c7563b3759b7b00117",
+      "kind": "class",
+      "name": "DepressedSeatCushion",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 38,
+        "end_line": 60,
+        "start_col": 0,
+        "end_col": 77
+      },
+      "parameters": [
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "UPHOLSTERY",
+        "boolean_difference",
+        "cushion",
+        "cushion_blank",
+        "depression",
+        "ellipsoid",
+        "front_left",
+        "front_right",
+        "hull",
+        "rear_left",
+        "rear_right",
+        "self",
+        "super"
+      ],
+      "expression": "class DepressedSeatCushion(Asset):\n    def __init__(self):\n        super().__init__(label=\"DepressedSeatCushion\")\n\n        # Four soft lobes establish a rounded trapezoid that is wider at the\n        # front and narrower toward the chair back.\n        front_left = ellipsoid((0.205, 0.205, 0.135), (-0.525, -0.515, 1.055), UPHOLSTERY)\n        front_right = ellipsoid((0.205, 0.205, 0.135), (0.525, -0.515, 1.055), UPHOLSTERY)\n        rear_left = ellipsoid((0.195, 0.195, 0.13), (-0.475, 0.245, 1.045), UPHOLSTERY)\n        rear_right = ellipsoid((0.195, 0.195, 0.13), (0.475, 0.245, 1.045), UPHOLSTERY)\n        cushion_blank = hull(\n            front_left,\n            front_right,\n            rear_left,\n            rear_right,\n            color=UPHOLSTERY,\n        )\n\n        # Only the underside of this broad ellipsoid intersects the cushion,\n        # creating a shallow, smooth sat-in depression rather than a deep bowl.\n        depression = ellipsoid((0.54, 0.43, 0.15), (0.0, -0.08, 1.245), UPHOLSTERY)\n        cushion = boolean_difference(cushion_blank, depression)\n        self.cushion = self.attach_part(\"shallow_depressed_cushion\", cushion)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:1d402bf16b4542729119",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "DepressedSeatCushion/__init__",
+      "owner_class": "DepressedSeatCushion",
+      "semantic_name": null,
+      "span": {
+        "start_line": 39,
+        "end_line": 60,
+        "start_col": 4,
+        "end_col": 77
+      },
+      "parameters": [
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "UPHOLSTERY",
+        "boolean_difference",
+        "cushion",
+        "cushion_blank",
+        "depression",
+        "ellipsoid",
+        "front_left",
+        "front_right",
+        "hull",
+        "rear_left",
+        "rear_right",
+        "self",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"DepressedSeatCushion\")\n\n        # Four soft lobes establish a rounded trapezoid that is wider at the\n        # front and narrower toward the chair back.\n        front_left = ellipsoid((0.205, 0.205, 0.135), (-0.525, -0.515, 1.055), UPHOLSTERY)\n        front_right = ellipsoid((0.205, 0.205, 0.135), (0.525, -0.515, 1.055), UPHOLSTERY)\n        rear_left = ellipsoid((0.195, 0.195, 0.13), (-0.475, 0.245, 1.045), UPHOLSTERY)\n        rear_right = ellipsoid((0.195, 0.195, 0.13), (0.475, 0.245, 1.045), UPHOLSTERY)\n        cushion_blank = hull(\n            front_left,\n            front_right,\n            rear_left,\n            rear_right,\n            color=UPHOLSTERY,\n        )\n\n        # Only the underside of this broad ellipsoid intersects the cushion,\n        # creating a shallow, smooth sat-in depression rather than a deep bowl.\n        depression = ellipsoid((0.54, 0.43, 0.15), (0.0, -0.08, 1.245), UPHOLSTERY)\n        cushion = boolean_difference(cushion_blank, depression)\n        self.cushion = self.attach_part(\"shallow_depressed_cushion\", cushion)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:e9f61724cea0f02d87ac",
+      "kind": "dsl_call",
+      "name": "hull",
+      "scope": "DepressedSeatCushion/__init__",
+      "owner_class": "DepressedSeatCushion",
+      "semantic_name": null,
+      "span": {
+        "start_line": 48,
+        "end_line": 54,
+        "start_col": 24,
+        "end_col": 9
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "UPHOLSTERY",
+        "front_left",
+        "front_right",
+        "hull",
+        "rear_left",
+        "rear_right"
+      ],
+      "expression": "hull(\n            front_left,\n            front_right,\n            rear_left,\n            rear_right,\n            color=UPHOLSTERY,\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:2f385408f29493432325",
+      "kind": "dsl_call",
+      "name": "boolean_difference",
+      "scope": "DepressedSeatCushion/__init__",
+      "owner_class": "DepressedSeatCushion",
+      "semantic_name": null,
+      "span": {
+        "start_line": 59,
+        "end_line": 59,
+        "start_col": 18,
+        "end_col": 63
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_difference",
+        "cushion_blank",
+        "depression"
+      ],
+      "expression": "boolean_difference(cushion_blank, depression)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:21bd41eeb5badb45cc7c",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "DepressedSeatCushion/__init__",
+      "owner_class": "DepressedSeatCushion",
+      "semantic_name": "shallow_depressed_cushion",
+      "span": {
+        "start_line": 60,
+        "end_line": 60,
+        "start_col": 23,
+        "end_col": 77
+      },
+      "parameters": [],
+      "dependencies": [
+        "cushion",
+        "self"
+      ],
+      "expression": "self.attach_part(\"shallow_depressed_cushion\", cushion)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:30201be74568c67f1003",
+      "kind": "class",
+      "name": "CurvedBackrest",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 63,
+        "end_line": 78,
+        "start_col": 0,
+        "end_col": 60
+      },
+      "parameters": [
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "UPHOLSTERY",
+        "back",
+        "boolean_union",
+        "crown",
+        "ellipsoid",
+        "hull",
+        "lower",
+        "lower_transition",
+        "lumbar",
+        "middle_transition",
+        "self",
+        "super",
+        "upper",
+        "upper_transition"
+      ],
+      "expression": "class CurvedBackrest(Asset):\n    def __init__(self):\n        super().__init__(label=\"CurvedBackrest\")\n\n        # Section centers describe a subtle ergonomic S-curve in side view:\n        # lumbar support comes forward before the upper back leans rearward.\n        lower = ellipsoid((0.82, 0.24, 0.29), (0.0, 0.47, 1.285), UPHOLSTERY)\n        lumbar = ellipsoid((0.90, 0.21, 0.31), (0.0, 0.43, 1.50), UPHOLSTERY)\n        upper = ellipsoid((0.84, 0.19, 0.32), (0.0, 0.545, 1.76), UPHOLSTERY)\n        crown = ellipsoid((0.69, 0.17, 0.245), (0.0, 0.635, 2.005), UPHOLSTERY)\n\n        lower_transition = hull(lower, lumbar, color=UPHOLSTERY)\n        middle_transition = hull(lumbar, upper, color=UPHOLSTERY)\n        upper_transition = hull(upper, crown, color=UPHOLSTERY)\n        back = boolean_union(lower_transition, middle_transition, upper_transition)\n        self.back = self.attach_part(\"ergonomic_back\", back)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:f508fbd3b2a7073adb85",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "CurvedBackrest/__init__",
+      "owner_class": "CurvedBackrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 64,
+        "end_line": 78,
+        "start_col": 4,
+        "end_col": 60
+      },
+      "parameters": [
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "UPHOLSTERY",
+        "back",
+        "boolean_union",
+        "crown",
+        "ellipsoid",
+        "hull",
+        "lower",
+        "lower_transition",
+        "lumbar",
+        "middle_transition",
+        "self",
+        "super",
+        "upper",
+        "upper_transition"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"CurvedBackrest\")\n\n        # Section centers describe a subtle ergonomic S-curve in side view:\n        # lumbar support comes forward before the upper back leans rearward.\n        lower = ellipsoid((0.82, 0.24, 0.29), (0.0, 0.47, 1.285), UPHOLSTERY)\n        lumbar = ellipsoid((0.90, 0.21, 0.31), (0.0, 0.43, 1.50), UPHOLSTERY)\n        upper = ellipsoid((0.84, 0.19, 0.32), (0.0, 0.545, 1.76), UPHOLSTERY)\n        crown = ellipsoid((0.69, 0.17, 0.245), (0.0, 0.635, 2.005), UPHOLSTERY)\n\n        lower_transition = hull(lower, lumbar, color=UPHOLSTERY)\n        middle_transition = hull(lumbar, upper, color=UPHOLSTERY)\n        upper_transition = hull(upper, crown, color=UPHOLSTERY)\n        back = boolean_union(lower_transition, middle_transition, upper_transition)\n        self.back = self.attach_part(\"ergonomic_back\", back)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:a12f718d15ceac405290",
+      "kind": "dsl_call",
+      "name": "hull",
+      "scope": "CurvedBackrest/__init__",
+      "owner_class": "CurvedBackrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 74,
+        "end_line": 74,
+        "start_col": 27,
+        "end_col": 64
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "UPHOLSTERY",
+        "hull",
+        "lower",
+        "lumbar"
+      ],
+      "expression": "hull(lower, lumbar, color=UPHOLSTERY)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:7fdda7989c274ca97bb9",
+      "kind": "dsl_call",
+      "name": "hull",
+      "scope": "CurvedBackrest/__init__",
+      "owner_class": "CurvedBackrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 75,
+        "end_line": 75,
+        "start_col": 28,
+        "end_col": 65
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "UPHOLSTERY",
+        "hull",
+        "lumbar",
+        "upper"
+      ],
+      "expression": "hull(lumbar, upper, color=UPHOLSTERY)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:a399174f334ec96fb355",
+      "kind": "dsl_call",
+      "name": "hull",
+      "scope": "CurvedBackrest/__init__",
+      "owner_class": "CurvedBackrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 76,
+        "end_line": 76,
+        "start_col": 27,
+        "end_col": 63
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "UPHOLSTERY",
+        "crown",
+        "hull",
+        "upper"
+      ],
+      "expression": "hull(upper, crown, color=UPHOLSTERY)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:9764d83fa42f0a617aae",
+      "kind": "dsl_call",
+      "name": "boolean_union",
+      "scope": "CurvedBackrest/__init__",
+      "owner_class": "CurvedBackrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 77,
+        "end_line": 77,
+        "start_col": 15,
+        "end_col": 83
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_union",
+        "lower_transition",
+        "middle_transition",
+        "upper_transition"
+      ],
+      "expression": "boolean_union(lower_transition, middle_transition, upper_transition)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:43d4136934a804323448",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "CurvedBackrest/__init__",
+      "owner_class": "CurvedBackrest",
+      "semantic_name": "ergonomic_back",
+      "span": {
+        "start_line": 78,
+        "end_line": 78,
+        "start_col": 20,
+        "end_col": 60
+      },
+      "parameters": [],
+      "dependencies": [
+        "back",
+        "self"
+      ],
+      "expression": "self.attach_part(\"ergonomic_back\", back)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:ddaf8da3f872bb46a911",
+      "kind": "class",
+      "name": "CurvedArmrest",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 81,
+        "end_line": 95,
+        "start_col": 0,
+        "end_col": 57
+      },
+      "parameters": [
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "UPHOLSTERY",
+        "arm",
+        "boolean_union",
+        "elbow",
+        "ellipsoid",
+        "front",
+        "front_sweep",
+        "hull",
+        "label",
+        "rear",
+        "rear_sweep",
+        "self",
+        "side",
+        "super",
+        "x"
+      ],
+      "expression": "class CurvedArmrest(Asset):\n    def __init__(self, side):\n        label = \"LeftArmrest\" if side < 0 else \"RightArmrest\"\n        super().__init__(label=label)\n        x = 0.875 * side\n\n        # The rail starts behind the cushion front and rises rearward into the\n        # lower backrest. Matching centers and radii preserve exact symmetry.\n        front = ellipsoid((0.215, 0.255, 0.17), (x, -0.245, 1.185), UPHOLSTERY)\n        elbow = ellipsoid((0.225, 0.285, 0.18), (x, 0.005, 1.325), UPHOLSTERY)\n        rear = ellipsoid((0.24, 0.285, 0.21), (x, 0.315, 1.43), UPHOLSTERY)\n        front_sweep = hull(front, elbow, color=UPHOLSTERY)\n        rear_sweep = hull(elbow, rear, color=UPHOLSTERY)\n        arm = boolean_union(front_sweep, rear_sweep)\n        self.rail = self.attach_part(\"rounded_rail\", arm)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:e22e83383b3a00230321",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "CurvedArmrest/__init__",
+      "owner_class": "CurvedArmrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 82,
+        "end_line": 95,
+        "start_col": 4,
+        "end_col": 57
+      },
+      "parameters": [
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "UPHOLSTERY",
+        "arm",
+        "boolean_union",
+        "elbow",
+        "ellipsoid",
+        "front",
+        "front_sweep",
+        "hull",
+        "label",
+        "rear",
+        "rear_sweep",
+        "self",
+        "side",
+        "super",
+        "x"
+      ],
+      "expression": "def __init__(self, side):\n        label = \"LeftArmrest\" if side < 0 else \"RightArmrest\"\n        super().__init__(label=label)\n        x = 0.875 * side\n\n        # The rail starts behind the cushion front and rises rearward into the\n        # lower backrest. Matching centers and radii preserve exact symmetry.\n        front = ellipsoid((0.215, 0.255, 0.17), (x, -0.245, 1.185), UPHOLSTERY)\n        elbow = ellipsoid((0.225, 0.285, 0.18), (x, 0.005, 1.325), UPHOLSTERY)\n        rear = ellipsoid((0.24, 0.285, 0.21), (x, 0.315, 1.43), UPHOLSTERY)\n        front_sweep = hull(front, elbow, color=UPHOLSTERY)\n        rear_sweep = hull(elbow, rear, color=UPHOLSTERY)\n        arm = boolean_union(front_sweep, rear_sweep)\n        self.rail = self.attach_part(\"rounded_rail\", arm)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:6f2194b093514e583de4",
+      "kind": "dsl_call",
+      "name": "hull",
+      "scope": "CurvedArmrest/__init__",
+      "owner_class": "CurvedArmrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 92,
+        "end_line": 92,
+        "start_col": 22,
+        "end_col": 58
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "UPHOLSTERY",
+        "elbow",
+        "front",
+        "hull"
+      ],
+      "expression": "hull(front, elbow, color=UPHOLSTERY)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:340f7b80725b53cb4558",
+      "kind": "dsl_call",
+      "name": "hull",
+      "scope": "CurvedArmrest/__init__",
+      "owner_class": "CurvedArmrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 93,
+        "end_line": 93,
+        "start_col": 21,
+        "end_col": 56
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "UPHOLSTERY",
+        "elbow",
+        "hull",
+        "rear"
+      ],
+      "expression": "hull(elbow, rear, color=UPHOLSTERY)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:94472796f8b7f3abd706",
+      "kind": "dsl_call",
+      "name": "boolean_union",
+      "scope": "CurvedArmrest/__init__",
+      "owner_class": "CurvedArmrest",
+      "semantic_name": null,
+      "span": {
+        "start_line": 94,
+        "end_line": 94,
+        "start_col": 14,
+        "end_col": 52
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_union",
+        "front_sweep",
+        "rear_sweep"
+      ],
+      "expression": "boolean_union(front_sweep, rear_sweep)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:ba0b845e87143850b3f8",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "CurvedArmrest/__init__",
+      "owner_class": "CurvedArmrest",
+      "semantic_name": "rounded_rail",
+      "span": {
+        "start_line": 95,
+        "end_line": 95,
+        "start_col": 20,
+        "end_col": 57
+      },
+      "parameters": [],
+      "dependencies": [
+        "arm",
+        "self"
+      ],
+      "expression": "self.attach_part(\"rounded_rail\", arm)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:f9f678df26ac8364bbc1",
+      "kind": "class",
+      "name": "SquareWoodenLeg",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 98,
+        "end_line": 102,
+        "start_col": 0,
+        "end_col": 56
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "Cube",
+        "WOOD",
+        "leg",
+        "self",
+        "super",
+        "x",
+        "y"
+      ],
+      "expression": "class SquareWoodenLeg(Asset):\n    def __init__(self, x, y):\n        super().__init__(label=\"SquareWoodenLeg\")\n        leg = Cube((0.145, 0.145, 0.625), center=(x, y, 0.3125), color=WOOD)\n        self.post = self.attach_part(\"square_post\", leg)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:91d0abb6ba263ab3d404",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "SquareWoodenLeg/__init__",
+      "owner_class": "SquareWoodenLeg",
+      "semantic_name": null,
+      "span": {
+        "start_line": 99,
+        "end_line": 102,
+        "start_col": 4,
+        "end_col": 56
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Cube",
+        "WOOD",
+        "leg",
+        "self",
+        "super",
+        "x",
+        "y"
+      ],
+      "expression": "def __init__(self, x, y):\n        super().__init__(label=\"SquareWoodenLeg\")\n        leg = Cube((0.145, 0.145, 0.625), center=(x, y, 0.3125), color=WOOD)\n        self.post = self.attach_part(\"square_post\", leg)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:a2784c09672db4ac4d4d",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "SquareWoodenLeg/__init__",
+      "owner_class": "SquareWoodenLeg",
+      "semantic_name": null,
+      "span": {
+        "start_line": 101,
+        "end_line": 101,
+        "start_col": 14,
+        "end_col": 76
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Cube",
+        "WOOD",
+        "x",
+        "y"
+      ],
+      "expression": "Cube((0.145, 0.145, 0.625), center=(x, y, 0.3125), color=WOOD)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:c4846773c6a2fe1b1baa",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "SquareWoodenLeg/__init__",
+      "owner_class": "SquareWoodenLeg",
+      "semantic_name": "square_post",
+      "span": {
+        "start_line": 102,
+        "end_line": 102,
+        "start_col": 20,
+        "end_col": 56
+      },
+      "parameters": [],
+      "dependencies": [
+        "leg",
+        "self"
+      ],
+      "expression": "self.attach_part(\"square_post\", leg)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:d7c4f773802ecb4e4ef5",
+      "kind": "class",
+      "name": "NailheadTrim",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 105,
+        "end_line": 116,
+        "start_col": 0,
+        "end_col": 59
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "METAL",
+        "Sphere",
+        "count",
+        "index",
+        "normalized",
+        "range",
+        "self",
+        "span",
+        "stud",
+        "super",
+        "x",
+        "y"
+      ],
+      "expression": "class NailheadTrim(Asset):\n    def __init__(self):\n        super().__init__(label=\"NailheadTrim\")\n        count = 15\n        span = 1.50\n        for index in range(count):\n            x = -span / 2.0 + span * index / (count - 1)\n            # A slight forward bow follows the convex front fascia.\n            normalized = x / (span / 2.0)\n            y = -0.828 - 0.026 * (1.0 - normalized * normalized)\n            stud = Sphere(0.035, center=(x, y, 0.735), color=METAL)\n            self.attach_part(f\"stud_{index + 1:02d}\", stud)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:108b1bf8b929fb3140f0",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "NailheadTrim/__init__",
+      "owner_class": "NailheadTrim",
+      "semantic_name": null,
+      "span": {
+        "start_line": 106,
+        "end_line": 116,
+        "start_col": 4,
+        "end_col": 59
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "METAL",
+        "Sphere",
+        "count",
+        "index",
+        "normalized",
+        "range",
+        "self",
+        "span",
+        "stud",
+        "super",
+        "x",
+        "y"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"NailheadTrim\")\n        count = 15\n        span = 1.50\n        for index in range(count):\n            x = -span / 2.0 + span * index / (count - 1)\n            # A slight forward bow follows the convex front fascia.\n            normalized = x / (span / 2.0)\n            y = -0.828 - 0.026 * (1.0 - normalized * normalized)\n            stud = Sphere(0.035, center=(x, y, 0.735), color=METAL)\n            self.attach_part(f\"stud_{index + 1:02d}\", stud)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:d3ba3f8cc4408ba4a448",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "NailheadTrim/__init__",
+      "owner_class": "NailheadTrim",
+      "semantic_name": null,
+      "span": {
+        "start_line": 115,
+        "end_line": 115,
+        "start_col": 19,
+        "end_col": 67
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "METAL",
+        "Sphere",
+        "x",
+        "y"
+      ],
+      "expression": "Sphere(0.035, center=(x, y, 0.735), color=METAL)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:173ef7eef8e75ee9a909",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "NailheadTrim/__init__",
+      "owner_class": "NailheadTrim",
+      "semantic_name": null,
+      "span": {
+        "start_line": 116,
+        "end_line": 116,
+        "start_col": 12,
+        "end_col": 59
+      },
+      "parameters": [],
+      "dependencies": [
+        "index",
+        "self",
+        "stud"
+      ],
+      "expression": "self.attach_part(f\"stud_{index + 1:02d}\", stud)",
+      "resolution": "partial"
+    },
+    {
+      "source_id": "source:dceaff60a2278d20f5fa",
+      "kind": "class",
+      "name": "PresentationBackground",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 119,
+        "end_line": 125,
+        "start_col": 0,
+        "end_col": 66
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "BLACK",
+        "Cube",
+        "floor",
+        "rear",
+        "self",
+        "super"
+      ],
+      "expression": "class PresentationBackground(Asset):\n    def __init__(self):\n        super().__init__(label=\"PresentationBackground\")\n        floor = Cube((5.0, 4.0, 0.03), center=(0.0, 0.0, -0.015), color=BLACK)\n        rear = Cube((5.0, 0.03, 3.2), center=(0.0, 1.62, 1.60), color=BLACK)\n        self.floor = self.attach_part(\"matte_black_floor\", floor)\n        self.rear = self.attach_part(\"matte_black_backdrop\", rear)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:6374f309d5065b0a0f67",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "PresentationBackground/__init__",
+      "owner_class": "PresentationBackground",
+      "semantic_name": null,
+      "span": {
+        "start_line": 120,
+        "end_line": 125,
+        "start_col": 4,
+        "end_col": 66
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "BLACK",
+        "Cube",
+        "floor",
+        "rear",
+        "self",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"PresentationBackground\")\n        floor = Cube((5.0, 4.0, 0.03), center=(0.0, 0.0, -0.015), color=BLACK)\n        rear = Cube((5.0, 0.03, 3.2), center=(0.0, 1.62, 1.60), color=BLACK)\n        self.floor = self.attach_part(\"matte_black_floor\", floor)\n        self.rear = self.attach_part(\"matte_black_backdrop\", rear)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:304e3e6eab4c666da491",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "PresentationBackground/__init__",
+      "owner_class": "PresentationBackground",
+      "semantic_name": null,
+      "span": {
+        "start_line": 122,
+        "end_line": 122,
+        "start_col": 16,
+        "end_col": 78
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "BLACK",
+        "Cube"
+      ],
+      "expression": "Cube((5.0, 4.0, 0.03), center=(0.0, 0.0, -0.015), color=BLACK)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:5a8baa84d1ee93ce0ae9",
+      "kind": "dsl_call",
+      "name": "Cube",
+      "scope": "PresentationBackground/__init__",
+      "owner_class": "PresentationBackground",
+      "semantic_name": null,
+      "span": {
+        "start_line": 123,
+        "end_line": 123,
+        "start_col": 15,
+        "end_col": 76
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "BLACK",
+        "Cube"
+      ],
+      "expression": "Cube((5.0, 0.03, 3.2), center=(0.0, 1.62, 1.60), color=BLACK)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:879ca2560671a8e8cd19",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "PresentationBackground/__init__",
+      "owner_class": "PresentationBackground",
+      "semantic_name": "matte_black_floor",
+      "span": {
+        "start_line": 124,
+        "end_line": 124,
+        "start_col": 21,
+        "end_col": 65
+      },
+      "parameters": [],
+      "dependencies": [
+        "floor",
+        "self"
+      ],
+      "expression": "self.attach_part(\"matte_black_floor\", floor)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:3f53686ae6786626245a",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "PresentationBackground/__init__",
+      "owner_class": "PresentationBackground",
+      "semantic_name": "matte_black_backdrop",
+      "span": {
+        "start_line": 125,
+        "end_line": 125,
+        "start_col": 20,
+        "end_col": 66
+      },
+      "parameters": [],
+      "dependencies": [
+        "rear",
+        "self"
+      ],
+      "expression": "self.attach_part(\"matte_black_backdrop\", rear)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:871dd2fbe77627e0469d",
+      "kind": "class",
+      "name": "ModernRoundedArmchair",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 128,
+        "end_line": 152,
+        "start_col": 0,
+        "end_col": 78
+      },
+      "parameters": [
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "CurvedArmrest",
+        "CurvedBackrest",
+        "DepressedSeatCushion",
+        "NailheadTrim",
+        "PresentationBackground",
+        "RoundedSeatBase",
+        "SquareWoodenLeg",
+        "self",
+        "super"
+      ],
+      "expression": "class ModernRoundedArmchair(Asset):\n    def __init__(self):\n        super().__init__(label=\"ModernRoundedArmchair\")\n\n        self.background = self.attach_part(\"presentation_background\", PresentationBackground())\n\n        self.front_left_leg = self.attach_part(\n            \"front_left_leg\", SquareWoodenLeg(-0.73, -0.515)\n        )\n        self.front_right_leg = self.attach_part(\n            \"front_right_leg\", SquareWoodenLeg(0.73, -0.515)\n        )\n        self.rear_left_leg = self.attach_part(\n            \"rear_left_leg\", SquareWoodenLeg(-0.69, 0.37)\n        )\n        self.rear_right_leg = self.attach_part(\n            \"rear_right_leg\", SquareWoodenLeg(0.69, 0.37)\n        )\n\n        self.seat_base = self.attach_part(\"seat_base\", RoundedSeatBase())\n        self.seat_cushion = self.attach_part(\"seat_cushion\", DepressedSeatCushion())\n        self.backrest = self.attach_part(\"backrest\", CurvedBackrest())\n        self.left_armrest = self.attach_part(\"left_armrest\", CurvedArmrest(-1))\n        self.right_armrest = self.attach_part(\"right_armrest\", CurvedArmrest(1))\n        self.nailhead_trim = self.attach_part(\"nailhead_trim\", NailheadTrim())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:6247d7cdc3f3a1808efd",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": null,
+      "span": {
+        "start_line": 129,
+        "end_line": 152,
+        "start_col": 4,
+        "end_col": 78
+      },
+      "parameters": [
+        "label"
+      ],
+      "dependencies": [
+        "CurvedArmrest",
+        "CurvedBackrest",
+        "DepressedSeatCushion",
+        "NailheadTrim",
+        "PresentationBackground",
+        "RoundedSeatBase",
+        "SquareWoodenLeg",
+        "self",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"ModernRoundedArmchair\")\n\n        self.background = self.attach_part(\"presentation_background\", PresentationBackground())\n\n        self.front_left_leg = self.attach_part(\n            \"front_left_leg\", SquareWoodenLeg(-0.73, -0.515)\n        )\n        self.front_right_leg = self.attach_part(\n            \"front_right_leg\", SquareWoodenLeg(0.73, -0.515)\n        )\n        self.rear_left_leg = self.attach_part(\n            \"rear_left_leg\", SquareWoodenLeg(-0.69, 0.37)\n        )\n        self.rear_right_leg = self.attach_part(\n            \"rear_right_leg\", SquareWoodenLeg(0.69, 0.37)\n        )\n\n        self.seat_base = self.attach_part(\"seat_base\", RoundedSeatBase())\n        self.seat_cushion = self.attach_part(\"seat_cushion\", DepressedSeatCushion())\n        self.backrest = self.attach_part(\"backrest\", CurvedBackrest())\n        self.left_armrest = self.attach_part(\"left_armrest\", CurvedArmrest(-1))\n        self.right_armrest = self.attach_part(\"right_armrest\", CurvedArmrest(1))\n        self.nailhead_trim = self.attach_part(\"nailhead_trim\", NailheadTrim())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:382dbccf7ab34424ff5d",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "presentation_background",
+      "span": {
+        "start_line": 132,
+        "end_line": 132,
+        "start_col": 26,
+        "end_col": 95
+      },
+      "parameters": [],
+      "dependencies": [
+        "PresentationBackground",
+        "self"
+      ],
+      "expression": "self.attach_part(\"presentation_background\", PresentationBackground())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:9b5048832cf4d467c472",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "front_left_leg",
+      "span": {
+        "start_line": 134,
+        "end_line": 136,
+        "start_col": 30,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "SquareWoodenLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"front_left_leg\", SquareWoodenLeg(-0.73, -0.515)\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:509edd93d2bf65d191aa",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "front_right_leg",
+      "span": {
+        "start_line": 137,
+        "end_line": 139,
+        "start_col": 31,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "SquareWoodenLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"front_right_leg\", SquareWoodenLeg(0.73, -0.515)\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:71b96239de0bfd361a48",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "rear_left_leg",
+      "span": {
+        "start_line": 140,
+        "end_line": 142,
+        "start_col": 29,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "SquareWoodenLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"rear_left_leg\", SquareWoodenLeg(-0.69, 0.37)\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:f201413e503571973030",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "rear_right_leg",
+      "span": {
+        "start_line": 143,
+        "end_line": 145,
+        "start_col": 30,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "SquareWoodenLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"rear_right_leg\", SquareWoodenLeg(0.69, 0.37)\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:9dcee8440e48e504211a",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "seat_base",
+      "span": {
+        "start_line": 147,
+        "end_line": 147,
+        "start_col": 25,
+        "end_col": 73
+      },
+      "parameters": [],
+      "dependencies": [
+        "RoundedSeatBase",
+        "self"
+      ],
+      "expression": "self.attach_part(\"seat_base\", RoundedSeatBase())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:4e0df93ef7d1b141e22e",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "seat_cushion",
+      "span": {
+        "start_line": 148,
+        "end_line": 148,
+        "start_col": 28,
+        "end_col": 84
+      },
+      "parameters": [],
+      "dependencies": [
+        "DepressedSeatCushion",
+        "self"
+      ],
+      "expression": "self.attach_part(\"seat_cushion\", DepressedSeatCushion())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:521d802afad44eb1abea",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "backrest",
+      "span": {
+        "start_line": 149,
+        "end_line": 149,
+        "start_col": 24,
+        "end_col": 70
+      },
+      "parameters": [],
+      "dependencies": [
+        "CurvedBackrest",
+        "self"
+      ],
+      "expression": "self.attach_part(\"backrest\", CurvedBackrest())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:8ae21df85b823ae8b5b4",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "left_armrest",
+      "span": {
+        "start_line": 150,
+        "end_line": 150,
+        "start_col": 28,
+        "end_col": 79
+      },
+      "parameters": [],
+      "dependencies": [
+        "CurvedArmrest",
+        "self"
+      ],
+      "expression": "self.attach_part(\"left_armrest\", CurvedArmrest(-1))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:06dbc3c92f85c313ed4c",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "right_armrest",
+      "span": {
+        "start_line": 151,
+        "end_line": 151,
+        "start_col": 29,
+        "end_col": 80
+      },
+      "parameters": [],
+      "dependencies": [
+        "CurvedArmrest",
+        "self"
+      ],
+      "expression": "self.attach_part(\"right_armrest\", CurvedArmrest(1))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:b33988d650a98bb6a936",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "ModernRoundedArmchair/__init__",
+      "owner_class": "ModernRoundedArmchair",
+      "semantic_name": "nailhead_trim",
+      "span": {
+        "start_line": 152,
+        "end_line": 152,
+        "start_col": 29,
+        "end_col": 78
+      },
+      "parameters": [],
+      "dependencies": [
+        "NailheadTrim",
+        "self"
+      ],
+      "expression": "self.attach_part(\"nailhead_trim\", NailheadTrim())",
+      "resolution": "complete"
+    }
+  ],
+  "features": [
+    {
+      "feature_id": "feature:ModernRoundedArmchair",
+      "semantic_path": "ModernRoundedArmchair",
+      "name": "ModernRoundedArmchair",
+      "asset_class": "ModernRoundedArmchair",
+      "parent_feature_id": null,
+      "attach_mode": "root",
+      "bounds": [
+        [
+          -2.5,
+          -2.0,
+          -0.03
+        ],
+        [
+          2.5,
+          2.0,
+          3.2
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:871dd2fbe77627e0469d"
+      ],
+      "source_locations": [
+        "L128-L152"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/presentation_background",
+      "semantic_path": "ModernRoundedArmchair/presentation_background",
+      "name": "presentation_background",
+      "asset_class": "PresentationBackground",
+      "parent_feature_id": "feature:ModernRoundedArmchair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.5,
+          -2.0,
+          -0.03
+        ],
+        [
+          2.5,
+          2.0,
+          3.2
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:382dbccf7ab34424ff5d",
+        "source:dceaff60a2278d20f5fa"
+      ],
+      "source_locations": [
+        "L132-L132",
+        "L119-L125"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/presentation_background/matte_black_floor",
+      "semantic_path": "ModernRoundedArmchair/presentation_background/matte_black_floor",
+      "name": "matte_black_floor",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:ModernRoundedArmchair/presentation_background",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.5,
+          -2.0,
+          -0.03
+        ],
+        [
+          2.5,
+          2.0,
+          0.0
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:879ca2560671a8e8cd19"
+      ],
+      "source_locations": [
+        "L124-L124"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/presentation_background/matte_black_backdrop",
+      "semantic_path": "ModernRoundedArmchair/presentation_background/matte_black_backdrop",
+      "name": "matte_black_backdrop",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:ModernRoundedArmchair/presentation_background",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.5,
+          1.6050000000000002,
+          0.0
+        ],
+        [
+          2.5,
+          1.635,
+          3.2
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:3f53686ae6786626245a"
+      ],
+      "source_locations": [
+        "L125-L125"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/front_left_leg",
+      "semantic_path": "ModernRoundedArmchair/front_left_leg",
+      "name": "front_left_leg",
+      "asset_class": "SquareWoodenLeg",
+      "parent_feature_id": "feature:ModernRoundedArmchair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.8025,
+          -0.5875,
+          0.0
+        ],
+        [
+          -0.6575,
+          -0.4425,
+          0.625
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:9b5048832cf4d467c472",
+        "source:f9f678df26ac8364bbc1"
+      ],
+      "source_locations": [
+        "L134-L136",
+        "L98-L102"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/front_left_leg/square_post",
+      "semantic_path": "ModernRoundedArmchair/front_left_leg/square_post",
+      "name": "square_post",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:ModernRoundedArmchair/front_left_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.8025,
+          -0.5875,
+          0.0
+        ],
+        [
+          -0.6575,
+          -0.4425,
+          0.625
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:c4846773c6a2fe1b1baa"
+      ],
+      "source_locations": [
+        "L102-L102"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/front_right_leg",
+      "semantic_path": "ModernRoundedArmchair/front_right_leg",
+      "name": "front_right_leg",
+      "asset_class": "SquareWoodenLeg",
+      "parent_feature_id": "feature:ModernRoundedArmchair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6575,
+          -0.5875,
+          0.0
+        ],
+        [
+          0.8025,
+          -0.4425,
+          0.625
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:509edd93d2bf65d191aa",
+        "source:f9f678df26ac8364bbc1"
+      ],
+      "source_locations": [
+        "L137-L139",
+        "L98-L102"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/front_right_leg/square_post",
+      "semantic_path": "ModernRoundedArmchair/front_right_leg/square_post",
+      "name": "square_post",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:ModernRoundedArmchair/front_right_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6575,
+          -0.5875,
+          0.0
+        ],
+        [
+          0.8025,
+          -0.4425,
+          0.625
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:c4846773c6a2fe1b1baa"
+      ],
+      "source_locations": [
+        "L102-L102"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/rear_left_leg",
+      "semantic_path": "ModernRoundedArmchair/rear_left_leg",
+      "name": "rear_left_leg",
+      "asset_class": "SquareWoodenLeg",
+      "parent_feature_id": "feature:ModernRoundedArmchair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.7625,
+          0.2975,
+          0.0
+        ],
+        [
+          -0.6174999999999999,
+          0.4425,
+          0.625
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:71b96239de0bfd361a48",
+        "source:f9f678df26ac8364bbc1"
+      ],
+      "source_locations": [
+        "L140-L142",
+        "L98-L102"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/rear_left_leg/square_post",
+      "semantic_path": "ModernRoundedArmchair/rear_left_leg/square_post",
+      "name": "square_post",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:ModernRoundedArmchair/rear_left_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.7625,
+          0.2975,
+          0.0
+        ],
+        [
+          -0.6174999999999999,
+          0.4425,
+          0.625
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:c4846773c6a2fe1b1baa"
+      ],
+      "source_locations": [
+        "L102-L102"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/rear_right_leg",
+      "semantic_path": "ModernRoundedArmchair/rear_right_leg",
+      "name": "rear_right_leg",
+      "asset_class": "SquareWoodenLeg",
+      "parent_feature_id": "feature:ModernRoundedArmchair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6174999999999999,
+          0.2975,
+          0.0
+        ],
+        [
+          0.7625,
+          0.4425,
+          0.625
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:f201413e503571973030",
+        "source:f9f678df26ac8364bbc1"
+      ],
+      "source_locations": [
+        "L143-L145",
+        "L98-L102"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/rear_right_leg/square_post",
+      "semantic_path": "ModernRoundedArmchair/rear_right_leg/square_post",
+      "name": "square_post",
+      "asset_class": "Cube",
+      "parent_feature_id": "feature:ModernRoundedArmchair/rear_right_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6174999999999999,
+          0.2975,
+          0.0
+        ],
+        [
+          0.7625,
+          0.4425,
+          0.625
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:c4846773c6a2fe1b1baa"
+      ],
+      "source_locations": [
+        "L102-L102"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/seat_base",
+      "semantic_path": "ModernRoundedArmchair/seat_base",
+      "name": "seat_base",
+      "asset_class": "RoundedSeatBase",
+      "parent_feature_id": "feature:ModernRoundedArmchair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.0150000000000001,
+          -0.845,
+          0.62
+        ],
+        [
+          1.0150000000000001,
+          0.7050000000000001,
+          0.93
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:9dcee8440e48e504211a",
+        "source:e1f1e73414a66e060fa2"
+      ],
+      "source_locations": [
+        "L147-L147",
+        "L18-L35"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/seat_base/upholstered_body",
+      "semantic_path": "ModernRoundedArmchair/seat_base/upholstered_body",
+      "name": "upholstered_body",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:ModernRoundedArmchair/seat_base",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.0150000000000001,
+          -0.845,
+          0.62
+        ],
+        [
+          1.0150000000000001,
+          0.7050000000000001,
+          0.93
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:0b96ebd116594a40c8a0"
+      ],
+      "source_locations": [
+        "L35-L35"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/seat_base/upholstered_body/op_0",
+      "semantic_path": "ModernRoundedArmchair/seat_base/upholstered_body/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/seat_base/upholstered_body",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.0150000000000001,
+          -0.845,
+          0.62
+        ],
+        [
+          -0.475,
+          -0.30499999999999994,
+          0.93
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/seat_base/upholstered_body/op_1",
+      "semantic_path": "ModernRoundedArmchair/seat_base/upholstered_body/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/seat_base/upholstered_body",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.475,
+          -0.845,
+          0.62
+        ],
+        [
+          1.0150000000000001,
+          -0.30499999999999994,
+          0.93
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/seat_base/upholstered_body/op_2",
+      "semantic_path": "ModernRoundedArmchair/seat_base/upholstered_body/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/seat_base/upholstered_body",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.955,
+          0.20500000000000002,
+          0.62
+        ],
+        [
+          -0.45499999999999996,
+          0.7050000000000001,
+          0.93
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/seat_base/upholstered_body/op_3",
+      "semantic_path": "ModernRoundedArmchair/seat_base/upholstered_body/op_3",
+      "name": "op_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/seat_base/upholstered_body",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.45499999999999996,
+          0.20500000000000002,
+          0.62
+        ],
+        [
+          0.955,
+          0.7050000000000001,
+          0.93
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/seat_cushion",
+      "semantic_path": "ModernRoundedArmchair/seat_cushion",
+      "name": "seat_cushion",
+      "asset_class": "DepressedSeatCushion",
+      "parent_feature_id": "feature:ModernRoundedArmchair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.73,
+          -0.72,
+          0.9149999999999999
+        ],
+        [
+          0.73,
+          0.44,
+          1.19
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:4e0df93ef7d1b141e22e",
+        "source:24c7563b3759b7b00117"
+      ],
+      "source_locations": [
+        "L148-L148",
+        "L38-L60"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion",
+      "semantic_path": "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion",
+      "name": "shallow_depressed_cushion",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:ModernRoundedArmchair/seat_cushion",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.73,
+          -0.72,
+          0.9149999999999999
+        ],
+        [
+          0.73,
+          0.44,
+          1.19
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:21bd41eeb5badb45cc7c"
+      ],
+      "source_locations": [
+        "L60-L60"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base",
+      "semantic_path": "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base",
+      "name": "base",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.73,
+          -0.72,
+          0.9149999999999999
+        ],
+        [
+          0.73,
+          0.44,
+          1.19
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_0",
+      "semantic_path": "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.73,
+          -0.72,
+          0.9199999999999999
+        ],
+        [
+          -0.32000000000000006,
+          -0.31000000000000005,
+          1.19
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_1",
+      "semantic_path": "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.32000000000000006,
+          -0.72,
+          0.9199999999999999
+        ],
+        [
+          0.73,
+          -0.31000000000000005,
+          1.19
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_2",
+      "semantic_path": "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.6699999999999999,
+          0.04999999999999999,
+          0.9149999999999999
+        ],
+        [
+          -0.27999999999999997,
+          0.44,
+          1.1749999999999998
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_3",
+      "semantic_path": "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_3",
+      "name": "op_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.27999999999999997,
+          0.04999999999999999,
+          0.9149999999999999
+        ],
+        [
+          0.6699999999999999,
+          0.44,
+          1.1749999999999998
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/op_0",
+      "semantic_path": "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.54,
+          -0.51,
+          1.0950000000000002
+        ],
+        [
+          0.54,
+          0.35,
+          1.395
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/backrest",
+      "semantic_path": "ModernRoundedArmchair/backrest",
+      "name": "backrest",
+      "asset_class": "CurvedBackrest",
+      "parent_feature_id": "feature:ModernRoundedArmchair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.9,
+          0.22,
+          0.9949999999999999
+        ],
+        [
+          0.9,
+          0.805,
+          2.25
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:521d802afad44eb1abea",
+        "source:30201be74568c67f1003"
+      ],
+      "source_locations": [
+        "L149-L149",
+        "L63-L78"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back",
+      "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back",
+      "name": "ergonomic_back",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:ModernRoundedArmchair/backrest",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.9,
+          0.22,
+          0.9949999999999999
+        ],
+        [
+          0.9,
+          0.805,
+          2.25
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:43d4136934a804323448"
+      ],
+      "source_locations": [
+        "L78-L78"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_0",
+      "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_0",
+      "name": "op_0",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.9,
+          0.22,
+          0.9949999999999999
+        ],
+        [
+          0.9,
+          0.71,
+          1.81
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_0/op_0",
+      "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_0/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.82,
+          0.22999999999999998,
+          0.9949999999999999
+        ],
+        [
+          0.82,
+          0.71,
+          1.575
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_0/op_1",
+      "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_0/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.9,
+          0.22,
+          1.19
+        ],
+        [
+          0.9,
+          0.64,
+          1.81
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_1",
+      "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_1",
+      "name": "op_1",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.9,
+          0.22,
+          1.19
+        ],
+        [
+          0.9,
+          0.7350000000000001,
+          2.08
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_1/op_0",
+      "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_1/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.9,
+          0.22,
+          1.19
+        ],
+        [
+          0.9,
+          0.64,
+          1.81
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_1/op_1",
+      "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_1/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.84,
+          0.35500000000000004,
+          1.44
+        ],
+        [
+          0.84,
+          0.7350000000000001,
+          2.08
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_2",
+      "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_2",
+      "name": "op_2",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.84,
+          0.35500000000000004,
+          1.44
+        ],
+        [
+          0.84,
+          0.805,
+          2.25
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_2/op_0",
+      "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_2/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.84,
+          0.35500000000000004,
+          1.44
+        ],
+        [
+          0.84,
+          0.7350000000000001,
+          2.08
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_2/op_1",
+      "semantic_path": "ModernRoundedArmchair/backrest/ergonomic_back/op_2/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/backrest/ergonomic_back/op_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.69,
+          0.46499999999999997,
+          1.7599999999999998
+        ],
+        [
+          0.69,
+          0.805,
+          2.25
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/left_armrest",
+      "semantic_path": "ModernRoundedArmchair/left_armrest",
+      "name": "left_armrest",
+      "asset_class": "CurvedArmrest",
+      "parent_feature_id": "feature:ModernRoundedArmchair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.115,
+          -0.5,
+          1.0150000000000001
+        ],
+        [
+          -0.635,
+          0.6,
+          1.64
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:8ae21df85b823ae8b5b4",
+        "source:ddaf8da3f872bb46a911"
+      ],
+      "source_locations": [
+        "L150-L150",
+        "L81-L95"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail",
+      "semantic_path": "ModernRoundedArmchair/left_armrest/rounded_rail",
+      "name": "rounded_rail",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:ModernRoundedArmchair/left_armrest",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.115,
+          -0.5,
+          1.0150000000000001
+        ],
+        [
+          -0.635,
+          0.6,
+          1.64
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:ba0b845e87143850b3f8"
+      ],
+      "source_locations": [
+        "L95-L95"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_0",
+      "semantic_path": "ModernRoundedArmchair/left_armrest/rounded_rail/op_0",
+      "name": "op_0",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.1,
+          -0.5,
+          1.0150000000000001
+        ],
+        [
+          -0.65,
+          0.29,
+          1.505
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_0/op_0",
+      "semantic_path": "ModernRoundedArmchair/left_armrest/rounded_rail/op_0/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.09,
+          -0.5,
+          1.0150000000000001
+        ],
+        [
+          -0.66,
+          0.010000000000000009,
+          1.355
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_0/op_1",
+      "semantic_path": "ModernRoundedArmchair/left_armrest/rounded_rail/op_0/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.1,
+          -0.27999999999999997,
+          1.145
+        ],
+        [
+          -0.65,
+          0.29,
+          1.505
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_1",
+      "semantic_path": "ModernRoundedArmchair/left_armrest/rounded_rail/op_1",
+      "name": "op_1",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.115,
+          -0.27999999999999997,
+          1.145
+        ],
+        [
+          -0.635,
+          0.6,
+          1.64
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_1/op_0",
+      "semantic_path": "ModernRoundedArmchair/left_armrest/rounded_rail/op_1/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.1,
+          -0.27999999999999997,
+          1.145
+        ],
+        [
+          -0.65,
+          0.29,
+          1.505
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_1/op_1",
+      "semantic_path": "ModernRoundedArmchair/left_armrest/rounded_rail/op_1/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/left_armrest/rounded_rail/op_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.115,
+          0.030000000000000027,
+          1.22
+        ],
+        [
+          -0.635,
+          0.6,
+          1.64
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/right_armrest",
+      "semantic_path": "ModernRoundedArmchair/right_armrest",
+      "name": "right_armrest",
+      "asset_class": "CurvedArmrest",
+      "parent_feature_id": "feature:ModernRoundedArmchair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.635,
+          -0.5,
+          1.0150000000000001
+        ],
+        [
+          1.115,
+          0.6,
+          1.64
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:06dbc3c92f85c313ed4c",
+        "source:ddaf8da3f872bb46a911"
+      ],
+      "source_locations": [
+        "L151-L151",
+        "L81-L95"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail",
+      "semantic_path": "ModernRoundedArmchair/right_armrest/rounded_rail",
+      "name": "rounded_rail",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:ModernRoundedArmchair/right_armrest",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.635,
+          -0.5,
+          1.0150000000000001
+        ],
+        [
+          1.115,
+          0.6,
+          1.64
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:ba0b845e87143850b3f8"
+      ],
+      "source_locations": [
+        "L95-L95"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_0",
+      "semantic_path": "ModernRoundedArmchair/right_armrest/rounded_rail/op_0",
+      "name": "op_0",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.65,
+          -0.5,
+          1.0150000000000001
+        ],
+        [
+          1.1,
+          0.29,
+          1.505
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_0/op_0",
+      "semantic_path": "ModernRoundedArmchair/right_armrest/rounded_rail/op_0/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.66,
+          -0.5,
+          1.0150000000000001
+        ],
+        [
+          1.09,
+          0.010000000000000009,
+          1.355
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_0/op_1",
+      "semantic_path": "ModernRoundedArmchair/right_armrest/rounded_rail/op_0/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.65,
+          -0.27999999999999997,
+          1.145
+        ],
+        [
+          1.1,
+          0.29,
+          1.505
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_1",
+      "semantic_path": "ModernRoundedArmchair/right_armrest/rounded_rail/op_1",
+      "name": "op_1",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.635,
+          -0.27999999999999997,
+          1.145
+        ],
+        [
+          1.115,
+          0.6,
+          1.64
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_1/op_0",
+      "semantic_path": "ModernRoundedArmchair/right_armrest/rounded_rail/op_1/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.65,
+          -0.27999999999999997,
+          1.145
+        ],
+        [
+          1.1,
+          0.29,
+          1.505
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_1/op_1",
+      "semantic_path": "ModernRoundedArmchair/right_armrest/rounded_rail/op_1/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/right_armrest/rounded_rail/op_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.635,
+          0.030000000000000027,
+          1.22
+        ],
+        [
+          1.115,
+          0.6,
+          1.64
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim",
+      "name": "nailhead_trim",
+      "asset_class": "NailheadTrim",
+      "parent_feature_id": "feature:ModernRoundedArmchair",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.785,
+          -0.889,
+          0.7
+        ],
+        [
+          0.785,
+          -0.7929999999999999,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:b33988d650a98bb6a936",
+        "source:d7c4f773802ecb4e4ef5"
+      ],
+      "source_locations": [
+        "L152-L152",
+        "L105-L116"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_01",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_01",
+      "name": "stud_01",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.785,
+          -0.863,
+          0.7
+        ],
+        [
+          -0.715,
+          -0.7929999999999999,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_02",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_02",
+      "name": "stud_02",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.6778571428571429,
+          -0.8698979591836734,
+          0.7
+        ],
+        [
+          -0.6078571428571429,
+          -0.7998979591836733,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_03",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_03",
+      "name": "stud_03",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.5707142857142857,
+          -0.875734693877551,
+          0.7
+        ],
+        [
+          -0.5007142857142857,
+          -0.8057346938775509,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_04",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_04",
+      "name": "stud_04",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.4635714285714285,
+          -0.8805102040816326,
+          0.7
+        ],
+        [
+          -0.39357142857142857,
+          -0.8105102040816325,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_05",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_05",
+      "name": "stud_05",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.35642857142857143,
+          -0.8842244897959184,
+          0.7
+        ],
+        [
+          -0.2864285714285715,
+          -0.8142244897959183,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_06",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_06",
+      "name": "stud_06",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.2492857142857143,
+          -0.8868775510204081,
+          0.7
+        ],
+        [
+          -0.1792857142857143,
+          -0.816877551020408,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_07",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_07",
+      "name": "stud_07",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.1421428571428571,
+          -0.888469387755102,
+          0.7
+        ],
+        [
+          -0.07214285714285709,
+          -0.8184693877551019,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_08",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_08",
+      "name": "stud_08",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.035,
+          -0.889,
+          0.7
+        ],
+        [
+          0.035,
+          -0.819,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_09",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_09",
+      "name": "stud_09",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.07214285714285709,
+          -0.888469387755102,
+          0.7
+        ],
+        [
+          0.1421428571428571,
+          -0.8184693877551019,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_10",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_10",
+      "name": "stud_10",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.1792857142857143,
+          -0.8868775510204081,
+          0.7
+        ],
+        [
+          0.2492857142857143,
+          -0.816877551020408,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_11",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_11",
+      "name": "stud_11",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.28642857142857137,
+          -0.8842244897959184,
+          0.7
+        ],
+        [
+          0.35642857142857143,
+          -0.8142244897959183,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_12",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_12",
+      "name": "stud_12",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.39357142857142857,
+          -0.8805102040816326,
+          0.7
+        ],
+        [
+          0.46357142857142863,
+          -0.8105102040816325,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_13",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_13",
+      "name": "stud_13",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.5007142857142858,
+          -0.875734693877551,
+          0.7
+        ],
+        [
+          0.5707142857142858,
+          -0.8057346938775509,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_14",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_14",
+      "name": "stud_14",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6078571428571428,
+          -0.8698979591836734,
+          0.7
+        ],
+        [
+          0.6778571428571428,
+          -0.7998979591836733,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    },
+    {
+      "feature_id": "feature:ModernRoundedArmchair/nailhead_trim/stud_15",
+      "semantic_path": "ModernRoundedArmchair/nailhead_trim/stud_15",
+      "name": "stud_15",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:ModernRoundedArmchair/nailhead_trim",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.715,
+          -0.863,
+          0.7
+        ],
+        [
+          0.785,
+          -0.7929999999999999,
+          0.77
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:173ef7eef8e75ee9a909"
+      ],
+      "source_locations": [
+        "L116-L116"
+      ],
+      "resolution": "partial"
+    }
+  ],
+  "unresolved": [
+    "ModernRoundedArmchair/seat_base/upholstered_body/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/seat_base/upholstered_body/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/seat_base/upholstered_body/op_2: 0 direct source candidates for Asset.op_2",
+    "ModernRoundedArmchair/seat_base/upholstered_body/op_3: 0 direct source candidates for Asset.op_3",
+    "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base: 0 direct source candidates for Asset.base",
+    "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_2: 0 direct source candidates for Asset.op_2",
+    "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/base/op_3: 0 direct source candidates for Asset.op_3",
+    "ModernRoundedArmchair/seat_cushion/shallow_depressed_cushion/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_0/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_0/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_1/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_1/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_2: 0 direct source candidates for Asset.op_2",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_2/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/backrest/ergonomic_back/op_2/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/left_armrest/rounded_rail/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/left_armrest/rounded_rail/op_0/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/left_armrest/rounded_rail/op_0/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/left_armrest/rounded_rail/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/left_armrest/rounded_rail/op_1/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/left_armrest/rounded_rail/op_1/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/right_armrest/rounded_rail/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/right_armrest/rounded_rail/op_0/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/right_armrest/rounded_rail/op_0/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/right_armrest/rounded_rail/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/right_armrest/rounded_rail/op_1/op_0: 0 direct source candidates for Asset.op_0",
+    "ModernRoundedArmchair/right_armrest/rounded_rail/op_1/op_1: 0 direct source candidates for Asset.op_1",
+    "ModernRoundedArmchair/nailhead_trim/stud_01: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_02: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_03: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_04: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_05: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_06: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_07: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_08: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_09: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_10: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_11: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_12: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_13: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_14: runtime name maps to a dynamic source expression",
+    "ModernRoundedArmchair/nailhead_trim/stud_15: runtime name maps to a dynamic source expression"
+  ]
+}

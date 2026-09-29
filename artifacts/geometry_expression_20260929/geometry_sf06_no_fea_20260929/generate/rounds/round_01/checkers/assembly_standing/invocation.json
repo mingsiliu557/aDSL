@@ -1,0 +1,36 @@
+{
+  "checker": "assembly_standing",
+  "required": true,
+  "timeout_seconds": 900.0,
+  "command": [
+    "/vepfs_default/chanxueyan/lhp/lms/envs/adsl/bin/python",
+    "-m",
+    "adsl.agents.assembly_standing",
+    "--manifest",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset/assembly/assembly_manifest.json",
+    "--source",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/original/source.py",
+    "--output",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_standing",
+    "--source-index",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset/source_index.json",
+    "--physics",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/assembly_physics.json",
+    "--topology-cache",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology"
+  ],
+  "environment_prepend": {},
+  "placeholders": {
+    "python": "/vepfs_default/chanxueyan/lhp/lms/envs/adsl/bin/python",
+    "project_root": "/tmp/adsl_geometry_20260929",
+    "workspace": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/original",
+    "source": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/original/source.py",
+    "glb": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset/assembly/scene.glb",
+    "urdf": "",
+    "asset_dir": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset/assembly",
+    "round_dir": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01",
+    "output_dir": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_standing",
+    "analysis_geometry": "",
+    "source_index": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset/source_index.json"
+  }
+}

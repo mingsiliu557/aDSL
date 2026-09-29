@@ -1,0 +1,889 @@
+{
+  "source_sha256": "dc61956a61712e0aa698740340e229837aead0899560143fb921cc1d889f388f",
+  "mm_per_unit": 1.0,
+  "stl_vertex_unit": "mm",
+  "root_id": "chair_body",
+  "parts": [
+    {
+      "id": "leg_front_left",
+      "components": [
+        "front_left_leg"
+      ],
+      "stl": "leg_front_left.stl",
+      "glb": "leg_front_left.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          52
+        ]
+      ]
+    },
+    {
+      "id": "leg_front_right",
+      "components": [
+        "front_right_leg"
+      ],
+      "stl": "leg_front_right.stl",
+      "glb": "leg_front_right.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          52
+        ]
+      ]
+    },
+    {
+      "id": "leg_rear_left",
+      "components": [
+        "rear_left_leg"
+      ],
+      "stl": "leg_rear_left.stl",
+      "glb": "leg_rear_left.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          52
+        ]
+      ]
+    },
+    {
+      "id": "leg_rear_right",
+      "components": [
+        "rear_right_leg"
+      ],
+      "stl": "leg_rear_right.stl",
+      "glb": "leg_rear_right.glb",
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "print_transform_mm": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "geometry_validation": "NOT_EVALUATED",
+      "omitted_mesh_nodes": [],
+      "display_complete": true,
+      "mesh_face_groups": [
+        [
+          0,
+          52
+        ]
+      ]
+    }
+  ],
+  "interfaces": [],
+  "failures": [
+    {
+      "code": "PART_DISPLAY_UNAVAILABLE",
+      "part_id": "chair_body",
+      "stage": "evaluate_part",
+      "failure_kind": "unknown",
+      "reason": "EVALUATED_MESH_DEGENERATE: object='geometry_0_hull.001' zero_area_triangles=3 polygons=[86, 2536, 4342] coincident_vertices=1 reason=exact zero-length cleanup left degenerate triangles"
+    }
+  ],
+  "part_declarations": [
+    {
+      "id": "chair_body",
+      "components": [
+        "seat_shell",
+        "seat_cushion",
+        "backrest",
+        "left_armrest",
+        "right_armrest",
+        "front_apron",
+        "underseat_mounting_deck",
+        "nailhead_trim"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "leg_front_left",
+      "components": [
+        "front_left_leg"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "leg_front_right",
+      "components": [
+        "front_right_leg"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "leg_rear_left",
+      "components": [
+        "rear_left_leg"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "leg_rear_right",
+      "components": [
+        "rear_right_leg"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "mount_front_left_leg",
+      "tab_part": "leg_front_left",
+      "slot_part": "chair_body",
+      "tab_port": "top_mount_tab",
+      "slot_port": "underside_front_left_slot",
+      "parameter_name": "shared_leg_mount",
+      "parameters": {
+        "width_mm": 38.0,
+        "thickness_mm": 38.0,
+        "insertion_mm": 30.0,
+        "slot_depth_mm": 34.0,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 7.0,
+        "opening_extension_mm": 1.0,
+        "lead_in_mm": 0.0
+      },
+      "tab_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          300.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          300.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "mount_front_right_leg",
+      "tab_part": "leg_front_right",
+      "slot_part": "chair_body",
+      "tab_port": "top_mount_tab",
+      "slot_port": "underside_front_right_slot",
+      "parameter_name": "shared_leg_mount",
+      "parameters": {
+        "width_mm": 38.0,
+        "thickness_mm": 38.0,
+        "insertion_mm": 30.0,
+        "slot_depth_mm": 34.0,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 7.0,
+        "opening_extension_mm": 1.0,
+        "lead_in_mm": 0.0
+      },
+      "tab_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          300.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          300.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "mount_rear_left_leg",
+      "tab_part": "leg_rear_left",
+      "slot_part": "chair_body",
+      "tab_port": "top_mount_tab",
+      "slot_port": "underside_rear_left_slot",
+      "parameter_name": "shared_leg_mount",
+      "parameters": {
+        "width_mm": 38.0,
+        "thickness_mm": 38.0,
+        "insertion_mm": 30.0,
+        "slot_depth_mm": 34.0,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 7.0,
+        "opening_extension_mm": 1.0,
+        "lead_in_mm": 0.0
+      },
+      "tab_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          300.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          300.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "mount_rear_right_leg",
+      "tab_part": "leg_rear_right",
+      "slot_part": "chair_body",
+      "tab_port": "top_mount_tab",
+      "slot_port": "underside_rear_right_slot",
+      "parameter_name": "shared_leg_mount",
+      "parameters": {
+        "width_mm": 38.0,
+        "thickness_mm": 38.0,
+        "insertion_mm": 30.0,
+        "slot_depth_mm": 34.0,
+        "fit_offset_mm": 0.2,
+        "root_overlap_mm": 7.0,
+        "opening_extension_mm": 1.0,
+        "lead_in_mm": 0.0
+      },
+      "tab_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          300.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "slot_frame": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          300.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "status": "NOT_EVALUATED",
+  "verification_scope": "visual_code_only",
+  "unverified": [
+    "insertion_path",
+    "press_fit_retention",
+    "load_bearing",
+    "printability",
+    "closedness",
+    "connectivity",
+    "interface_geometry",
+    "interference",
+    "dimensions"
+  ],
+  "physical_checkers": {
+    "topology": "NOT_EXECUTED",
+    "standing": "NOT_EXECUTED",
+    "overhang": "NOT_EXECUTED",
+    "fea": "NOT_EXECUTED"
+  },
+  "backend": {
+    "boolean": "Blender",
+    "within_part_union": "NOT_EXECUTED"
+  },
+  "geometry_validation": "NOT_EVALUATED",
+  "plan_changes": {
+    "status": "UNCHANGED",
+    "codes": [],
+    "parts": {
+      "added": [],
+      "removed": [],
+      "changed": []
+    },
+    "connections": {
+      "added": [],
+      "removed": [],
+      "changed": []
+    },
+    "connection_order_changed": false
+  },
+  "initial_plan_sha256": "62ad3da563f6a41be5537e5efa67f216507ca4bc3327e66f6d3008081eb1fcaf",
+  "stage": "complete",
+  "partition_reference_inputs": [
+    {
+      "part_id": "chair_body",
+      "status": "PASS",
+      "frame": "part_local_mm",
+      "source_sha256": "dc61956a61712e0aa698740340e229837aead0899560143fb921cc1d889f388f",
+      "npz": "chair_body.body.npz",
+      "sha256": "1fc78202f874b46c48a47e46612c9f49f6186616d2f0a3d35af459a7e8acf273"
+    },
+    {
+      "part_id": "leg_front_left",
+      "status": "PASS",
+      "frame": "part_local_mm",
+      "source_sha256": "dc61956a61712e0aa698740340e229837aead0899560143fb921cc1d889f388f",
+      "npz": "leg_front_left.body.npz",
+      "sha256": "322cd389ba038014a5b618bea2abfbe26560dbe7eeb694ac71c51f8ef08ee5fa"
+    },
+    {
+      "part_id": "leg_front_right",
+      "status": "PASS",
+      "frame": "part_local_mm",
+      "source_sha256": "dc61956a61712e0aa698740340e229837aead0899560143fb921cc1d889f388f",
+      "npz": "leg_front_right.body.npz",
+      "sha256": "322cd389ba038014a5b618bea2abfbe26560dbe7eeb694ac71c51f8ef08ee5fa"
+    },
+    {
+      "part_id": "leg_rear_left",
+      "status": "PASS",
+      "frame": "part_local_mm",
+      "source_sha256": "dc61956a61712e0aa698740340e229837aead0899560143fb921cc1d889f388f",
+      "npz": "leg_rear_left.body.npz",
+      "sha256": "322cd389ba038014a5b618bea2abfbe26560dbe7eeb694ac71c51f8ef08ee5fa"
+    },
+    {
+      "part_id": "leg_rear_right",
+      "status": "PASS",
+      "frame": "part_local_mm",
+      "source_sha256": "dc61956a61712e0aa698740340e229837aead0899560143fb921cc1d889f388f",
+      "npz": "leg_rear_right.body.npz",
+      "sha256": "322cd389ba038014a5b618bea2abfbe26560dbe7eeb694ac71c51f8ef08ee5fa"
+    }
+  ],
+  "diagnostic": {
+    "diagnostic_only": true,
+    "parts": [
+      {
+        "id": "chair_body",
+        "geometry_valid": null,
+        "shown": false,
+        "reason": "string is not a file: `/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/asset/assembly/chair_body.glb`"
+      },
+      {
+        "id": "leg_front_left",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "leg_front_right",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "leg_rear_left",
+        "geometry_valid": null,
+        "shown": true
+      },
+      {
+        "id": "leg_rear_right",
+        "geometry_valid": null,
+        "shown": true
+      }
+    ],
+    "invalid_parts": [],
+    "missing_parts": [
+      "chair_body"
+    ],
+    "display_available": false,
+    "semantic_completeness": "NOT_EVALUATED",
+    "glb": "diagnostic_scene.glb",
+    "omitted_mesh_nodes": []
+  },
+  "export_status": "FAIL",
+  "elapsed_seconds": 5.731570407748222,
+  "files_sha256": {
+    "leg_rear_right.diagnostic.glb": "1c90a1a3d0a522c22b9f4dae5cd1148cc179c3c433aa7588f476d971f7ba5eb0",
+    "chair_body.body.glb": "f92bf94ff22787698afcbb59551ac7f822ea647432fc551051a9f9cc2e7c1441",
+    "leg_front_right.glb": "e73a30379bfea693808b9d4c545dac6514ee7d8fc0dd56de14c0a4c9c356dc54",
+    "leg_front_left.diagnostic.glb": "8ebc4f2c9533f643fe6f95a3e1d9b74def6e7c8a5dd02adccb8e748db7074b8e",
+    "leg_front_right.stl": "5db2dcbea9c9ef57798a1ffaf4ffd1191e5c58faa63302979b9957cde421e65d",
+    "leg_rear_left.glb": "e73a30379bfea693808b9d4c545dac6514ee7d8fc0dd56de14c0a4c9c356dc54",
+    "leg_front_right.diagnostic.glb": "a32acf1e1128887310cc392a984afe541f564330ff5495be39fcdaa4a55cb449",
+    "diagnostic_scene.glb": "0a1c1ecbe652a0b09793c0dbed67c29152956c74e42cb94d9e263f7ae5d57673",
+    "leg_front_right.body.glb": "7f3127e6d8a97a0c6bc9f5fd089fe09d997b288b3d15f4b927668819ab452f9f",
+    "leg_front_left.glb": "e73a30379bfea693808b9d4c545dac6514ee7d8fc0dd56de14c0a4c9c356dc54",
+    "leg_rear_right.stl": "5db2dcbea9c9ef57798a1ffaf4ffd1191e5c58faa63302979b9957cde421e65d",
+    "leg_rear_right.glb": "e73a30379bfea693808b9d4c545dac6514ee7d8fc0dd56de14c0a4c9c356dc54",
+    "leg_rear_left.diagnostic.glb": "7b4fc7936fc813767fc5ed6916e0b3b84d64d41979c316c8bf042120b733d2f1",
+    "leg_rear_left.stl": "5db2dcbea9c9ef57798a1ffaf4ffd1191e5c58faa63302979b9957cde421e65d",
+    "leg_rear_left.body.glb": "ada99b111cc79628705d1785b21e55bd18dc23108d35bbb2da5a44ddce4358d4",
+    "leg_rear_right.body.glb": "a2675ef51b4e6f416b148180dd9f22a2b44103d1ba9a9ae64aedf4c3fb55594d",
+    "leg_front_left.stl": "5db2dcbea9c9ef57798a1ffaf4ffd1191e5c58faa63302979b9957cde421e65d",
+    "leg_front_left.body.glb": "c70cd7f50335da58c98bd0b24d7cd79f9fbff2eaad86c4152eb054aaeb8e706c"
+  }
+}

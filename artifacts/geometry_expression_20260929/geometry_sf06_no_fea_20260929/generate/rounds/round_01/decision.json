@@ -1,0 +1,39 @@
+{
+  "version": "original",
+  "parent": "original",
+  "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+  "accepted": false,
+  "reason": "assembly_required_checks_not_passed",
+  "geometry_status": "NOT_EVALUATED",
+  "appearance_approved": null,
+  "edit_purpose": "required_repair",
+  "comparison_baseline_version": null,
+  "partition_reference": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/partition_references/e1b03c9e6d81e2218d2ba297d36de3059d0314b210c057b642062a286da6ae32/partition_reference.json",
+  "body_reference_comparison": {
+    "status": "MATCH",
+    "semantic_ownership_preserved": true,
+    "root_frame_preserved": true,
+    "symmetric_difference_mm3": 0.0,
+    "volume_tolerance_mm3": 4654.67411695955,
+    "bounds_change_mm": 0.0,
+    "length_tolerance_mm": 0.00171661376953125,
+    "previous_volume_mm3": 191992211.3174757,
+    "candidate_volume_mm3": 191992211.3174757,
+    "candidate_bounds_mm": [
+      [
+        -449.9999084472656,
+        -400.0,
+        0.0
+      ],
+      [
+        449.9999694824219,
+        400.0,
+        900.0
+      ]
+    ],
+    "reference_sha256": "e1b03c9e6d81e2218d2ba297d36de3059d0314b210c057b642062a286da6ae32"
+  },
+  "partition_change_vs_baseline": null,
+  "partition_ready": false,
+  "partition_adopted": false
+}

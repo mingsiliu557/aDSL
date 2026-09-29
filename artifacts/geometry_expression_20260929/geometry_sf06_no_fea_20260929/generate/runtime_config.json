@@ -1,0 +1,174 @@
+{
+  "workflow": "object_agent",
+  "model": {
+    "profile_name": "cliproxy-gpt-5.6-sol.yaml",
+    "provider": "openai",
+    "api": "responses",
+    "model": "gpt-5.6-sol",
+    "timeout": 900.0,
+    "base_url": "http://127.0.0.1:8317/v1",
+    "credential_source": "env",
+    "trust_env": false,
+    "max_retries": 6,
+    "max_tokens": 32768,
+    "temperature": null,
+    "parallel_tool_calls": false,
+    "include_usage": true
+  },
+  "request": {
+    "requirement": "[ORIGINAL TASK]\nThe modern armchair has a rounded, ergonomic design with a slightly depressed seat cushion for comfort. The backrest curves smoothly for support, and the armrests are short and curved, positioned for elbow rest. Four straight, square wooden legs provide a stable base. The chair features nailhead trim along the bottom front edge, adding a decorative and functional element. The upholstery is a smooth, durable fabric, likely tweed or linen, in a solid gray color. The chair is symmetrical and presented against a plain black background.\n\n[UNIFORM MANUFACTURING REQUIREMENTS]\nGenerate a NEW complete aDSL program from the original task below, with static fixed manufacturing assembly, not articulation. Use the existing Planner's component and connection plan; Coder implements that plan in assembly using connectors for its connections. Do not add a separate print-part decision stage. Do not assume one Asset/class per print part or impose a minimum number of print parts; a single planned print part needs no connector. Use ONLY existing FixedAssembly / TabSlot and ordered connections starting from root_part: at least one endpoint must already be placed. Either placed endpoint can locate the other; with both endpoints placed, check world interface frames and add mating geometry without moving either part. Plan every physical interface, including additional connections and multiple interfaces between the same pair using distinct endpoint ports. Tab/slot are geometric roles, not placement order. Within a print part retain normal modeling and attach_part. Between print parts use assembly.connect to generate BOTH mating sides and placement; no global union across print parts. The parameters argument of connect must be a TabSlot object (or an entry containing that object), not a dictionary of dimensions. Preserve the requested appearance and function. Frozen scale, overall dimensions and single-sided fit allowance below must not change. These are geometric demonstration dimensions; clearance is not proof of physical fixation. Use one complete initial source.py and repair only within the frozen budget, with existing Image/Code Critic in visual_only mode and export consistency checks. Assembly geometry checks are NOT_EVALUATED; visual approval is not manufacturing approval. Enable Image/Code review and only these assembly checkers: assembly_topology, assembly_overhang, assembly_standing. FEA is disabled. No snap_floaters or extra interface types. Use a fresh Planner plan and initial source; no previous source or renders are supplied. At most 5 evaluation rounds including the initial candidate, at most 4 shared source modifications, and the existing 7200-second repair budget. Engineering/Coder may correct measured visual, geometry and physical failures. After necessary checks pass, allow one evidence-supported local print grouping proposal per feasible baseline using the Dapper alpha=.3/Rvox=.1 objective and 24 print rotations; NO_PROPOSAL is valid. Do not change the frozen density, gravity settings, thresholds, dimensions or budget. Use actual millimetre dimensions. Standing measures gravity contact using the existing rigid_flex backend. Keep feet at Z=0. No external load analysis or FEA will run. Missing or invalid measurements remain unverified. The original task remains authoritative; optional inferred texture is not a mandatory defect. The plain black background describes presentation: build only the chair, without a physical floor or backdrop that would become a print part.\nFrozen dimensions: 900 x 800 x 900 mm; mm_per_unit=1; fit_offset_mm=0.2.",
+    "workspace": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate",
+    "task_id": "SF06_constructive_no_fea_20260929",
+    "image_paths": [],
+    "articulation": false,
+    "max_rounds": 5,
+    "checker_specs": [
+      {
+        "name": "assembly_topology",
+        "command": [
+          "{python}",
+          "-m",
+          "adsl.agents.assembly_topology",
+          "--manifest",
+          "{asset_dir}/assembly_manifest.json",
+          "--source",
+          "{source}",
+          "--output",
+          "{output_dir}",
+          "--source-index",
+          "{source_index}",
+          "--budget-seconds",
+          "900"
+        ],
+        "required": true,
+        "timeout_seconds": 900.0,
+        "prepend_environment": {}
+      },
+      {
+        "name": "assembly_overhang",
+        "command": [
+          "{python}",
+          "-m",
+          "adsl.agents.assembly_overhang",
+          "--manifest",
+          "{asset_dir}/assembly_manifest.json",
+          "--source",
+          "{source}",
+          "--output",
+          "{output_dir}",
+          "--source-index",
+          "{source_index}",
+          "--physics",
+          "{round_dir}/assembly_physics.json",
+          "--topology-cache",
+          "{round_dir}/checkers/assembly_topology"
+        ],
+        "required": false,
+        "timeout_seconds": 900.0,
+        "prepend_environment": {}
+      },
+      {
+        "name": "assembly_standing",
+        "command": [
+          "{python}",
+          "-m",
+          "adsl.agents.assembly_standing",
+          "--manifest",
+          "{asset_dir}/assembly_manifest.json",
+          "--source",
+          "{source}",
+          "--output",
+          "{output_dir}",
+          "--source-index",
+          "{source_index}",
+          "--physics",
+          "{round_dir}/assembly_physics.json",
+          "--topology-cache",
+          "{round_dir}/checkers/assembly_topology"
+        ],
+        "required": true,
+        "timeout_seconds": 900.0,
+        "prepend_environment": {}
+      }
+    ],
+    "check_first": false,
+    "repair_policy": {
+      "print_partition_editable": true,
+      "max_candidates_per_round": 1,
+      "max_total_candidates": 4,
+      "time_budget_seconds": 7200.0,
+      "print_orientation_editable": true,
+      "default_relative_tolerance": 0.01,
+      "default_absolute_tolerance": 1e-09
+    },
+    "overhang_experiment": {},
+    "fixed_assembly": {
+      "validation_mode": "visual_only",
+      "mm_per_unit": 1.0,
+      "final_size_mm": [
+        900.0,
+        800.0,
+        900.0
+      ],
+      "fit_offset_mm": 0.2,
+      "require_multiple_parts": false,
+      "physics": {
+        "scope": "SF06 armchair, gravity-only screening; FEA disabled. Uniform density is an experimental assumption.",
+        "material": {
+          "density_kg_m3": 1240.0
+        },
+        "standing": {
+          "duration_seconds": 5.0,
+          "timestep_seconds": 0.002,
+          "friction": [
+            0.5,
+            0.005,
+            0.0001
+          ],
+          "tilt_threshold_deg": 25.0,
+          "settle_window_seconds": 0.5,
+          "settle_linear_m_s": 0.001,
+          "settle_angular_rad_s": 0.01,
+          "collision_backend": "rigid_flex"
+        },
+        "overhang": {
+          "overhang_threshold_from_horizontal_deg": 45.0,
+          "layer_height_mm": 0.2,
+          "orientation_editable": true,
+          "partition_objective": {
+            "method": "dapper_fdm_2015",
+            "alpha": 0.3,
+            "r_vox": 0.1,
+            "orientation_set": "axis_aligned_24",
+            "layout": "independent_bed"
+          }
+        }
+      }
+    }
+  },
+  "execution": {
+    "render": true,
+    "render_view_count": 8,
+    "render_elevation": 15.0,
+    "export_urdf": false,
+    "timeout": 300.0,
+    "assembly_geometry_timeout": 120,
+    "physical_checkers": "disabled",
+    "render_backend": "local",
+    "gpu_render_queue": null,
+    "render_engine": "CYCLES",
+    "render_width": 512,
+    "render_height": 512,
+    "render_samples": 32
+  },
+  "context_policy": {
+    "planner": "isolated requirement and references",
+    "coder_initial": "isolated requirement, plan, and references; source.py is written by tool",
+    "coder_repair": "isolated per repair with plan and current feedback; source.py is read and patched by tool",
+    "debugger": "isolated per execution failure with current error; source.py is read by tool",
+    "image_critic": "isolated per round with current renders, references, and explicit text-only prior judgements",
+    "code_critic": "isolated per round with current renders and explicit critic history; source.py is read by tool",
+    "engineering_critic": "isolated per round with current renders, structured checker evidence, and source.py read by tool"
+  },
+  "mode": "generate"
+}

@@ -1,0 +1,36 @@
+{
+  "status": "PREPARED",
+  "created_utc": "2026-09-29T09:15:50Z",
+  "commit": "7ebfe4b71e1da1353d5529406ea589fc07d5811d",
+  "model_profile": "/tmp/adsl_geometry_20260929/adsl-agents/configs/llm/cliproxy-gpt-5.6-sol.yaml",
+  "profile_sha256": "fe783fa7ae492571ba58385c69711d8ebd32f5a51dbdbcf0e6a8c60627259564",
+  "input_sha256": "786dd91a3c9e21b18be0cd66705a11085bc32553d57d7b20466e25d9cd05ba09",
+  "case_order": [
+    "SF06"
+  ],
+  "cpu_only": true,
+  "fea_enabled": false,
+  "supersedes": "geometry_sf06_full_20260929 (stopped by user before source returned)",
+  "checkers": [
+    "assembly_topology",
+    "assembly_overhang",
+    "assembly_standing"
+  ],
+  "reviews": [
+    "image",
+    "code"
+  ],
+  "max_rounds": 5,
+  "max_source_repairs": 4,
+  "repair_time_budget_seconds": 7200,
+  "one_initial_generation": true,
+  "render": {
+    "engine": "CYCLES",
+    "width": 512,
+    "height": 512,
+    "samples": 32,
+    "views": 8
+  },
+  "geometry_timeout_seconds": 120,
+  "render_timeout_seconds": 300
+}

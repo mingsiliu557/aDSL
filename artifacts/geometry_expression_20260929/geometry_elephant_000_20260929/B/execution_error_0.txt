@@ -1,0 +1,19 @@
+Generated source exited with code 1.
+STDOUT:
+
+STDERR:
+could not get a list of mounted file-systems
+Traceback (most recent call last):
+  File "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/B/adsl/agents/utils/asset_executor.py", line 217, in <module>
+    raise SystemExit(main())
+  File "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/B/adsl/agents/utils/asset_executor.py", line 149, in main
+    export_glb(
+  File "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/B/adsl/core/__init__.py", line 67, in export_glb
+    return _export_glb(*args, **kwargs)
+  File "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/B/adsl/core/export/export_glb.py", line 853, in export_glb
+    _normalize_zero_area_tessellation(obj)
+  File "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/B/adsl/core/export/export_glb.py", line 619, in _normalize_zero_area_tessellation
+    reject(f'polygon {index} is nonplanar: max_plane_distance_scene_units={distance:.9g} '
+  File "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_expression_20260929/pythonpath/B/adsl/core/export/export_glb.py", line 591, in reject
+    raise ValueError(
+ValueError: EVALUATED_MESH_DEGENERATE: object='geometry_0_hull.002' zero_area_triangles=7 polygons=[796, 1210, 1466, 1619, 1710, 1809] coincident_vertices=0 reason=polygon 796 is nonplanar: max_plane_distance_scene_units=8.14094918e-08 planarity_bound_scene_units=3.89704612e-15

@@ -1,0 +1,129 @@
+{
+  "approved": false,
+  "observations": [
+    "The current source defines and registers chair_body, but the evaluated chair-body mesh is unavailable, so all rendered views show only the four legs and generated tabs.",
+    "The evaluator reports three zero-area triangles in generated hull geometry_0_hull.001. Source construction order makes SeatShell.__init__.front_roll—the second rounded_box hull—the strongest initial localization candidate, but the generated node name does not prove unique ownership.",
+    "Each leg has the same OPEN_PRINT_MESH pattern: 12 boundary edges localized to part-local z=327–330 mm. This exactly coincides with the final 3 mm of the generated tab because leg_tab_frame starts at z=300 mm, insertion_mm is 30 mm, and shared_leg_mount.lead_in_mm is 3 mm.",
+    "Assembly standing is unverified because rigid print meshes are unavailable; this is not evidence that the chair is unstable. The Dapper partition score is also unavailable, so no print regrouping is supported in this round.",
+    "The four connection frames, 0.2 mm fit allowance, leg placements, root part, and reported overall envelope do not have independent evidence of error and should remain unchanged."
+  ],
+  "required_changes": [
+    "Apply one bounded source patch: reconstruct only SeatShell.__init__.front_roll without its single eight-sphere hull, and remove the 3 mm generated tab lead-in shared by the four otherwise unchanged leg connectors. Preserve the front-roll envelope, upholstery appearance, all connector frame locations, insertion depth, tab section, frozen fit allowance, chair hierarchy, symmetry, and 900 × 800 × 900 mm overall bounds. Re-export and re-run every configured checker and appearance review."
+  ],
+  "checker_interpretation": [
+    "The chair-body display failure and zero-area-triangle diagnostic support replacing the localized front_roll hull construction with overlapping positive-volume primitives; they do not support redesigning the complete upholstered body.",
+    "The identical leg boundary regions at z=327–330 mm align specifically with shared_leg_mount.lead_in_mm=3.0 at the tops of tabs extending from z=300 to z=330 mm. Setting only that lead-in to zero is a falsifiable local source repair attempt; the OPEN_PRINT_MESH cause remains unconfirmed until re-export.",
+    "assembly_standing and assembly_overhang are dependency-blocked measurements. They must be rerun after mesh export is restored and cannot presently be treated as PASS or as independent physical failures."
+  ],
+  "repair_proposals": [
+    {
+      "proposal_id": "repair_export_solids_and_tab_tips_01",
+      "finding_ids": [
+        "assembly_topology:leg_front_left:OPEN_PRINT_MESH",
+        "assembly_topology:leg_front_right:OPEN_PRINT_MESH",
+        "assembly_topology:leg_rear_left:OPEN_PRINT_MESH",
+        "assembly_topology:leg_rear_right:OPEN_PRINT_MESH"
+      ],
+      "hypothesis": "The four open leg meshes originate in the shared 3 mm tapered lead-in at the generated tab tips, while the missing chair body originates in the second rounded_box hull used for SeatShell.__init__.front_roll. Replacing that one hull with an equivalent overlapping-solid construction and setting only shared_leg_mount.lead_in_mm to zero should produce closed printable meshes without moving interfaces or changing the visible chair envelope.",
+      "evidence": [
+        "All four leg findings report the same 12 open boundary edges in part-local bounds x/y within ±19 mm and z=327–330 mm.",
+        "The connector tab is centered at z=300 mm, has insertion_mm=30.0, and has lead_in_mm=3.0, placing its lead-in precisely in the measured z=327–330 mm region.",
+        "The current source creates all four affected tabs from the same shared_leg_mount TabSlot object, explaining the repeated boundary pattern.",
+        "The evaluator reports EVALUATED_MESH_DEGENERATE with three zero-area triangles in geometry_0_hull.001.",
+        "rounded_box returns one hull over eight spheres, and SeatShell.__init__.front_roll is the second rounded_box construction in source order, making it a bounded initial candidate rather than a proven unique cause.",
+        "Resolved visual feedback requires restoration of chair_body while preserving its hierarchy, bounds, symmetry, and four slot interfaces."
+      ],
+      "target": {
+        "feature_ids": [
+          "feature:FixedAssembly/leg_front_left",
+          "feature:FixedAssembly/leg_front_right",
+          "feature:FixedAssembly/leg_rear_left",
+          "feature:FixedAssembly/leg_rear_right"
+        ],
+        "source_ids": [],
+        "parameters": [
+          "SeatShell.__init__.front_roll",
+          "shared_leg_mount.lead_in_mm"
+        ],
+        "allowed_scopes": [
+          "SeatShell.__init__",
+          "rounded_box",
+          "shared_leg_mount",
+          "<module>"
+        ]
+      },
+      "action": "reshape",
+      "grouping_change": null,
+      "parameter_bounds": {
+        "front_roll": {
+          "size_mm": [
+            750.0,
+            120.0,
+            145.0
+          ],
+          "center_mm": [
+            0.0,
+            -340.0,
+            387.5
+          ],
+          "corner_radius_mm": 52.0,
+          "implementation": "Replace only this rounded_box hull with a boolean union of overlapping positive-volume center slabs and corner/edge primitives; do not alter its exact AABB."
+        },
+        "shared_leg_mount.lead_in_mm": {
+          "current": 3.0,
+          "proposed": 0.0,
+          "allowed_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "fixed_connector_values": {
+          "width_mm": 38.0,
+          "thickness_mm": 38.0,
+          "insertion_mm": 30.0,
+          "slot_depth_mm": 34.0,
+          "fit_offset_mm": 0.2,
+          "root_overlap_mm": 7.0,
+          "opening_extension_mm": 1.0
+        }
+      },
+      "expected_improvements": [
+        "Eliminate the localized open boundaries at the four generated tab tips if the shared lead-in is their source.",
+        "Eliminate the candidate degenerate front-roll hull and restore chair_body export and display.",
+        "Allow topology, standing, and Dapper partition measurements to execute on available print meshes.",
+        "Retain the existing chair silhouette, bilateral symmetry, leg positions, and connector alignment."
+      ],
+      "possible_regressions": [
+        "A replacement front-roll construction could introduce visible faceting, seams, or a changed AABB if its primitives do not overlap sufficiently or are not constrained to the existing dimensions.",
+        "Removing the tab lead-in may reduce insertion guidance, although it must not change the tab section, insertion depth, fit allowance, or mating frame.",
+        "Once meshes become measurable, topology, standing, interference, or partition findings not visible in this blocked round may be revealed."
+      ],
+      "preserve": [
+        "Exact 900 × 800 × 900 mm assembled envelope and mm_per_unit=1.0.",
+        "chair_body as root with the existing ChairBody hierarchy and all required upholstered and decorative components.",
+        "Bilateral symmetry and the existing gray upholstery, brown legs, and contrasting nailheads.",
+        "All four leg shaft and shoulder geometries below the generated tabs, including coplanar z=0 feet.",
+        "All leg and slot InterfaceFrame origins and axes.",
+        "Tab width, thickness, insertion, slot depth, root overlap, opening extension, and frozen fit_offset_mm=0.2.",
+        "The four ordered FixedAssembly.connect calls, unique endpoint ports, and scene = assembly.scene() as the final scene construction.",
+        "No floor, backdrop, post-scene geometry, checker changes, exporter repair, or print-part regrouping."
+      ],
+      "rerun_checkers": [
+        "assembly_topology",
+        "assembly_overhang",
+        "assembly_standing",
+        "assembly export/display consistency",
+        "Image Critic visual review",
+        "Code Critic visual-only review"
+      ],
+      "preconditions": [
+        "Implement the repair only in original/source.py.",
+        "Use source-level constructive geometry; do not edit exported meshes or checker/mesher settings.",
+        "Verify the replacement front_roll retains the original world-space AABB before re-export.",
+        "Confirm all four connections still mate at their existing world interface frames.",
+        "Treat success as unverified until all configured checks and appearance review are re-executed."
+      ]
+    }
+  ],
+  "unresolved_findings": []
+}

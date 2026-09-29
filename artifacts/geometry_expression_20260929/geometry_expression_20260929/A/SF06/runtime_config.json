@@ -1,0 +1,57 @@
+{
+  "workflow": "geometry_expression",
+  "model": {
+    "profile_name": "cliproxy-gpt-5.6-sol.yaml",
+    "provider": "openai",
+    "api": "responses",
+    "model": "gpt-5.6-sol",
+    "timeout": 900.0,
+    "base_url": "http://127.0.0.1:8317/v1",
+    "credential_source": "env",
+    "trust_env": false,
+    "max_retries": 6,
+    "max_tokens": 32768,
+    "temperature": null,
+    "parallel_tool_calls": false,
+    "include_usage": true
+  },
+  "request": {
+    "id": "SF06",
+    "requirement": "The modern armchair has a rounded, ergonomic design with a slightly depressed seat cushion for comfort. The backrest curves smoothly for support, and the armrests are short and curved, positioned for elbow rest. Four straight, square wooden legs provide a stable base. The chair features nailhead trim along the bottom front edge, adding a decorative and functional element. The upholstery is a smooth, durable fabric, likely tweed or linen, in a solid gray color. The chair is symmetrical and presented against a plain black background.",
+    "reference_images": [],
+    "provenance": {
+      "manifest": "experiments/standing_fea_30/case_manifest.json",
+      "manifest_sha256": "d36c67c234813db65c125671f11417f2ce0d44ea44f2c293cabbc25fa97e763c",
+      "dataset": "abo",
+      "object_id": "B07DBHCKJ5",
+      "caption_source": "marvel",
+      "historical_assets": "/jiigan-hp/lms/aDSL/experiment/planned12_no_case_cap_20260915T035726Z/SF06/original",
+      "history_is_input": false
+    },
+    "focus": "rounded cushion, curved back and arms"
+  },
+  "execution": {
+    "timeout": 300.0,
+    "render": {
+      "width": 512,
+      "height": 512,
+      "samples": 32,
+      "threads": 4,
+      "view_layout": "review_eight",
+      "views": 8,
+      "material": "neutral",
+      "background": "gray",
+      "engine": "CYCLES"
+    },
+    "export_urdf": false,
+    "fixed_assembly": null,
+    "checkers": []
+  },
+  "context_policy": {
+    "planner": "fresh",
+    "coder:initial": "fresh",
+    "coder:execution_patch": "fresh"
+  },
+  "arm": "A",
+  "commit": "8943a8306ddcce69ad0c043f0079c0a14f0518f1"
+}

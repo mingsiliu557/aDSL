@@ -1,0 +1,99 @@
+{
+  "checker": "assembly_standing",
+  "version": 2,
+  "status": "INDETERMINATE",
+  "summary": "DEPENDENCY_MESH_UNAVAILABLE: one connected volume per rigid print body required",
+  "metrics": {
+    "items": [
+      {
+        "part_id": "chair_body",
+        "status": "INDETERMINATE",
+        "code": "PRINT_MESH_UNMEASURABLE",
+        "stage": "load_final_part",
+        "reason": "KeyError: 'chair_body'"
+      },
+      {
+        "part_id": "leg_front_left",
+        "status": "INDETERMINATE",
+        "code": "PRINT_MESH_UNMEASURABLE",
+        "stage": "load_final_part",
+        "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified"
+      },
+      {
+        "part_id": "leg_front_right",
+        "status": "INDETERMINATE",
+        "code": "PRINT_MESH_UNMEASURABLE",
+        "stage": "load_final_part",
+        "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified"
+      },
+      {
+        "part_id": "leg_rear_left",
+        "status": "INDETERMINATE",
+        "code": "PRINT_MESH_UNMEASURABLE",
+        "stage": "load_final_part",
+        "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified"
+      },
+      {
+        "part_id": "leg_rear_right",
+        "status": "INDETERMINATE",
+        "code": "PRINT_MESH_UNMEASURABLE",
+        "stage": "load_final_part",
+        "reason": "OpenPrintMeshError: open exported print mesh; connectivity and dependent interfaces unverified"
+      }
+    ]
+  },
+  "violations": [],
+  "assumptions": {
+    "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+    "manifest_sha256": "d121f3e94abf18469623098f16992065754bda5057a8efd772303e2e70d431c0",
+    "physics_sha256": "2e9ff3db50c9a1dc68a91ff9cb0082d7927af8271a440eb1c777c3d8ce320862",
+    "elapsed_seconds": 2.2875658571720123
+  },
+  "artifacts": {
+    "report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_standing/report.json"
+  },
+  "analysis_context": {
+    "checker": "assembly_standing",
+    "checker_version": 1,
+    "source_frame": "authored_scene",
+    "analysis_frame": null,
+    "source_length_unit": "scene_unit",
+    "analysis_length_unit": null,
+    "source_to_analysis": null,
+    "use_pose": "authored",
+    "print_pose": "fixed_authored",
+    "assumptions_source": "checker_result",
+    "details": {
+      "assumptions": {
+        "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+        "manifest_sha256": "d121f3e94abf18469623098f16992065754bda5057a8efd772303e2e70d431c0",
+        "physics_sha256": "2e9ff3db50c9a1dc68a91ff9cb0082d7927af8271a440eb1c777c3d8ce320862",
+        "elapsed_seconds": 2.2875658571720123
+      },
+      "legacy_context": true
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "assembly_standing:INDETERMINATE:1",
+      "rule_id": "INDETERMINATE",
+      "category": "evidence_insufficient",
+      "applicability": "unknown",
+      "applicability_basis": "derived conservatively from legacy checker status",
+      "metric": null,
+      "region": null,
+      "relations": [],
+      "evidence_refs": [
+        "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_standing/report.json"
+      ],
+      "source_candidates": [],
+      "required": true,
+      "repairability": "analysis",
+      "message": "DEPENDENCY_MESH_UNAVAILABLE: one connected volume per rigid print body required",
+      "domain": {
+        "code": "INDETERMINATE",
+        "message": "DEPENDENCY_MESH_UNAVAILABLE: one connected volume per rigid print body required"
+      }
+    }
+  ]
+}

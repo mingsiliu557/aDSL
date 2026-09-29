@@ -1,0 +1,79 @@
+[
+  {
+    "name": "read_file",
+    "description": "Read a bounded page of a workspace UTF-8 text file.\n\nLarge files return a partial excerpt, not a complete file or JSON document.\nThe metadata gives next_offset (Unicode characters, not bytes). Request\nanother page only when relevant; do not automatically read whole reports.\nSmall files read from offset zero retain their original text output.",
+    "parameters": {
+      "properties": {
+        "path": {
+          "description": "Workspace-relative path or absolute path inside the workspace.",
+          "title": "Path",
+          "type": "string"
+        },
+        "offset": {
+          "default": 0,
+          "description": "Zero-based character offset; must be non-negative.",
+          "title": "Offset",
+          "type": "integer"
+        },
+        "max_chars": {
+          "default": 12000,
+          "description": "Requested page size, positive and capped at 12000 characters.",
+          "title": "Max Chars",
+          "type": "integer"
+        },
+        "json_pointer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional JSON field path, e.g. /findings/0/metric. Use ~1 for\na slash and ~0 for a tilde in object keys. Offset then refers to the\nselected field's serialized text, not the whole file.",
+          "title": "Json Pointer"
+        }
+      },
+      "required": [
+        "path",
+        "offset",
+        "max_chars",
+        "json_pointer"
+      ],
+      "title": "read_file_args",
+      "type": "object",
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "apply_patch",
+    "description": "Replace one exact, unique text block in an existing workspace file.\n\nA match failure returns short JSON without writing. Re-read and correct it;\nafter the first failure at most two further patch submissions are allowed\nin this candidate. Never use a dummy patch to hide a failure.",
+    "parameters": {
+      "properties": {
+        "path": {
+          "description": "Workspace-relative file path.",
+          "title": "Path",
+          "type": "string"
+        },
+        "old_text": {
+          "description": "Exact current text. It must occur exactly once.",
+          "title": "Old Text",
+          "type": "string"
+        },
+        "new_text": {
+          "description": "Replacement text.",
+          "title": "New Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "old_text",
+        "new_text"
+      ],
+      "title": "apply_patch_args",
+      "type": "object",
+      "additionalProperties": false
+    }
+  }
+]

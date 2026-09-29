@@ -1,0 +1,38 @@
+{
+  "checker": "assembly_topology",
+  "version": 2,
+  "status": "PASS",
+  "summary": "NO_UNDECLARED_PART_INTERFERENCE",
+  "metrics": {
+    "item": {
+      "status": "PASS",
+      "raw_intersection_mm3": 0.0,
+      "undeclared_interference_mm3": 0.0,
+      "bounds_mm": null,
+      "bounds_center_mm": null,
+      "method": "aabb_disjoint",
+      "kind": "pair",
+      "pair_id": "leg_front_right:leg_rear_left",
+      "part_ids": [
+        "leg_front_right",
+        "leg_rear_left"
+      ],
+      "frame": "assembly",
+      "unit": "mm",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE",
+      "length_tolerance_mm": 0.000629425048828125,
+      "volume_tolerance_mm3": 63.884124755859375,
+      "connection_ids": [],
+      "related_connection_ids": [
+        "mount_front_right_leg",
+        "mount_rear_left_leg"
+      ],
+      "allowed_fit_connection_ids": []
+    }
+  },
+  "violations": [],
+  "assumptions": {},
+  "artifacts": {},
+  "analysis_context": null,
+  "findings": []
+}

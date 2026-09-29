@@ -1,0 +1,19 @@
+{
+  "case": "elephant_000",
+  "arms": [
+    "A",
+    "B"
+  ],
+  "baseline_commit": "8943a8306ddcce69ad0c043f0079c0a14f0518f1",
+  "enhanced_commit": "0efaceb921526398ba8a8b8494109baeaa2d41f8",
+  "input_case_sha256": "d385ea6cc18e7fe9f2439908391d594d8d942bbcda62d84a0694e5f51dfffc74",
+  "reference_image_sha256": "39c4dfd1d8393a40ee197e19581710acc7b215219eef6cdbb10a3fc649b53fa8",
+  "one_initial_per_arm": true,
+  "max_execution_patches_per_arm": 1,
+  "checkers": [],
+  "critics": [],
+  "fea": false,
+  "cpu_only": true,
+  "execution_timeout_seconds": 300,
+  "render_timeout_seconds": 300
+}

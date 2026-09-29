@@ -1,0 +1,119 @@
+{
+  "checker": "assembly_topology",
+  "version": 2,
+  "status": "INDETERMINATE",
+  "summary": "OPEN_PRINT_MESH",
+  "metrics": {
+    "item": {
+      "kind": "part",
+      "part_id": "leg_rear_right",
+      "status": "INDETERMINATE",
+      "code": "OPEN_PRINT_MESH",
+      "stage": "final_print_mesh_validation",
+      "reason": "open exported print mesh; connectivity and dependent interfaces unverified",
+      "boundary_edge_count": 12,
+      "nonmanifold_edge_count": 0,
+      "bounds_mm": [
+        [
+          -19.0,
+          -19.0,
+          327.0
+        ],
+        [
+          19.0,
+          19.0,
+          330.0
+        ]
+      ],
+      "boundary_regions": [
+        {
+          "bounds_mm": [
+            [
+              -19.0,
+              -19.0,
+              327.0
+            ],
+            [
+              -16.000001907348633,
+              -16.000001907348633,
+              330.0
+            ]
+          ],
+          "boundary_edge_count": 3
+        },
+        {
+          "bounds_mm": [
+            [
+              -19.0,
+              16.219514846801758,
+              327.0
+            ],
+            [
+              -16.21951675415039,
+              19.0,
+              329.7804870605469
+            ]
+          ],
+          "boundary_edge_count": 3
+        },
+        {
+          "bounds_mm": [
+            [
+              16.00000762939453,
+              -19.0,
+              327.0
+            ],
+            [
+              19.0,
+              19.0,
+              330.0
+            ]
+          ],
+          "boundary_edge_count": 6
+        }
+      ],
+      "method": "exact-coordinate export vertex deduplication within face groups; no mesh repair",
+      "boundary_report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_right/checkers/assembly_topology/boundary_edges.json"
+    }
+  },
+  "violations": [],
+  "assumptions": {},
+  "artifacts": {},
+  "analysis_context": {
+    "checker": "assembly_topology",
+    "checker_version": 1,
+    "source_frame": "authored_scene",
+    "analysis_frame": null,
+    "source_length_unit": "scene_unit",
+    "analysis_length_unit": null,
+    "source_to_analysis": null,
+    "use_pose": "authored",
+    "print_pose": "fixed_authored",
+    "assumptions_source": "checker_result",
+    "details": {
+      "assumptions": {},
+      "legacy_context": true
+    }
+  },
+  "findings": [
+    {
+      "finding_id": "assembly_topology:INDETERMINATE:1",
+      "rule_id": "INDETERMINATE",
+      "category": "evidence_insufficient",
+      "applicability": "unknown",
+      "applicability_basis": "derived conservatively from legacy checker status",
+      "metric": null,
+      "region": null,
+      "relations": [],
+      "evidence_refs": [],
+      "source_candidates": [],
+      "required": true,
+      "repairability": "analysis",
+      "message": "OPEN_PRINT_MESH",
+      "domain": {
+        "code": "INDETERMINATE",
+        "message": "OPEN_PRINT_MESH"
+      }
+    }
+  ]
+}

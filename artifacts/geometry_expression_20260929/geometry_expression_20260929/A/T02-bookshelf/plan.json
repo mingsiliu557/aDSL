@@ -1,0 +1,99 @@
+{
+  "object_name": "Freestanding four-shelf bookshelf with curved deep-red shelves",
+  "components": [
+    {
+      "name": "shelf_1_bottom",
+      "description": "Lowest of exactly four horizontal shelf slabs, centered near z=0.40. Deep-red finish; approximately 2.10 wide in x, 0.68 deep in y, and 0.10 thick in z. Construct the planform from a rectangular rear portion plus a shallow elliptical or cylindrical segment projecting toward the front (-y), producing a clearly visible smooth convex bowed front edge."
+    },
+    {
+      "name": "shelf_2_lower_middle",
+      "description": "Second horizontal shelf at approximately z=0.92, matching shelf_1 in width, depth, thickness, deep-red color, and convex curved front-edge construction."
+    },
+    {
+      "name": "shelf_3_upper_middle",
+      "description": "Third horizontal shelf at approximately z=1.44, matching the other two lower shelves in width, depth, thickness, deep-red color, and convex curved front-edge construction."
+    },
+    {
+      "name": "shelf_4_top",
+      "description": "Top and fourth shelf at approximately z=1.98. Centered over the lower shelves but visibly smaller in both width and depth: approximately 1.65 wide, 0.52 deep, and 0.10 thick. Use the same deep-red finish and convex bowed front edge facing -y."
+    },
+    {
+      "name": "left_side_structure",
+      "description": "Dark neutral or dark-wood freestanding support frame along the left side. Include a vertical rear upright near x=-1.12, a front leg near the front side, and short horizontal arms or brackets reaching inward to support the lower shelves. Extend from floor level to above the top shelf."
+    },
+    {
+      "name": "right_side_structure",
+      "description": "Mirror of the left support frame at x=+1.12, with matching upright, front leg, and shelf-supporting arms. Keep the two side structures visually balanced and structurally connected to all shelf levels."
+    },
+    {
+      "name": "top_support_brackets",
+      "description": "Pair of dark support brackets extending inward from the tall side uprights beneath the narrower top shelf. Their inner ends contact the underside of shelf_4_top so the reduced-width shelf does not appear to float."
+    },
+    {
+      "name": "rear_cross_bracing",
+      "description": "One or more narrow dark horizontal rear rails spanning between the left and right structures near the back (+y). Position rails beneath or behind shelf levels to stabilize the unit without forming an additional shelf."
+    },
+    {
+      "name": "feet",
+      "description": "Four compact floor-contact feet or leg ends beneath the side structures, arranged as left/right and front/back pairs. They hold the lowest shelf above the ground and make the bookshelf visibly freestanding."
+    },
+    {
+      "name": "book_group_bottom",
+      "description": "Several distinct upright books resting on shelf_1. Use separate narrow cuboids with varied heights, thicknesses, and colors; include one slightly tilted book if practical. Keep gaps between some volumes so they remain individually readable."
+    },
+    {
+      "name": "storage_boxes_shelf_1",
+      "description": "One or two storage boxes on the bottom shelf, modeled as box-like cuboids with contrasting colors and optional thinner lid pieces. Make their dimensions visibly different from the books."
+    },
+    {
+      "name": "book_group_shelf_2",
+      "description": "A second assortment of individually modeled books on shelf_2, with a different count, color sequence, and height profile from the bottom group. Include both upright books and a short horizontal stack."
+    },
+    {
+      "name": "storage_box_shelf_3",
+      "description": "A distinct medium storage box resting on shelf_3, offset to one side. Use a body and contrasting shallow lid or label panel so it is clearly identifiable as a container rather than another shelf."
+    },
+    {
+      "name": "book_group_shelf_3",
+      "description": "A small group of upright books beside the storage box on shelf_3. Vary their widths, heights, and colors, and keep all objects below the top shelf."
+    },
+    {
+      "name": "top_shelf_objects",
+      "description": "A sparse pair of small books or compact decorative storage boxes resting on shelf_4_top. Keep them centered enough to fit the reduced top-shelf depth and width."
+    }
+  ],
+  "relations": [
+    "Use world coordinates with +z upward, +x to the right, and the visible bookshelf front toward -y.",
+    "The model contains exactly four components functioning as shelves: shelf_1_bottom, shelf_2_lower_middle, shelf_3_upper_middle, and shelf_4_top.",
+    "All four shelves are horizontal, vertically ordered, and centered on x=0; their top surfaces are separated enough to hold books and boxes without intersection.",
+    "The three lower shelves share approximately equal width and depth, while shelf_4_top is unambiguously narrower along x and shallower along y.",
+    "Every shelf has a smooth convex front boundary projecting toward -y; the rear edge may remain straight near +y.",
+    "The four shelf fronts should align generally around the same central x axis, while the smaller top shelf is set back or reduced in depth relative to the lower shelves.",
+    "The left and right side structures are mirrored across the x=0 plane and stand outside the ends of the three lower shelves.",
+    "Shelf ends contact or are closely supported by horizontal arms from the side structures; no shelf should appear suspended without support.",
+    "The narrower top shelf is supported by inward-reaching top brackets connected to the taller outer side uprights.",
+    "Rear cross-bracing connects the side structures near +y but remains narrow enough that it cannot be mistaken for a fifth shelf.",
+    "All feet terminate at a common floor plane near z=0, and the overall center of mass reads as stable and freestanding.",
+    "Books and storage boxes sit directly on shelf top surfaces with no visible gaps beneath them and no penetration into the shelf slabs.",
+    "Shelf contents are distributed across multiple levels and remain distinct through variations in dimensions, placement, orientation, and color.",
+    "Objects placed near the curved fronts remain behind the forward-most bowed edge and do not overhang excessively.",
+    "Deep red is reserved prominently for all four shelf slabs; supports should use a contrasting dark wood, charcoal, or near-black appearance so the shelf count and curved geometry remain legible."
+  ],
+  "critic_checklist": [
+    "Verify there are exactly four horizontal deep-red shelf slabs and no fifth shelf-like platform.",
+    "Verify all four shelf front edges are visibly curved in top or perspective view, not merely straight cuboid fronts.",
+    "Verify the curved side faces inherit the shelf color and remain smooth enough to read as a continuous bow.",
+    "Verify the top shelf is measurably smaller than each lower shelf in both x width and y depth.",
+    "Verify the three lower shelves have consistent overall width and depth.",
+    "Verify all shelves are centered and ordered from bottom to top without overlap.",
+    "Verify left and right supporting structures are present, mirrored, floor-reaching, and visibly connected to the shelving system.",
+    "Verify the narrow top shelf has explicit support brackets or arms and does not float between distant uprights.",
+    "Verify rear rails or braces are too narrow to be interpreted as additional shelves.",
+    "Verify the unit contacts the floor through stable feet or legs and does not rely on a wall for support.",
+    "Verify several distinct books or storage boxes are present on multiple shelves, with recognizable differences in size, color, or orientation.",
+    "Verify every book and box rests on a shelf top and does not intersect adjacent shelves, supports, or other contents.",
+    "Verify shelf contents do not conceal all curved front edges; at least substantial portions of the bowed fronts remain visible.",
+    "Verify the front of the bookshelf consistently faces -y and the curved edges project in that direction.",
+    "Verify the final silhouette is balanced, structurally plausible, and clearly recognizable as a freestanding bookshelf."
+  ]
+}

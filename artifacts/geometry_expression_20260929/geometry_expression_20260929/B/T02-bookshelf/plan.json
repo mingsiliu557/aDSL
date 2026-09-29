@@ -1,0 +1,59 @@
+{
+  "object_name": "Freestanding four-shelf bookshelf",
+  "components": [
+    {
+      "name": "lower_shelves_1_to_3",
+      "description": "Exactly three matching deep-red horizontal shelf slabs arranged at successive heights. Each slab is wide along x, deep along y, and thin along z, with approximate proportions width:depth:thickness = 10:4:0.35. In top view, the back edge is straight and the two side edges are mostly straight, while the front edge on the -y side forms a clearly visible smooth convex bow projecting forward, not merely rounded corners. Create each plan outline as a sampled Polygon with a shallow circular or parabolic front arc, then use linear_extrude for constant slab thickness. Keep the shelves solid, without holes, and use enough arc samples to avoid a faceted silhouette."
+    },
+    {
+      "name": "top_shelf",
+      "description": "One deep-red horizontal shelf slab using the same curved-front design and similar thickness as the lower shelves, but visibly smaller in both x width and y depth. Target roughly 70–80% of the lower-shelf width and 70–85% of their depth. Center it laterally on x and align its straight rear region with the main structure so the reductions are apparent at both side ends and along the front. This is the fourth and highest shelf; do not add any other shelf-like horizontal board."
+    },
+    {
+      "name": "left_side_support",
+      "description": "Freestanding structural support on the -x side, extending from the floor to the top-shelf level. Use a sturdy narrow side panel, frame, or pair of vertical posts with front-to-back depth sufficient to stabilize the lower shelves. Its dominant outline is tall and rectangular, with a constant rectangular cross-section. The upper portion may step or taper inward to meet the narrower top shelf. It must visibly contact and support all four shelf levels without obscuring the curved front edges."
+    },
+    {
+      "name": "right_side_support",
+      "description": "Mirrored structural support on the +x side, matching the left support in height, depth, thickness, and any inward step near the top. Keep the pair bilaterally symmetric about x=0 and place them close to the shelf ends so the lower shelves span between them while the smaller top shelf is supported by the inward upper portions."
+    },
+    {
+      "name": "base_feet",
+      "description": "Stable floor-contact elements beneath the side supports. Use two broad feet, one under each side structure, or four compact feet at the front and back corners. Their horizontal footprint should be wider or deeper than the vertical support cross-sections, and their bottoms must share z=0. Keep them visually subordinate and avoid shapes that could be mistaken for a fifth shelf."
+    },
+    {
+      "name": "books_and_storage",
+      "description": "Several distinct freestanding contents distributed across the shelf surfaces, preferably 8–12 total objects. Model books as thin rectangular prisms with varied heights, widths, depths, and colors; include both upright groups and at least one short horizontal stack. Model storage boxes as larger rectangular prisms, with at least two noticeably different sizes or proportions and optional contrasting lid bands. Contents should not all be identical repeated blocks. Keep every item behind the curved front boundary and between the side supports, and leave some visible empty shelf area."
+    }
+  ],
+  "relations": [
+    "Use world coordinates with x spanning left-to-right, +y toward the back/inward direction, -y toward the viewer/front, and z upward.",
+    "The model contains exactly four deep-red shelf slabs: three equal-sized lower shelves and one smaller top shelf. Feet, books, boxes, braces, and decorative parts must not read as additional shelves.",
+    "All four shelves are horizontal, centered near x=0, and stacked in increasing z with clear usable vertical gaps. Suggested shelf-top elevations are approximately 0.45, 1.45, 2.45, and 3.35 scene units, with the top interval allowed to be slightly shorter.",
+    "The three lower shelves share the same x width and y depth and align vertically at their straight rear edges. Their convex curved front edges align vertically in plan.",
+    "The top shelf is centered over the lower shelves but has both x ends inset and its front edge set farther back because of reduced depth. Its front edge remains visibly curved.",
+    "Each shelf connects structurally to both side supports. Side supports extend continuously or through aligned posts from the base to at least the underside of the top shelf.",
+    "Left and right side structures are mirrored around the vertical x=0 plane. If their upper sections step inward, the steps begin above the third shelf and terminate beneath the narrower top shelf.",
+    "All floor-contact feet have coplanar bottom faces at z=0, and the overall center of mass should visually remain between the feet for a plausible freestanding design.",
+    "Books and boxes rest with their bottom faces on shelf top faces, with no floating objects or visible intersections through the shelf slabs.",
+    "Distribute contents across at least three of the four shelves. Use varied arrangements rather than a uniform grid, and preserve visibility of each shelf's deep-red surface and curved front edge.",
+    "Upright books stand primarily along z with neighboring books close together; horizontal book stacks contain two or more thin books aligned in plan. Storage boxes should have greater width and thickness than individual books.",
+    "The frontmost point of every book or box remains behind the frontmost point of its supporting shelf, preventing overhang beyond the curved front edge."
+  ],
+  "critic_checklist": [
+    "Count exactly four shelf slabs and verify all four are deep red.",
+    "Verify the three lower shelves have equal width and depth.",
+    "Verify the top shelf is measurably smaller than a lower shelf along both x and y, ideally no more than 80% of lower-shelf width and 85% of lower-shelf depth.",
+    "From top view, confirm every shelf has a clearly bowed convex front edge on the -y side; a straight front with only rounded corners is insufficient.",
+    "Confirm there is no fifth horizontal structural board that could be interpreted as another shelf.",
+    "Check that left and right supporting structures are present, symmetric, and visibly connect to or support every shelf level.",
+    "Check that the bookshelf is freestanding: all feet touch z=0, no part extends below the floor, and the structure has a credible front-to-back support footprint.",
+    "Verify shelf slabs do not intersect one another and have clear vertical storage gaps.",
+    "Verify several distinct contents are present, including varied books and at least two storage boxes or distinctly box-like containers.",
+    "Confirm contents occupy at least three shelf levels and include both an upright book arrangement and a horizontal stack.",
+    "Check every book and box has direct contact with a shelf top, does not penetrate side supports, and does not project beyond the shelf's curved front boundary.",
+    "Confirm shelf contents differ visibly in size, proportion, orientation, or color rather than appearing as copies of one primitive.",
+    "From the front three-quarter view, all four curved shelf edges should remain visible enough to communicate the design, and the smaller top shelf should be immediately distinguishable.",
+    "Check that the overall silhouette is upright, bilaterally balanced, and stable, with the top shelf and upper supports centered over the base footprint."
+  ]
+}

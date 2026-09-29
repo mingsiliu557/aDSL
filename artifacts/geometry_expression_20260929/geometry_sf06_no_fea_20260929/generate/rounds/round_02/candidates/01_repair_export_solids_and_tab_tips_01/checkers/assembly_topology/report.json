@@ -1,0 +1,454 @@
+{
+  "source_sha256": "dc61956a61712e0aa698740340e229837aead0899560143fb921cc1d889f388f",
+  "manifest_sha256": "c93fe24c4d0a30ea1524129e02b05a7de1ecca067429aa96d54f3cdf92dc43af",
+  "topology_scope_version": 2,
+  "items": [
+    {
+      "kind": "part",
+      "status": "INDETERMINATE",
+      "code": "PRINT_MESH_UNAVAILABLE",
+      "part_id": "chair_body"
+    },
+    {
+      "kind": "part",
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART",
+      "part_id": "leg_front_left",
+      "component_count": 1,
+      "component_bounds_mm": [
+        [
+          [
+            -39.0,
+            -39.0,
+            0.0
+          ],
+          [
+            39.0,
+            39.0,
+            330.0
+          ]
+        ]
+      ],
+      "representative_points_mm": [
+        [
+          0.0,
+          0.0,
+          165.0
+        ]
+      ],
+      "bounds_mm": [
+        [
+          -39.0,
+          -39.0,
+          0.0
+        ],
+        [
+          39.0,
+          39.0,
+          330.0
+        ]
+      ],
+      "length_tolerance_mm": 0.000629425048828125,
+      "surface_area_mm2": 101496.0,
+      "nearest_components": null,
+      "solid_sha256": "4a6b25b60d968c674cba1f27370d4ea21fbc222379f1987815e6341553a7329d",
+      "elapsed_seconds": 6.48150734230876,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_topology/items/part_leg_front_left/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "part",
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART",
+      "part_id": "leg_front_right",
+      "component_count": 1,
+      "component_bounds_mm": [
+        [
+          [
+            -39.0,
+            -39.0,
+            0.0
+          ],
+          [
+            39.0,
+            39.0,
+            330.0
+          ]
+        ]
+      ],
+      "representative_points_mm": [
+        [
+          0.0,
+          0.0,
+          165.0
+        ]
+      ],
+      "bounds_mm": [
+        [
+          -39.0,
+          -39.0,
+          0.0
+        ],
+        [
+          39.0,
+          39.0,
+          330.0
+        ]
+      ],
+      "length_tolerance_mm": 0.000629425048828125,
+      "surface_area_mm2": 101496.0,
+      "nearest_components": null,
+      "solid_sha256": "4a6b25b60d968c674cba1f27370d4ea21fbc222379f1987815e6341553a7329d",
+      "elapsed_seconds": 7.082676505669951,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_topology/items/part_leg_front_right/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "part",
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART",
+      "part_id": "leg_rear_left",
+      "component_count": 1,
+      "component_bounds_mm": [
+        [
+          [
+            -39.0,
+            -39.0,
+            0.0
+          ],
+          [
+            39.0,
+            39.0,
+            330.0
+          ]
+        ]
+      ],
+      "representative_points_mm": [
+        [
+          0.0,
+          0.0,
+          165.0
+        ]
+      ],
+      "bounds_mm": [
+        [
+          -39.0,
+          -39.0,
+          0.0
+        ],
+        [
+          39.0,
+          39.0,
+          330.0
+        ]
+      ],
+      "length_tolerance_mm": 0.000629425048828125,
+      "surface_area_mm2": 101496.0,
+      "nearest_components": null,
+      "solid_sha256": "4a6b25b60d968c674cba1f27370d4ea21fbc222379f1987815e6341553a7329d",
+      "elapsed_seconds": 7.287220358848572,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_topology/items/part_leg_rear_left/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "part",
+      "status": "PASS",
+      "code": "CONNECTED_PRINT_PART",
+      "part_id": "leg_rear_right",
+      "component_count": 1,
+      "component_bounds_mm": [
+        [
+          [
+            -39.0,
+            -39.0,
+            0.0
+          ],
+          [
+            39.0,
+            39.0,
+            330.0
+          ]
+        ]
+      ],
+      "representative_points_mm": [
+        [
+          0.0,
+          0.0,
+          165.0
+        ]
+      ],
+      "bounds_mm": [
+        [
+          -39.0,
+          -39.0,
+          0.0
+        ],
+        [
+          39.0,
+          39.0,
+          330.0
+        ]
+      ],
+      "length_tolerance_mm": 0.000629425048828125,
+      "surface_area_mm2": 101496.0,
+      "nearest_components": null,
+      "solid_sha256": "4a6b25b60d968c674cba1f27370d4ea21fbc222379f1987815e6341553a7329d",
+      "elapsed_seconds": 6.581821963191032,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_topology/items/part_leg_rear_right/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "tab_part": "leg_front_left",
+      "slot_part": "chair_body",
+      "parameter_name": "shared_leg_mount",
+      "tab_port": "top_mount_tab",
+      "slot_port": "underside_front_left_slot",
+      "connection_id": "mount_front_left_leg"
+    },
+    {
+      "kind": "interface",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "tab_part": "leg_front_right",
+      "slot_part": "chair_body",
+      "parameter_name": "shared_leg_mount",
+      "tab_port": "top_mount_tab",
+      "slot_port": "underside_front_right_slot",
+      "connection_id": "mount_front_right_leg"
+    },
+    {
+      "kind": "interface",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "tab_part": "leg_rear_left",
+      "slot_part": "chair_body",
+      "parameter_name": "shared_leg_mount",
+      "tab_port": "top_mount_tab",
+      "slot_port": "underside_rear_left_slot",
+      "connection_id": "mount_rear_left_leg"
+    },
+    {
+      "kind": "interface",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "tab_part": "leg_rear_right",
+      "slot_part": "chair_body",
+      "parameter_name": "shared_leg_mount",
+      "tab_port": "top_mount_tab",
+      "slot_port": "underside_rear_right_slot",
+      "connection_id": "mount_rear_right_leg"
+    },
+    {
+      "kind": "pair",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "pair_id": "chair_body:leg_front_left",
+      "part_ids": [
+        "chair_body",
+        "leg_front_left"
+      ],
+      "frame": "assembly",
+      "unit": "mm"
+    },
+    {
+      "kind": "pair",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "pair_id": "chair_body:leg_front_right",
+      "part_ids": [
+        "chair_body",
+        "leg_front_right"
+      ],
+      "frame": "assembly",
+      "unit": "mm"
+    },
+    {
+      "kind": "pair",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "pair_id": "chair_body:leg_rear_left",
+      "part_ids": [
+        "chair_body",
+        "leg_rear_left"
+      ],
+      "frame": "assembly",
+      "unit": "mm"
+    },
+    {
+      "kind": "pair",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "pair_id": "chair_body:leg_rear_right",
+      "part_ids": [
+        "chair_body",
+        "leg_rear_right"
+      ],
+      "frame": "assembly",
+      "unit": "mm"
+    },
+    {
+      "kind": "pair",
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE",
+      "pair_id": "leg_front_left:leg_front_right",
+      "part_ids": [
+        "leg_front_left",
+        "leg_front_right"
+      ],
+      "frame": "assembly",
+      "unit": "mm",
+      "raw_intersection_mm3": 0.0,
+      "undeclared_interference_mm3": 0.0,
+      "bounds_mm": null,
+      "bounds_center_mm": null,
+      "method": "aabb_disjoint",
+      "length_tolerance_mm": 0.000629425048828125,
+      "volume_tolerance_mm3": 63.884124755859375,
+      "connection_ids": [],
+      "related_connection_ids": [
+        "mount_front_left_leg",
+        "mount_front_right_leg"
+      ],
+      "allowed_fit_connection_ids": [],
+      "elapsed_seconds": 6.031150808557868,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_topology/items/pair_0004/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "pair",
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE",
+      "pair_id": "leg_front_left:leg_rear_left",
+      "part_ids": [
+        "leg_front_left",
+        "leg_rear_left"
+      ],
+      "frame": "assembly",
+      "unit": "mm",
+      "raw_intersection_mm3": 0.0,
+      "undeclared_interference_mm3": 0.0,
+      "bounds_mm": null,
+      "bounds_center_mm": null,
+      "method": "aabb_disjoint",
+      "length_tolerance_mm": 0.000629425048828125,
+      "volume_tolerance_mm3": 63.884124755859375,
+      "connection_ids": [],
+      "related_connection_ids": [
+        "mount_front_left_leg",
+        "mount_rear_left_leg"
+      ],
+      "allowed_fit_connection_ids": [],
+      "elapsed_seconds": 6.231226075440645,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_topology/items/pair_0005/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "pair",
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE",
+      "pair_id": "leg_front_left:leg_rear_right",
+      "part_ids": [
+        "leg_front_left",
+        "leg_rear_right"
+      ],
+      "frame": "assembly",
+      "unit": "mm",
+      "raw_intersection_mm3": 0.0,
+      "undeclared_interference_mm3": 0.0,
+      "bounds_mm": null,
+      "bounds_center_mm": null,
+      "method": "aabb_disjoint",
+      "length_tolerance_mm": 0.000629425048828125,
+      "volume_tolerance_mm3": 63.884124755859375,
+      "connection_ids": [],
+      "related_connection_ids": [
+        "mount_front_left_leg",
+        "mount_rear_right_leg"
+      ],
+      "allowed_fit_connection_ids": [],
+      "elapsed_seconds": 6.281209418550134,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_topology/items/pair_0006/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "pair",
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE",
+      "pair_id": "leg_front_right:leg_rear_left",
+      "part_ids": [
+        "leg_front_right",
+        "leg_rear_left"
+      ],
+      "frame": "assembly",
+      "unit": "mm",
+      "raw_intersection_mm3": 0.0,
+      "undeclared_interference_mm3": 0.0,
+      "bounds_mm": null,
+      "bounds_center_mm": null,
+      "method": "aabb_disjoint",
+      "length_tolerance_mm": 0.000629425048828125,
+      "volume_tolerance_mm3": 63.884124755859375,
+      "connection_ids": [],
+      "related_connection_ids": [
+        "mount_front_right_leg",
+        "mount_rear_left_leg"
+      ],
+      "allowed_fit_connection_ids": [],
+      "elapsed_seconds": 6.431434221565723,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_topology/items/pair_0007/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "pair",
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE",
+      "pair_id": "leg_front_right:leg_rear_right",
+      "part_ids": [
+        "leg_front_right",
+        "leg_rear_right"
+      ],
+      "frame": "assembly",
+      "unit": "mm",
+      "raw_intersection_mm3": 0.0,
+      "undeclared_interference_mm3": 0.0,
+      "bounds_mm": null,
+      "bounds_center_mm": null,
+      "method": "aabb_disjoint",
+      "length_tolerance_mm": 0.000629425048828125,
+      "volume_tolerance_mm3": 63.884124755859375,
+      "connection_ids": [],
+      "related_connection_ids": [
+        "mount_front_right_leg",
+        "mount_rear_right_leg"
+      ],
+      "allowed_fit_connection_ids": [],
+      "elapsed_seconds": 6.131088180467486,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_topology/items/pair_0008/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "pair",
+      "status": "PASS",
+      "code": "NO_UNDECLARED_PART_INTERFERENCE",
+      "pair_id": "leg_rear_left:leg_rear_right",
+      "part_ids": [
+        "leg_rear_left",
+        "leg_rear_right"
+      ],
+      "frame": "assembly",
+      "unit": "mm",
+      "raw_intersection_mm3": 0.0,
+      "undeclared_interference_mm3": 0.0,
+      "bounds_mm": null,
+      "bounds_center_mm": null,
+      "method": "aabb_disjoint",
+      "length_tolerance_mm": 0.000629425048828125,
+      "volume_tolerance_mm3": 63.884124755859375,
+      "connection_ids": [],
+      "related_connection_ids": [
+        "mount_rear_left_leg",
+        "mount_rear_right_leg"
+      ],
+      "allowed_fit_connection_ids": [],
+      "elapsed_seconds": 5.880225919187069,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_02/candidates/01_repair_export_solids_and_tab_tips_01/checkers/assembly_topology/items/pair_0009/checkers/assembly_topology/result.json"
+    }
+  ],
+  "elapsed_seconds": 64.77749419771135,
+  "single_operation_timeout_seconds": 120,
+  "checker_budget_seconds": 900.0
+}

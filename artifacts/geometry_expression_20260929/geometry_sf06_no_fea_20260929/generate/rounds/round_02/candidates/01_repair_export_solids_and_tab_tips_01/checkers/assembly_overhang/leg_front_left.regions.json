@@ -1,0 +1,73 @@
+{
+  "area_mm2": 1184.0,
+  "uncertainty": {
+    "bound_mm2": 4.519681284743779,
+    "coordinate_error_mm": 0.0003147125244140625,
+    "ambiguous_faces": 0,
+    "source": "8 float32 ulps, cross-product perturbation plus full classification-ambiguous face area"
+  },
+  "regions": [
+    {
+      "area_mm2": 1184.0,
+      "global_face_ids": [
+        3,
+        8,
+        16,
+        22,
+        29,
+        36,
+        44,
+        49
+      ],
+      "centroid_mm": [
+        -7.681543089298381e-16,
+        0.0,
+        276.0
+      ],
+      "representative_point_mm": [
+        -11.666666666666666,
+        -37.666666666666664,
+        276.0
+      ],
+      "bounds_mm": [
+        [
+          -39.0,
+          -39.0,
+          276.0
+        ],
+        [
+          39.0,
+          39.0,
+          276.0
+        ]
+      ],
+      "provenance": "exterior region; source mapping requires localization"
+    }
+  ],
+  "print_transform_mm": [
+    [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0,
+      -0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ]
+}

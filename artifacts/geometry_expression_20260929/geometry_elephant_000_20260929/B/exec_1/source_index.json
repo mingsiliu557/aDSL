@@ -1,0 +1,4160 @@
+{
+  "version": 1,
+  "source_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_elephant_000_20260929/B/source.py",
+  "source_sha256": "8214009f19a423f017ff4eb716e0ede9338862d0550c7f47b710170b1dd78f9f",
+  "index_sha256": "8249294fe299feb8fd7933ee75f66d0517c3395be80c53ee2834382f779fc6a8",
+  "root_feature_id": "feature:StylizedUpwardTrunkElephant",
+  "source_nodes": [
+    {
+      "source_id": "source:9c41fb5fb6799c21e65a",
+      "kind": "function",
+      "name": "ellipsoid",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 9,
+        "end_line": 12,
+        "start_col": 0,
+        "end_col": 50
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "ELEPHANT_GRAY",
+        "Sphere",
+        "center",
+        "color",
+        "form",
+        "radii",
+        "scale_shape"
+      ],
+      "expression": "def ellipsoid(center, radii, color=ELEPHANT_GRAY):\n    \"\"\"Create a softly rounded ellipsoid from a public sphere primitive.\"\"\"\n    form = Sphere(1.0, center=center, color=color)\n    return scale_shape(form, radii, center=center)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:1fa4a6d1c1f94109eb9b",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 11,
+        "end_line": 11,
+        "start_col": 11,
+        "end_col": 50
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "Sphere",
+        "center",
+        "color"
+      ],
+      "expression": "Sphere(1.0, center=center, color=color)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:364d1cb45a9ed6aa5342",
+      "kind": "dsl_call",
+      "name": "scale_shape",
+      "scope": "ellipsoid",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 12,
+        "end_line": 12,
+        "start_col": 11,
+        "end_col": 50
+      },
+      "parameters": [
+        "center"
+      ],
+      "dependencies": [
+        "center",
+        "form",
+        "radii",
+        "scale_shape"
+      ],
+      "expression": "scale_shape(form, radii, center=center)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:7f3455cb55b81d3e6f21",
+      "kind": "function",
+      "name": "cubic_bezier",
+      "scope": "cubic_bezier",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 15,
+        "end_line": 32,
+        "start_col": 0,
+        "end_col": 17
+      },
+      "parameters": [],
+      "dependencies": [
+        "float",
+        "index",
+        "p0",
+        "p1",
+        "p2",
+        "p3",
+        "points",
+        "range",
+        "samples",
+        "t",
+        "u"
+      ],
+      "expression": "def cubic_bezier(p0, p1, p2, p3, samples):\n    points = []\n    for index in range(samples):\n        t = index / float(samples)\n        u = 1.0 - t\n        points.append(\n            (\n                u * u * u * p0[0]\n                + 3.0 * u * u * t * p1[0]\n                + 3.0 * u * t * t * p2[0]\n                + t * t * t * p3[0],\n                u * u * u * p0[1]\n                + 3.0 * u * u * t * p1[1]\n                + 3.0 * u * t * t * p2[1]\n                + t * t * t * p3[1],\n            )\n        )\n    return points",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:021c46fed08fcca917f0",
+      "kind": "class",
+      "name": "FanEar",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 35,
+        "end_line": 68,
+        "start_col": 0,
+        "end_col": 51
+      },
+      "parameters": [
+        "angle",
+        "axis",
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "ELEPHANT_GRAY",
+        "Polygon",
+        "cubic_bezier",
+        "ear",
+        "ear_profile",
+        "label",
+        "linear_extrude",
+        "outline",
+        "rotate_shape",
+        "self",
+        "side_y",
+        "super",
+        "translate_shape"
+      ],
+      "expression": "class FanEar(Asset):\n    def __init__(self, side_y, label):\n        super().__init__(label=label)\n\n        # Smooth asymmetric fan outline in the world x-z side plane.  The rear\n        # (+x) half is broad while the lower-front edge folds gently inward.\n        outline = []\n        outline += cubic_bezier(\n            (-0.82, 3.18), (-0.62, 3.48), (-0.12, 3.52), (0.24, 3.34), 8\n        )\n        outline += cubic_bezier(\n            (0.24, 3.34), (0.62, 3.15), (0.72, 2.76), (0.55, 2.43), 8\n        )\n        outline += cubic_bezier(\n            (0.55, 2.43), (0.34, 2.12), (-0.06, 2.10), (-0.34, 2.32), 8\n        )\n        outline += cubic_bezier(\n            (-0.34, 2.32), (-0.50, 2.47), (-0.39, 2.66), (-0.62, 2.78), 6\n        )\n        outline += cubic_bezier(\n            (-0.62, 2.78), (-0.78, 2.89), (-0.88, 3.02), (-0.82, 3.18), 6\n        )\n\n        ear_profile = Polygon(outline)\n        ear = linear_extrude(\n            ear_profile,\n            0.10,\n            center=True,\n            color=ELEPHANT_GRAY,\n        )\n        # Profile y becomes world z; centered extrusion thickness becomes y.\n        ear = rotate_shape(ear, axis=\"+x\", angle=90.0, center=(0.0, 0.0, 0.0))\n        ear = translate_shape(ear, (0.0, side_y, 0.0))\n        self.panel = self.attach_part(\"panel\", ear)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:67c75ac059d4e0960236",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "FanEar/__init__",
+      "owner_class": "FanEar",
+      "semantic_name": null,
+      "span": {
+        "start_line": 36,
+        "end_line": 68,
+        "start_col": 4,
+        "end_col": 51
+      },
+      "parameters": [
+        "angle",
+        "axis",
+        "center",
+        "color",
+        "label"
+      ],
+      "dependencies": [
+        "ELEPHANT_GRAY",
+        "Polygon",
+        "cubic_bezier",
+        "ear",
+        "ear_profile",
+        "label",
+        "linear_extrude",
+        "outline",
+        "rotate_shape",
+        "self",
+        "side_y",
+        "super",
+        "translate_shape"
+      ],
+      "expression": "def __init__(self, side_y, label):\n        super().__init__(label=label)\n\n        # Smooth asymmetric fan outline in the world x-z side plane.  The rear\n        # (+x) half is broad while the lower-front edge folds gently inward.\n        outline = []\n        outline += cubic_bezier(\n            (-0.82, 3.18), (-0.62, 3.48), (-0.12, 3.52), (0.24, 3.34), 8\n        )\n        outline += cubic_bezier(\n            (0.24, 3.34), (0.62, 3.15), (0.72, 2.76), (0.55, 2.43), 8\n        )\n        outline += cubic_bezier(\n            (0.55, 2.43), (0.34, 2.12), (-0.06, 2.10), (-0.34, 2.32), 8\n        )\n        outline += cubic_bezier(\n            (-0.34, 2.32), (-0.50, 2.47), (-0.39, 2.66), (-0.62, 2.78), 6\n        )\n        outline += cubic_bezier(\n            (-0.62, 2.78), (-0.78, 2.89), (-0.88, 3.02), (-0.82, 3.18), 6\n        )\n\n        ear_profile = Polygon(outline)\n        ear = linear_extrude(\n            ear_profile,\n            0.10,\n            center=True,\n            color=ELEPHANT_GRAY,\n        )\n        # Profile y becomes world z; centered extrusion thickness becomes y.\n        ear = rotate_shape(ear, axis=\"+x\", angle=90.0, center=(0.0, 0.0, 0.0))\n        ear = translate_shape(ear, (0.0, side_y, 0.0))\n        self.panel = self.attach_part(\"panel\", ear)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:e8e50f143b8dbfa82771",
+      "kind": "dsl_call",
+      "name": "Polygon",
+      "scope": "FanEar/__init__",
+      "owner_class": "FanEar",
+      "semantic_name": null,
+      "span": {
+        "start_line": 58,
+        "end_line": 58,
+        "start_col": 22,
+        "end_col": 38
+      },
+      "parameters": [],
+      "dependencies": [
+        "Polygon",
+        "outline"
+      ],
+      "expression": "Polygon(outline)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:131894e4608c5d5c4946",
+      "kind": "dsl_call",
+      "name": "linear_extrude",
+      "scope": "FanEar/__init__",
+      "owner_class": "FanEar",
+      "semantic_name": null,
+      "span": {
+        "start_line": 59,
+        "end_line": 64,
+        "start_col": 14,
+        "end_col": 9
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "ELEPHANT_GRAY",
+        "ear_profile",
+        "linear_extrude"
+      ],
+      "expression": "linear_extrude(\n            ear_profile,\n            0.10,\n            center=True,\n            color=ELEPHANT_GRAY,\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:231acdcc059fdbfe305b",
+      "kind": "dsl_call",
+      "name": "rotate_shape",
+      "scope": "FanEar/__init__",
+      "owner_class": "FanEar",
+      "semantic_name": null,
+      "span": {
+        "start_line": 66,
+        "end_line": 66,
+        "start_col": 14,
+        "end_col": 78
+      },
+      "parameters": [
+        "angle",
+        "axis",
+        "center"
+      ],
+      "dependencies": [
+        "ear",
+        "rotate_shape"
+      ],
+      "expression": "rotate_shape(ear, axis=\"+x\", angle=90.0, center=(0.0, 0.0, 0.0))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:9541f6b035118027279f",
+      "kind": "dsl_call",
+      "name": "translate_shape",
+      "scope": "FanEar/__init__",
+      "owner_class": "FanEar",
+      "semantic_name": null,
+      "span": {
+        "start_line": 67,
+        "end_line": 67,
+        "start_col": 14,
+        "end_col": 54
+      },
+      "parameters": [],
+      "dependencies": [
+        "ear",
+        "side_y",
+        "translate_shape"
+      ],
+      "expression": "translate_shape(ear, (0.0, side_y, 0.0))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:e535f6f3b5d28ab78b9d",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "FanEar/__init__",
+      "owner_class": "FanEar",
+      "semantic_name": "panel",
+      "span": {
+        "start_line": 68,
+        "end_line": 68,
+        "start_col": 21,
+        "end_col": 51
+      },
+      "parameters": [],
+      "dependencies": [
+        "ear",
+        "self"
+      ],
+      "expression": "self.attach_part(\"panel\", ear)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:b4644cfb250cb8484755",
+      "kind": "class",
+      "name": "OrganicLeg",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 71,
+        "end_line": 109,
+        "start_col": 0,
+        "end_col": 49
+      },
+      "parameters": [
+        "axis",
+        "center",
+        "color",
+        "height",
+        "label"
+      ],
+      "dependencies": [
+        "Asset",
+        "Cylinder",
+        "ELEPHANT_GRAY",
+        "boolean_union",
+        "center_x",
+        "center_y",
+        "disc",
+        "discs",
+        "hull",
+        "index",
+        "label",
+        "leg",
+        "len",
+        "radius_x",
+        "radius_y",
+        "range",
+        "scale_shape",
+        "sections",
+        "segments",
+        "self",
+        "super",
+        "upper_fullness",
+        "z"
+      ],
+      "expression": "class OrganicLeg(Asset):\n    def __init__(self, center_x, center_y, label, upper_fullness=1.0):\n        super().__init__(label=label)\n\n        # Short discs define a flared foot, narrow ankle and fuller upper leg.\n        # Local pairwise hulls retain the ankle indentation that a global hull\n        # would erase, while producing continuous gently tapered segments.\n        sections = (\n            (0.06, 0.255, 0.225),\n            (0.20, 0.270, 0.235),\n            (0.43, 0.175, 0.165),\n            (0.88, 0.190, 0.175),\n            (1.25, 0.215 * upper_fullness, 0.195 * upper_fullness),\n            (1.50, 0.245 * upper_fullness, 0.215 * upper_fullness),\n        )\n\n        discs = []\n        for z, radius_x, radius_y in sections:\n            disc = Cylinder(\n                1.0,\n                height=0.12,\n                center=(center_x, center_y, z),\n                axis=\"z\",\n                color=ELEPHANT_GRAY,\n            )\n            disc = scale_shape(\n                disc,\n                (radius_x, radius_y, 1.0),\n                center=(center_x, center_y, z),\n            )\n            discs.append(disc)\n\n        segments = []\n        for index in range(len(discs) - 1):\n            segments.append(\n                hull(discs[index], discs[index + 1], color=ELEPHANT_GRAY)\n            )\n        leg = boolean_union(*segments)\n        self.form = self.attach_part(\"form\", leg)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:e4db02c39e57c081282a",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "OrganicLeg/__init__",
+      "owner_class": "OrganicLeg",
+      "semantic_name": null,
+      "span": {
+        "start_line": 72,
+        "end_line": 109,
+        "start_col": 4,
+        "end_col": 49
+      },
+      "parameters": [
+        "axis",
+        "center",
+        "color",
+        "height",
+        "label"
+      ],
+      "dependencies": [
+        "Cylinder",
+        "ELEPHANT_GRAY",
+        "boolean_union",
+        "center_x",
+        "center_y",
+        "disc",
+        "discs",
+        "hull",
+        "index",
+        "label",
+        "leg",
+        "len",
+        "radius_x",
+        "radius_y",
+        "range",
+        "scale_shape",
+        "sections",
+        "segments",
+        "self",
+        "super",
+        "upper_fullness",
+        "z"
+      ],
+      "expression": "def __init__(self, center_x, center_y, label, upper_fullness=1.0):\n        super().__init__(label=label)\n\n        # Short discs define a flared foot, narrow ankle and fuller upper leg.\n        # Local pairwise hulls retain the ankle indentation that a global hull\n        # would erase, while producing continuous gently tapered segments.\n        sections = (\n            (0.06, 0.255, 0.225),\n            (0.20, 0.270, 0.235),\n            (0.43, 0.175, 0.165),\n            (0.88, 0.190, 0.175),\n            (1.25, 0.215 * upper_fullness, 0.195 * upper_fullness),\n            (1.50, 0.245 * upper_fullness, 0.215 * upper_fullness),\n        )\n\n        discs = []\n        for z, radius_x, radius_y in sections:\n            disc = Cylinder(\n                1.0,\n                height=0.12,\n                center=(center_x, center_y, z),\n                axis=\"z\",\n                color=ELEPHANT_GRAY,\n            )\n            disc = scale_shape(\n                disc,\n                (radius_x, radius_y, 1.0),\n                center=(center_x, center_y, z),\n            )\n            discs.append(disc)\n\n        segments = []\n        for index in range(len(discs) - 1):\n            segments.append(\n                hull(discs[index], discs[index + 1], color=ELEPHANT_GRAY)\n            )\n        leg = boolean_union(*segments)\n        self.form = self.attach_part(\"form\", leg)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:d4e04dabc7ce02ab103e",
+      "kind": "dsl_call",
+      "name": "Cylinder",
+      "scope": "OrganicLeg/__init__",
+      "owner_class": "OrganicLeg",
+      "semantic_name": null,
+      "span": {
+        "start_line": 89,
+        "end_line": 95,
+        "start_col": 19,
+        "end_col": 13
+      },
+      "parameters": [
+        "axis",
+        "center",
+        "color",
+        "height"
+      ],
+      "dependencies": [
+        "Cylinder",
+        "ELEPHANT_GRAY",
+        "center_x",
+        "center_y",
+        "z"
+      ],
+      "expression": "Cylinder(\n                1.0,\n                height=0.12,\n                center=(center_x, center_y, z),\n                axis=\"z\",\n                color=ELEPHANT_GRAY,\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:7d4bc7fcb9d22035a0ed",
+      "kind": "dsl_call",
+      "name": "scale_shape",
+      "scope": "OrganicLeg/__init__",
+      "owner_class": "OrganicLeg",
+      "semantic_name": null,
+      "span": {
+        "start_line": 96,
+        "end_line": 100,
+        "start_col": 19,
+        "end_col": 13
+      },
+      "parameters": [
+        "center"
+      ],
+      "dependencies": [
+        "center_x",
+        "center_y",
+        "disc",
+        "radius_x",
+        "radius_y",
+        "scale_shape",
+        "z"
+      ],
+      "expression": "scale_shape(\n                disc,\n                (radius_x, radius_y, 1.0),\n                center=(center_x, center_y, z),\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:8106f231ef0f2886a1e2",
+      "kind": "dsl_call",
+      "name": "hull",
+      "scope": "OrganicLeg/__init__",
+      "owner_class": "OrganicLeg",
+      "semantic_name": null,
+      "span": {
+        "start_line": 106,
+        "end_line": 106,
+        "start_col": 16,
+        "end_col": 73
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "ELEPHANT_GRAY",
+        "discs",
+        "hull",
+        "index"
+      ],
+      "expression": "hull(discs[index], discs[index + 1], color=ELEPHANT_GRAY)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:dce48007416e7a81bcaa",
+      "kind": "dsl_call",
+      "name": "boolean_union",
+      "scope": "OrganicLeg/__init__",
+      "owner_class": "OrganicLeg",
+      "semantic_name": null,
+      "span": {
+        "start_line": 108,
+        "end_line": 108,
+        "start_col": 14,
+        "end_col": 38
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_union",
+        "segments"
+      ],
+      "expression": "boolean_union(*segments)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:af6f38b693ac3fa5bc1a",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "OrganicLeg/__init__",
+      "owner_class": "OrganicLeg",
+      "semantic_name": "form",
+      "span": {
+        "start_line": 109,
+        "end_line": 109,
+        "start_col": 20,
+        "end_col": 49
+      },
+      "parameters": [],
+      "dependencies": [
+        "leg",
+        "self"
+      ],
+      "expression": "self.attach_part(\"form\", leg)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:119629b53227063240f1",
+      "kind": "class",
+      "name": "CurvedTrunk",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 112,
+        "end_line": 168,
+        "start_col": 0,
+        "end_col": 51
+      },
+      "parameters": [
+        "angle",
+        "axis",
+        "center",
+        "color",
+        "label",
+        "scale_top"
+      ],
+      "dependencies": [
+        "Asset",
+        "ELEPHANT_GRAY",
+        "Polygon",
+        "Sphere",
+        "angle",
+        "boolean_union",
+        "circle",
+        "dx",
+        "dy",
+        "dz",
+        "ellipsoid",
+        "index",
+        "len",
+        "length",
+        "linear_extrude",
+        "math",
+        "max",
+        "min",
+        "nodes",
+        "p0",
+        "p1",
+        "point",
+        "radial_samples",
+        "radius",
+        "radius0",
+        "radius1",
+        "range",
+        "rotate_shape",
+        "sample",
+        "segment",
+        "segments",
+        "self",
+        "stations",
+        "super",
+        "tip",
+        "translate_shape",
+        "trunk"
+      ],
+      "expression": "class CurvedTrunk(Asset):\n    def __init__(self):\n        super().__init__(label=\"CurvedTrunk\")\n\n        # The sampled centerline descends from the face, rounds through a broad\n        # forward U, and finishes in an unmistakably upward-directed tip.\n        stations = (\n            ((-1.13, -0.01, 2.49), 0.305),\n            ((-1.23, -0.01, 2.24), 0.285),\n            ((-1.27, -0.01, 1.92), 0.255),\n            ((-1.29, -0.01, 1.58), 0.225),\n            ((-1.37, -0.01, 1.26), 0.195),\n            ((-1.53, -0.01, 1.00), 0.170),\n            ((-1.75, -0.01, 0.84), 0.145),\n            ((-1.98, -0.01, 0.85), 0.125),\n            ((-2.16, -0.01, 1.01), 0.108),\n            ((-2.22, -0.01, 1.24), 0.100),\n        )\n\n        nodes = [Sphere(radius, center=point, color=ELEPHANT_GRAY) for point, radius in stations]\n\n        # Use explicit tapered frustums between the rounded stations.  This\n        # preserves the smooth taper while avoiding numerically degenerate\n        # convex-hull facets on the nearly vertical first trunk span.\n        segments = []\n        radial_samples = 24\n        for index in range(len(stations) - 1):\n            p0, radius0 = stations[index]\n            p1, radius1 = stations[index + 1]\n            dx, dy, dz = (p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n            length = math.sqrt(dx * dx + dy * dy + dz * dz)\n            circle = Polygon(\n                [\n                    (\n                        radius0 * math.cos(2.0 * math.pi * sample / radial_samples),\n                        radius0 * math.sin(2.0 * math.pi * sample / radial_samples),\n                    )\n                    for sample in range(radial_samples)\n                ]\n            )\n            segment = linear_extrude(\n                circle,\n                length,\n                scale_top=(radius1 / radius0, radius1 / radius0),\n                color=ELEPHANT_GRAY,\n            )\n            angle = math.degrees(math.acos(max(-1.0, min(1.0, dz / length))))\n            if angle > 1.0e-9:\n                segment = rotate_shape(segment, axis=(-dy, dx, 0.0), angle=angle, center=(0.0, 0.0, 0.0))\n            segment = translate_shape(segment, p0)\n            segments.append(segment)\n        trunk = boolean_union(*(segments + nodes))\n\n        # A subtly enlarged rounded terminal gives the small raised-tip flare.\n        tip = ellipsoid((-2.22, -0.01, 1.285), (0.115, 0.112, 0.145))\n        trunk = boolean_union(trunk, tip)\n        self.form = self.attach_part(\"form\", trunk)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:d42ed0794e13dc2feec3",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "CurvedTrunk/__init__",
+      "owner_class": "CurvedTrunk",
+      "semantic_name": null,
+      "span": {
+        "start_line": 113,
+        "end_line": 168,
+        "start_col": 4,
+        "end_col": 51
+      },
+      "parameters": [
+        "angle",
+        "axis",
+        "center",
+        "color",
+        "label",
+        "scale_top"
+      ],
+      "dependencies": [
+        "ELEPHANT_GRAY",
+        "Polygon",
+        "Sphere",
+        "angle",
+        "boolean_union",
+        "circle",
+        "dx",
+        "dy",
+        "dz",
+        "ellipsoid",
+        "index",
+        "len",
+        "length",
+        "linear_extrude",
+        "math",
+        "max",
+        "min",
+        "nodes",
+        "p0",
+        "p1",
+        "point",
+        "radial_samples",
+        "radius",
+        "radius0",
+        "radius1",
+        "range",
+        "rotate_shape",
+        "sample",
+        "segment",
+        "segments",
+        "self",
+        "stations",
+        "super",
+        "tip",
+        "translate_shape",
+        "trunk"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"CurvedTrunk\")\n\n        # The sampled centerline descends from the face, rounds through a broad\n        # forward U, and finishes in an unmistakably upward-directed tip.\n        stations = (\n            ((-1.13, -0.01, 2.49), 0.305),\n            ((-1.23, -0.01, 2.24), 0.285),\n            ((-1.27, -0.01, 1.92), 0.255),\n            ((-1.29, -0.01, 1.58), 0.225),\n            ((-1.37, -0.01, 1.26), 0.195),\n            ((-1.53, -0.01, 1.00), 0.170),\n            ((-1.75, -0.01, 0.84), 0.145),\n            ((-1.98, -0.01, 0.85), 0.125),\n            ((-2.16, -0.01, 1.01), 0.108),\n            ((-2.22, -0.01, 1.24), 0.100),\n        )\n\n        nodes = [Sphere(radius, center=point, color=ELEPHANT_GRAY) for point, radius in stations]\n\n        # Use explicit tapered frustums between the rounded stations.  This\n        # preserves the smooth taper while avoiding numerically degenerate\n        # convex-hull facets on the nearly vertical first trunk span.\n        segments = []\n        radial_samples = 24\n        for index in range(len(stations) - 1):\n            p0, radius0 = stations[index]\n            p1, radius1 = stations[index + 1]\n            dx, dy, dz = (p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])\n            length = math.sqrt(dx * dx + dy * dy + dz * dz)\n            circle = Polygon(\n                [\n                    (\n                        radius0 * math.cos(2.0 * math.pi * sample / radial_samples),\n                        radius0 * math.sin(2.0 * math.pi * sample / radial_samples),\n                    )\n                    for sample in range(radial_samples)\n                ]\n            )\n            segment = linear_extrude(\n                circle,\n                length,\n                scale_top=(radius1 / radius0, radius1 / radius0),\n                color=ELEPHANT_GRAY,\n            )\n            angle = math.degrees(math.acos(max(-1.0, min(1.0, dz / length))))\n            if angle > 1.0e-9:\n                segment = rotate_shape(segment, axis=(-dy, dx, 0.0), angle=angle, center=(0.0, 0.0, 0.0))\n            segment = translate_shape(segment, p0)\n            segments.append(segment)\n        trunk = boolean_union(*(segments + nodes))\n\n        # A subtly enlarged rounded terminal gives the small raised-tip flare.\n        tip = ellipsoid((-2.22, -0.01, 1.285), (0.115, 0.112, 0.145))\n        trunk = boolean_union(trunk, tip)\n        self.form = self.attach_part(\"form\", trunk)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:1133f768dc389977df17",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "CurvedTrunk/__init__",
+      "owner_class": "CurvedTrunk",
+      "semantic_name": null,
+      "span": {
+        "start_line": 131,
+        "end_line": 131,
+        "start_col": 17,
+        "end_col": 66
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "ELEPHANT_GRAY",
+        "Sphere",
+        "point",
+        "radius"
+      ],
+      "expression": "Sphere(radius, center=point, color=ELEPHANT_GRAY)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:9901243f59aeecaa1f8b",
+      "kind": "dsl_call",
+      "name": "Polygon",
+      "scope": "CurvedTrunk/__init__",
+      "owner_class": "CurvedTrunk",
+      "semantic_name": null,
+      "span": {
+        "start_line": 143,
+        "end_line": 151,
+        "start_col": 21,
+        "end_col": 13
+      },
+      "parameters": [],
+      "dependencies": [
+        "Polygon",
+        "math",
+        "radial_samples",
+        "radius0",
+        "range",
+        "sample"
+      ],
+      "expression": "Polygon(\n                [\n                    (\n                        radius0 * math.cos(2.0 * math.pi * sample / radial_samples),\n                        radius0 * math.sin(2.0 * math.pi * sample / radial_samples),\n                    )\n                    for sample in range(radial_samples)\n                ]\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:bd3b841d16204dcb57d9",
+      "kind": "dsl_call",
+      "name": "linear_extrude",
+      "scope": "CurvedTrunk/__init__",
+      "owner_class": "CurvedTrunk",
+      "semantic_name": null,
+      "span": {
+        "start_line": 152,
+        "end_line": 157,
+        "start_col": 22,
+        "end_col": 13
+      },
+      "parameters": [
+        "color",
+        "scale_top"
+      ],
+      "dependencies": [
+        "ELEPHANT_GRAY",
+        "circle",
+        "length",
+        "linear_extrude",
+        "radius0",
+        "radius1"
+      ],
+      "expression": "linear_extrude(\n                circle,\n                length,\n                scale_top=(radius1 / radius0, radius1 / radius0),\n                color=ELEPHANT_GRAY,\n            )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:4fe48f05173e91fe95b6",
+      "kind": "dsl_call",
+      "name": "rotate_shape",
+      "scope": "CurvedTrunk/__init__",
+      "owner_class": "CurvedTrunk",
+      "semantic_name": null,
+      "span": {
+        "start_line": 160,
+        "end_line": 160,
+        "start_col": 26,
+        "end_col": 105
+      },
+      "parameters": [
+        "angle",
+        "axis",
+        "center"
+      ],
+      "dependencies": [
+        "angle",
+        "dx",
+        "dy",
+        "rotate_shape",
+        "segment"
+      ],
+      "expression": "rotate_shape(segment, axis=(-dy, dx, 0.0), angle=angle, center=(0.0, 0.0, 0.0))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:3ea847a4a30d40140cf3",
+      "kind": "dsl_call",
+      "name": "translate_shape",
+      "scope": "CurvedTrunk/__init__",
+      "owner_class": "CurvedTrunk",
+      "semantic_name": null,
+      "span": {
+        "start_line": 161,
+        "end_line": 161,
+        "start_col": 22,
+        "end_col": 50
+      },
+      "parameters": [],
+      "dependencies": [
+        "p0",
+        "segment",
+        "translate_shape"
+      ],
+      "expression": "translate_shape(segment, p0)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:be4a7188a68dae37e063",
+      "kind": "dsl_call",
+      "name": "boolean_union",
+      "scope": "CurvedTrunk/__init__",
+      "owner_class": "CurvedTrunk",
+      "semantic_name": null,
+      "span": {
+        "start_line": 163,
+        "end_line": 163,
+        "start_col": 16,
+        "end_col": 50
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_union",
+        "nodes",
+        "segments"
+      ],
+      "expression": "boolean_union(*(segments + nodes))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:465bc629f2ea5b8a5ef8",
+      "kind": "dsl_call",
+      "name": "boolean_union",
+      "scope": "CurvedTrunk/__init__",
+      "owner_class": "CurvedTrunk",
+      "semantic_name": null,
+      "span": {
+        "start_line": 167,
+        "end_line": 167,
+        "start_col": 16,
+        "end_col": 41
+      },
+      "parameters": [],
+      "dependencies": [
+        "boolean_union",
+        "tip",
+        "trunk"
+      ],
+      "expression": "boolean_union(trunk, tip)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:0875dc694530ad3b5d7b",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "CurvedTrunk/__init__",
+      "owner_class": "CurvedTrunk",
+      "semantic_name": "form",
+      "span": {
+        "start_line": 168,
+        "end_line": 168,
+        "start_col": 20,
+        "end_col": 51
+      },
+      "parameters": [],
+      "dependencies": [
+        "self",
+        "trunk"
+      ],
+      "expression": "self.attach_part(\"form\", trunk)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:24e27d6a951ea80c5da3",
+      "kind": "class",
+      "name": "StylizedElephant",
+      "scope": "<module>",
+      "owner_class": null,
+      "semantic_name": null,
+      "span": {
+        "start_line": 171,
+        "end_line": 217,
+        "start_col": 0,
+        "end_col": 59
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label",
+        "upper_fullness"
+      ],
+      "dependencies": [
+        "Asset",
+        "CurvedTrunk",
+        "ELEPHANT_GRAY",
+        "EYE_DARK",
+        "FanEar",
+        "OrganicLeg",
+        "Sphere",
+        "body",
+        "cheek",
+        "crown",
+        "ellipsoid",
+        "far_eye",
+        "forehead",
+        "head",
+        "hull",
+        "lower_fill",
+        "middle",
+        "near_eye",
+        "neck_blend",
+        "rump",
+        "self",
+        "shoulder",
+        "super"
+      ],
+      "expression": "class StylizedElephant(Asset):\n    def __init__(self):\n        super().__init__(label=\"StylizedUpwardTrunkElephant\")\n\n        # Barrel torso: broad shoulders, gently arched back, rounded rump.\n        shoulder = ellipsoid((-0.05, 0.0, 2.13), (0.76, 0.58, 0.76))\n        middle = ellipsoid((0.65, 0.0, 2.10), (0.92, 0.60, 0.73))\n        rump = ellipsoid((1.36, 0.0, 2.05), (0.72, 0.57, 0.68))\n        lower_fill = ellipsoid((0.66, 0.0, 1.88), (0.86, 0.55, 0.47))\n        body = hull(shoulder, middle, rump, lower_fill, color=ELEPHANT_GRAY)\n        self.body = self.attach_part(\"body\", body)\n\n        # Tall head with a convex crown and a narrower cheek, overlapping the\n        # shoulder deeply enough to avoid a separate neck.\n        crown = ellipsoid((-0.79, 0.0, 2.91), (0.59, 0.51, 0.69))\n        forehead = ellipsoid((-0.93, 0.0, 2.62), (0.53, 0.49, 0.67))\n        cheek = ellipsoid((-0.91, 0.0, 2.30), (0.45, 0.45, 0.54))\n        neck_blend = ellipsoid((-0.43, 0.0, 2.48), (0.58, 0.50, 0.62))\n        head = hull(crown, forehead, cheek, neck_blend, color=ELEPHANT_GRAY)\n        self.head = self.attach_part(\"head\", head)\n\n        # Far-side parts are attached first in the hierarchy; both ears remain\n        # thin side panels rather than circular discs.\n        self.far_ear = self.attach_part(\"far_ear\", FanEar(0.505, \"FarEar\"))\n        self.near_ear = self.attach_part(\"near_ear\", FanEar(-0.555, \"NearEar\"))\n\n        self.trunk = self.attach_part(\"trunk\", CurvedTrunk())\n\n        self.front_far_leg = self.attach_part(\n            \"front_far_leg\", OrganicLeg(-0.16, 0.355, \"FrontFarLeg\")\n        )\n        self.rear_far_leg = self.attach_part(\n            \"rear_far_leg\", OrganicLeg(1.28, 0.355, \"RearFarLeg\", upper_fullness=1.07)\n        )\n        self.front_near_leg = self.attach_part(\n            \"front_near_leg\", OrganicLeg(-0.16, -0.355, \"FrontNearLeg\")\n        )\n        self.rear_near_leg = self.attach_part(\n            \"rear_near_leg\", OrganicLeg(1.28, -0.355, \"RearNearLeg\", upper_fullness=1.07)\n        )\n\n        # Small lateral eyes, intentionally subtle and only slightly proud of\n        # the head surface.\n        near_eye = Sphere(0.043, center=(-1.18, -0.475, 2.88), color=EYE_DARK)\n        far_eye = Sphere(0.043, center=(-1.18, 0.475, 2.88), color=EYE_DARK)\n        self.near_eye = self.attach_part(\"near_eye\", near_eye)\n        self.far_eye = self.attach_part(\"far_eye\", far_eye)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:2eff3727fc3260fe139c",
+      "kind": "function",
+      "name": "__init__",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": null,
+      "span": {
+        "start_line": 172,
+        "end_line": 217,
+        "start_col": 4,
+        "end_col": 59
+      },
+      "parameters": [
+        "center",
+        "color",
+        "label",
+        "upper_fullness"
+      ],
+      "dependencies": [
+        "CurvedTrunk",
+        "ELEPHANT_GRAY",
+        "EYE_DARK",
+        "FanEar",
+        "OrganicLeg",
+        "Sphere",
+        "body",
+        "cheek",
+        "crown",
+        "ellipsoid",
+        "far_eye",
+        "forehead",
+        "head",
+        "hull",
+        "lower_fill",
+        "middle",
+        "near_eye",
+        "neck_blend",
+        "rump",
+        "self",
+        "shoulder",
+        "super"
+      ],
+      "expression": "def __init__(self):\n        super().__init__(label=\"StylizedUpwardTrunkElephant\")\n\n        # Barrel torso: broad shoulders, gently arched back, rounded rump.\n        shoulder = ellipsoid((-0.05, 0.0, 2.13), (0.76, 0.58, 0.76))\n        middle = ellipsoid((0.65, 0.0, 2.10), (0.92, 0.60, 0.73))\n        rump = ellipsoid((1.36, 0.0, 2.05), (0.72, 0.57, 0.68))\n        lower_fill = ellipsoid((0.66, 0.0, 1.88), (0.86, 0.55, 0.47))\n        body = hull(shoulder, middle, rump, lower_fill, color=ELEPHANT_GRAY)\n        self.body = self.attach_part(\"body\", body)\n\n        # Tall head with a convex crown and a narrower cheek, overlapping the\n        # shoulder deeply enough to avoid a separate neck.\n        crown = ellipsoid((-0.79, 0.0, 2.91), (0.59, 0.51, 0.69))\n        forehead = ellipsoid((-0.93, 0.0, 2.62), (0.53, 0.49, 0.67))\n        cheek = ellipsoid((-0.91, 0.0, 2.30), (0.45, 0.45, 0.54))\n        neck_blend = ellipsoid((-0.43, 0.0, 2.48), (0.58, 0.50, 0.62))\n        head = hull(crown, forehead, cheek, neck_blend, color=ELEPHANT_GRAY)\n        self.head = self.attach_part(\"head\", head)\n\n        # Far-side parts are attached first in the hierarchy; both ears remain\n        # thin side panels rather than circular discs.\n        self.far_ear = self.attach_part(\"far_ear\", FanEar(0.505, \"FarEar\"))\n        self.near_ear = self.attach_part(\"near_ear\", FanEar(-0.555, \"NearEar\"))\n\n        self.trunk = self.attach_part(\"trunk\", CurvedTrunk())\n\n        self.front_far_leg = self.attach_part(\n            \"front_far_leg\", OrganicLeg(-0.16, 0.355, \"FrontFarLeg\")\n        )\n        self.rear_far_leg = self.attach_part(\n            \"rear_far_leg\", OrganicLeg(1.28, 0.355, \"RearFarLeg\", upper_fullness=1.07)\n        )\n        self.front_near_leg = self.attach_part(\n            \"front_near_leg\", OrganicLeg(-0.16, -0.355, \"FrontNearLeg\")\n        )\n        self.rear_near_leg = self.attach_part(\n            \"rear_near_leg\", OrganicLeg(1.28, -0.355, \"RearNearLeg\", upper_fullness=1.07)\n        )\n\n        # Small lateral eyes, intentionally subtle and only slightly proud of\n        # the head surface.\n        near_eye = Sphere(0.043, center=(-1.18, -0.475, 2.88), color=EYE_DARK)\n        far_eye = Sphere(0.043, center=(-1.18, 0.475, 2.88), color=EYE_DARK)\n        self.near_eye = self.attach_part(\"near_eye\", near_eye)\n        self.far_eye = self.attach_part(\"far_eye\", far_eye)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:4fe51bfebb5835cc850b",
+      "kind": "dsl_call",
+      "name": "hull",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": null,
+      "span": {
+        "start_line": 180,
+        "end_line": 180,
+        "start_col": 15,
+        "end_col": 76
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "ELEPHANT_GRAY",
+        "hull",
+        "lower_fill",
+        "middle",
+        "rump",
+        "shoulder"
+      ],
+      "expression": "hull(shoulder, middle, rump, lower_fill, color=ELEPHANT_GRAY)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:3128bba77fefbea08d59",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "body",
+      "span": {
+        "start_line": 181,
+        "end_line": 181,
+        "start_col": 20,
+        "end_col": 50
+      },
+      "parameters": [],
+      "dependencies": [
+        "body",
+        "self"
+      ],
+      "expression": "self.attach_part(\"body\", body)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:ec3b0038b2da9eac50d0",
+      "kind": "dsl_call",
+      "name": "hull",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": null,
+      "span": {
+        "start_line": 189,
+        "end_line": 189,
+        "start_col": 15,
+        "end_col": 76
+      },
+      "parameters": [
+        "color"
+      ],
+      "dependencies": [
+        "ELEPHANT_GRAY",
+        "cheek",
+        "crown",
+        "forehead",
+        "hull",
+        "neck_blend"
+      ],
+      "expression": "hull(crown, forehead, cheek, neck_blend, color=ELEPHANT_GRAY)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:879bed32f1e28dfb31db",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "head",
+      "span": {
+        "start_line": 190,
+        "end_line": 190,
+        "start_col": 20,
+        "end_col": 50
+      },
+      "parameters": [],
+      "dependencies": [
+        "head",
+        "self"
+      ],
+      "expression": "self.attach_part(\"head\", head)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:462be1196bda34d590bc",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "far_ear",
+      "span": {
+        "start_line": 194,
+        "end_line": 194,
+        "start_col": 23,
+        "end_col": 75
+      },
+      "parameters": [],
+      "dependencies": [
+        "FanEar",
+        "self"
+      ],
+      "expression": "self.attach_part(\"far_ear\", FanEar(0.505, \"FarEar\"))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:2b2bda2ea51b55486dff",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "near_ear",
+      "span": {
+        "start_line": 195,
+        "end_line": 195,
+        "start_col": 24,
+        "end_col": 79
+      },
+      "parameters": [],
+      "dependencies": [
+        "FanEar",
+        "self"
+      ],
+      "expression": "self.attach_part(\"near_ear\", FanEar(-0.555, \"NearEar\"))",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:92bc6af8d76eae9b7e7e",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "trunk",
+      "span": {
+        "start_line": 197,
+        "end_line": 197,
+        "start_col": 21,
+        "end_col": 61
+      },
+      "parameters": [],
+      "dependencies": [
+        "CurvedTrunk",
+        "self"
+      ],
+      "expression": "self.attach_part(\"trunk\", CurvedTrunk())",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:0647cc941c7adfbb3eb6",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "front_far_leg",
+      "span": {
+        "start_line": 199,
+        "end_line": 201,
+        "start_col": 29,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "OrganicLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"front_far_leg\", OrganicLeg(-0.16, 0.355, \"FrontFarLeg\")\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:11bf5b19b30e7eccda5a",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "rear_far_leg",
+      "span": {
+        "start_line": 202,
+        "end_line": 204,
+        "start_col": 28,
+        "end_col": 9
+      },
+      "parameters": [
+        "upper_fullness"
+      ],
+      "dependencies": [
+        "OrganicLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"rear_far_leg\", OrganicLeg(1.28, 0.355, \"RearFarLeg\", upper_fullness=1.07)\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:5a4b8fd5c711b959d393",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "front_near_leg",
+      "span": {
+        "start_line": 205,
+        "end_line": 207,
+        "start_col": 30,
+        "end_col": 9
+      },
+      "parameters": [],
+      "dependencies": [
+        "OrganicLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"front_near_leg\", OrganicLeg(-0.16, -0.355, \"FrontNearLeg\")\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:2cb22b4487d3c2b73a4a",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "rear_near_leg",
+      "span": {
+        "start_line": 208,
+        "end_line": 210,
+        "start_col": 29,
+        "end_col": 9
+      },
+      "parameters": [
+        "upper_fullness"
+      ],
+      "dependencies": [
+        "OrganicLeg",
+        "self"
+      ],
+      "expression": "self.attach_part(\n            \"rear_near_leg\", OrganicLeg(1.28, -0.355, \"RearNearLeg\", upper_fullness=1.07)\n        )",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:3b8aeb13bfee6d383297",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": null,
+      "span": {
+        "start_line": 214,
+        "end_line": 214,
+        "start_col": 19,
+        "end_col": 78
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "EYE_DARK",
+        "Sphere"
+      ],
+      "expression": "Sphere(0.043, center=(-1.18, -0.475, 2.88), color=EYE_DARK)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:105a618fc647ee49d133",
+      "kind": "dsl_call",
+      "name": "Sphere",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": null,
+      "span": {
+        "start_line": 215,
+        "end_line": 215,
+        "start_col": 18,
+        "end_col": 76
+      },
+      "parameters": [
+        "center",
+        "color"
+      ],
+      "dependencies": [
+        "EYE_DARK",
+        "Sphere"
+      ],
+      "expression": "Sphere(0.043, center=(-1.18, 0.475, 2.88), color=EYE_DARK)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:ddbaf7b2bb3ea816f05d",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "near_eye",
+      "span": {
+        "start_line": 216,
+        "end_line": 216,
+        "start_col": 24,
+        "end_col": 62
+      },
+      "parameters": [],
+      "dependencies": [
+        "near_eye",
+        "self"
+      ],
+      "expression": "self.attach_part(\"near_eye\", near_eye)",
+      "resolution": "complete"
+    },
+    {
+      "source_id": "source:11db7704cf594e6938c1",
+      "kind": "attach_part",
+      "name": "attach_part",
+      "scope": "StylizedElephant/__init__",
+      "owner_class": "StylizedElephant",
+      "semantic_name": "far_eye",
+      "span": {
+        "start_line": 217,
+        "end_line": 217,
+        "start_col": 23,
+        "end_col": 59
+      },
+      "parameters": [],
+      "dependencies": [
+        "far_eye",
+        "self"
+      ],
+      "expression": "self.attach_part(\"far_eye\", far_eye)",
+      "resolution": "complete"
+    }
+  ],
+  "features": [
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant",
+      "semantic_path": "StylizedUpwardTrunkElephant",
+      "name": "StylizedUpwardTrunkElephant",
+      "asset_class": "StylizedElephant",
+      "parent_feature_id": null,
+      "attach_mode": "root",
+      "bounds": [
+        [
+          -2.335,
+          -0.6049999999999999,
+          0.0
+        ],
+        [
+          2.08,
+          0.6,
+          3.6
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:24e27d6a951ea80c5da3"
+      ],
+      "source_locations": [
+        "L171-L217"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/body",
+      "semantic_path": "StylizedUpwardTrunkElephant/body",
+      "name": "body",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.81,
+          -0.6,
+          1.3699999999999997
+        ],
+        [
+          2.08,
+          0.6,
+          2.8899999999999997
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:3128bba77fefbea08d59"
+      ],
+      "source_locations": [
+        "L181-L181"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/body/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/body/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/body",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.81,
+          -0.58,
+          1.3699999999999997
+        ],
+        [
+          0.71,
+          0.58,
+          2.8899999999999997
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/body/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/body/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/body",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.2700000000000001,
+          -0.6,
+          1.37
+        ],
+        [
+          1.5699999999999998,
+          0.6,
+          2.83
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/body/op_2",
+      "semantic_path": "StylizedUpwardTrunkElephant/body/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/body",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          0.6400000000000001,
+          -0.57,
+          1.3699999999999999
+        ],
+        [
+          2.08,
+          0.57,
+          2.7299999999999995
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/body/op_3",
+      "semantic_path": "StylizedUpwardTrunkElephant/body/op_3",
+      "name": "op_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/body",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.19999999999999996,
+          -0.55,
+          1.41
+        ],
+        [
+          1.5200000000000002,
+          0.55,
+          2.3499999999999996
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/head",
+      "semantic_path": "StylizedUpwardTrunkElephant/head",
+      "name": "head",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.4600000000000002,
+          -0.51,
+          1.7599999999999998
+        ],
+        [
+          0.15,
+          0.51,
+          3.6
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:879bed32f1e28dfb31db"
+      ],
+      "source_locations": [
+        "L190-L190"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/head/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/head/op_0",
+      "name": "op_0",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/head",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.3800000000000001,
+          -0.51,
+          2.2200000000000006
+        ],
+        [
+          -0.20000000000000007,
+          0.51,
+          3.6
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/head/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/head/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/head",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.4600000000000002,
+          -0.49,
+          1.9500000000000002
+        ],
+        [
+          -0.4,
+          0.49,
+          3.29
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/head/op_2",
+      "semantic_path": "StylizedUpwardTrunkElephant/head/op_2",
+      "name": "op_2",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/head",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.3599999999999999,
+          -0.45,
+          1.7599999999999998
+        ],
+        [
+          -0.45999999999999996,
+          0.45,
+          2.84
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/head/op_3",
+      "semantic_path": "StylizedUpwardTrunkElephant/head/op_3",
+      "name": "op_3",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/head",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.01,
+          -0.5,
+          1.8599999999999999
+        ],
+        [
+          0.15,
+          0.5,
+          3.0999999999999996
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/far_ear",
+      "semantic_path": "StylizedUpwardTrunkElephant/far_ear",
+      "name": "far_ear",
+      "asset_class": "FanEar",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.8371296301484108,
+          0.4550000000000001,
+          2.1762500032782555
+        ],
+        [
+          0.6268164068460464,
+          0.5550000000000002,
+          3.4475781247019768
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:462be1196bda34d590bc",
+        "source:021c46fed08fcca917f0"
+      ],
+      "source_locations": [
+        "L194-L194",
+        "L35-L68"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/far_ear/panel",
+      "semantic_path": "StylizedUpwardTrunkElephant/far_ear/panel",
+      "name": "panel",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/far_ear",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.8371296301484108,
+          0.4550000000000001,
+          2.1762500032782555
+        ],
+        [
+          0.6268164068460464,
+          0.5550000000000002,
+          3.4475781247019768
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:e535f6f3b5d28ab78b9d"
+      ],
+      "source_locations": [
+        "L68-L68"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/near_ear",
+      "semantic_path": "StylizedUpwardTrunkElephant/near_ear",
+      "name": "near_ear",
+      "asset_class": "FanEar",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.8371296301484108,
+          -0.6049999999999999,
+          2.1762500032782555
+        ],
+        [
+          0.6268164068460464,
+          -0.5049999999999999,
+          3.4475781247019768
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:2b2bda2ea51b55486dff",
+        "source:021c46fed08fcca917f0"
+      ],
+      "source_locations": [
+        "L195-L195",
+        "L35-L68"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/near_ear/panel",
+      "semantic_path": "StylizedUpwardTrunkElephant/near_ear/panel",
+      "name": "panel",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/near_ear",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.8371296301484108,
+          -0.6049999999999999,
+          2.1762500032782555
+        ],
+        [
+          0.6268164068460464,
+          -0.5049999999999999,
+          3.4475781247019768
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:e535f6f3b5d28ab78b9d"
+      ],
+      "source_locations": [
+        "L68-L68"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk",
+      "name": "trunk",
+      "asset_class": "CurvedTrunk",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.335,
+          -0.315,
+          0.695
+        ],
+        [
+          -0.825,
+          0.295,
+          2.7950000000000004
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:92bc6af8d76eae9b7e7e",
+        "source:119629b53227063240f1"
+      ],
+      "source_locations": [
+        "L197-L197",
+        "L112-L168"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form",
+      "name": "form",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.335,
+          -0.315,
+          0.695
+        ],
+        [
+          -0.825,
+          0.295,
+          2.7950000000000004
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:0875dc694530ad3b5d7b"
+      ],
+      "source_locations": [
+        "L168-L168"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "name": "op_0",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.3200000000000003,
+          -0.315,
+          0.695
+        ],
+        [
+          -0.825,
+          0.295,
+          2.7950000000000004
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_0",
+      "name": "op_0",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.494615856643736,
+          -0.3149999997019768,
+          2.1341536573425057
+        ],
+        [
+          -0.8468146095567034,
+          0.29499999970197677,
+          2.603274156177319
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_1",
+      "name": "op_1",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.5230308553868666,
+          -0.2949999964237213,
+          1.8883711430766414
+        ],
+        [
+          -0.947200808685267,
+          0.2749999964237213,
+          2.275349898914342
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_2",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_2",
+      "name": "op_2",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.5245599678372046,
+          -0.265000002682209,
+          1.5667875449219444
+        ],
+        [
+          -1.0154400321627954,
+          0.245000002682209,
+          1.9349741157551297
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_3",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_3",
+      "name": "op_3",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.559177788781215,
+          -0.23500000149011613,
+          1.2127055528046962
+        ],
+        [
+          -1.0717179360216753,
+          0.2150000014901161,
+          1.6345705159945814
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_4",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_4",
+      "name": "op_4",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.6747819140610463,
+          -0.20500000029802323,
+          0.9109034375008948
+        ],
+        [
+          -1.2039266279888001,
+          0.18500000029802321,
+          1.3621989981607385
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_5",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_5",
+      "name": "op_5",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.835284897059948,
+          -0.18000000178813935,
+          0.7227332665425714
+        ],
+        [
+          -1.4300108103435092,
+          0.16000000178813933,
+          1.137485135777675
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_6",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_6",
+      "name": "op_6",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.9854296531572957,
+          -0.15500000327825547,
+          0.695136853763355
+        ],
+        [
+          -1.7437016023375371,
+          0.13500000327825545,
+          0.984863146236645
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_7",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_7",
+      "name": "op_7",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.2317512945936313,
+          -0.135,
+          0.7565738351645425
+        ],
+        [
+          -1.89695452014626,
+          0.115,
+          1.0907202064178354
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_8",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_8",
+      "name": "op_8",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.316761729749593,
+          -0.1180000028014183,
+          0.9827384344009844
+        ],
+        [
+          -2.0554973318704404,
+          0.09800000280141831,
+          1.2652421903694588
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_9",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_9",
+      "name": "op_9",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.4349999999999998,
+          -0.315,
+          2.185
+        ],
+        [
+          -0.825,
+          0.295,
+          2.7950000000000004
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_10",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_10",
+      "name": "op_10",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.515,
+          -0.295,
+          1.9550000000000003
+        ],
+        [
+          -0.9450000000000001,
+          0.27499999999999997,
+          2.5250000000000004
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_11",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_11",
+      "name": "op_11",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.525,
+          -0.265,
+          1.665
+        ],
+        [
+          -1.0150000000000001,
+          0.245,
+          2.175
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_12",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_12",
+      "name": "op_12",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.5150000000000001,
+          -0.23500000000000001,
+          1.355
+        ],
+        [
+          -1.065,
+          0.215,
+          1.8050000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_13",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_13",
+      "name": "op_13",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.5650000000000002,
+          -0.20500000000000002,
+          1.065
+        ],
+        [
+          -1.175,
+          0.185,
+          1.455
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_14",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_14",
+      "name": "op_14",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.7,
+          -0.18000000000000002,
+          0.83
+        ],
+        [
+          -1.36,
+          0.16,
+          1.17
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_15",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_15",
+      "name": "op_15",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.895,
+          -0.155,
+          0.695
+        ],
+        [
+          -1.605,
+          0.13499999999999998,
+          0.985
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_16",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_16",
+      "name": "op_16",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.105,
+          -0.135,
+          0.725
+        ],
+        [
+          -1.855,
+          0.115,
+          0.975
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_17",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_17",
+      "name": "op_17",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.2680000000000002,
+          -0.118,
+          0.902
+        ],
+        [
+          -2.052,
+          0.098,
+          1.118
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0/op_18",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_0/op_18",
+      "name": "op_18",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.3200000000000003,
+          -0.11,
+          1.14
+        ],
+        [
+          -2.12,
+          0.09000000000000001,
+          1.34
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/trunk/form/op_1",
+      "name": "op_1",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/trunk/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -2.335,
+          -0.122,
+          1.1400000000000001
+        ],
+        [
+          -2.105,
+          0.10200000000000001,
+          1.4300000000000002
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg",
+      "name": "front_far_leg",
+      "asset_class": "OrganicLeg",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.43,
+          0.12000000000000002,
+          0.0
+        ],
+        [
+          0.11,
+          0.59,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:0647cc941c7adfbb3eb6",
+        "source:b4644cfb250cb8484755"
+      ],
+      "source_locations": [
+        "L199-L201",
+        "L71-L109"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form",
+      "name": "form",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.43,
+          0.12000000000000002,
+          0.0
+        ],
+        [
+          0.11,
+          0.59,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:af6f38b693ac3fa5bc1a"
+      ],
+      "source_locations": [
+        "L109-L109"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_0",
+      "name": "op_0",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.43,
+          0.12000000000000002,
+          0.0
+        ],
+        [
+          0.11,
+          0.59,
+          0.26
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_0/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_0/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.41500000000000004,
+          0.12999999999999995,
+          0.0
+        ],
+        [
+          0.095,
+          0.58,
+          0.12
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_0/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_0/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.43,
+          0.12000000000000002,
+          0.14
+        ],
+        [
+          0.11,
+          0.59,
+          0.26
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_1",
+      "name": "op_1",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.43,
+          0.12000000000000002,
+          0.14
+        ],
+        [
+          0.11,
+          0.59,
+          0.49
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_1/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_1/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.43,
+          0.12000000000000002,
+          0.14
+        ],
+        [
+          0.11,
+          0.59,
+          0.26
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_1/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_1/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.33499999999999996,
+          0.19,
+          0.37
+        ],
+        [
+          0.014999999999999986,
+          0.52,
+          0.49
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_2",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_2",
+      "name": "op_2",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.35,
+          0.18,
+          0.37
+        ],
+        [
+          0.03,
+          0.53,
+          0.94
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_2/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_2/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.33499999999999996,
+          0.19,
+          0.37
+        ],
+        [
+          0.014999999999999986,
+          0.52,
+          0.49
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_2/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_2/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.35,
+          0.18,
+          0.8200000000000001
+        ],
+        [
+          0.03,
+          0.53,
+          0.94
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_3",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_3",
+      "name": "op_3",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.375,
+          0.16,
+          0.8200000000000001
+        ],
+        [
+          0.05499999999999999,
+          0.55,
+          1.31
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_3/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_3/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_3",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.35,
+          0.18,
+          0.8200000000000001
+        ],
+        [
+          0.03,
+          0.53,
+          0.94
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_3/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_3/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_3",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.375,
+          0.16,
+          1.19
+        ],
+        [
+          0.05499999999999999,
+          0.55,
+          1.31
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_4",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_4",
+      "name": "op_4",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.40499999999999997,
+          0.14,
+          1.19
+        ],
+        [
+          0.08499999999999998,
+          0.5700000000000001,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_4/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_4/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_4",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.375,
+          0.16,
+          1.19
+        ],
+        [
+          0.05499999999999999,
+          0.55,
+          1.31
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_4/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_far_leg/form/op_4/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_far_leg/form/op_4",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.40499999999999997,
+          0.14,
+          1.44
+        ],
+        [
+          0.08499999999999998,
+          0.5700000000000001,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg",
+      "name": "rear_far_leg",
+      "asset_class": "OrganicLeg",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01,
+          0.12000000000000002,
+          0.0
+        ],
+        [
+          1.5500000000000003,
+          0.59,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:11bf5b19b30e7eccda5a",
+        "source:b4644cfb250cb8484755"
+      ],
+      "source_locations": [
+        "L202-L204",
+        "L71-L109"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form",
+      "name": "form",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01,
+          0.12000000000000002,
+          0.0
+        ],
+        [
+          1.5500000000000003,
+          0.59,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:af6f38b693ac3fa5bc1a"
+      ],
+      "source_locations": [
+        "L109-L109"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_0",
+      "name": "op_0",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01,
+          0.12000000000000002,
+          0.0
+        ],
+        [
+          1.5500000000000003,
+          0.59,
+          0.26
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_0/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_0/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.025,
+          0.12999999999999995,
+          0.0
+        ],
+        [
+          1.5350000000000001,
+          0.58,
+          0.12
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_0/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_0/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01,
+          0.12000000000000002,
+          0.14
+        ],
+        [
+          1.5500000000000003,
+          0.59,
+          0.26
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_1",
+      "name": "op_1",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01,
+          0.12000000000000002,
+          0.14
+        ],
+        [
+          1.5500000000000003,
+          0.59,
+          0.49
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_1/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_1/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01,
+          0.12000000000000002,
+          0.14
+        ],
+        [
+          1.5500000000000003,
+          0.59,
+          0.26
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_1/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_1/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.105,
+          0.19,
+          0.37
+        ],
+        [
+          1.455,
+          0.52,
+          0.49
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_2",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_2",
+      "name": "op_2",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.0899999999999999,
+          0.18,
+          0.37
+        ],
+        [
+          1.47,
+          0.53,
+          0.94
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_2/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_2/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.105,
+          0.19,
+          0.37
+        ],
+        [
+          1.455,
+          0.52,
+          0.49
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_2/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_2/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.0899999999999999,
+          0.18,
+          0.8200000000000001
+        ],
+        [
+          1.47,
+          0.53,
+          0.94
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_3",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_3",
+      "name": "op_3",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.04995,
+          0.14634999999999995,
+          0.8200000000000001
+        ],
+        [
+          1.5100500000000001,
+          0.56365,
+          1.31
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_3/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_3/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_3",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.0899999999999999,
+          0.18,
+          0.8200000000000001
+        ],
+        [
+          1.47,
+          0.53,
+          0.94
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_3/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_3/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_3",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.04995,
+          0.14634999999999995,
+          1.19
+        ],
+        [
+          1.5100500000000001,
+          0.56365,
+          1.31
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_4",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_4",
+      "name": "op_4",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01785,
+          0.12495,
+          1.19
+        ],
+        [
+          1.54215,
+          0.5850500000000001,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_4/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_4/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_4",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.04995,
+          0.14634999999999995,
+          1.19
+        ],
+        [
+          1.5100500000000001,
+          0.56365,
+          1.31
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_4/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_far_leg/form/op_4/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_far_leg/form/op_4",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01785,
+          0.12495,
+          1.44
+        ],
+        [
+          1.54215,
+          0.5850500000000001,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg",
+      "name": "front_near_leg",
+      "asset_class": "OrganicLeg",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.43,
+          -0.59,
+          0.0
+        ],
+        [
+          0.11,
+          -0.12000000000000002,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:5a4b8fd5c711b959d393",
+        "source:b4644cfb250cb8484755"
+      ],
+      "source_locations": [
+        "L205-L207",
+        "L71-L109"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form",
+      "name": "form",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.43,
+          -0.59,
+          0.0
+        ],
+        [
+          0.11,
+          -0.12000000000000002,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:af6f38b693ac3fa5bc1a"
+      ],
+      "source_locations": [
+        "L109-L109"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_0",
+      "name": "op_0",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.43,
+          -0.59,
+          0.0
+        ],
+        [
+          0.11,
+          -0.12000000000000002,
+          0.26
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_0/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_0/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.41500000000000004,
+          -0.58,
+          0.0
+        ],
+        [
+          0.095,
+          -0.12999999999999995,
+          0.12
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_0/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_0/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.43,
+          -0.59,
+          0.14
+        ],
+        [
+          0.11,
+          -0.12000000000000002,
+          0.26
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_1",
+      "name": "op_1",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.43,
+          -0.59,
+          0.14
+        ],
+        [
+          0.11,
+          -0.12000000000000002,
+          0.49
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_1/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_1/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.43,
+          -0.59,
+          0.14
+        ],
+        [
+          0.11,
+          -0.12000000000000002,
+          0.26
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_1/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_1/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.33499999999999996,
+          -0.52,
+          0.37
+        ],
+        [
+          0.014999999999999986,
+          -0.19,
+          0.49
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_2",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_2",
+      "name": "op_2",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.35,
+          -0.53,
+          0.37
+        ],
+        [
+          0.03,
+          -0.18,
+          0.94
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_2/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_2/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.33499999999999996,
+          -0.52,
+          0.37
+        ],
+        [
+          0.014999999999999986,
+          -0.19,
+          0.49
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_2/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_2/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.35,
+          -0.53,
+          0.8200000000000001
+        ],
+        [
+          0.03,
+          -0.18,
+          0.94
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_3",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_3",
+      "name": "op_3",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.375,
+          -0.55,
+          0.8200000000000001
+        ],
+        [
+          0.05499999999999999,
+          -0.16,
+          1.31
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_3/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_3/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_3",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.35,
+          -0.53,
+          0.8200000000000001
+        ],
+        [
+          0.03,
+          -0.18,
+          0.94
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_3/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_3/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_3",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.375,
+          -0.55,
+          1.19
+        ],
+        [
+          0.05499999999999999,
+          -0.16,
+          1.31
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_4",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_4",
+      "name": "op_4",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.40499999999999997,
+          -0.5700000000000001,
+          1.19
+        ],
+        [
+          0.08499999999999998,
+          -0.14,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_4/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_4/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_4",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.375,
+          -0.55,
+          1.19
+        ],
+        [
+          0.05499999999999999,
+          -0.16,
+          1.31
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_4/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/front_near_leg/form/op_4/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/front_near_leg/form/op_4",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -0.40499999999999997,
+          -0.5700000000000001,
+          1.44
+        ],
+        [
+          0.08499999999999998,
+          -0.14,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg",
+      "name": "rear_near_leg",
+      "asset_class": "OrganicLeg",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01,
+          -0.59,
+          0.0
+        ],
+        [
+          1.5500000000000003,
+          -0.12000000000000002,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:2cb22b4487d3c2b73a4a",
+        "source:b4644cfb250cb8484755"
+      ],
+      "source_locations": [
+        "L208-L210",
+        "L71-L109"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form",
+      "name": "form",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01,
+          -0.59,
+          0.0
+        ],
+        [
+          1.5500000000000003,
+          -0.12000000000000002,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:af6f38b693ac3fa5bc1a"
+      ],
+      "source_locations": [
+        "L109-L109"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_0",
+      "name": "op_0",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01,
+          -0.59,
+          0.0
+        ],
+        [
+          1.5500000000000003,
+          -0.12000000000000002,
+          0.26
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_0/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_0/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.025,
+          -0.58,
+          0.0
+        ],
+        [
+          1.5350000000000001,
+          -0.12999999999999995,
+          0.12
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_0/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_0/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_0",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01,
+          -0.59,
+          0.14
+        ],
+        [
+          1.5500000000000003,
+          -0.12000000000000002,
+          0.26
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_1",
+      "name": "op_1",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01,
+          -0.59,
+          0.14
+        ],
+        [
+          1.5500000000000003,
+          -0.12000000000000002,
+          0.49
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_1/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_1/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01,
+          -0.59,
+          0.14
+        ],
+        [
+          1.5500000000000003,
+          -0.12000000000000002,
+          0.26
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_1/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_1/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_1",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.105,
+          -0.52,
+          0.37
+        ],
+        [
+          1.455,
+          -0.19,
+          0.49
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_2",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_2",
+      "name": "op_2",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.0899999999999999,
+          -0.53,
+          0.37
+        ],
+        [
+          1.47,
+          -0.18,
+          0.94
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_2/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_2/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.105,
+          -0.52,
+          0.37
+        ],
+        [
+          1.455,
+          -0.19,
+          0.49
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_2/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_2/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_2",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.0899999999999999,
+          -0.53,
+          0.8200000000000001
+        ],
+        [
+          1.47,
+          -0.18,
+          0.94
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_3",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_3",
+      "name": "op_3",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.04995,
+          -0.56365,
+          0.8200000000000001
+        ],
+        [
+          1.5100500000000001,
+          -0.14634999999999995,
+          1.31
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_3/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_3/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_3",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.0899999999999999,
+          -0.53,
+          0.8200000000000001
+        ],
+        [
+          1.47,
+          -0.18,
+          0.94
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_3/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_3/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_3",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.04995,
+          -0.56365,
+          1.19
+        ],
+        [
+          1.5100500000000001,
+          -0.14634999999999995,
+          1.31
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_4",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_4",
+      "name": "op_4",
+      "asset_class": "Asset",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01785,
+          -0.5850500000000001,
+          1.19
+        ],
+        [
+          1.54215,
+          -0.12495,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_4/op_0",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_4/op_0",
+      "name": "op_0",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_4",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.04995,
+          -0.56365,
+          1.19
+        ],
+        [
+          1.5100500000000001,
+          -0.14634999999999995,
+          1.31
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_4/op_1",
+      "semantic_path": "StylizedUpwardTrunkElephant/rear_near_leg/form/op_4/op_1",
+      "name": "op_1",
+      "asset_class": "Cylinder",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant/rear_near_leg/form/op_4",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          1.01785,
+          -0.5850500000000001,
+          1.44
+        ],
+        [
+          1.54215,
+          -0.12495,
+          1.56
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [],
+      "source_locations": [],
+      "resolution": "unresolved"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/near_eye",
+      "semantic_path": "StylizedUpwardTrunkElephant/near_eye",
+      "name": "near_eye",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.2229999999999999,
+          -0.518,
+          2.8369999999999997
+        ],
+        [
+          -1.137,
+          -0.432,
+          2.923
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:ddbaf7b2bb3ea816f05d"
+      ],
+      "source_locations": [
+        "L216-L216"
+      ],
+      "resolution": "complete"
+    },
+    {
+      "feature_id": "feature:StylizedUpwardTrunkElephant/far_eye",
+      "semantic_path": "StylizedUpwardTrunkElephant/far_eye",
+      "name": "far_eye",
+      "asset_class": "Sphere",
+      "parent_feature_id": "feature:StylizedUpwardTrunkElephant",
+      "attach_mode": "part",
+      "bounds": [
+        [
+          -1.2229999999999999,
+          0.432,
+          2.8369999999999997
+        ],
+        [
+          -1.137,
+          0.518,
+          2.923
+        ]
+      ],
+      "frame": "authored_scene",
+      "unit": "scene_unit",
+      "source_ids": [
+        "source:11db7704cf594e6938c1"
+      ],
+      "source_locations": [
+        "L217-L217"
+      ],
+      "resolution": "complete"
+    }
+  ],
+  "unresolved": [
+    "StylizedUpwardTrunkElephant/body/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/body/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/body/op_2: 0 direct source candidates for Asset.op_2",
+    "StylizedUpwardTrunkElephant/body/op_3: 0 direct source candidates for Asset.op_3",
+    "StylizedUpwardTrunkElephant/head/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/head/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/head/op_2: 0 direct source candidates for Asset.op_2",
+    "StylizedUpwardTrunkElephant/head/op_3: 0 direct source candidates for Asset.op_3",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_2: 0 direct source candidates for Asset.op_2",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_3: 0 direct source candidates for Asset.op_3",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_4: 0 direct source candidates for Asset.op_4",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_5: 0 direct source candidates for Asset.op_5",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_6: 0 direct source candidates for Asset.op_6",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_7: 0 direct source candidates for Asset.op_7",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_8: 0 direct source candidates for Asset.op_8",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_9: 0 direct source candidates for Asset.op_9",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_10: 0 direct source candidates for Asset.op_10",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_11: 0 direct source candidates for Asset.op_11",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_12: 0 direct source candidates for Asset.op_12",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_13: 0 direct source candidates for Asset.op_13",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_14: 0 direct source candidates for Asset.op_14",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_15: 0 direct source candidates for Asset.op_15",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_16: 0 direct source candidates for Asset.op_16",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_17: 0 direct source candidates for Asset.op_17",
+    "StylizedUpwardTrunkElephant/trunk/form/op_0/op_18: 0 direct source candidates for Asset.op_18",
+    "StylizedUpwardTrunkElephant/trunk/form/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_0/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_0/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_1/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_1/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_2: 0 direct source candidates for Asset.op_2",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_2/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_2/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_3: 0 direct source candidates for Asset.op_3",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_3/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_3/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_4: 0 direct source candidates for Asset.op_4",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_4/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/front_far_leg/form/op_4/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_0/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_0/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_1/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_1/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_2: 0 direct source candidates for Asset.op_2",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_2/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_2/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_3: 0 direct source candidates for Asset.op_3",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_3/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_3/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_4: 0 direct source candidates for Asset.op_4",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_4/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/rear_far_leg/form/op_4/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_0/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_0/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_1/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_1/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_2: 0 direct source candidates for Asset.op_2",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_2/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_2/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_3: 0 direct source candidates for Asset.op_3",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_3/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_3/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_4: 0 direct source candidates for Asset.op_4",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_4/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/front_near_leg/form/op_4/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_0/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_0/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_1/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_1/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_2: 0 direct source candidates for Asset.op_2",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_2/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_2/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_3: 0 direct source candidates for Asset.op_3",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_3/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_3/op_1: 0 direct source candidates for Asset.op_1",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_4: 0 direct source candidates for Asset.op_4",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_4/op_0: 0 direct source candidates for Asset.op_0",
+    "StylizedUpwardTrunkElephant/rear_near_leg/form/op_4/op_1: 0 direct source candidates for Asset.op_1"
+  ]
+}

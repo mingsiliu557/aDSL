@@ -1,0 +1,33 @@
+{
+  "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+  "method": "model_inferred",
+  "tool_confirmed_geometry_ownership": false,
+  "scopes": [
+    {
+      "symbol": "SeatShell.__init__",
+      "start_line": 39,
+      "end_line": 58
+    },
+    {
+      "symbol": "rounded_box",
+      "start_line": 17,
+      "end_line": 35
+    },
+    {
+      "symbol": "<module>",
+      "start_line": 1,
+      "end_line": 266
+    }
+  ],
+  "unresolved_location_hints": [
+    "shared_leg_mount"
+  ],
+  "basis": [
+    "All four leg findings report the same 12 open boundary edges in part-local bounds x/y within ±19 mm and z=327–330 mm.",
+    "The connector tab is centered at z=300 mm, has insertion_mm=30.0, and has lead_in_mm=3.0, placing its lead-in precisely in the measured z=327–330 mm region.",
+    "The current source creates all four affected tabs from the same shared_leg_mount TabSlot object, explaining the repeated boundary pattern.",
+    "The evaluator reports EVALUATED_MESH_DEGENERATE with three zero-area triangles in geometry_0_hull.001.",
+    "rounded_box returns one hull over eight spheres, and SeatShell.__init__.front_roll is the second rounded_box construction in source order, making it a bounded initial candidate rather than a proven unique cause.",
+    "Resolved visual feedback requires restoration of chair_body while preserving its hierarchy, bounds, symmetry, and four slot interfaces."
+  ]
+}

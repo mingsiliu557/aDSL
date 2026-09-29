@@ -1,0 +1,181 @@
+{
+  "object_name": "modern_rounded_gray_armchair",
+  "components": [
+    {
+      "name": "seat_frame_base",
+      "description": "Structural upholstered lower body forming the root of the chair. Use a broad, bilaterally symmetric rounded-rectangle outline centered on X=0, with the front toward -Y and rear toward +Y. The base should span most of the chair width between the outer arm faces and occupy approximately Z=350..430 mm. Its horizontal cross-section should have rounded front corners, a slightly straighter rear edge, and enough solid thickness around four underside leg sockets. Build the soft outer contour with local hulls between rounded corner masses or sampled rounded profiles, while retaining a substantial internal core for connector mounting. The underside is predominantly planar at the four leg interfaces; do not hollow through the connector regions."
+    },
+    {
+      "name": "seat_cushion",
+      "description": "Thick gray upholstered cushion centered above the seat frame, approximately 65-75% of the overall chair width and 55-65% of its depth. Its dominant plan outline is a rounded rectangle, slightly wider at the rear than at the front if taper is used. The cushion rises from roughly Z=420 mm to a loaded-seat top near Z=500 mm, safely within the required 300..600 mm load region. Use smoothly bulged sidewalls and rounded upper edges, with a shallow broad central depression rather than a deep cavity. A hull of several rounded masses can form the ergonomic crown, followed by a shallow scaled-sphere boolean subtraction for the central concavity. Preserve adequate thickness beneath the depression."
+    },
+    {
+      "name": "backrest",
+      "description": "Tall upholstered backrest rising continuously from the rear seat structure to the exact chair maximum Z=900 mm. Front elevation is a broad rounded rectangle with softened upper corners and mild narrowing toward the top; width is less than the 900 mm arm-to-arm maximum but substantially greater than the cushion width. The vertical center section should curve smoothly for lumbar and upper-back support: its lower portion projects slightly forward toward -Y, while the upper portion sweeps gently rearward toward +Y. Cross-sections are thickest near the lower lumbar region and taper moderately near the top. Construct with a sequence of overlapping rounded sections or spheres/cylinders joined by local hulls. Keep the rear surface at or inside Y=400 mm and provide continuous material into the seat frame. Surfaces above Z=600 mm must remain broad and clearly identifiable for the configured back load."
+    },
+    {
+      "name": "left_armrest",
+      "description": "Short curved upholstered elbow rest on the -X side, integrated into the seat frame and lower backrest. It establishes the left outer width limit at X=-450 mm without exceeding it. The arm rises from the lower side body to an elbow-support crest around Z=590..650 mm, extends forward from the back through roughly 55-70% of the seat depth, and terminates in a rounded front end before the foremost chair edge. Use a thick rounded cross-section, a gently arched top, and a mildly concave inner face that opens toward the cushion. Local hulls between vertically and longitudinally offset rounded masses are suitable."
+    },
+    {
+      "name": "right_armrest",
+      "description": "Mirror of the left armrest on the +X side, establishing the right outer width limit at X=450 mm. Match the left armrest's short forward reach, rounded front termination, elbow-height crest, inward-facing concavity, cross-section changes, and smooth transition into the backrest and seat frame. It must be a true geometric mirror in principal dimensions and placement."
+    },
+    {
+      "name": "front_apron",
+      "description": "Upholstered front fascia beneath the cushion, spanning between the arm structures near the front of the chair. Its dominant outline is a low, wide rounded rectangle, approximately Z=350..425 mm, with a nearly vertical front face and softened lower corners. The front surface should sit slightly behind the nailhead crowns so the trim is visibly proud. Integrate it continuously with the seat_frame_base and retain enough depth behind it for a believable upholstered lower body."
+    },
+    {
+      "name": "nailhead_trim",
+      "description": "A single straight horizontal row of evenly spaced decorative nailheads along the lower front edge of the front apron. Use approximately 13-17 identical shallow spherical or domed circular studs, each about 14-18 mm in visible diameter, centered at a common Z near the apron bottom and distributed symmetrically across X. The studs should project slightly toward -Y, remain separate and readable, and not extend beyond the exact Y=-400 mm overall boundary. Use a subdued metallic gray, pewter, or muted brass color distinct from the gray upholstery."
+    },
+    {
+      "name": "front_left_leg",
+      "description": "Straight square-section wooden leg beneath the front-left quadrant. Use a constant square cross-section approximately 70-80 mm per side, vertical centerline, planar faces, and only minimal edge softening. The visible body runs from its foot at Z=0 mm to the underside seat stop plane near Z=350 mm. Locate it inset from both the left side and front edge, approximately X=-330 mm and Y=-270 mm. Its upper end must contain solid material for an upward tab and shoulder. Apply a warm medium-to-dark wood brown color."
+    },
+    {
+      "name": "front_right_leg",
+      "description": "Mirror of the front-left leg at approximately X=330 mm and Y=-270 mm. It has the same straight vertical square section, height, planar foot, wood color, connector shoulder, and cross-sectional dimensions. Its foot must terminate exactly at Z=0 mm."
+    },
+    {
+      "name": "rear_left_leg",
+      "description": "Straight square-section wooden leg beneath the rear-left quadrant, approximately X=-330 mm and Y=270 mm. Match the front legs in section and visible height. Keep it vertical rather than splayed, with a planar foot at Z=0 mm and a solid upper connector shoulder. It may visually meet the lower back structure but remains a separate print part."
+    },
+    {
+      "name": "rear_right_leg",
+      "description": "Mirror of the rear-left leg at approximately X=330 mm and Y=270 mm. Match all other legs in square cross-section, height, finish, foot elevation, and upper mounting geometry."
+    }
+  ],
+  "relations": [
+    "Use world coordinates with +X right, +Y rear/inward, and +Z up. Center the chair footprint at X=0 and Y=0.",
+    "The completed assembled geometry must have exact overall dimensions 900 mm in X, 800 mm in Y, and 900 mm in Z, with bounds X=-450..450 mm, Y=-400..400 mm, and Z=0..900 mm.",
+    "The chair is bilaterally symmetric about the YZ plane. The right armrest, right legs, cushion contour, backrest contour, apron, and nailhead spacing must reflect the corresponding left-side geometry.",
+    "The upholstered_body print part combines the seat frame, cushion, backrest, both armrests, front apron, and nailhead trim to preserve a continuous upholstered appearance and avoid seams through the principal soft shell. The four legs remain separate print parts because they are visually distinct wooden members with simple favorable bed faces.",
+    "The seat_frame_base is the assembly root. It must provide four independent solid receiver regions around the leg coordinates; each receiver must retain sufficient surrounding wall thickness and must not intersect the cushion depression or exterior front apron.",
+    "All four legs are vertical, mutually parallel, and arranged as a symmetric rectangular support pattern. Their four planar feet are coplanar at Z=0 mm, while their top stop planes meet the seat underside at approximately Z=350 mm.",
+    "Connect each leg to the upholstered body with one upward tab-slot interface. The leg is the tab part and the upholstered body is the slot part. Both endpoint interface frames use +Z as the common insertion axis, from the leg body upward into the receiver.",
+    "Use one shared TabSlot parameter named leg_mount for all four leg joints, with a suggested 45 mm tab width, 45 mm tab thickness, 35 mm insertion, slot depth at least 35 mm and preferably about 38 mm, frozen single-sided fit_offset_mm=0.2, a real embedded root overlap, a small opening extension, and an optional lead-in no larger than permitted by the helper.",
+    "The four leg connections are separate physical interfaces with unique tab and slot port names. The root body is placed first; each ordered connection may then locate its unplaced leg from the already placed body slot frame.",
+    "The cushion sits directly above and overlaps the seat_frame_base without an assembly connector because both belong to one print part. The cushion must not appear detached or floating.",
+    "The backrest joins the rear seat structure continuously and curves from the lumbar area into the upper back. Its loaded rear/front surfaces above Z=600 mm must remain broad rather than being reduced to a thin decorative rim.",
+    "The armrests blend into both the seat side body and lower backrest. Their front ends stop behind the foremost apron and nailhead boundary, emphasizing the requested short-arm design.",
+    "The front apron visually closes the space below the cushion. Nailheads form one centered, evenly pitched row attached to its front-lower edge; no nailhead should float or penetrate so deeply that its dome disappears.",
+    "Use smooth solid gray for all upholstery components. Use brown for the four wooden legs and a subtle metallic contrasting color for nailheads. No unsupported roughness, fabric shader, physical floor, backdrop, or black background geometry is part of the model.",
+    "Initial print grouping favors the broad underside and back surfaces of the upholstered body as candidate bed faces under allowed orientation optimization, while each square leg has simple planar bed faces. The grouping preserves the continuous upholstery silhouette and separates long cantilever-like legs from the bulky shell.",
+    "The fixed assembly is static and has no revolute, prismatic, or other articulation. Connection evaluation order is only the assembly placement order, not a claim about real-world insertion feasibility.",
+    "FEA semantic mapping must be supported by the descriptive component names: seat_frame_base and seat_cushion for the seat region, backrest for the back region, and all four leg names for floor support. The material remains the frozen isotropic PLA screening proxy regardless of visible upholstery and wood colors."
+  ],
+  "critic_checklist": [
+    "Verify the final assembled AABB is exactly 900 x 800 x 900 mm at mm_per_unit=1, with no decorative element outside X=-450..450, Y=-400..400, or Z=0..900 mm.",
+    "Verify all four leg feet have bottom faces at Z=0 mm and that no other chair geometry extends below the feet.",
+    "Verify the cushion top lies between Z=300 and Z=600 mm, preferably near 480-520 mm, and presents a broad upward-facing region for the 1000 N seat load.",
+    "Verify the backrest has substantial identifiable surface area above Z=600 mm for the configured 300 N +Y back load and reaches the exact maximum height Z=900 mm.",
+    "Verify bilateral symmetry about X=0: corresponding arm and leg placements, widths, heights, and curvatures must match within modeling tolerance.",
+    "Verify the cushion reads as a rounded, padded form with a shallow broad central depression; reject a flat slab, deep bowl, through-hole, or sharply faceted depression.",
+    "Verify the backrest has a smooth supportive vertical curve and rounded upper corners; reject a flat rectangular board, abrupt kink, or disconnected back.",
+    "Verify both armrests are short, curved, elbow-height supports integrated into the shell, ending behind the frontmost chair boundary rather than extending as full-length rails.",
+    "Verify the four legs are straight, vertical, square-section wooden members with matching dimensions and a stable rectangular footprint; reject round, tapered, angled, or mismatched legs.",
+    "Verify the seat frame contains solid receiver material around every declared slot and that the slots do not break through visible side, front, cushion, or back surfaces.",
+    "Verify each leg contains a solid shoulder and embedded tab-root region at its upper end. Tabs and slots must be generated only by FixedAssembly.connect using TabSlot, not manually modeled.",
+    "Verify four and only four planned leg interfaces exist, each with a unique connection ID and unique endpoint port names. All use the frozen 0.2 mm single-sided fit allowance.",
+    "Verify each connection frame has coincident stop-plane placement after assembly and a common +Z insertion direction. The legs must meet the underside without a visible gap or unintended overlap beyond the generated connector root.",
+    "Verify the upholstered shell, apron, cushion, arms, and backrest form one visually continuous root print part, while each of the four legs remains a distinct print part.",
+    "Verify the front apron is present below the cushion and that a centered row of approximately 13-17 evenly spaced nailheads follows its lower front edge.",
+    "Verify nailheads are consistently sized, aligned at one elevation, visibly proud of the apron, symmetric about X=0, and contained within the exact 800 mm depth.",
+    "Verify upholstery is consistently solid gray, legs are visibly brown, and trim has a restrained contrasting metallic color. Optional fabric texture is not required.",
+    "Verify there is no physical floor, black backdrop, presentation panel, or unrelated object in any print part or in the final scene.",
+    "Verify component names remain descriptive enough for seat/cushion, back/backrest, and leg/foot support-region matching by the configured physics tools.",
+    "Verify the assembly remains static, upright, and recognizable as a modern rounded ergonomic armchair from front, side, and three-quarter views."
+  ],
+  "print_parts": [
+    {
+      "id": "upholstered_body",
+      "components": [
+        "seat_frame_base",
+        "seat_cushion",
+        "backrest",
+        "left_armrest",
+        "right_armrest",
+        "front_apron",
+        "nailhead_trim"
+      ]
+    },
+    {
+      "id": "leg_front_left",
+      "components": [
+        "front_left_leg"
+      ]
+    },
+    {
+      "id": "leg_front_right",
+      "components": [
+        "front_right_leg"
+      ]
+    },
+    {
+      "id": "leg_rear_left",
+      "components": [
+        "rear_left_leg"
+      ]
+    },
+    {
+      "id": "leg_rear_right",
+      "components": [
+        "rear_right_leg"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "front_left_leg_mount",
+      "tab_part": "leg_front_left",
+      "slot_part": "upholstered_body",
+      "tab_port": "top_mount_tab",
+      "slot_port": "front_left_leg_receiver",
+      "parameter_name": "leg_mount",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+Z from the front-left leg top into the underside of the seat frame",
+      "fit_intent": "Static locating joint with 0.2 mm single-sided slot allowance; geometric demonstration only, using a broad square tab and solid seat receiver."
+    },
+    {
+      "id": "front_right_leg_mount",
+      "tab_part": "leg_front_right",
+      "slot_part": "upholstered_body",
+      "tab_port": "top_mount_tab",
+      "slot_port": "front_right_leg_receiver",
+      "parameter_name": "leg_mount",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+Z from the front-right leg top into the underside of the seat frame",
+      "fit_intent": "Mirror of the front-left static locating joint with the same frozen 0.2 mm single-sided allowance and shared dimensions."
+    },
+    {
+      "id": "rear_left_leg_mount",
+      "tab_part": "leg_rear_left",
+      "slot_part": "upholstered_body",
+      "tab_port": "top_mount_tab",
+      "slot_port": "rear_left_leg_receiver",
+      "parameter_name": "leg_mount",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+Z from the rear-left leg top into the underside of the rear seat frame",
+      "fit_intent": "Static rear support joint with the same shared square tab geometry and frozen 0.2 mm single-sided allowance."
+    },
+    {
+      "id": "rear_right_leg_mount",
+      "tab_part": "leg_rear_right",
+      "slot_part": "upholstered_body",
+      "tab_port": "top_mount_tab",
+      "slot_port": "rear_right_leg_receiver",
+      "parameter_name": "leg_mount",
+      "interface_type": "tab_slot",
+      "insertion_direction": "+Z from the rear-right leg top into the underside of the rear seat frame",
+      "fit_intent": "Mirror of the rear-left static support joint with shared dimensions and the frozen 0.2 mm single-sided allowance."
+    }
+  ],
+  "root_part": "upholstered_body",
+  "mm_per_unit": 1.0,
+  "final_size_mm": [
+    900.0,
+    800.0,
+    900.0
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "object_name": "Stylized upward-trunk elephant",
+  "components": [
+    {
+      "name": "body",
+      "description": "Large smooth, rounded torso elongated along the x-axis, approximately 2.2 units long, 1.05 units wide, and 1.35 units tall. Center it near (0.25, 0, 1.75), with the elephant facing -x. Use an ellipsoidal or blended capsule-like mass with a gently arched back, full belly, rounded rear, and no sharp corners."
+    },
+    {
+      "name": "head",
+      "description": "Rounded head at the front (-x end) of the body, approximately 1.05 units tall and 0.9 units wide. Position it near (-0.95, -0.02, 2.15), overlapping the front of the torso and sitting slightly higher than the body center. The forehead should be bulbous and transition smoothly into the trunk."
+    },
+    {
+      "name": "trunk",
+      "description": "A long, smoothly tapered trunk emerging from the lower-front of the head. It initially descends almost vertically, then sweeps forward toward -x, curves upward at the distal end, and finishes with a short raised tip. Construct from overlapping tapered cylindrical or spherical segments to create a continuous organic curve. The base should be thick, the middle progressively narrower, and the tip small and rounded. Its lowest point should remain above the feet, around z=0.65, while the raised tip reaches roughly z=1.0."
+    },
+    {
+      "name": "near_ear",
+      "description": "Large flattened rounded ear on the visible/front side of the head and shoulder, placed toward -y. Form a broad teardrop or rounded triangular plate approximately 1.0 units tall, 0.75 units wide, and 0.10-0.16 units thick. Its upper attachment lies near the crown of the head, its broad face slopes backward over the front shoulder, and its lower point ends near the neck/body junction. Avoid a circular disk shape."
+    },
+    {
+      "name": "far_ear",
+      "description": "Second flattened ear on the opposite +y side, similar in form but partly occluded by the head. Offset it slightly rearward and allow only its upper/rear portion to contribute subtly to the silhouette."
+    },
+    {
+      "name": "front_near_leg",
+      "description": "Near-side front leg descending from the front underside of the torso at approximately x=-0.45, y=-0.32. Nearly vertical, mildly tapered through the ankle, and ending in a rounded, slightly flared foot at ground level. Approximate total leg height 1.15 units."
+    },
+    {
+      "name": "front_far_leg",
+      "description": "Far-side front leg at approximately x=-0.45, y=0.30. Keep it distinct from the near leg and partially visible through the spacing beneath the body. It should be slimmer in the reference view because of occlusion."
+    },
+    {
+      "name": "rear_near_leg",
+      "description": "Near-side rear leg descending from the rear underside at approximately x=0.85, y=-0.32. Nearly vertical with a subtly narrowing lower shaft and a broad rounded foot planted at the same ground height as the other legs."
+    },
+    {
+      "name": "rear_far_leg",
+      "description": "Far-side rear leg at approximately x=0.85, y=0.30. Separate it from the near rear leg and preserve a visible negative-space opening between front and rear leg pairs."
+    },
+    {
+      "name": "feet",
+      "description": "Four integrated, gently flared foot forms at the bottoms of the legs. Each foot has a rounded perimeter and flat or very slightly domed sole resting at z=0. No individual toes are required."
+    },
+    {
+      "name": "eyes",
+      "description": "Small subtle eyes on both sides of the head, with the near-side eye clearly readable as a tiny dark or recessed sphere around the upper-middle head. Keep them understated and symmetric."
+    },
+    {
+      "name": "tail",
+      "description": "Optional thin tapered tail emerging from the upper rear of the body, curving slightly downward and ending in a small tuft. Keep it secondary and close to the rear silhouette so it does not dominate the requested elephant form."
+    }
+  ],
+  "relations": [
+    "Use world coordinates with +z upward and orient the elephant so its head and trunk face -x; the torso extends toward +x.",
+    "The body, head, and trunk must overlap enough to read as one continuous smooth animal rather than disconnected primitives.",
+    "The head attaches to the upper-front of the torso; its crown is slightly above the back and its lower-front surface flows directly into the trunk base.",
+    "The trunk follows a J-like side silhouette: downward from the face, forward toward -x, then upward at the tip. The upward turn must be clearly visible from the side.",
+    "Attach each ear near the upper rear side of the head. The near ear overlaps both the head and front shoulder, while the far ear is partially hidden behind the head.",
+    "Place the four legs beneath the torso in a rectangular arrangement: front pair toward -x, rear pair toward +x, near pair toward -y, and far pair toward +y.",
+    "All four legs contact the common ground plane at z=0. Their upper ends penetrate the belly slightly to eliminate gaps, but the lower legs remain individually distinguishable.",
+    "Maintain open negative space beneath the belly, especially between the front and rear leg pairs. Do not merge all legs into a solid skirt.",
+    "The feet are integral continuations of their respective legs and flare modestly outward near the ground.",
+    "The near-side eye sits forward of the near ear and above the trunk root. The far eye may be hidden depending on the chosen view.",
+    "Keep the model approximately bilateral across the xz plane except for small pose or visibility adjustments to prevent exact overlap.",
+    "Use a single neutral gray elephant material or closely matched gray shades. Do not add a pedestal, floor, backdrop, vegetation, or any other background geometry."
+  ],
+  "critic_checklist": [
+    "Only the elephant is present in the generated asset; there is no floor, platform, backdrop, or unrelated geometry.",
+    "The elephant faces -x and has a compact stylized silhouette matching the reference: rounded body, large head, broad ears, long trunk, and four sturdy legs.",
+    "The torso is visibly longer than it is wide and has a rounded back and rear rather than a box-like profile.",
+    "The head is attached at the front of the body, sits slightly higher than the torso center, and has a bulbous forehead.",
+    "The trunk is continuous with the face, tapers from base to tip, descends before curling forward and distinctly upward, and has no abrupt angular joints or visible gaps.",
+    "The raised trunk tip is small and rounded rather than blunt, oversized, or downward-pointing.",
+    "The near ear is a broad rounded triangular or teardrop plate, not a circular disk, and overlaps the head/shoulder in the same manner as the reference.",
+    "A second ear exists on the opposite side and is appropriately partially occluded rather than duplicated visibly in the same plane.",
+    "Exactly four legs are modeled and each can be identified structurally, even if far-side legs are partially occluded in the reference view.",
+    "All four feet reach the same ground level, and the elephant appears stably planted without floating or deeply intersecting feet.",
+    "There is visible clearance beneath the belly and readable separation between front and rear legs; the underside is not filled by a single mass.",
+    "Legs transition into modestly wider rounded feet and retain the soft stylized character of the reference.",
+    "Component intersections at the neck, trunk root, ears, and leg roots do not leave accidental gaps, while excessive intersections do not destroy the silhouette.",
+    "The eye is small, subtle, and positioned ahead of the ear; it does not dominate the face.",
+    "The complete model uses smooth, rounded forms with no unintended sharp edges, exposed construction segments, or background elements."
+  ]
+}

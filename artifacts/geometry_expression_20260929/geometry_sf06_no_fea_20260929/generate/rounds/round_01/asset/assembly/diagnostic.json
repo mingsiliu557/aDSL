@@ -1,0 +1,38 @@
+{
+  "diagnostic_only": true,
+  "parts": [
+    {
+      "id": "chair_body",
+      "geometry_valid": null,
+      "shown": false,
+      "reason": "string is not a file: `/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset/assembly/chair_body.glb`"
+    },
+    {
+      "id": "leg_front_left",
+      "geometry_valid": null,
+      "shown": true
+    },
+    {
+      "id": "leg_front_right",
+      "geometry_valid": null,
+      "shown": true
+    },
+    {
+      "id": "leg_rear_left",
+      "geometry_valid": null,
+      "shown": true
+    },
+    {
+      "id": "leg_rear_right",
+      "geometry_valid": null,
+      "shown": true
+    }
+  ],
+  "invalid_parts": [],
+  "missing_parts": [
+    "chair_body"
+  ],
+  "display_available": false,
+  "semantic_completeness": "NOT_EVALUATED",
+  "glb": "diagnostic_scene.glb"
+}

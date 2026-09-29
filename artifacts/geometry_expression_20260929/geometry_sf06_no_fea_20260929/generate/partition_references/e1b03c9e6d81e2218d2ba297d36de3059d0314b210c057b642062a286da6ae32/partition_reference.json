@@ -1,0 +1,373 @@
+{
+  "schema": 1,
+  "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+  "body_inputs": [
+    {
+      "part_id": "chair_body",
+      "status": "PASS",
+      "frame": "part_local_mm",
+      "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+      "npz": "chair_body.body.npz",
+      "sha256": "f7f6ab02c08c130aac68fa297f0f881b673412a9d01c2e67faad1faf5618ac8e"
+    },
+    {
+      "part_id": "leg_front_left",
+      "status": "PASS",
+      "frame": "part_local_mm",
+      "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+      "npz": "leg_front_left.body.npz",
+      "sha256": "322cd389ba038014a5b618bea2abfbe26560dbe7eeb694ac71c51f8ef08ee5fa"
+    },
+    {
+      "part_id": "leg_front_right",
+      "status": "PASS",
+      "frame": "part_local_mm",
+      "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+      "npz": "leg_front_right.body.npz",
+      "sha256": "322cd389ba038014a5b618bea2abfbe26560dbe7eeb694ac71c51f8ef08ee5fa"
+    },
+    {
+      "part_id": "leg_rear_left",
+      "status": "PASS",
+      "frame": "part_local_mm",
+      "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+      "npz": "leg_rear_left.body.npz",
+      "sha256": "322cd389ba038014a5b618bea2abfbe26560dbe7eeb694ac71c51f8ef08ee5fa"
+    },
+    {
+      "part_id": "leg_rear_right",
+      "status": "PASS",
+      "frame": "part_local_mm",
+      "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+      "npz": "leg_rear_right.body.npz",
+      "sha256": "322cd389ba038014a5b618bea2abfbe26560dbe7eeb694ac71c51f8ef08ee5fa"
+    }
+  ],
+  "root_id": "chair_body",
+  "part_declarations": [
+    {
+      "id": "chair_body",
+      "components": [
+        "seat_shell",
+        "seat_cushion",
+        "backrest",
+        "left_armrest",
+        "right_armrest",
+        "front_apron",
+        "underseat_mounting_deck",
+        "nailhead_trim"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "leg_front_left",
+      "components": [
+        "front_left_leg"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "leg_front_right",
+      "components": [
+        "front_right_leg"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "leg_rear_left",
+      "components": [
+        "rear_left_leg"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "id": "leg_rear_right",
+      "components": [
+        "rear_right_leg"
+      ],
+      "assembly_transform": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          330.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          255.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "assembly_transforms": {
+    "chair_body": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "leg_front_left": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        -330.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        -255.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "leg_front_right": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        330.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        -255.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "leg_rear_left": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        -330.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        255.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "leg_rear_right": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        330.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        255.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "bounds_mm": [
+    [
+      -449.9999084472656,
+      -400.0,
+      0.0
+    ],
+    [
+      449.9999694824219,
+      400.0,
+      900.0
+    ]
+  ],
+  "grid_origin_mm": [
+    -449.9999084472656,
+    -400.0,
+    0.0
+  ],
+  "voxel_pitch_mm": 80.0,
+  "reference_voxels": 662,
+  "evaluation_config_sha256": "f15386fa287b5e1e385bb92cfaef84641869f814b6cb43662fe1276f09488ef4",
+  "files_sha256": {
+    "body.npz": "b71d211267b5c63d9be7c824d32bae301fdc6b5ba0198b58cea3f85162e44a06",
+    "occupied.npz": "ac72a5b0e5452b767732f22d32c3c1462c8c688ab4c624bd885ef3e170eeba63"
+  },
+  "reference_sha256": "e1b03c9e6d81e2218d2ba297d36de3059d0314b210c057b642062a286da6ae32"
+}

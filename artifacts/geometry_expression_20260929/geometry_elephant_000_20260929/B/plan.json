@@ -1,0 +1,79 @@
+{
+  "object_name": "stylized_upward_trunk_elephant",
+  "components": [
+    {
+      "name": "body",
+      "description": "Large rounded barrel-shaped torso, approximately 2.3 units long along x, 1.15 units wide along y, and 1.35 units tall. Place its center near (0.65, 0, 2.05), with the rump at +x and shoulders at -x. The side outline should have a gently arched back, nearly vertical rump, and a softly convex belly. Construct from a hull or union of overlapping spheres/short cylinders, using slightly larger volume around the shoulders and a smoothly rounded rear; avoid a box-like or sharply faceted result."
+    },
+    {
+      "name": "head",
+      "description": "Tall, rounded elephant head attached at the front-left end of the body, centered near x=-0.75 and elevated above the shoulders. Its dominant side outline is a broad rounded forehead descending almost continuously into the trunk, with a convex crown and slightly narrower lower cheek. Approximate dimensions are 1.1 along x, 1.0 along y, and 1.65 along z. Use a hull of overlapping spheres or rounded solids to create a smooth transition into the neck and shoulders without a distinct thin neck."
+    },
+    {
+      "name": "near_ear",
+      "description": "Prominent broad fan-shaped ear on the visible/front side of the head, lying primarily in the x-z plane with small thickness along y. It begins near the crown, bulges outward and rearward over the shoulder, then narrows toward its lower attachment. The outline resembles an asymmetrical rounded teardrop: convex upper edge, fullest width toward the rear-middle, rounded rear tip, and a shallow concave lower-front edge. Size it to roughly 1.25 units tall and 1.15 units wide, with thickness about 0.08-0.12. Create from a sampled Polygon, linear_extrude it thinly, rotate it into the x-z plane, and soften the appearance with adequate curve sampling. Place it on the front side at negative y so it remains clearly visible and overlaps the head/body silhouette as in the reference."
+    },
+    {
+      "name": "far_ear",
+      "description": "A second ear attached symmetrically on the opposite side at positive y, using the same general fan/teardrop shape but allowed to be slightly less visible because of the three-quarter presentation. Its upper or rear edge may project subtly beyond the head, but it must not read as a horn. Keep both ears thin and smoothly rounded rather than circular disks."
+    },
+    {
+      "name": "trunk",
+      "description": "Long tapered trunk growing directly from the lower front of the head. It first descends nearly vertically, then curves forward toward -x, sweeps into a broad U-shaped lower curve, and finishes with a short upward-pointing tip. The trunk should be thickest at the facial attachment, progressively taper through the curve, and end in a small rounded, slightly flared tip. Its lowest point should remain above the feet/ground, and its forward tip should define the leftmost silhouette. Build as a sequence of overlapping tapered local hull segments between spheres or short cylinders following a smooth sampled centerline; union the segments to avoid gaps or bead-like joints."
+    },
+    {
+      "name": "front_near_leg",
+      "description": "Near-side front leg below the shoulder at approximately x=-0.15, y=-0.38. Nearly vertical but with subtle organic curvature, tapering mildly from the upper leg toward the ankle and widening again into a rounded flared foot. Height about 1.35 units, average width 0.38, foot width about 0.5. Use local hulls between circular or spherical cross-sections; terminate at z=0 with a broad flat-enough support surface."
+    },
+    {
+      "name": "front_far_leg",
+      "description": "Far-side front leg below the shoulder at approximately x=-0.15, y=+0.38. Match the near front leg's height and basic form but preserve visible separation in a three-quarter view. It may be partly occluded by the body and near leg, yet its foot must remain identifiable as a separate fourth support."
+    },
+    {
+      "name": "rear_near_leg",
+      "description": "Near-side rear leg below the rump at approximately x=1.35, y=-0.38. Similar stylized column form to the front legs, with a mild inward ankle taper and outward-flared rounded foot. Keep it close to vertical and comparable in height, while allowing a slightly fuller upper portion beneath the hindquarter."
+    },
+    {
+      "name": "rear_far_leg",
+      "description": "Far-side rear leg below the rump at approximately x=1.35, y=+0.38. Match the other legs in style and ground height. Maintain a clear gap or readable negative space between front and rear leg groups; do not merge all four legs into a continuous skirt."
+    },
+    {
+      "name": "eyes",
+      "description": "Two very small dark or recessed round eyes on the lateral sides of the head, positioned above the trunk root and forward of the ears. The visible near eye should be the clearest, with a diameter around 0.05-0.07 units. Use a tiny sphere or shallow circular recess; keep the feature subtle and avoid oversized cartoon eyes."
+    },
+    {
+      "name": "surface_and_color",
+      "description": "Apply a uniform matte medium-gray appearance to the elephant, with optional slightly darker eyes. Preserve smooth, softly rounded surfaces and a simple stylized sculptural look. Do not add tusks, saddle, harness, pedestal, floor, backdrop, or unrelated geometry."
+    }
+  ],
+  "relations": [
+    "Use +x from head toward rump, +y toward the elephant's far side, and +z upward; therefore the trunk extends primarily toward -x and the visible near ear and near legs sit at negative y.",
+    "The head overlaps and blends directly into the body's front/shoulder volume; there should be no narrow neck or visible gap between them.",
+    "The trunk is structurally continuous with the lower face. Its centerline descends first, curves forward and under, and ends with the tip directed upward, forming the characteristic raised-tip silhouette.",
+    "The ear roots attach high on both sides of the head. The near ear sits slightly outside the head at negative y and overlaps the front shoulder region; the far ear mirrors it at positive y and is more occluded.",
+    "Arrange the legs as four distinct supports in a rectangular footprint: front pair beneath the shoulder and rear pair beneath the rump, with near/far offsets along y and front/rear offsets along x.",
+    "All four feet terminate at the same ground plane z=0. Upper legs penetrate slightly into the torso to ensure watertight-looking attachments without visible seams.",
+    "The belly remains above the feet with open negative spaces between the legs. The front and rear pairs must not fuse together below the torso.",
+    "Overall proportions should be compact and juvenile/stylized: total foot-to-crown height about 3.4-3.7 units, body length about 2.3 units, and total trunk-tip-to-rump length about 4.2-4.7 units.",
+    "The rear body is rounded and slightly lower than the head crown. The ears and head dominate the upper-front silhouette, while the body forms a compact horizontal mass behind them.",
+    "The final scene hierarchy contains only the elephant and its anatomical subparts, with no ground plane or background objects."
+  ],
+  "critic_checklist": [
+    "Exactly one elephant is present, and there is no floor, pedestal, backdrop, lighting geometry, or unrelated object.",
+    "The silhouette reads immediately as an elephant from the reference-like three-quarter side view: large ears, tall head, barrel torso, long curved trunk, and four legs.",
+    "The trunk is continuous and visibly tapered, descends from the face, curves forward in a broad U, and ends with a clearly upward-facing rounded tip.",
+    "The trunk has no disconnected segments, sharp elbows, bead-like lumps, or contact with the ground.",
+    "There are four separately readable legs: front-near, front-far, rear-near, and rear-far. Every foot reaches the same z=0 plane.",
+    "Each leg narrows mildly near the ankle and expands into a rounded flared foot; the legs are not plain uniform cylinders and are not merged into a single mass.",
+    "Open negative space remains visible beneath the belly and between the front and rear leg groups.",
+    "The body is smoothly rounded with an arched back and rounded rump, not a rectangular block.",
+    "The head is taller than it is long, has a rounded forehead, and blends smoothly into both shoulders and trunk root without a thin neck.",
+    "Both ears are attached high on the head and have broad asymmetrical fan/teardrop outlines. The near ear is dominant and extends rearward over the shoulder; neither ear appears as a perfect circle or horn.",
+    "The near ear is thin relative to its width and height, with a convex outer edge and a subtly concave or indented lower-front edge.",
+    "The eye is small and subtle, located forward of the ear and above the trunk root; it must not dominate the face.",
+    "No prominent tusks are present, matching the shown stylized elephant.",
+    "The crown is the highest point, the upward trunk tip is the leftmost point, and the rounded rump is the rightmost major point.",
+    "Surface transitions at head-body, trunk-head, and leg-body attachments appear continuous and free from unintended gaps or severe intersections.",
+    "The elephant uses a consistent matte gray material, apart from optional darker eyes, and retains the smooth low-detail sculptural character of the reference."
+  ]
+}

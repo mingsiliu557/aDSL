@@ -1,0 +1,472 @@
+{
+  "source_sha256": "a407b53a557bb1bacab13dc60f98034e5931d6c4d22d76d8242fc540d5a19890",
+  "manifest_sha256": "d121f3e94abf18469623098f16992065754bda5057a8efd772303e2e70d431c0",
+  "topology_scope_version": 2,
+  "items": [
+    {
+      "kind": "part",
+      "status": "INDETERMINATE",
+      "code": "PRINT_MESH_UNAVAILABLE",
+      "part_id": "chair_body"
+    },
+    {
+      "kind": "part",
+      "status": "INDETERMINATE",
+      "code": "OPEN_PRINT_MESH",
+      "part_id": "leg_front_left",
+      "stage": "final_print_mesh_validation",
+      "reason": "open exported print mesh; connectivity and dependent interfaces unverified",
+      "boundary_edge_count": 12,
+      "nonmanifold_edge_count": 0,
+      "bounds_mm": [
+        [
+          -19.0,
+          -19.0,
+          327.0
+        ],
+        [
+          19.0,
+          19.0,
+          330.0
+        ]
+      ],
+      "boundary_regions": [
+        {
+          "bounds_mm": [
+            [
+              -19.0,
+              -19.0,
+              327.0
+            ],
+            [
+              -16.000001907348633,
+              -16.000001907348633,
+              330.0
+            ]
+          ],
+          "boundary_edge_count": 3
+        },
+        {
+          "bounds_mm": [
+            [
+              -19.0,
+              16.219514846801758,
+              327.0
+            ],
+            [
+              -16.21951675415039,
+              19.0,
+              329.7804870605469
+            ]
+          ],
+          "boundary_edge_count": 3
+        },
+        {
+          "bounds_mm": [
+            [
+              16.00000762939453,
+              -19.0,
+              327.0
+            ],
+            [
+              19.0,
+              19.0,
+              330.0
+            ]
+          ],
+          "boundary_edge_count": 6
+        }
+      ],
+      "method": "exact-coordinate export vertex deduplication within face groups; no mesh repair",
+      "boundary_report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_front_left/checkers/assembly_topology/boundary_edges.json",
+      "elapsed_seconds": 6.2316780891269445,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_front_left/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "part",
+      "status": "INDETERMINATE",
+      "code": "OPEN_PRINT_MESH",
+      "part_id": "leg_front_right",
+      "stage": "final_print_mesh_validation",
+      "reason": "open exported print mesh; connectivity and dependent interfaces unverified",
+      "boundary_edge_count": 12,
+      "nonmanifold_edge_count": 0,
+      "bounds_mm": [
+        [
+          -19.0,
+          -19.0,
+          327.0
+        ],
+        [
+          19.0,
+          19.0,
+          330.0
+        ]
+      ],
+      "boundary_regions": [
+        {
+          "bounds_mm": [
+            [
+              -19.0,
+              -19.0,
+              327.0
+            ],
+            [
+              -16.000001907348633,
+              -16.000001907348633,
+              330.0
+            ]
+          ],
+          "boundary_edge_count": 3
+        },
+        {
+          "bounds_mm": [
+            [
+              -19.0,
+              16.219514846801758,
+              327.0
+            ],
+            [
+              -16.21951675415039,
+              19.0,
+              329.7804870605469
+            ]
+          ],
+          "boundary_edge_count": 3
+        },
+        {
+          "bounds_mm": [
+            [
+              16.00000762939453,
+              -19.0,
+              327.0
+            ],
+            [
+              19.0,
+              19.0,
+              330.0
+            ]
+          ],
+          "boundary_edge_count": 6
+        }
+      ],
+      "method": "exact-coordinate export vertex deduplication within face groups; no mesh repair",
+      "boundary_report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_front_right/checkers/assembly_topology/boundary_edges.json",
+      "elapsed_seconds": 6.53181729093194,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_front_right/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "part",
+      "status": "INDETERMINATE",
+      "code": "OPEN_PRINT_MESH",
+      "part_id": "leg_rear_left",
+      "stage": "final_print_mesh_validation",
+      "reason": "open exported print mesh; connectivity and dependent interfaces unverified",
+      "boundary_edge_count": 12,
+      "nonmanifold_edge_count": 0,
+      "bounds_mm": [
+        [
+          -19.0,
+          -19.0,
+          327.0
+        ],
+        [
+          19.0,
+          19.0,
+          330.0
+        ]
+      ],
+      "boundary_regions": [
+        {
+          "bounds_mm": [
+            [
+              -19.0,
+              -19.0,
+              327.0
+            ],
+            [
+              -16.000001907348633,
+              -16.000001907348633,
+              330.0
+            ]
+          ],
+          "boundary_edge_count": 3
+        },
+        {
+          "bounds_mm": [
+            [
+              -19.0,
+              16.219514846801758,
+              327.0
+            ],
+            [
+              -16.21951675415039,
+              19.0,
+              329.7804870605469
+            ]
+          ],
+          "boundary_edge_count": 3
+        },
+        {
+          "bounds_mm": [
+            [
+              16.00000762939453,
+              -19.0,
+              327.0
+            ],
+            [
+              19.0,
+              19.0,
+              330.0
+            ]
+          ],
+          "boundary_edge_count": 6
+        }
+      ],
+      "method": "exact-coordinate export vertex deduplication within face groups; no mesh repair",
+      "boundary_report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_left/checkers/assembly_topology/boundary_edges.json",
+      "elapsed_seconds": 6.58145110681653,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_left/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "part",
+      "status": "INDETERMINATE",
+      "code": "OPEN_PRINT_MESH",
+      "part_id": "leg_rear_right",
+      "stage": "final_print_mesh_validation",
+      "reason": "open exported print mesh; connectivity and dependent interfaces unverified",
+      "boundary_edge_count": 12,
+      "nonmanifold_edge_count": 0,
+      "bounds_mm": [
+        [
+          -19.0,
+          -19.0,
+          327.0
+        ],
+        [
+          19.0,
+          19.0,
+          330.0
+        ]
+      ],
+      "boundary_regions": [
+        {
+          "bounds_mm": [
+            [
+              -19.0,
+              -19.0,
+              327.0
+            ],
+            [
+              -16.000001907348633,
+              -16.000001907348633,
+              330.0
+            ]
+          ],
+          "boundary_edge_count": 3
+        },
+        {
+          "bounds_mm": [
+            [
+              -19.0,
+              16.219514846801758,
+              327.0
+            ],
+            [
+              -16.21951675415039,
+              19.0,
+              329.7804870605469
+            ]
+          ],
+          "boundary_edge_count": 3
+        },
+        {
+          "bounds_mm": [
+            [
+              16.00000762939453,
+              -19.0,
+              327.0
+            ],
+            [
+              19.0,
+              19.0,
+              330.0
+            ]
+          ],
+          "boundary_edge_count": 6
+        }
+      ],
+      "method": "exact-coordinate export vertex deduplication within face groups; no mesh repair",
+      "boundary_report": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_right/checkers/assembly_topology/boundary_edges.json",
+      "elapsed_seconds": 5.880665335804224,
+      "report_path": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_right/checkers/assembly_topology/result.json"
+    },
+    {
+      "kind": "interface",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "tab_part": "leg_front_left",
+      "slot_part": "chair_body",
+      "parameter_name": "shared_leg_mount",
+      "tab_port": "top_mount_tab",
+      "slot_port": "underside_front_left_slot",
+      "connection_id": "mount_front_left_leg"
+    },
+    {
+      "kind": "interface",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "tab_part": "leg_front_right",
+      "slot_part": "chair_body",
+      "parameter_name": "shared_leg_mount",
+      "tab_port": "top_mount_tab",
+      "slot_port": "underside_front_right_slot",
+      "connection_id": "mount_front_right_leg"
+    },
+    {
+      "kind": "interface",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "tab_part": "leg_rear_left",
+      "slot_part": "chair_body",
+      "parameter_name": "shared_leg_mount",
+      "tab_port": "top_mount_tab",
+      "slot_port": "underside_rear_left_slot",
+      "connection_id": "mount_rear_left_leg"
+    },
+    {
+      "kind": "interface",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "tab_part": "leg_rear_right",
+      "slot_part": "chair_body",
+      "parameter_name": "shared_leg_mount",
+      "tab_port": "top_mount_tab",
+      "slot_port": "underside_rear_right_slot",
+      "connection_id": "mount_rear_right_leg"
+    },
+    {
+      "kind": "pair",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "pair_id": "chair_body:leg_front_left",
+      "part_ids": [
+        "chair_body",
+        "leg_front_left"
+      ],
+      "frame": "assembly",
+      "unit": "mm"
+    },
+    {
+      "kind": "pair",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "pair_id": "chair_body:leg_front_right",
+      "part_ids": [
+        "chair_body",
+        "leg_front_right"
+      ],
+      "frame": "assembly",
+      "unit": "mm"
+    },
+    {
+      "kind": "pair",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "pair_id": "chair_body:leg_rear_left",
+      "part_ids": [
+        "chair_body",
+        "leg_rear_left"
+      ],
+      "frame": "assembly",
+      "unit": "mm"
+    },
+    {
+      "kind": "pair",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "pair_id": "chair_body:leg_rear_right",
+      "part_ids": [
+        "chair_body",
+        "leg_rear_right"
+      ],
+      "frame": "assembly",
+      "unit": "mm"
+    },
+    {
+      "kind": "pair",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "pair_id": "leg_front_left:leg_front_right",
+      "part_ids": [
+        "leg_front_left",
+        "leg_front_right"
+      ],
+      "frame": "assembly",
+      "unit": "mm"
+    },
+    {
+      "kind": "pair",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "pair_id": "leg_front_left:leg_rear_left",
+      "part_ids": [
+        "leg_front_left",
+        "leg_rear_left"
+      ],
+      "frame": "assembly",
+      "unit": "mm"
+    },
+    {
+      "kind": "pair",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "pair_id": "leg_front_left:leg_rear_right",
+      "part_ids": [
+        "leg_front_left",
+        "leg_rear_right"
+      ],
+      "frame": "assembly",
+      "unit": "mm"
+    },
+    {
+      "kind": "pair",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "pair_id": "leg_front_right:leg_rear_left",
+      "part_ids": [
+        "leg_front_right",
+        "leg_rear_left"
+      ],
+      "frame": "assembly",
+      "unit": "mm"
+    },
+    {
+      "kind": "pair",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "pair_id": "leg_front_right:leg_rear_right",
+      "part_ids": [
+        "leg_front_right",
+        "leg_rear_right"
+      ],
+      "frame": "assembly",
+      "unit": "mm"
+    },
+    {
+      "kind": "pair",
+      "status": "INDETERMINATE",
+      "code": "DEPENDENCY_MESH_UNAVAILABLE",
+      "pair_id": "leg_rear_left:leg_rear_right",
+      "part_ids": [
+        "leg_rear_left",
+        "leg_rear_right"
+      ],
+      "frame": "assembly",
+      "unit": "mm"
+    }
+  ],
+  "elapsed_seconds": 25.67177545465529,
+  "single_operation_timeout_seconds": 120,
+  "checker_budget_seconds": 900.0
+}

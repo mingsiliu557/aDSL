@@ -1,0 +1,34 @@
+{
+  "checker": "assembly_topology",
+  "required": true,
+  "timeout_seconds": 120.0,
+  "command": [
+    "/vepfs_default/chanxueyan/lhp/lms/envs/adsl/bin/python",
+    "-m",
+    "adsl.agents.assembly_topology",
+    "--manifest",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset/assembly/assembly_manifest.json",
+    "--source",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/original/source.py",
+    "--output",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_left/checkers/assembly_topology",
+    "--solids",
+    "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/solids.json",
+    "--part",
+    "leg_rear_left"
+  ],
+  "environment_prepend": {},
+  "placeholders": {
+    "python": "/vepfs_default/chanxueyan/lhp/lms/envs/adsl/bin/python",
+    "project_root": "/tmp/adsl_geometry_20260929",
+    "workspace": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/original",
+    "source": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/original/source.py",
+    "glb": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset/assembly/scene.glb",
+    "urdf": "",
+    "asset_dir": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/asset/assembly",
+    "round_dir": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_left",
+    "output_dir": "/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/geometry_sf06_no_fea_20260929/generate/rounds/round_01/checkers/assembly_topology/items/part_leg_rear_left/checkers/assembly_topology",
+    "analysis_geometry": "",
+    "source_index": ""
+  }
+}

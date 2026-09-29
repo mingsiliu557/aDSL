@@ -1,0 +1,1 @@
+"Patched `source.py` to replace the trunk’s numerically degenerate local sphere hulls with explicit tapered frustum segments joined by rounded station spheres. This preserves the upward-curving, smoothly tapered trunk while avoiding the reported nonplanar hull facets."

@@ -1,0 +1,32 @@
+{
+  "scope": "SF06 armchair, gravity-only screening; FEA disabled. Uniform density is an experimental assumption.",
+  "material": {
+    "density_kg_m3": 1240.0
+  },
+  "standing": {
+    "duration_seconds": 5.0,
+    "timestep_seconds": 0.002,
+    "friction": [
+      0.5,
+      0.005,
+      0.0001
+    ],
+    "tilt_threshold_deg": 25.0,
+    "settle_window_seconds": 0.5,
+    "settle_linear_m_s": 0.001,
+    "settle_angular_rad_s": 0.01,
+    "collision_backend": "rigid_flex"
+  },
+  "overhang": {
+    "overhang_threshold_from_horizontal_deg": 45.0,
+    "layer_height_mm": 0.2,
+    "orientation_editable": true,
+    "partition_objective": {
+      "method": "dapper_fdm_2015",
+      "alpha": 0.3,
+      "r_vox": 0.1,
+      "orientation_set": "axis_aligned_24",
+      "layout": "independent_bed"
+    }
+  }
+}
