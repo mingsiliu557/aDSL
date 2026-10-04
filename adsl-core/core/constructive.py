@@ -74,7 +74,7 @@ def _ring(points, label, *, ccw):
     area2 = math.fsum(_turn(ring[0], ring[i], ring[i+1]) for i in range(1,len(ring)-1))
     if not math.isfinite(area2) or area2 == 0:
         raise ValueError(f'{label}: nonzero finite area required')
-    return ring if (area2 > 0) == ccw else tuple(reversed(ring))
+    return ring if (area2 > 0) == ccw else (ring[0], *reversed(ring[1:]))
 
 
 @dataclass(frozen=True, init=False)
@@ -175,4 +175,211 @@ def hull(*shapes, color=(1,1,1), alpha=None):
     for i,shape in enumerate(shapes):
         asset.attach_part(f'op_{i}',shape.copy())
     asset.add_primitive(primitive_record('hull', {}, color, alpha))
+    return asset
+
+
+
+def _pchip_slopes(positions, values):
+    """Shape-preserving derivatives along axis 0, with nonuniform knot spacing.
+
+    Uses the weighted harmonic mean and limited endpoint estimates described in
+    scipy.interpolate.PchipInterpolator; no SciPy runtime dependency is needed.
+    """
+    values = np.asarray(values, dtype=np.float64)
+    gaps = np.diff(positions).reshape((-1,) + (1,) * (values.ndim - 1))
+    secants = np.diff(values, axis=0) / gaps
+    slopes = np.zeros_like(values)
+    if len(values) == 2:
+        slopes[:] = secants[0]
+        return slopes
+    left, right = secants[:-1], secants[1:]
+    monotone = (left != 0) & (right != 0) & (np.sign(left) == np.sign(right))
+    w_left = 2 * gaps[1:] + gaps[:-1]
+    w_right = gaps[1:] + 2 * gaps[:-1]
+    denominator = (np.divide(w_left, left, out=np.zeros_like(left), where=monotone)
+                   + np.divide(w_right, right, out=np.zeros_like(right), where=monotone))
+    np.divide(w_left + w_right, denominator, out=slopes[1:-1], where=monotone)
+
+    def endpoint(h0, h1, d0, d1):
+        estimate = ((2 * h0 + h1) * d0 - h0 * d1) / (h0 + h1)
+        estimate = np.where(np.sign(estimate) != np.sign(d0), 0, estimate)
+        return np.where((np.sign(d0) != np.sign(d1)) & (np.abs(estimate) > 3 * np.abs(d0)),
+                        3 * d0, estimate)
+
+    slopes[0] = endpoint(gaps[0], gaps[1], secants[0], secants[1])
+    slopes[-1] = endpoint(gaps[-1], gaps[-2], secants[-1], secants[-2])
+    return slopes
+
+
+def _pchip_evaluate(positions, values, slopes, samples):
+    """Evaluate the Hermite interpolant at a one-dimensional sample array."""
+    positions = np.asarray(positions, dtype=np.float64)
+    values = np.asarray(values, dtype=np.float64)
+    interval = np.clip(np.searchsorted(positions, samples, side='right') - 1, 0, len(positions)-2)
+    gaps = positions[interval+1] - positions[interval]
+    fraction = (np.asarray(samples) - positions[interval]) / gaps
+    expand = (-1,) + (1,) * (values.ndim-1)
+    t, h = fraction.reshape(expand), gaps.reshape(expand)
+    return ((2*t**3 - 3*t**2 + 1) * values[interval]
+            + (t**3 - 2*t**2 + t) * h * slopes[interval]
+            + (-2*t**3 + 3*t**2) * values[interval+1]
+            + (t**3 - t**2) * h * slopes[interval+1])
+
+
+def _sample_loft_rings(points, positions, interpolation, samples_per_span):
+    """Return unique axial sample positions and corresponding (vertices, 2) rings."""
+    points = np.asarray(points, dtype=np.float64)
+    positions = np.asarray(positions, dtype=np.float64)
+    samples = np.concatenate([
+        np.linspace(a, b, samples_per_span, endpoint=False)
+        for a, b in zip(positions[:-1], positions[1:])
+    ] + [positions[-1:]])
+    if not np.isfinite(samples).all() or np.any(np.diff(samples) <= 0):
+        raise ValueError('loft: sampled positions collapse at float64 precision')
+    if interpolation == 'smooth' and len(points) > 2:
+        rings = _pchip_evaluate(positions, points, _pchip_slopes(positions, points), samples)
+    else:
+        rings = np.concatenate([
+            (1-t[:, None, None])*points[i] + t[:, None, None]*points[i+1]
+            for i in range(len(points)-1)
+            for t in [(samples[i*samples_per_span:(i+1)*samples_per_span]-positions[i])
+                      / (positions[i+1]-positions[i])]
+        ] + [points[-1:]])
+    # Original control rings remain exact even at non-binary knot coordinates.
+    rings[::samples_per_span] = points
+    return samples, rings
+
+
+def _loft_cap(ring, label, mf):
+    """Triangulate a CCW cap, retaining all collinear boundary subdivisions."""
+    from collections import Counter
+
+    try:
+        cap_triangles = mf.triangulate([ring], epsilon=0)
+    except Exception as error:
+        raise ValueError(f'loft: {label} triangulation failed: {error}') from error
+    faces = []
+    for indices in cap_triangles:
+        tri = tuple(int(i) for i in indices)
+        if min(tri) < 0 or max(tri) >= len(ring):
+            raise ValueError(f'loft: {label} triangulation has an invalid index')
+        area2 = _turn(*(ring[i] for i in tri))
+        if not math.isfinite(area2) or area2 < 0:
+            raise ValueError(f'loft: {label} triangulation has invalid winding or area')
+        if area2 > 0:
+            faces.append(tri)
+    # Some triangulators omit a collinear boundary vertex (or emit a zero-area
+    # triangle there). Split the adjacent nondegenerate triangle along that edge.
+    while True:
+        counts = Counter(tuple(sorted(edge)) for tri in faces for edge in _edges(tri))
+        replacement = None
+        for face_index, tri in enumerate(faces):
+            for offset in range(3):
+                a, b, c = tri[offset:] + tri[:offset]
+                if counts[tuple(sorted((a,b)))] != 1 or b == (a+1) % len(ring):
+                    continue
+                path = [a]
+                while path[-1] != b:
+                    path.append((path[-1]+1) % len(ring))
+                if all(_on_segment(ring[a], ring[b], ring[i]) for i in path[1:-1]):
+                    replacement = (face_index, [(u,v,c) for u,v in zip(path[:-1],path[1:])])
+                    break
+            if replacement is not None:
+                break
+        if replacement is None:
+            break
+        index, split = replacement
+        faces[index:index+1] = split
+    directed = Counter(edge for tri in faces for edge in _edges(tri))
+    boundary = {edge for edge in directed if directed[edge] != directed[edge[::-1]]}
+    expected = {(i,(i+1) % len(ring)) for i in range(len(ring))}
+    if boundary != expected or any(directed[edge] != 1 for edge in boundary):
+        raise ValueError(f'loft: {label} triangulation does not preserve its boundary')
+    return faces
+
+
+def loft(profiles, positions, *, axis='z', interpolation='smooth', samples_per_span=8,
+         color=(1,1,1), alpha=None):
+    """Cap and join parallel, hole-free Polygon sections by corresponding vertices.
+
+    Coordinates (u,v,s) map to (u,v,s), (s,u,v), or (v,s,u) for z, x, or y.
+    Smooth interpolation is coordinatewise PCHIP; samples remain a triangle mesh.
+    """
+    try:
+        profiles = tuple(profiles)
+    except TypeError as error:
+        raise ValueError('loft: profiles must contain at least two Polygons') from error
+    if len(profiles) < 2:
+        raise ValueError('loft: profiles must contain at least two Polygons')
+    count = None
+    for i, profile in enumerate(profiles):
+        if not isinstance(profile, Polygon):
+            raise TypeError(f'loft: profile {i} must be a Polygon')
+        if profile.holes:
+            raise ValueError(f'loft: profile {i} has holes; only hole-free profiles are supported')
+        if count is not None and len(profile.points) != count:
+            raise ValueError(f'loft: profile {i} has {len(profile.points)} vertices; expected {count}')
+        count = len(profile.points)
+    try:
+        positions = np.asarray(positions, dtype=np.float64)
+    except (TypeError, ValueError) as error:
+        raise ValueError('loft: positions must be finite and strictly increasing') from error
+    if positions.ndim != 1 or len(positions) != len(profiles):
+        raise ValueError('loft: positions must have one coordinate per profile')
+    gaps = np.diff(positions)
+    if not np.isfinite(positions).all() or not np.isfinite(gaps).all() or np.any(gaps <= 0):
+        raise ValueError('loft: positions must be finite and strictly increasing')
+    if axis not in ('x', 'y', 'z'):
+        raise ValueError("loft: axis must be 'x', 'y' or 'z'")
+    if interpolation not in ('linear', 'smooth'):
+        raise ValueError("loft: interpolation must be 'linear' or 'smooth'")
+    try:
+        samples = operator.index(samples_per_span)
+    except TypeError as error:
+        raise ValueError('loft: samples_per_span must be a positive integer') from error
+    if isinstance(samples_per_span, (bool, np.bool_)) or samples <= 0:
+        raise ValueError('loft: samples_per_span must be a positive integer')
+    axial, rings = _sample_loft_rings([p.points for p in profiles], positions, interpolation, samples)
+    for index, points in enumerate(rings):
+        span = min(index // samples, len(profiles)-2)
+        label = f'loft: sampled ring {index} in span {span}'
+        ring = tuple(map(tuple, points))
+        checked_ring = _ring(ring, label, ccw=True)
+        if len(checked_ring) != count:
+            raise ValueError(f'{label}: collapsed boundary vertices')
+        if checked_ring != ring:
+            raise ValueError(f'{label}: winding flipped')
+    vertices = np.column_stack((rings.reshape(-1,2), np.repeat(axial,count)))
+    vertices = np.ascontiguousarray(vertices[:, {'z':(0,1,2), 'x':(2,0,1), 'y':(1,2,0)}[axis]])
+    faces = []
+    for row in range(len(rings)-1):
+        for j in range(count):
+            a, b = row*count+j, row*count+(j+1) % count
+            faces.extend(((a,b,b+count), (a,b+count,a+count)))
+    mf = _manifold()
+    faces.extend((a,c,b) for a,b,c in _loft_cap(rings[0], 'first cap', mf))
+    last = (len(rings)-1)*count
+    faces.extend((a+last,b+last,c+last) for a,b,c in _loft_cap(rings[-1], 'last cap', mf))
+    triangles = np.ascontiguousarray(faces, dtype=np.uint64)
+    crosses = np.cross(vertices[triangles[:,1]]-vertices[triangles[:,0]],
+                       vertices[triangles[:,2]]-vertices[triangles[:,0]])
+    invalid = np.flatnonzero(~np.isfinite(crosses).all(axis=1) | ~np.any(crosses != 0, axis=1))
+    if len(invalid):
+        triangle = int(invalid[0])
+        raise ValueError(f'loft: triangle {triangle} has zero or non-finite area')
+    solid = mf.Manifold(mf.Mesh64(vertices, triangles))
+    asset = _mesh_asset(solid, dict(op='loft', profiles=tuple(p.to_dict() for p in profiles),
+        positions=tuple(float(p) for p in positions), axis=axis, interpolation=interpolation,
+        samples_per_span=samples), color, alpha)
+    # Manifold may simplify the input mesh. Check the actual serialized geometry
+    # as well, rather than assuming the raw strip/cap checks cover its output.
+    params = asset._primitives[0]['params']
+    result_vertices = np.asarray(params['vertices'], dtype=np.float64)
+    result_faces = np.asarray(params['triangles'], dtype=np.int64)
+    result_crosses = np.cross(result_vertices[result_faces[:,1]]-result_vertices[result_faces[:,0]],
+                              result_vertices[result_faces[:,2]]-result_vertices[result_faces[:,0]])
+    invalid = np.flatnonzero(~np.isfinite(result_crosses).all(axis=1)
+                             | ~np.any(result_crosses != 0, axis=1))
+    if len(invalid):
+        raise ValueError(f'loft: evaluated triangle {int(invalid[0])} has zero or non-finite area')
     return asset
