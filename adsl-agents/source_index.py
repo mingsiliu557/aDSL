@@ -15,6 +15,7 @@ _DSL_CALLS = {
     "Polygon",
     "linear_extrude",
     "rotate_extrude",
+    "loft",
     "hull",
     "Cube",
     "Cylinder",

@@ -23,14 +23,40 @@ demo=importlib.util.module_from_spec(spec);spec.loader.exec_module(demo)
 def test_constructive_prompts_and_source_index():
     for role in ('planner','coder'):
         text=object_prompt(role,articulation=False,fixed_assembly=False)
-        for name in ('Polygon','linear_extrude','rotate_extrude','hull'):assert name in text
+        for name in ('Polygon','linear_extrude','rotate_extrude','hull','loft'):assert name in text
         assert 'scale_top=(1.0, 1.0)' in text and 'angle=360.0, segments=64' in text
+        assert 'loft(profiles, positions, *, axis="z", interpolation="smooth", samples_per_span=8' in text
+        assert 'PCHIP' in text and 'same number of vertices' in text
+        assert '`"x"` | `(s,u,v)`' in text and '`"y"` | `(v,s,u)`' in text
+        assert 'Profiles must have no holes' in text and 'automatically capped' in text
+        assert 'does not' in text and '3D side-surface self-intersection' in text
     assert '`import math`' in object_prompt('coder',articulation=False)
     from adsl.agents.source_index import _DSL_CALLS
-    assert {'Polygon','linear_extrude','rotate_extrude','hull'}<=_DSL_CALLS
+    assert {'Polygon','linear_extrude','rotate_extrude','hull','loft'}<=_DSL_CALLS
     data=json.loads(SCRIPT.with_name('cases.json').read_text())
     assert [c['id'] for c in data['cases']]==['SF06','SF21','T02-bookshelf']
     assert all(not c['reference_images'] for c in data['cases'])
+
+
+def test_loft_source_index_records_exact_multiline_call(tmp_path):
+    from adsl.agents.source_index import parse_source_nodes
+    source = tmp_path / 'source.py'
+    source.write_text(
+        'from adsl.core import *\n'
+        'scene=loft(\n'
+        '    profiles,\n'
+        '    positions=[0, 1, 3],\n'
+        '    axis="x", samples_per_span=4,\n'
+        ')\n'
+    )
+    calls = [node for node in parse_source_nodes(source) if node.kind == 'dsl_call']
+    assert len(calls) == 1
+    call = calls[0]
+    assert call.name == 'loft'
+    assert (call.span.start_line, call.span.end_line) == (2, 6)
+    assert (call.span.start_col, call.span.end_col) == (6, 1)
+    assert call.expression == source.read_text().split('scene=', 1)[1].rstrip()
+    assert call.parameters == ['axis', 'positions', 'samples_per_span']
 
 
 @pytest.mark.parametrize('failure',[None,'source','infra','render'])
@@ -65,7 +91,7 @@ def test_demo_stops_at_render_and_limits_source_patch(monkeypatch,tmp_path,failu
             if kw['role']=='planner':
                 out=ObjectPlan(object_name='sample',components=[],relations=[],critic_checklist=[])
             else:
-                ctx=kw['context'];ctx.source_path.write_text('from adsl.core import *\nscene=Cube(1)\n')
+                ctx=kw['context'];ctx.source_path.write_text('from adsl.core import *\nprofile=Polygon([(0,0),(1,0),(0,1)])\nscene=loft([profile,profile], positions=[0,1])\n')
                 ctx.events.extend([ToolEvent('write_file','source.py')] if kw['role']=='coder_initial' else
                                   [ToolEvent('read_file','source.py'),ToolEvent('apply_patch','source.py')])
                 out='done'
@@ -95,6 +121,7 @@ def test_demo_stops_at_render_and_limits_source_patch(monkeypatch,tmp_path,failu
     assert result['status']==('render_failed' if failure=='render' else 'execution_failed' if failure=='infra' else 'rendered')
     assert len(attempts)==(2 if failure=='source' else 1)
     assert result['execution_patches']==int(failure=='source')
+    assert result['new_api_call_sites']['loft'] == 1
     assert (tmp_path/'demo'/'planner'/'system_prompt.md').is_file()
     assert (tmp_path/'demo'/'demo_result.json').is_file()
     if with_image:

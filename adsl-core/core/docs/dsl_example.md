@@ -110,3 +110,41 @@ class CurvedHousing(Asset):
 
 scene = CurvedHousing()
 ```
+
+
+## Corresponding sections with a local contraction
+
+The common angle samples preserve vertex correspondence. Width and height below
+are ellipse semi-axes; center_v moves a section vertically when axis="x".
+The middle contraction remains explicit rather than being filled by a global
+convex hull. This standalone example produces one Asset with flat end caps.
+
+```python
+from adsl.core import *
+import math
+
+def ellipse_profile(width, height, center_v=0.0, count=32):
+    return Polygon([
+        (
+            width * math.cos(2 * math.pi * j / count),
+            center_v + height * math.sin(2 * math.pi * j / count),
+        )
+        for j in range(count)
+    ])
+
+profiles = [
+    ellipse_profile(0.50, 0.65, 0.00),
+    ellipse_profile(0.85, 0.95, 0.10),
+    ellipse_profile(0.55, 0.70, 0.00),
+    ellipse_profile(0.70, 0.85, 0.08),
+    ellipse_profile(0.25, 0.35, 0.00),
+]
+
+scene = loft(
+    profiles,
+    positions=[0.0, 0.8, 1.6, 2.4, 3.0],
+    axis="x",
+    interpolation="smooth",
+    samples_per_span=8,
+)
+```

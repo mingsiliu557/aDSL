@@ -83,13 +83,15 @@ considered `p0` versus `p1`; it does not change the visible geometry.
 Polygon(points, *, holes=())
 linear_extrude(profile, height, *, scale_top=(1.0, 1.0), center=False, color=(1,1,1), alpha=None) -> Asset
 rotate_extrude(profile, *, angle=360.0, segments=64, color=(1,1,1), alpha=None) -> Asset
+loft(profiles, positions, *, axis="z", interpolation="smooth", samples_per_span=8, color=(1,1,1), alpha=None) -> Asset
 hull(*shapes, color=(1,1,1), alpha=None) -> Asset
 ```
 
 `Polygon` is immutable 2D profile data, not an Asset; extrude it before attaching
 it to a scene. Provide one simple outer ring and optional disjoint holes strictly
 inside it. Each ring needs at least three distinct finite points and nonzero
-area. Winding and an optional repeated closing point are normalized. Self-crossing
+area. Winding and an optional repeated closing point are normalized while keeping
+the original first point. Self-crossing
 or touching rings, intersecting/nested holes and negative revolve radii are errors.
 Use `math` and ordinary Python helpers to sample curves into polygon points.
 
@@ -108,9 +110,52 @@ arc uses `max(3, ceil(segments*angle/360))` slices. This is a sampled mesh, not 
 in a convex solid. It supports transformed shapes and Boolean results, assigns
 the supplied material, and displays only the result. A hull fills all concavities
 and holes. Local hull segments can approximate curved forms but do not guarantee
-smooth tangents or implement general loft/sweep. Mesh bounds and support use
+smooth tangents. Use `loft` for corresponding parallel sections; arbitrary path
+sweep is not supported. Mesh bounds and support use
 actual transformed vertices. Hull queries aggregate operand extrema; Boolean
 operands retain the existing approximate bounds rules.
+
+`loft` joins at least two parallel Polygon profiles into one closed mesh Asset.
+Profiles must have no holes and the same number of vertices; concave profiles
+are allowed. `positions` gives one finite, strictly increasing axis coordinate
+per profile. The j-th vertex of every profile must refer to the same contour
+location. The caller chooses this correspondence; loft does not rotate, match
+or resample the input rings. A helper that samples every ellipse with the same
+angles and first point is one way to preserve correspondence.
+
+For each profile point `(u,v)` at position `s`, the right-handed axis mappings are:
+
+| axis | 3D point | Profile coordinates |
+| --- | --- | --- |
+| `"z"` | `(u,v,s)` | u=X, v=Y |
+| `"x"` | `(s,u,v)` | u=Y, v=Z |
+| `"y"` | `(v,s,u)` | u=Z, v=X |
+
+Move a section's center by offsetting its Polygon points within its plane.
+`interpolation="linear"` linearly joins corresponding vertices at the actual
+positions. `"smooth"` uses shape-preserving, piecewise cubic Hermite interpolation
+(PCHIP) independently for each vertex coordinate, including nonuniform position
+spacing. Both pass through all control sections; with two profiles, smooth is
+linear. Smooth coordinate trajectories have continuous first derivatives and
+no single-coordinate interval overshoot, but this does not guarantee that an
+arbitrary set of polygon rings can be joined without self-intersection.
+
+`samples_per_span` is a positive integer, not a bool: every consecutive input
+pair is divided into this many axial segments and shared control sections occur
+only once. Polygon vertex count controls contour resolution; axial sampling
+controls the interpolated trajectory resolution. Both change actual geometry,
+not just shading. Each sampled ring must remain simple, nonzero-area and in its
+original winding. Detected collapse, self-intersection or winding reversal is
+an error identifying the section or span. Resulting mesh validation does not
+prove the absence of every possible 3D side-surface self-intersection.
+
+Both end sections must have nonzero area and are automatically capped by flat
+faces. Use several progressively smaller sections for a rounded-looking end;
+the cap edge is not automatically tangent-smooth. Output is a sampled triangle
+mesh, not a continuous spline surface or general topology-changing loft.
+`construction` records the original profiles, positions, axis, interpolation
+and sampling count for inspection and source edits. Bounds and support use the
+result's actual transformed mesh vertices.
 
 These operations require the optional `adsl-core[geometry]` dependency
 (`manifold3d==3.5.2`) when constructing geometry, and support Blender GLB export.

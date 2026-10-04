@@ -174,7 +174,7 @@ async def run_demo(case, output, model_profile, *, arm, timeout=300.0, session_r
             try:
                 names=[n.func.id if isinstance(n.func,ast.Name) else n.func.attr if isinstance(n.func,ast.Attribute) else ''
                        for n in ast.walk(ast.parse(source.read_text())) if isinstance(n,ast.Call)]
-                result['new_api_call_sites']={n:names.count(n) for n in ('Polygon','linear_extrude','rotate_extrude','hull')}
+                result['new_api_call_sites']={n:names.count(n) for n in ('Polygon','linear_extrude','rotate_extrude','hull','loft')}
             except SyntaxError:pass
         result.update(finished_at=datetime.now(timezone.utc).isoformat(),usage=asdict(runtime.usage.totals()))
         write_json(output/'demo_result.json',result)
