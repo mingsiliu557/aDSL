@@ -43,7 +43,7 @@ def setup(tmp_path,monkeypatch,mode):
         round_number=len(checks);checks.append(source)
         results=[]
         for spec in specs:
-            out=root/'checkers'/spec.name;out.mkdir(parents=True,exist_ok=True)
+            out=root/'checkers'/spec.name;out.mkdir(parents=True,exist_ok=False)
             status='PASS';metrics={};artifacts={};findings=[]
             if spec.name=='assembly_overhang':
                 n=2 if not round_number else 1 if mode in ('improved','topology_fail','standing_unknown','changed_shape') else 3 if mode in ('worse','required_repair') else 2
@@ -57,7 +57,7 @@ def setup(tmp_path,monkeypatch,mode):
                     stls.append(dict(part_id=f'piece{i}',stl=str(stl),stl_sha256=flow.file_hash(stl)))
                 layout=out/'print_layout.json';write_json(layout,dict(status=status,source_sha256=flow.file_hash(source),
                     reference_sha256=ref['reference_sha256'],evaluation_config_sha256=objective['evaluation_config_sha256'],parts=stls))
-                artifacts={'print_layout':str(layout),'partition_reference':str(reference)}
+                artifacts={'print_layout':str(layout),'partition_reference':str(kw.get('partition_reference') or reference)}
                 findings=[physics.finding('assembly_overhang','PRINT_PARTITION_OPPORTUNITY','Consider a local regroup',
                     category='optimization_opportunity',repairability='design_variable',required=False)]
             if round_number==1 and mode=='topology_fail' and spec.name=='assembly_topology':
@@ -68,6 +68,7 @@ def setup(tmp_path,monkeypatch,mode):
             result=CheckerResult(checker=spec.name,status=status,summary='mock gate',metrics=metrics,artifacts=artifacts,
                 findings=findings,assumptions={'source_sha256':flow.file_hash(source)})
             write_json(out/'report.json',result.model_dump())
+            write_json(out/'result.json',result.model_dump())
             results.append(CheckerRun(spec,result,out,()))
         return results
     monkeypatch.setattr(physics,'run_assembly_checks',run)
@@ -111,13 +112,80 @@ def test_reference_tampering_rejected_on_resume(tmp_path,monkeypatch):
 
 def test_accepted_body_repair_references_and_rescores_without_model_edit(tmp_path,monkeypatch):
     state,checks=setup(tmp_path,monkeypatch,'reference_repair')
+    measured=[];run=physics.run_assembly_checks
+    def capture(*a,**kw):
+        results=run(*a,**kw)
+        overhang=next(r for r in results if r.spec.name=='assembly_overhang')
+        measured.append((overhang.output_dir,{p:p.read_bytes() for p in overhang.output_dir.iterdir()}))
+        return results
+    monkeypatch.setattr(physics,'run_assembly_checks',capture)
     result,book=run_flow(state)
     assert result.approved and book['retained']=='attempt_0001'
-    old=book['versions']['original']['reviews'];new=book['versions']['attempt_0001']['reviews']
+    candidate=book['versions']['attempt_0001']
+    old=book['versions']['original']['reviews'];new=candidate['reviews']
     assert new['edit_purpose']=='required_repair' and new['reference_shape_changed']
     assert old['partition_reference']!=new['partition_reference']==book['partition_reference']
-    assert old['assembly_overhang']['metrics']['partition_objective']['reference_sha256']!=new['assembly_overhang']['metrics']['partition_objective']['reference_sha256']
+    old_sha=old['assembly_overhang']['metrics']['partition_objective']['reference_sha256']
+    new_sha=new['assembly_overhang']['metrics']['partition_objective']['reference_sha256']
+    assert old_sha!=new_sha
     assert len(state[-1])==1 and len(checks)==3
+    previous_dir,previous_files=measured[1];refreshed_dir,refreshed_files=measured[2]
+    assert refreshed_dir==previous_dir.parent.parent/'partition_reference_refresh/checkers/assembly_overhang'
+    assert json.loads((previous_dir/'report.json').read_text())['metrics']['partition_objective']['reference_sha256']==old_sha
+    assert json.loads((refreshed_dir/'report.json').read_text())==new['assembly_overhang']
+    for path,content in {**previous_files,**refreshed_files}.items():
+        assert path.read_bytes()==content
+        assert candidate['files'][str(path)]==flow.file_hash(path)
+    selected=next(r for r in candidate['checkers'] if r['spec']['name']=='assembly_overhang')
+    assert selected['output_dir']==str(refreshed_dir)
+    final=json.loads((tmp_path/'assembly_result.json').read_text())
+    layout=json.loads(Path(final['print_layout']).read_text())
+    assert layout['reference_sha256']==new_sha
+    assert layout['source_sha256']==final['source_sha256']==flow.file_hash(state[3])
+    for part in final['print_parts']:
+        assert Path(part['stl']).read_text()==state[3].read_text()
+    assert run_flow(state)[0].approved and len(checks)==3 and len(state[-1])==1
+    (refreshed_dir/'report.json').write_text('{}')
+    with pytest.raises(ValueError,match='version asset hash changed'):
+        run_flow(state)
+
+
+def test_reference_creation_failure_preserves_previous_measurement(tmp_path,monkeypatch):
+    state,checks=setup(tmp_path,monkeypatch,'reference_repair')
+    create=scoring.create_reference;run=physics.run_assembly_checks;measured=[]
+    def failing_reference(*a,**kw):
+        if state[-1]:raise ValueError('reference body unavailable')
+        return create(*a,**kw)
+    def capture(*a,**kw):
+        results=run(*a,**kw)
+        overhang=next(r for r in results if r.spec.name=='assembly_overhang')
+        measured.append((overhang.output_dir,{p:p.read_bytes() for p in overhang.output_dir.iterdir()}))
+        return results
+    monkeypatch.setattr(scoring,'create_reference',failing_reference)
+    monkeypatch.setattr(physics,'run_assembly_checks',capture)
+    result,book=run_flow(state)
+    candidate=book['versions']['attempt_0001'];reviews=candidate['reviews']
+    assert result.approved and book['retained']=='attempt_0001'  # Overhang stays advisory.
+    assert reviews['partition_reference_error']=='reference body unavailable'
+    assert reviews['assembly_overhang']['status']=='INDETERMINATE'
+    assert reviews['assembly_overhang']['metrics']['partition_objective']['score'] is None
+    assert not reviews['partition_ready'] and book['partition_reference'] is None
+    previous_dir,previous_files=measured[1]
+    selected=next(r for r in candidate['checkers'] if r['spec']['name']=='assembly_overhang')
+    unavailable_dir=Path(selected['output_dir'])
+    assert unavailable_dir==previous_dir.parent.parent/'partition_reference_refresh/checkers/assembly_overhang'
+    assert json.loads((previous_dir/'report.json').read_text())['status']=='PASS'
+    for path,content in previous_files.items():
+        assert path.read_bytes()==content
+        assert candidate['files'][str(path)]==flow.file_hash(path)
+    for name in ('result.json','report.json'):
+        path=unavailable_dir/name
+        assert json.loads(path.read_text())==reviews['assembly_overhang']
+        assert candidate['files'][str(path)]==flow.file_hash(path)
+    final=json.loads((tmp_path/'assembly_result.json').read_text())
+    assert final['print_layout'] is None and not final['print_parts']
+    assert len(state[-1])==1 and len(checks)==2
+    assert run_flow(state)[0].approved and len(checks)==2
 
 
 @pytest.mark.parametrize('surface',[False,True])

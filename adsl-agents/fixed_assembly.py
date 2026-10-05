@@ -478,11 +478,13 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             elif feasible_without_surface and shape_comparison and shape_comparison['status']=='CHANGED':
                 # A necessary body repair may be geometrically ready while a
                 # surface requirement is still unresolved. Start a new reference.
+                # Preserve the measurement made against the previous reference.
+                refresh_root = candidate_root/'partition_reference_refresh'
                 try:
                     new_reference = str(create_reference(candidate_root/'asset/assembly/assembly_manifest.json',
                         workspace/'partition_references',partition))
                     refreshed = run_assembly_checks([overhang.spec], execution=topology_execution,source=current,
-                        root=candidate_root,physics=physics,partition_reference=new_reference)[0]
+                        root=refresh_root,physics=physics,partition_reference=new_reference)[0]
                     runs = [refreshed if r.spec.name=='assembly_overhang' else r for r in runs]
                     reviews['assembly_overhang'] = refreshed.result.model_dump()
                     reference_path = new_reference
@@ -503,9 +505,12 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     unavailable.metrics['partition_objective'].update(score=None,gap_voxels=None,reference_sha256=None)
                     unavailable.metrics['partition_guidance']={'status':'UNAVAILABLE','reason':'new reference unavailable'}
                     unavailable.findings=[]; unavailable.artifacts.pop('print_layout',None)
-                    write_json(overhang.output_dir/'result.json',unavailable.model_dump())
-                    write_json(overhang.output_dir/'report.json',unavailable.model_dump())
-                    replacement=CheckerRun(overhang.spec,unavailable,overhang.output_dir,overhang.command)
+                    unavailable.artifacts.pop('partition_reference',None)
+                    unavailable_dir = refresh_root/'checkers'/'assembly_overhang'
+                    unavailable.artifacts['report'] = str(unavailable_dir/'report.json')
+                    write_json(unavailable_dir/'result.json',unavailable.model_dump())
+                    write_json(unavailable_dir/'report.json',unavailable.model_dump())
+                    replacement=CheckerRun(overhang.spec,unavailable,unavailable_dir,())
                     runs=[replacement if r.spec.name=='assembly_overhang' else r for r in runs]
                     reviews['assembly_overhang']=unavailable.model_dump()
                     overhang=replacement
@@ -521,6 +526,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         extra = sorted((candidate_root/'asset'/'assembly').rglob('*'))
         if specs:
             extra += sorted((candidate_root/'checkers').rglob('*'))
+            extra += sorted((candidate_root/'partition_reference_refresh').rglob('*'))
         if partition is not None and reference_path:
             extra += sorted(Path(reference_path).parent.iterdir())
         book['versions'][version_id] = version_record(version_id, current, execution,
