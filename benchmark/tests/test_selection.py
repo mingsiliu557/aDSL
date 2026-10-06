@@ -36,6 +36,20 @@ def test_unknown_measurements_and_missing_assets_are_not_recommendations(tmp_pat
     assert (tmp_path/'selection_v1_review.zip').is_file()
 
 
+def test_wall_mount_measurement_pass_does_not_imply_free_standing_use(tmp_path, monkeypatch):
+    import build_review_pack
+    from common import sha
+    monkeypatch.setattr(build_review_pack,'cache_key',lambda *args:'fixture')
+    raw=tmp_path/'original.glb';raw.write_bytes(b'original fixture')
+    values=[dict(case_id='ABO_wall',source='ABO',source_id='wall',category='cabinet_shelf',status='needs_review',tags=[],selection_note='Wall mounted; standing use not applicable.',preflight_status='PASS',geometry_status='PASS',raw_mesh='original.glb',raw_sha256=sha(raw),manual_review=dict(standing_applicable=False))]
+    values.append(dict(case_id='Toys4K_missing',source='Toys4K',source_id='missing',category='dog',status='needs_review',tags=[],selection_note='archive absent'))
+    write_rows(tmp_path/'manifests/candidates.jsonl',values)
+    dump(tmp_path/'measurements/ABO_wall/reference_measurement.json',dict(cache_key='fixture',files_sha256={str(raw):sha(raw)},standing=dict(status='PASS'),overhang=dict(status='PASS')))
+    build(dict(root=str(tmp_path),shortlist_count=12,recommend_per_source=10))
+    assert rows(tmp_path/'manifests/recommended_dev20.jsonl')==[]
+    assert rows(tmp_path/'manifests/candidates.jsonl')[0]['status']=='needs_review'
+
+
 def test_native_import_mm_and_glb_m_roundtrip(tmp_path):
     import os
     if os.environ.get('ADSL_TEST_BENCHMARK_REAL')!='1':

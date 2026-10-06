@@ -51,7 +51,7 @@ def build(c):
         r['measurement_current']=current
         if not current: result={}
         r['measurement_path']=str(m.relative_to(root)) if m.exists() else None
-        if (result.get('standing') or {}).get('status')=='PASS' and (result.get('overhang') or {}).get('status')=='PASS' and r.get('geometry_status')=='PASS' and r.get('preflight_status')=='PASS' and source_current:
+        if (result.get('standing') or {}).get('status')=='PASS' and (result.get('overhang') or {}).get('status')=='PASS' and r.get('geometry_status')=='PASS' and r.get('preflight_status')=='PASS' and source_current and r.get('manual_review',{}).get('standing_applicable') is not False:
             if len([x for x in recommended if x['source']==r['source']])<c['recommend_per_source']:
                 r['status']='recommended_dev';r['selection_note']=r['selection_note'].split(' Reference whole-body')[0]+' Reference whole-body standing and orientation measurement passed; grouping tradeoff unverified.';recommended.append(r)
         elif r.get('geometry_status')=='PASS': r['status']='needs_review'

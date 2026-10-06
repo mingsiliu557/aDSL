@@ -47,7 +47,7 @@ Readable but non-volume assets retain previews for manual inspection.
 Eight fixed review views (6 orbit at 15 degrees elevation, top, bottom), each in
 native and neutral materials: 512x512 transparent PNG, CPU Cycles, 32 samples,
 4 threads, same scene normalization and camera distance across views. Native
-view 2 (60 degree azimuth) supplies the input. Camera matrices/projection are
+view 2 (60 degrees from the front, -30 degrees in the Blender XY plane) supplies the input. Camera matrices/projection are
 read back at each actual rendered frame, not from the final camera state.
 No text in individual PNGs; white JPEG contactsheets identify cases.
 
@@ -63,6 +63,10 @@ Unavailable labels remain pending manual review. Automatic labels are not GT.
 Round-robin shortlists up to 12 ABO valid references for full measurement, then
 recommends at most 10 with reliable geometry and both measurements PASS. Actual
 counts may be lower. All recommended items still require user confirmation.
+Manual evidence that a product is wall-mounted or otherwise requires external
+support prevents its recommendation for free-standing development evaluation,
+even if its diagnostic ground simulation passes. Keep its measurements and
+mark standing applicability separately from the physical verdict.
 No split/merge candidates are constructed in this first screening round.
 
 Standing: single connected material union as an overall free rigid body, density
