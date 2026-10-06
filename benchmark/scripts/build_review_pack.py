@@ -6,7 +6,7 @@ import io
 from pathlib import Path
 import zipfile
 from PIL import Image, ImageDraw
-from common import config, dump, load, rows, sha, write_rows
+from common import config, dump, load, rows, sha, write_rows, cache_key
 
 FIELDS=['case_id','source','source_id','category','input_image','reference_mesh','use_pose','tags','status','selection_note']
 
@@ -45,8 +45,13 @@ def build(c):
             r['selection_note']=r['selection_note'].split(' Geometry unavailable:')[0]+' Geometry unavailable: original reference is not a verified closed material volume; inspect basic.json/use_pose.json.'
         m=root/'measurements'/r['case_id']/'reference_measurement.json'
         result=load(m) if m.exists() else {}
+        current=bool(result.get('files_sha256')) and result.get('cache_key')==cache_key(c,r.get('raw_sha256')) and all(Path(p).is_file() and sha(p)==h for p,h in result.get('files_sha256',{}).items())
+        raw=root/r['raw_mesh'] if r.get('raw_mesh') else None
+        source_current=raw is not None and raw.is_file() and sha(raw)==r.get('raw_sha256')
+        r['measurement_current']=current
+        if not current: result={}
         r['measurement_path']=str(m.relative_to(root)) if m.exists() else None
-        if (result.get('standing') or {}).get('status')=='PASS' and (result.get('overhang') or {}).get('status')=='PASS' and r.get('geometry_status')=='PASS' and r.get('preflight_status')=='PASS':
+        if (result.get('standing') or {}).get('status')=='PASS' and (result.get('overhang') or {}).get('status')=='PASS' and r.get('geometry_status')=='PASS' and r.get('preflight_status')=='PASS' and source_current:
             if len([x for x in recommended if x['source']==r['source']])<c['recommend_per_source']:
                 r['status']='recommended_dev';r['selection_note']=r['selection_note'].split(' Reference whole-body')[0]+' Reference whole-body standing and orientation measurement passed; grouping tradeoff unverified.';recommended.append(r)
         elif r.get('geometry_status')=='PASS': r['status']='needs_review'
@@ -103,7 +108,7 @@ def build(c):
     paths=list(review.glob('*'))+list((root/'manifests').glob('*'))
     paths+=list((root/'previews').rglob('*.png'))+list((root/'previews').rglob('meta.json'))
     paths+=list((root/'derived').glob('*/basic.json'))+list((root/'derived').glob('*/use_pose.json'))
-    paths+=list((root/'measurements').rglob('*.json'))+list((root/'measurements').rglob('*.txt'))
+    paths+=list((root/'measurements').rglob('*.json'))+list((root/'measurements').rglob('*.txt'))+list((root/'measurements').rglob('*.png'))
     paths+=list((root/'logs').rglob('process.json'))+list((root/'logs').glob('smoke.json'))+list((root/'logs').glob('run.json'))+list((root/'logs').glob('raw_geometry_inventory.json'))
     paths+=[p for p in (root/'raw/indices').glob('*README*')]
     paths+=list((root/'raw/ABO').glob('*/catalog.jpg'))+list((root/'raw/ABO').glob('*/provenance.json'))

@@ -15,7 +15,9 @@ from common import cache_key, config, dump, load, now, process, rows, sha, write
 def preflight(c, row, config_path):
     root=Path(c['root']); raw=root/row['raw_mesh']; case=row['case_id']
     output=root/'derived'/case; output.mkdir(parents=True,exist_ok=True)
-    key=cache_key(c,sha(raw)); done=output/'preflight.json'
+    actual_sha=sha(raw)
+    if row.get('raw_sha256') and row['raw_sha256']!=actual_sha: raise ValueError('RAW_ASSET_CHECKSUM_CHANGED')
+    key=cache_key(c,actual_sha); done=output/'preflight.json'
     if done.exists():
         saved=load(done)
         if saved.get('cache_key')==key and all((root/p).is_file() and sha(root/p)==h for p,h in saved.get('files_sha256',{}).items()) and saved.get('status')=='PASS': return saved
@@ -57,6 +59,11 @@ async def label(c,row):
     profile=replace(ModelProfile.load(c['vlm']['profile']),max_retries=0,timeout=c['vlm']['timeout_seconds'],max_tokens=2048)
     prompt='Screen this reference for a development benchmark. Return only a subset of complex_surface, standing_sensitive, grouping_tradeoff, multipart_contact. Curvature/section variation, support risk, possible split/merge tradeoff, and visually contacting functional parts respectively. Face/node count is not semantics. Tags are hypotheses, not physical results. Do not propose a decomposition or a connection graph. Ordinary examples may have no tags. State if use pose, missing/transparent parts or insufficient views need manual confirmation. Give one concise reason and a pose observation.'
     pictures=[root/row['input_image']]+sorted((root/'previews'/row['case_id']/'neutral').glob('*.png'))
+    snapshots=folder/'images';snapshots.mkdir(exist_ok=True)
+    captured=[]
+    for i,picture in enumerate(pictures):
+        path=snapshots/f'{i:02d}.png';shutil.copyfile(picture,path);captured.append(path)
+    pictures=captured
     payload=user_input(__import__('json').dumps(dict(case_id=row['case_id'],category=row['category'],task='Four coarse tags only.')) ,tuple(pictures))
     dump(folder/'input.json',dict(case_id=row['case_id'],pictures=[dict(path=str(p.relative_to(root)),sha256=sha(p)) for p in pictures]))
     (folder/'system_prompt.txt').write_text(prompt)
@@ -80,13 +87,18 @@ def measure(c,row,config_path):
         result=load(done)
         if all(Path(p).is_file() and sha(p)==h for p,h in result.get('files_sha256',{}).items()): return result
     basic=load(derived/'basic.json')
-    if basic['status']!='PASS':
+    if basic['status']!='PASS' or (basic.get('raw_sha256') and basic['raw_sha256']!=row['raw_sha256']):
         result=dict(cache_key=key,status='INDETERMINATE',reason='Reference volumes unavailable; no zero metrics substituted.',overhang=None,standing=None);dump(done,result);return result
     specs=[checker_spec('assembly_overhang',c['measurement_timeout_seconds'],prepend_environment={'PYTHONPATH':[c['mujoco_python_path']]})]
     if basic['standing_eligible']: specs.append(checker_spec('assembly_standing',c['measurement_timeout_seconds'],prepend_environment={'PYTHONPATH':[c['mujoco_python_path']]}))
     execution=ExecutionResult(derived,derived/'reference.glb',None,(),'','')
-    runs=run_assembly_checks(specs,execution=execution,source=derived/'reference_source.json',root=output,physics=c['physics'])
-    result=dict(cache_key=key,status='COMPLETED',scope='Whole reference, N=1; standing does not verify part retention.',standing=None,overhang=None,files_sha256={})
+    # Existing checker outputs are immutable; retries get a fresh directory.
+    attempt=0
+    run_root=output/'runs'/f'{key}_{attempt:02d}'
+    while run_root.exists():
+        attempt+=1;run_root=output/'runs'/f'{key}_{attempt:02d}'
+    runs=run_assembly_checks(specs,execution=execution,source=derived/'reference_source.json',root=run_root,physics=c['physics'])
+    result=dict(cache_key=key,status='COMPLETED',scope='Whole reference, N=1; standing does not verify part retention.',run_root=str(run_root.relative_to(root)),standing=None,overhang=None,files_sha256={})
     for run in runs:
         name=run.spec.name.replace('assembly_','');dump(output/(name+'.json'),run.result.model_dump())
         result[name]=dict(status=run.result.status,summary=run.result.summary,report=str((output/(name+'.json')).relative_to(root)),metrics=run.result.metrics)
@@ -116,7 +128,7 @@ if __name__=='__main__':
                     labeled=asyncio.run(label(c,row));row['vlm_status']=labeled['status']
                     if labeled['status']=='PASS': row.update(tags=labeled['output']['tags'],selection_note=labeled['output']['selection_note'],automatic_review=labeled['output'])
             if args.measure: row['reference_measurement']=measure(c,row,args.config.resolve())
-        except Exception as e: row.update(status='needs_review',selection_note=f'{type(e).__name__}: {str(e)[:300]}')
+        except Exception as e: row.update(status='needs_review',preflight_status='INDETERMINATE',geometry_status='INDETERMINATE',input_image=None,reference_mesh=None,use_pose=None,selection_note=f'{type(e).__name__}: {str(e)[:300]}')
         print(row['case_id'],row.get('preflight_status'),row.get('geometry_status'),row.get('vlm_status'),f'{time.monotonic()-start:.1f}s',flush=True)
 
         return row

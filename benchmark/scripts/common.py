@@ -81,10 +81,8 @@ def cache_key(c, raw_sha):
     import adsl.agents.partition_score as score
     import adsl.agents.assembly_standing as standing
     import adsl.agents.assembly_overhang as overhang
-    import importlib.util
     files = list(Path(__file__).parent.glob('*.py')) + [Path(m.__file__) for m in (score, standing, overhang)]
-    spec = importlib.util.find_spec('adsl.core.export.export_glb')
-    files.append(Path(spec.origin))
+    files.append(Path(c['project_root'])/'adsl-core/core/export/export_glb.py')
     project=Path(c['project_root'])
     files += [project/name for name in ('adsl-agents/assembly_physics.py','adsl-agents/checkers.py','adsl-core/core/assembly_topology.py','adsl-core/core/export/export_assembly.py','adsl-core/tools/render.py')]
     if c.get('vlm',{}).get('profile'): files.append(Path(c['vlm']['profile']))
