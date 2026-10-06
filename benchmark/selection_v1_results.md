@@ -1,3 +1,5 @@
+> 以下为首轮历史结果；2026-10-06 增量调整见 [selection_v1_adjustment_results.md](selection_v1_adjustment_results.md)。
+
 # 第一轮 benchmark 筛选实施记录（2026-10-06）
 
 实现分支：`feat/benchmark-selection-v1`；代码提交：`f82a8c9bbe4b0d4b6f6a967a9e03e1dc235efd02`。生产代码基线：`master@2a11b196fb7c09a72747fd8f6977b433f0428bf9`。在隔离 worktree 实施，保留主工作区已有未提交修改。只新增 benchmark 工具、配置、协议和定向测试；没有修改生产 Agent / mesh / physics 判定，没有运行 FEA 或 Planner/Coder。

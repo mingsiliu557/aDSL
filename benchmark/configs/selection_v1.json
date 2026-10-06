@@ -2,20 +2,69 @@
   "project_root": "/vepfs_default/chanxueyan/lhp/lms/aDSL",
   "data_root": "/jiigan-hp/lms/aDSL/benchmark",
   "seed": 20261006,
-  "abo_quotas": {"lamp": 7, "chair_stool": 6, "table": 6, "cabinet_shelf": 6},
+  "abo_quotas": {
+    "lamp": 7,
+    "chair_stool": 6,
+    "table": 6,
+    "cabinet_shelf": 6
+  },
   "toys_count": 25,
   "toys_metadata": "/jiigan-hp/lms/aDSL/experiment/clip_trellis_pilot_20260902/toys4k/Toys4k.csv",
-  "toys_archive": null,
+  "toys_archive": {
+    "repo_id": "lihong-cs/3dgeneration_baseline",
+    "revision": "365b279da42ee1f6aa612319f0b95a616c05f70b",
+    "filename": "toys4k_blend_files.zip",
+    "size_bytes": 31576633609,
+    "sha256": "e326255aa624a7a582ee052aed737e6d91d484d43a504e0d8f4bd51354b9ca00",
+    "resources": []
+  },
   "longest_extent_mm": 150,
-  "shortlist_count": 12,
+  "shortlist_count": 24,
   "recommend_per_source": 10,
-  "render": {"width": 512, "height": 512, "samples": 32, "threads": 4, "timeout_seconds": 300},
+  "render": {
+    "width": 512,
+    "height": 512,
+    "samples": 32,
+    "threads": 4,
+    "timeout_seconds": 300
+  },
   "measurement_timeout_seconds": 900,
   "mujoco_python_path": "/jiigan-hp/lms/aDSL/experiment/runtime/mujoco-py310",
-  "vlm": {"enabled": true, "profile": "/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-agents/configs/llm/stepcode-gpt-5.6-sol.yaml", "max_calls": 50, "timeout_seconds": 180},
+  "vlm": {
+    "enabled": true,
+    "profile": "/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-agents/configs/llm/stepcode-gpt-5.6-sol.yaml",
+    "max_calls": 50,
+    "timeout_seconds": 180
+  },
   "physics": {
-    "material": {"density_kg_m3": 1240},
-    "standing": {"duration_seconds": 5, "timestep_seconds": 0.002, "friction": [0.5, 0.005, 0.0001], "tilt_threshold_deg": 25, "settle_window_seconds": 0.5, "settle_linear_m_s": 0.001, "settle_angular_rad_s": 0.01, "collision_backend": "rigid_flex"},
-    "overhang": {"overhang_threshold_from_horizontal_deg": 45, "layer_height_mm": 0.2, "partition_objective": {"method": "dapper_fdm_2015", "alpha": 0.3, "r_vox": 0.1, "orientation_set": "axis_aligned_24", "layout": "independent_bed"}}
-  }
+    "material": {
+      "density_kg_m3": 1240
+    },
+    "standing": {
+      "duration_seconds": 5,
+      "timestep_seconds": 0.002,
+      "friction": [
+        0.5,
+        0.005,
+        0.0001
+      ],
+      "tilt_threshold_deg": 25,
+      "settle_window_seconds": 0.5,
+      "settle_linear_m_s": 0.001,
+      "settle_angular_rad_s": 0.01,
+      "collision_backend": "rigid_flex"
+    },
+    "overhang": {
+      "overhang_threshold_from_horizontal_deg": 45,
+      "layer_height_mm": 0.2,
+      "partition_objective": {
+        "method": "dapper_fdm_2015",
+        "alpha": 0.3,
+        "r_vox": 0.1,
+        "orientation_set": "axis_aligned_24",
+        "layout": "independent_bed"
+      }
+    }
+  },
+  "shortlist_per_source": 12
 }

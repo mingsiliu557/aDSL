@@ -34,8 +34,10 @@ def rows(path):
     return [json.loads(line) for line in Path(path).read_text().splitlines() if line.strip()]
 
 def write_rows(path, values):
-    Path(path).parent.mkdir(parents=True, exist_ok=True)
-    Path(path).write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in values))
+    path=Path(path); path.parent.mkdir(parents=True, exist_ok=True)
+    temp=path.with_suffix(path.suffix+'.tmp')
+    temp.write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in values))
+    temp.replace(path)
 
 def download(url, path):
     path = Path(path)
@@ -76,16 +78,64 @@ def process(command, folder, timeout, c):
     dump(folder/'process.json', result)
     return result
 
-def cache_key(c, raw_sha):
-    # Includes all benchmark scripts and actual imported checker/cleanup implementations.
-    import adsl.agents.partition_score as score
-    import adsl.agents.assembly_standing as standing
-    import adsl.agents.assembly_overhang as overhang
-    files = list(Path(__file__).parent.glob('*.py')) + [Path(m.__file__) for m in (score, standing, overhang)]
-    files.append(Path(c['project_root'])/'adsl-core/core/export/export_glb.py')
-    project=Path(c['project_root'])
-    files += [project/name for name in ('adsl-agents/assembly_physics.py','adsl-agents/checkers.py','adsl-core/core/assembly_topology.py','adsl-core/core/export/export_assembly.py','adsl-core/tools/render.py')]
-    if c.get('vlm',{}).get('profile'): files.append(Path(c['vlm']['profile']))
-    data = dict(version=VERSION, raw_sha256=raw_sha, config=c,
-                code={str(p): sha(p) for p in files})
-    return hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
+def valid_files(mapping, root=None):
+    if not mapping: return False
+    try:
+        return all((Path(root)/p if root and not Path(p).is_absolute() else Path(p)).is_file()
+                   and sha(Path(root)/p if root and not Path(p).is_absolute() else p)==h
+                   for p,h in mapping.items())
+    except OSError: return False
+
+
+def stage_code(c, stage):
+    """Hash source without importing bpy or native geometry in the parent."""
+    project=Path(c.get('project_root',Path(__file__).parents[2])); code={}
+    paths=['adsl-core/core/export/export_glb.py','adsl-core/core/assembly_topology.py',
+           'adsl-core/core/export/export_assembly.py']
+    if stage=='preflight':
+        code['benchmark/scripts/reference_worker.py']=sha(Path(__file__).with_name('reference_worker.py'))
+        paths+=['adsl-core/tools/render.py']
+    elif stage=='measurement':
+        paths+=['adsl-agents/'+name+'.py' for name in
+                ('partition_score','assembly_standing','assembly_overhang','assembly_physics','checkers')]
+    elif stage=='label': return {}
+    else: raise ValueError(f'unknown cache stage: {stage}')
+    for name in paths:
+        path=project/name
+        if path.is_file(): code[name]=sha(path)
+    return code
+
+
+def native_versions(c, stage):
+    import importlib.metadata
+    names=('numpy','trimesh','manifold3d')+ (('bpy','Pillow') if stage=='preflight' else ())
+    versions={}
+    for name in names:
+        try: versions[name]=importlib.metadata.version(name)
+        except importlib.metadata.PackageNotFoundError: versions[name]='UNAVAILABLE'
+    if stage=='measurement':
+        extra=Path(c.get('mujoco_python_path','/nonexistent'))
+        metadata=next(iter(extra.glob('mujoco-*.dist-info/METADATA')),None)
+        if metadata:
+            versions['mujoco']=next((s.split(': ',1)[1] for s in metadata.read_text().splitlines() if s.startswith('Version: ')),'UNKNOWN')
+        else:
+            try: versions['mujoco']=importlib.metadata.version('mujoco')
+            except importlib.metadata.PackageNotFoundError: versions['mujoco']='UNAVAILABLE'
+    return versions
+
+
+def cache_descriptor(c, raw_sha=None, *, stage='preflight', inputs=None):
+    if stage=='preflight':
+        settings=dict(longest_extent_mm=c.get('longest_extent_mm',150),
+                      render={k:c.get('render',{}).get(k) for k in ('width','height','samples','threads')},
+                      pose_policy='source_up_ground_z_v1',view_layout='review_eight',input_view=2)
+    elif stage=='measurement': settings=dict(physics=c.get('physics',{}))
+    elif stage=='label': settings={}
+    else: raise ValueError(f'unknown cache stage: {stage}')
+    return dict(schema_version=2,stage=stage,raw_sha256=raw_sha,settings=settings,
+                inputs=inputs or {},code=stage_code(c,stage),
+                dependency_versions=native_versions(c,stage) if stage!='label' else {})
+
+
+def cache_key(c, raw_sha=None, *, stage='preflight', inputs=None):
+    return hashlib.sha256(json.dumps(cache_descriptor(c,raw_sha,stage=stage,inputs=inputs),sort_keys=True).encode()).hexdigest()

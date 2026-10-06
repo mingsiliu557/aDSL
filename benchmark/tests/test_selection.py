@@ -1,53 +1,212 @@
-"""Targeted metadata and review invariants; native adapter checks live in smoke.py."""
+"""Targeted review invariants; native adapter checks remain opt-in below."""
 import sys
 from pathlib import Path
-sys.path.insert(0,str(Path(__file__).parents[1]/'scripts'))
+import zipfile
+sys.path.insert(0, str(Path(__file__).parents[1] / 'scripts'))
 from collect_candidates import category, family
-from build_review_pack import shortlist, build
-from common import dump, rows, write_rows
+import build_review_pack as pack
+from build_review_pack import shortlist, build, review_evidence
+from common import dump, load, rows, sha, write_rows
 
 
 def test_seed_metadata_categories_do_not_infer_mesh_parts():
-    assert category({'product_type':[{'value':'CHAIR'}]})=='chair_stool'
-    assert category({'item_name':[{'value':'pendant ceiling lamp'}]}) is None
-    assert category({'item_name':[{'value':'Table lamp'}]})=='lamp'
-    assert category({'item_name':[{'value':'Dining table'}]})=='table'
-    a=dict(item_id='one',item_name=[dict(language_tag='en_US',value='Rivet chair, Blue')])
-    b=dict(item_id='two',item_name=[dict(language_tag='en_US',value='Rivet chair, Red')])
-    assert family(a)==family(b)
+    assert category({'product_type': [{'value': 'CHAIR'}]}) == 'chair_stool'
+    assert category({'item_name': [{'value': 'pendant ceiling lamp'}]}) is None
+    assert category({'item_name': [{'value': 'Table lamp'}]}) == 'lamp'
+    assert category({'item_name': [{'value': 'Dining table'}]}) == 'table'
+    a = dict(item_id='one', item_name=[dict(language_tag='en_US', value='Rivet chair, Blue')])
+    b = dict(item_id='two', item_name=[dict(language_tag='en_US', value='Rivet chair, Red')])
+    assert family(a) == family(b)
 
 
-def test_shortlist_round_robin_uses_measurable_references():
-    values=[dict(case_id=str(i),category=cat,preflight_status='PASS',geometry_status='PASS') for i,cat in enumerate(['lamp','lamp','table','chair'])]
-    values.append(dict(case_id='bad',category='cabinet',preflight_status='PASS',geometry_status='INDETERMINATE'))
-    result=shortlist(dict(shortlist_count=3),values)
-    assert result==['3','0','2'] and 'bad' not in result
+def test_shortlist_round_robin_uses_manifest_category_order_and_reliable_references():
+    values = [dict(case_id=str(i), source='ABO', category=cat, preflight_status='PASS', geometry_status='PASS')
+              for i, cat in enumerate(['lamp', 'lamp', 'table', 'chair'])]
+    values.append(dict(case_id='bad', source='ABO', category='cabinet', preflight_status='PASS', geometry_status='INDETERMINATE'))
+    assert shortlist(dict(shortlist_count=3), values) == ['0', '2', '3']
+
+
+def test_shortlist_balances_sources_and_redistributes_only_reliable_geometry():
+    values = [dict(case_id=f'A{i}', source='ABO', category=('lamp' if i % 2 else 'chair'), material_current=True)
+              for i in range(30)]
+    values += [dict(case_id=f'T{i}', source='Toys4K', category='dog', material_current=True) for i in range(2)]
+    values.append(dict(case_id='open', source='Toys4K', category='cat', material_current=False))
+    selected = shortlist(dict(shortlist_count=24, shortlist_per_source=12), values)
+    assert len(selected) == 24 and len([i for i in selected if i.startswith('A')]) == 22
+    assert selected[:4] == ['A0', 'T0', 'A1', 'T1'] and 'open' not in selected
+
+
+
+def test_shortlist_revalidates_cached_preflight_after_stale_build_material_flag(tmp_path, monkeypatch):
+    row = dict(case_id='Toys4K_downloaded', source='Toys4K', category='dog', status='needs_review',
+               material_current=False, preflight_status='INDETERMINATE', geometry_status='INDETERMINATE')
+    monkeypatch.setattr(pack, '_source_current', lambda root, row: True)
+    monkeypatch.setattr(pack, 'validated_preflight', lambda c, row: dict(status='PASS', basic=dict(status='PASS')))
+    assert shortlist(dict(root=str(tmp_path), shortlist_count=24), [row]) == ['Toys4K_downloaded']
+    row['material_current'] = True
+    monkeypatch.setattr(pack, 'validated_preflight', lambda c, row: None)
+    assert shortlist(dict(root=str(tmp_path), shortlist_count=24), [row]) == []
+
+
+def _case(tmp_path, monkeypatch, *, case='ABO_fixture', source='ABO', material=True,
+          standing='PASS', overhang='PASS', appearance=True, applicable=True, pose=True, current=True):
+    raw = tmp_path / 'raw' / source / case / 'original.glb'
+    raw.parent.mkdir(parents=True, exist_ok=True)
+    raw.write_bytes(case.encode())
+    image = tmp_path / 'previews' / case / 'input.png'
+    image.parent.mkdir(parents=True, exist_ok=True)
+    __import__('PIL.Image', fromlist=['Image']).new('RGBA', (8, 8), (1, 2, 3, 255)).save(image)
+    row = dict(case_id=case, source=source, source_id=case, category='lamp', status='needs_review', tags=[],
+               selection_note='fixture', raw_mesh=str(raw.relative_to(tmp_path)), raw_sha256=sha(raw),
+               input_image=str(image.relative_to(tmp_path)), preflight_status='PASS',
+               geometry_status='PASS' if material else 'INDETERMINATE')
+    preflight = dict(status='PASS', basic=dict(status='PASS' if material else 'INDETERMINATE', connected_components=1))
+    measurement = dict(status='COMPLETED', cache_key='measurement', standing=dict(status=standing), overhang=dict(status=overhang))
+    label = dict(status='PASS', cache_key='label', called_at='2026-10-06T01:00:00Z', output=dict(
+        tags=['complex_surface'], appearance_input_usable=appearance, standing_applicable=applicable,
+        pose_observation='Upright use pose.' if pose else '', needs_manual_confirmation=not pose))
+    monkeypatch.setattr(pack, 'validated_preflight', lambda c, r: preflight)
+    monkeypatch.setattr(pack, 'validated_measurement', lambda c, r: measurement if current else None)
+    monkeypatch.setattr(pack, 'current_label', lambda c, r: label)
+    dump(tmp_path / 'measurements' / case / 'reference_measurement.json', measurement)
+    return row, dict(root=str(tmp_path), shortlist_count=24, shortlist_per_source=12, recommend_per_source=10), preflight, measurement, label
+
+
+def _build_one(tmp_path, c, row):
+    write_rows(tmp_path / 'manifests' / 'candidates.jsonl', [row])
+    build(c)
+    return rows(tmp_path / 'manifests' / 'candidates.jsonl')[0], load(tmp_path / 'review' / 'summary.json')
 
 
 def test_unknown_measurements_and_missing_assets_are_not_recommendations(tmp_path):
-    (tmp_path/'review').mkdir();(tmp_path/'manifests').mkdir()
-    values=[dict(case_id='ABO_bad',source='ABO',source_id='bad',category='lamp',status='needs_review',tags=[],selection_note='invalid'),
-            dict(case_id='Toys4K_missing',source='Toys4K',source_id='missing',category='dog',status='needs_review',tags=[],selection_note='archive absent')]
-    write_rows(tmp_path/'manifests/candidates.jsonl',values)
-    dump(tmp_path/'measurements/ABO_bad/reference_measurement.json',dict(standing=None,overhang=None))
-    build(dict(root=str(tmp_path),shortlist_count=12,recommend_per_source=10))
-    assert rows(tmp_path/'manifests/recommended_dev20.jsonl')==[]
-    assert all(r['status']=='needs_review' for r in rows(tmp_path/'manifests/candidates.jsonl'))
-    assert (tmp_path/'selection_v1_review.zip').is_file()
+    values = [dict(case_id='ABO_bad', source='ABO', source_id='bad', category='lamp', status='needs_review', tags=[], selection_note='invalid'),
+              dict(case_id='Toys4K_missing', source='Toys4K', source_id='missing', category='dog', status='needs_review', tags=[], selection_note='archive absent')]
+    write_rows(tmp_path / 'manifests' / 'candidates.jsonl', values)
+    dump(tmp_path / 'measurements' / 'ABO_bad' / 'reference_measurement.json', dict(standing=None, overhang=None))
+    build(dict(root=str(tmp_path), shortlist_count=24, recommend_per_source=10))
+    assert rows(tmp_path / 'manifests' / 'recommended_dev20.jsonl') == []
+    assert all(r['status'] == 'needs_review' for r in rows(tmp_path / 'manifests' / 'candidates.jsonl'))
+    stats = load(tmp_path / 'review' / 'summary.json')
+    assert stats['completed_reference_measurements'] == dict(overhang=0, standing=0)
+    assert stats['measurements']['stale_reports']['ABO'] == 1
+    assert (tmp_path / 'selection_v1_review.zip').is_file()
 
 
-def test_wall_mount_measurement_pass_does_not_imply_free_standing_use(tmp_path, monkeypatch):
-    import build_review_pack
-    from common import sha
-    monkeypatch.setattr(build_review_pack,'cache_key',lambda *args:'fixture')
-    raw=tmp_path/'original.glb';raw.write_bytes(b'original fixture')
-    values=[dict(case_id='ABO_wall',source='ABO',source_id='wall',category='cabinet_shelf',status='needs_review',tags=[],selection_note='Wall mounted; standing use not applicable.',preflight_status='PASS',geometry_status='PASS',raw_mesh='original.glb',raw_sha256=sha(raw),manual_review=dict(standing_applicable=False))]
-    values.append(dict(case_id='Toys4K_missing',source='Toys4K',source_id='missing',category='dog',status='needs_review',tags=[],selection_note='archive absent'))
-    write_rows(tmp_path/'manifests/candidates.jsonl',values)
-    dump(tmp_path/'measurements/ABO_wall/reference_measurement.json',dict(cache_key='fixture',files_sha256={str(raw):sha(raw)},standing=dict(status='PASS'),overhang=dict(status='PASS')))
-    build(dict(root=str(tmp_path),shortlist_count=12,recommend_per_source=10))
-    assert rows(tmp_path/'manifests/recommended_dev20.jsonl')==[]
-    assert rows(tmp_path/'manifests/candidates.jsonl')[0]['status']=='needs_review'
+def test_appearance_can_recommend_open_toys_with_current_visual_evidence(tmp_path, monkeypatch):
+    row, c, preflight, _, _ = _case(tmp_path, monkeypatch, source='Toys4K', case='Toys4K_open', material=False)
+    result, stats = _build_one(tmp_path, c, row)
+    assert result['metric_eligibility']['appearance']['status'] == 'ELIGIBLE'
+    assert result['metric_eligibility']['overhang']['status'] == 'INDETERMINATE'
+    assert result['recommended_for'] == ['appearance'] and result['status'] == 'recommended_dev'
+    assert stats['recommended']['Toys4K'] == 1
+    assert load(tmp_path / 'manifests' / 'shortlist.json') == []
+    assert 'N/A' in (tmp_path / 'review' / 'summary.md').read_text()
+
+
+def test_current_visual_evidence_and_actual_source_sha_are_required(tmp_path, monkeypatch):
+    row, c, _, _, _ = _case(tmp_path, monkeypatch)
+    monkeypatch.setattr(pack, 'current_label', lambda c, r: None)
+    result, _ = review_evidence(c, row)
+    assert result['metric_eligibility']['appearance']['status'] == 'INDETERMINATE'
+    row['manual_review'] = dict(appearance_input_usable=True)
+    assert review_evidence(c, row)[0]['metric_eligibility']['appearance']['status'] == 'ELIGIBLE'
+    (tmp_path / row['raw_mesh']).write_bytes(b'changed source')
+    result, _ = review_evidence(c, row)
+    assert all(x['status'] == 'INDETERMINATE' for x in result['metric_eligibility'].values())
+    assert not result['measurement_current']
+
+
+def test_wall_ground_pass_is_diagnostic_but_overhang_can_recommend(tmp_path, monkeypatch):
+    row, c, _, _, _ = _case(tmp_path, monkeypatch, appearance=False)
+    row['manual_review'] = dict(standing_applicable=False, reason='Wall mounted.', user_confirmed=False)
+    result, stats = _build_one(tmp_path, c, row)
+    assert result['metric_eligibility']['standing']['status'] == 'NOT_APPLICABLE'
+    assert result['measurement']['standing'] == dict(status='PASS', valid=False, scope='diagnostic')
+    assert result['recommended_for'] == ['overhang']
+    assert stats['measurements']['current_valid']['standing']['ABO'] == dict(PASS=0, FAIL=0)
+    assert stats['measurements']['diagnostic']['standing']['ABO'] == 1
+    assert stats['manual_confirmations'] == 0
+
+
+def test_valid_standing_fail_is_eligible_and_awaits_standing_review(tmp_path, monkeypatch):
+    row, c, _, _, _ = _case(tmp_path, monkeypatch, standing='FAIL', appearance=False, overhang='INDETERMINATE')
+    result, stats = _build_one(tmp_path, c, row)
+    assert result['metric_eligibility']['standing']['status'] == 'ELIGIBLE'
+    assert result['measurement']['standing']['valid']
+    assert result['recommended_for'] == [] and result['status'] == 'needs_review'
+    assert stats['measurements']['current_valid']['standing']['ABO'] == dict(PASS=0, FAIL=1)
+    row['manual_review'] = dict(standing_applicable=True, pose_confirmed=False)
+    assert review_evidence(c, row)[0]['metric_eligibility']['standing']['status'] == 'INDETERMINATE'
+
+
+def test_stale_measurement_report_is_separate_from_valid_completed_counts(tmp_path, monkeypatch):
+    row, c, _, _, _ = _case(tmp_path, monkeypatch, current=False)
+    result, stats = _build_one(tmp_path, c, row)
+    assert result['measurement']['status'] == 'INDETERMINATE'
+    assert result['measurement']['report_exists'] and not result['measurement_current']
+    assert result['recommended_for'] == ['appearance']
+    assert stats['measured']['ABO'] == 1 and stats['completed_reference_measurements'] == dict(overhang=0, standing=0)
+
+
+def test_manual_decisions_and_classification_conflicts_survive_rebuild(tmp_path, monkeypatch):
+    row, c, _, _, _ = _case(tmp_path, monkeypatch, current=False, appearance=False)
+    row.update(status='user_confirmed', recommended_for=['standing'], manual_review=dict(user_confirmed=True))
+    result, stats = _build_one(tmp_path, c, row)
+    assert result['status'] == 'user_confirmed'
+    assert result['manual_selection']['recommended_for'] == ['standing']
+    assert result['selection_conflicts'] and stats['manual_confirmations'] == 1
+    rebuilt, _ = _build_one(tmp_path, c, result)
+    assert rebuilt['selection_conflicts'] == result['selection_conflicts']
+    row.update(status='excluded', category=None, classification=dict(scope='out_of_scope'))
+    result, _ = _build_one(tmp_path, c, row)
+    assert result['status'] == 'excluded' and not result['recommended_for']
+    row.update(status='needs_review', category='lamp', classification_review=dict(needs_review=True))
+    assert _build_one(tmp_path, c, row)[0]['recommended_for'] == []
+
+
+def test_recommendation_source_quota_and_category_order_ignore_scores(tmp_path, monkeypatch):
+    row, c, _, measurement, _ = _case(tmp_path, monkeypatch)
+    values = []
+    for source in ('ABO', 'Toys4K'):
+        for i in range(12):
+            values.append(dict(row, case_id=f'{source}_{i}', source=source, source_id=str(i),
+                               category='z_first' if i < 6 else 'a_second'))
+    measurement['overhang']['metrics'] = dict(partition_objective=dict(score=-100, gap_voxels=999999))
+    write_rows(tmp_path / 'manifests' / 'candidates.jsonl', values)
+    build(c)
+    recommended = rows(tmp_path / 'manifests' / 'recommended_dev20.jsonl')
+    assert len(recommended) == 20
+    assert [r['case_id'] for r in recommended[:4]] == ['ABO_0', 'ABO_6', 'ABO_1', 'ABO_7']
+    assert all(r['recommended_for'] == ['appearance', 'overhang', 'standing'] for r in recommended)
+
+
+def test_vlm_history_counts_independent_calls_without_migration_duplicates_and_zip_is_lightweight(tmp_path, monkeypatch):
+    row, c, _, _, label = _case(tmp_path, monkeypatch, source='Toys4K', case='Toys4K_fixture')
+    label['case_id'] = row['case_id']
+    folder = tmp_path / 'measurements' / row['case_id'] / 'vlm'
+    dump(folder / 'attempt.json', label)
+    dump(folder / 'history' / 'migrated_attempt.json', dict(label, cache_key='old-key'))
+    old = dict(label, called_at='2026-10-05T01:00:00Z', status='UNAVAILABLE', output=dict(tags=['standing_sensitive']))
+    dump(folder / 'history' / 'attempt_old.json', old)
+    dump(tmp_path / 'raw' / 'Toys4K' / row['case_id'] / 'provenance.json', dict(source='authorized archive'))
+    dump(tmp_path / 'logs' / 'case' / 'command.json', ['python', 'worker.py'])
+    (tmp_path / 'logs' / 'case' / 'stdout.log').write_text('raw process output')
+    (tmp_path / 'review').mkdir()
+    (tmp_path / 'review' / '.npmrc').write_text('credential fixture')
+    (tmp_path / 'review' / 'credentials.json').write_text('{}')
+    (tmp_path / 'review' / 'original.blend').write_bytes(b'heavy model')
+    (tmp_path / 'review' / 'old.zip').write_bytes(b'archive')
+    result, stats = _build_one(tmp_path, c, row)
+    assert stats['vlm_calls'] == 2 and stats['vlm_successes'] == 1
+    assert stats['vlm_calls_by_source']['Toys4K'] == 2
+    assert result['current_tags'] == ['complex_surface'] and result['historical_tags'] == ['standing_sensitive']
+    with zipfile.ZipFile(tmp_path / 'selection_v1_review.zip') as archive:
+        paths = archive.namelist()
+    assert 'raw/Toys4K/Toys4K_fixture/provenance.json' in paths
+    assert 'logs/case/command.json' in paths and 'logs/case/stdout.log' in paths
+    assert 'review/config.json' in paths and 'review/selection_protocol.md' in paths
+    assert any('attempt_old.json' in p for p in paths)
+    assert not any(p.endswith(('.glb', '.blend', '.zip', '.npmrc', 'credentials.json')) for p in paths)
 
 
 def test_native_import_mm_and_glb_m_roundtrip(tmp_path):

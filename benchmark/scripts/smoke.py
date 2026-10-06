@@ -21,7 +21,7 @@ def fixture(c, name, mesh):
     dump(derived/'basic.json',dict(status='PASS',standing_eligible=True,standing_limitation=None))
     # Measurement adapter only needs glb path to find the adjacent manifest.
     (derived/'reference.glb').touch()
-    return dict(case_id=name,raw_sha256=sha(stl))
+    return dict(case_id=name,raw_sha256=sha(stl),manual_review=dict(standing_applicable=True,pose_confirmed=True))
 
 
 def run(c, config_path):
@@ -37,14 +37,14 @@ def run(c, config_path):
     tall=trimesh.creation.box((8,8,100));tall.apply_transform(trimesh.transformations.rotation_matrix(np.deg2rad(20),[0,1,0]))
     tipping=fixture(c,'SMOKE_tipping',tall);b=measure(c,tipping,config_path)
     assert b['standing']['status']=='FAIL',b['standing']
-    record=Path(c['root'])/'measurements/SMOKE_stable/reference_measurement.json';before=record.stat().st_mtime_ns
+    record=Path(c['root'])/'measurements/SMOKE_stable/reference_measurement_v2.json';before=record.stat().st_mtime_ns
     again=measure(c,stable,config_path);assert record.stat().st_mtime_ns==before
     # Config and source changes cannot reuse an old cache.
     altered={**c,'longest_extent_mm':151}
     assert cache_key(c,stable['raw_sha256'])!=cache_key(altered,stable['raw_sha256'])
     assert cache_key(c,'bad')!=cache_key(c,stable['raw_sha256'])
     from preflight_candidates import preflight
-    bad=Path(c['root'])/'raw/smoke_bad.glb';bad.write_bytes(b'not a model')
+    bad=Path(c['root'])/'raw/smoke_bad.glb';bad.parent.mkdir(parents=True,exist_ok=True);bad.write_bytes(b'not a model')
     r=preflight(c,dict(case_id='SMOKE_bad',raw_mesh=str(bad.relative_to(c['root']))),config_path)
     assert r['status']=='INDETERMINATE'
     assert measure(c,stable,config_path)['standing']['status']=='PASS'
