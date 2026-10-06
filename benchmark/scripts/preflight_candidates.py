@@ -22,18 +22,30 @@ class Labels(BaseModel):
     pose_observation: str
     appearance_input_usable: bool | None = None
     standing_applicable: bool | None = None
+    task_requirements_clear: bool | None = None
+    pose_confirmed: bool | None = None
+    ordinary_control: bool = False
 
 
-LABEL_PROMPT = ('Screen this reference for a development benchmark. Return only a subset of '
-    'complex_surface, standing_sensitive, grouping_tradeoff, multipart_contact: curvature/section variation, '
-    'support risk, possible split/merge tradeoff, and visually contacting functional parts respectively. '
-    'Face/node count is not semantics. Tags are hypotheses, not physical results. Do not propose a '
-    'decomposition or connection graph. Ordinary examples may have no tags. Confirm appearance_input_usable '
-    'only if the target is complete, recognizable and sufficiently visible with usable native materials. '
-    'Set standing_applicable true only for a natural independent ground-standing use; false for hanging, '
-    'wall-mounted, externally supported or airborne objects; null when uncertain. State whether use pose, '
-    'missing/transparent parts or insufficient views need manual confirmation. Give one concise reason and '
-    'a pose observation. No label is a measured physical PASS.')
+LABEL_PROMPT = ('Screen the reference images for a development benchmark of generated models. '
+    'GT closure, connected components, volume and physical measurements are not selection gates. '
+    'Choose only supported tags from complex_surface, standing_sensitive, grouping_tradeoff, '
+    'multipart_contact; never assign all four by default. standing_sensitive means visible narrow '
+    'supports, slender legs, a tall or large upper body, or a visibly offset mass distribution, '
+    'not a measured tipping failure. For grouping_tradeoff consider multiple protrusion directions, '
+    'cantilevers and layouts whose split/merge changes support needs and part count. Consider possible '
+    'print rotations: an overhang in the use pose alone is insufficient evidence. complex_surface '
+    'means curved profiles and section changes; multipart_contact means visible adjoining parts, '
+    'not node count or a GT connection graph. Ordinary controls may have no tags and should set '
+    'ordinary_control=true. Give one specific structural risk reason in selection_note, or explain '
+    'why an ordinary control is useful; do not claim measured failure, support savings or superiority '
+    'of a method. Confirm appearance_input_usable only for a clear, recognizable and sufficiently '
+    'visible target. Report task_requirements_clear and pose_confirmed separately from final human '
+    'confirmation. State the visible use pose in pose_observation. Set standing_applicable true for '
+    'natural independent ground-standing use, false for wall-mounted, hanging, externally supported '
+    'or airborne use, null when uncertain. Such objects may still serve printing/appearance tasks. '
+    'Flag missing/transparent parts or ambiguous use poses for manual review. Do not propose a '
+    'decomposition, inspect method outcomes, or infer a connection graph.')
 
 
 def _resources(c, row):
@@ -141,7 +153,7 @@ def _label_inputs(c,row):
                credential_source=next(iter(profile.get('credential',{})),None))
     text=dict(case_id=row['case_id'],category=row.get('category'),task='Four coarse tags and input/use-pose applicability only.')
     inputs=dict(pictures_sha256=[sha(p) for p in pictures],text=text,model=model,
-                system_prompt=LABEL_PROMPT,output_schema=Labels.model_json_schema(),schema_version=2)
+                system_prompt=LABEL_PROMPT,output_schema=Labels.model_json_schema(),schema_version=3)
     return pictures,inputs
 
 
@@ -231,12 +243,17 @@ def _measurement_inputs(c,row):
     return dict(files={name:sha(derived/name) for name in names},standing_request=_standing_request(c,row))
 
 
-def validated_measurement(c,row):
+def validated_measurement(c,row,*,diagnostic=False):
+    """Validate optional GT evidence; diagnostics retain the measured use-request context."""
     try:
-        inputs=_measurement_inputs(c,row); key=cache_key(c,row['raw_sha256'],stage='measurement',inputs=inputs)
+        inputs=_measurement_inputs(c,row)
         folder=Path(c['root'])/'measurements'/row['case_id']; path=folder/'reference_measurement_v2.json'
         if path.is_file():
             saved=load(path)
+            if diagnostic:
+                frozen=((saved.get('cache_descriptor') or {}).get('inputs') or {}).get('standing_request')
+                if isinstance(frozen,dict): inputs['standing_request']=frozen
+            key=cache_key(c,row['raw_sha256'],stage='measurement',inputs=inputs)
             if saved.get('cache_key')==key and valid_files(saved.get('files_sha256'),c['root']): return saved
         return _legacy(c,row,'measurement',folder/'reference_measurement.json')
     except (OSError,ValueError,KeyError): return None
@@ -284,7 +301,8 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--config',type=Path,required=True);parser.add_argument('--limit',type=int)
     parser.add_argument('--case');parser.add_argument('--source',choices=['ABO','Toys4K'])
-    parser.add_argument('--labels',action='store_true');parser.add_argument('--measure',action='store_true')
+    parser.add_argument('--labels',action='store_true',help='Opt-in risk labeling within the existing VLM budget')
+    parser.add_argument('--measure',action='store_true',help='Opt-in GT physical diagnostics; never required for recommendations')
     parser.add_argument('--measure-only',action='store_true');parser.add_argument('--workers',type=int,choices=[1,2],default=1)
     args=parser.parse_args()
     if args.labels and args.workers!=1: parser.error('VLM labels require --workers 1 to enforce the cumulative attempt budget')

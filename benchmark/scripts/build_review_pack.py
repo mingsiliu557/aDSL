@@ -1,4 +1,4 @@
-"""Portable review evidence, metric eligibility and deterministic source coverage."""
+"""Input and structural-risk selection; optional GT diagnostics stay separate."""
 import argparse
 from collections import Counter
 import csv
@@ -7,15 +7,17 @@ from pathlib import Path
 import shutil
 import zipfile
 from PIL import Image, ImageDraw
-from common import config, dump, load, rows, sha, write_rows
+from common import config, dump, load, rows, sha, valid_files, write_rows
 import preflight_candidates
 
 METRICS = ('appearance', 'overhang', 'standing')
+TAGS = ('complex_surface', 'standing_sensitive', 'grouping_tradeoff', 'multipart_contact')
 FIELDS = ['case_id', 'source', 'source_id', 'category', 'input_image', 'reference_mesh',
           'use_pose', 'tags', 'current_tags', 'historical_tags', 'status', 'recommended_for',
           'measurement_status', 'measurement_current', 'overhang_status', 'standing_status',
           'appearance_eligibility', 'appearance_reason', 'overhang_eligibility',
-          'overhang_reason', 'standing_eligibility', 'standing_reason', 'selection_note']
+          'overhang_reason', 'standing_eligibility', 'standing_reason', 'selection_note', 'review_source',
+          'ordinary_control', 'needs_manual_confirmation', 'user_confirmed']
 
 
 # Keep the validators shared with the runner; they never rewrite cached evidence.
@@ -24,7 +26,7 @@ def validated_preflight(c, row):
 
 
 def validated_measurement(c, row):
-    return preflight_candidates.validated_measurement(c, row)
+    return preflight_candidates.validated_measurement(c, row, diagnostic=True)
 
 
 def current_label(c, row):
@@ -85,9 +87,12 @@ def shortlist(c, values):
     return chosen
 
 
-def _evidence_value(manual, automatic, field):
-    value = manual.get(field)
-    return value if isinstance(value, bool) else automatic.get(field)
+def _evidence_value(*reviews, field):
+    for review in reviews:
+        value = review.get(field)
+        if value is not None:
+            return value
+    return None
 
 
 def _eligibility(status, reason):
@@ -95,7 +100,7 @@ def _eligibility(status, reason):
 
 
 def review_evidence(c, row):
-    """Separate observable inputs, physical eligibility and computational verdicts."""
+    """Task applicability depends on visible input/use, never GT physics verdicts."""
     root = Path(c['root'])
     source_current = _source_current(root, row)
     preflight = validated_preflight(c, row) if source_current else None
@@ -105,61 +110,120 @@ def review_evidence(c, row):
     attempt = current_label(c, row) if preview_current else None
     automatic = ((attempt or {}).get('output') or {}) if (attempt or {}).get('status') == 'PASS' else {}
     manual = row.get('manual_review') or {}
-    current = validated_measurement(c, row) if material_current else None
+    selection = row.get('selection_review') or {}
+    selection_files = selection.get('input_files_sha256') or {}
+    input_path = root / row['input_image'] if row.get('input_image') else None
+    input_bound = bool(input_path and any((root / name).resolve() == input_path.resolve() for name in selection_files))
+    selection_current = bool(preview_current and input_bound and valid_files(selection_files, root))
+    if not selection_current:
+        selection = {}
+    reviews = (manual, selection, automatic)
+    value = lambda field: _evidence_value(*reviews, field=field)
+    input_path = root / row['input_image'] if row.get('input_image') else None
+    input_current = bool(source_current and preview_current and input_path and input_path.is_file())
+    usable = value('appearance_input_usable')
+    pose_observation = str(value('pose_observation') or '')
+    pose_confirmed = None
+    for review_record in reviews:
+        confirmed = review_record.get('pose_confirmed')
+        if confirmed is None:
+            confirmed = review_record.get('use_pose_confirmed')
+        if confirmed is not None:
+            pose_confirmed = confirmed
+            break
+    if pose_confirmed is None:
+        pose_confirmed = bool(pose_observation.strip() and automatic.get('needs_manual_confirmation') is False)
+    tasks_clear = value('task_requirements_clear')
+    if tasks_clear is None:
+        # Direct human preview confirmation remains a supported screening path.
+        tasks_clear = bool(pose_observation.strip() or manual.get('appearance_input_usable') is True)
+    if not input_current:
+        appearance = _eligibility('INDETERMINATE', 'Source SHA or preview/input evidence is missing or stale.')
+    elif manual.get('appearance_applicable') is False:
+        appearance = _eligibility('NOT_APPLICABLE', manual.get('reason', 'Appearance use is excluded by manual review.'))
+    elif usable is not True:
+        appearance = _eligibility('INDETERMINATE', 'Clear, recognizable reference input awaits preview review; missing VLM labels do not invalidate the case.')
+    else:
+        appearance = _eligibility('ELIGIBLE', 'Current source and preview are usable; GT closure, volume and physics are not required.')
+    if not input_current or usable is not True or tasks_clear is not True:
+        overhang = _eligibility('INDETERMINATE', 'Clear reference input and object/task interpretation await review; GT measurements are optional.')
+    else:
+        overhang = _eligibility('ELIGIBLE', 'Reference object/task is clear; evaluate generated outputs at their searched print orientations, independently of GT mesh validity.')
+    applicable = value('standing_applicable')
+    if not input_current or usable is not True:
+        standing = _eligibility('INDETERMINATE', 'Current clear input is required to establish the standing task.')
+    elif applicable is False:
+        standing = _eligibility('NOT_APPLICABLE', str(value('reason') or pose_observation or 'Natural use requires external support or flight.'))
+    elif applicable is not True:
+        standing = _eligibility('INDETERMINATE', 'Independent standing use awaits preview review, not a GT physical test.')
+    elif pose_confirmed is not True or tasks_clear is not True:
+        standing = _eligibility('INDETERMINATE', 'Expected use pose/task needs confirmation; GT standing PASS is not required.')
+    else:
+        standing = _eligibility('ELIGIBLE', 'Independent standing use and intended pose are clear; test generated models regardless of GT islands or standing verdict.')
+    eligibility = dict(appearance=appearance, overhang=overhang, standing=standing)
+    current = validated_measurement(c, row) if preview_current else None
     measurement_folder = root / 'measurements' / row['case_id']
     measurement_path = measurement_folder / 'reference_measurement_v2.json'
     if not measurement_path.is_file():
         measurement_path = measurement_folder / 'reference_measurement.json'
-    usable = _evidence_value(manual, automatic, 'appearance_input_usable')
-    input_path = root / row['input_image'] if row.get('input_image') else None
-    complete = _evidence_value(manual, automatic, 'appearance_materials_complete')
-    if complete is None:
-        complete = _evidence_value(manual, automatic, 'materials_complete')
-    if manual.get('appearance_applicable') is False:
-        appearance = _eligibility('NOT_APPLICABLE', manual.get('reason', 'Appearance use is excluded by manual review.'))
-    elif not source_current or not preview_current or not input_path or not input_path.is_file():
-        appearance = _eligibility('INDETERMINATE', 'Source SHA or preview/preflight evidence is missing or stale.')
-    elif usable is not True or complete is False:
-        appearance = _eligibility('INDETERMINATE', 'Current VLM or manual evidence has not confirmed complete, usable appearance input.')
-    else:
-        appearance = _eligibility('ELIGIBLE', 'Validated source and previews; current evidence confirms usable appearance input.')
-    overhang_status = ((current or {}).get('overhang') or {}).get('status', 'INDETERMINATE')
-    if material_current and current and overhang_status == 'PASS':
-        overhang = _eligibility('ELIGIBLE', 'Reliable material volume and a valid current overhang PASS.')
-    else:
-        overhang = _eligibility('INDETERMINATE', 'Reliable material volume and a valid current overhang PASS are required.')
-    applicable = _evidence_value(manual, automatic, 'standing_applicable')
-    pose_confirmed = manual.get('pose_confirmed', manual.get('use_pose_confirmed'))
-    if pose_confirmed is None:
-        pose_confirmed = bool(automatic.get('pose_observation', '').strip()
-                              and automatic.get('needs_manual_confirmation') is False)
-    standing_status = ((current or {}).get('standing') or {}).get('status', 'INDETERMINATE')
-    if applicable is False:
-        standing = _eligibility('NOT_APPLICABLE', manual.get('reason', 'Natural use requires external support; ground simulation is diagnostic.'))
-    elif applicable is not True:
-        standing = _eligibility('INDETERMINATE', 'Natural free-standing applicability has not been confirmed.')
-    elif not material_current or basic.get('connected_components') != 1:
-        standing = _eligibility('INDETERMINATE', 'One validated connected material island is required.')
-    elif pose_confirmed is not True:
-        standing = _eligibility('INDETERMINATE', 'Natural use pose has not been explicitly confirmed.')
-    elif not current or standing_status not in ('PASS', 'FAIL'):
-        standing = _eligibility('INDETERMINATE', 'A valid current standing PASS or FAIL measurement is required.')
-    else:
-        standing = _eligibility('ELIGIBLE', 'Natural free-standing use, confirmed pose, one material island and a valid current measurement.')
-    eligibility = dict(appearance=appearance, overhang=overhang, standing=standing)
-    measurement = dict(status=(current or {}).get('status', 'INDETERMINATE'), current=current is not None,
-                       report_exists=measurement_path.is_file(),
-                       reason=None if current else 'Current descriptor and input/output hashes could not be validated.')
-    for name, status in (('overhang', overhang_status), ('standing', standing_status)):
-        physical = name == 'overhang' or eligibility[name]['status'] == 'ELIGIBLE'
-        measurement[name] = dict(status=status, valid=bool(current and status in ('PASS', 'FAIL') and physical),
-                                 scope='reference_evaluation' if physical else 'diagnostic')
+    unvalidated_status = 'STALE' if measurement_path.is_file() else 'NOT_RUN'
+    measurement = dict(status=(current or {}).get('status', unvalidated_status), current=current is not None,
+                       report_exists=measurement_path.is_file(), optional=True,
+                       reason=None if current else 'No validated current GT diagnostic; this does not affect task applicability.')
+    measured_request = (((current or {}).get('cache_descriptor') or {}).get('inputs') or {}).get('standing_request') or {}
+    measured_applicable = measured_request.get('applicable', applicable)
+    for name in ('overhang', 'standing'):
+        status = ((current or {}).get(name) or {}).get('status', unvalidated_status)
+        measurement[name] = dict(status=status, valid=bool(current and status in ('PASS', 'FAIL')),
+                                 scope='gt_diagnostic', task_applicable=eligibility[name]['status'] == 'ELIGIBLE',
+                                 externally_supported=bool(name == 'standing' and measured_applicable is False))
+    tags = value('tags') or []
+    tags = list(dict.fromkeys(tag for tag in tags if tag in TAGS))
+    note = str(value('selection_note') or '')
+    ordinary = value('ordinary_control') is True
+    structural_review = bool(note.strip() and (tags or ordinary))
+    review_source = ('manual' if manual.get('selection_note') or manual.get('tags') is not None
+                     else 'coding_agent' if selection else 'vlm' if automatic else 'pending')
     return dict(source_current=source_current, preflight_current=preview_current, material_current=material_current,
-                metric_eligibility=eligibility, automatic_review=automatic, measurement=measurement, measurement_current=current is not None,
+                task_applicability=eligibility, metric_eligibility=eligibility, automatic_review=automatic,
+                selection_review_current=selection_current, review_source=review_source,
+                structural_review_current=structural_review, ordinary_control=ordinary,
+                reviewed_selection_note=note, needs_manual_confirmation=not (row.get('user_confirmed') is True or manual.get('user_confirmed') is True or row.get('status') in ('user_confirmed', 'user_confirmed_dev')),
+                measurement=measurement, measurement_current=current is not None,
                 measurement_path=str(measurement_path.relative_to(root)) if measurement_path.is_file() else None,
-                current_tags=manual.get('tags', automatic.get('tags', [])),
-                vlm_current=attempt is not None, vlm_cache_key=(attempt or {}).get('cache_key'),
-                vlm_called_at=(attempt or {}).get('called_at')), current
+                current_tags=tags, vlm_current=attempt is not None,
+                vlm_cache_key=(attempt or {}).get('cache_key'), vlm_called_at=(attempt or {}).get('called_at')), current
+
+
+def recommendation_candidates_for(row):
+    """Concrete reviewed structure or ordinary control, with applicable tasks."""
+    if (row.get('status') == 'excluded' or not _classification_ready(row)
+            or not row.get('structural_review_current')):
+        return []
+    return [name for name in METRICS if row['task_applicability'][name]['status'] == 'ELIGIBLE']
+
+
+def _recommendations(values, count):
+    # Risk ordering occurs within each category; category rotation retains coverage.
+    ordered = sorted(values, key=lambda row: -sum(tag in row.get('current_tags', []) for tag in ('standing_sensitive', 'grouping_tradeoff')))
+    controls = sorted([row for row in ordered if row.get('ordinary_control')],
+                      key=lambda row: sum(tag in row.get('current_tags', []) for tag in ('standing_sensitive', 'grouping_tradeoff')))
+    risks = [row for row in ordered if not row.get('ordinary_control')]
+    reserved = min(1, len(controls), max(0, count - 1))
+    controls = list(_round_robin(controls))[:reserved]
+    rotated = list(_round_robin(risks))
+    chosen, covered = [], {row.get('category') for row in controls}
+    for row in rotated:
+        if row.get('category') not in covered and len(chosen) < count - reserved:
+            chosen.append(row)
+            covered.add(row.get('category'))
+    selected_ids = {row['case_id'] for row in chosen}
+    chosen += [row for row in rotated if row['case_id'] not in selected_ids][:count - reserved - len(chosen)]
+    chosen += controls
+    if len(chosen) < count:
+        chosen_ids = {row['case_id'] for row in chosen}
+        chosen += list(_round_robin([row for row in ordered if row['case_id'] not in chosen_ids]))[:count - len(chosen)]
+    return chosen
 
 
 def _vlm_attempts(root, values):
@@ -235,13 +299,21 @@ def _statistics(root, values, recommended, attempts):
     statistics['tags'] = dict(Counter(t for r in values for t in r['current_tags']))
     measurements = dict(reports_exist=statistics['measured'], current_reports=count(lambda r: r['measurement_current']),
                         stale_reports=count(lambda r: r['measurement']['report_exists'] and not r['measurement_current']),
-                        current_valid={}, diagnostic={})
+                        current_valid={}, current_statuses={}, diagnostic={}, externally_supported={})
     completed = {}
     for name in ('overhang', 'standing'):
         measurements['current_valid'][name] = {source: {status: sum(r['source'] == source and r['measurement'][name]['valid'] and r['measurement'][name]['status'] == status for r in values) for status in ('PASS', 'FAIL')} for source in sources}
-        measurements['diagnostic'][name] = count(lambda r: r['measurement_current'] and r['measurement'][name]['scope'] == 'diagnostic' and r['measurement'][name]['status'] in ('PASS', 'FAIL'))
+        measurements['diagnostic'][name] = count(lambda r: r['measurement_current'] and r['measurement'][name]['scope'] == 'gt_diagnostic' and r['measurement'][name]['status'] in ('PASS', 'FAIL'))
+        measurements['externally_supported'][name] = count(lambda r: r['measurement_current'] and r['measurement'][name]['externally_supported'])
+        measurements['current_statuses'][name] = {source: dict(Counter(r['measurement'][name]['status'] for r in values if r['source'] == source)) for source in sources}
         completed[name] = sum(r['measurement'][name]['valid'] for r in values)
     statistics.update(measurements=measurements, completed_reference_measurements=completed)
+    statistics['task_applicability'] = statistics['eligible']
+    statistics['pending_structural_review'] = count(lambda r: not r['structural_review_current'])
+    statistics['ordinary_controls_recommended'] = _source_counts(recommended, sources, lambda r: r['ordinary_control'])
+    statistics['risk_reasons_recommended'] = sum(bool(r.get('selection_note', '').strip()) for r in recommended)
+    statistics['recommendations_waiting_user_confirmation'] = sum(r['needs_manual_confirmation'] for r in recommended)
+    statistics['selection_basis'] = 'source identity, clear reviewed input/use, structural risk and category coverage; GT diagnostics and method outcomes excluded'
     grouped = {r['case_id'] for r in values if any(isinstance(record, dict) and record.get('status') in ('PASS', 'FAIL', 'COMPLETED') for record in (r.get('grouping_measurement'), (r.get('reference_measurement') or {}).get('grouping')))}
     for path in (root / 'measurements').glob('*/grouping*.json'):
         record = load(path)
@@ -312,13 +384,12 @@ def build(c):
                 row[field] = None
         evidence, current = review_evidence(c, row)
         row.update(evidence)
-        if row.get('automatic_review') and not row.get('manual_review') and row.get('status') not in ('user_confirmed','user_confirmed_dev'):
-            row['selection_note']=row['automatic_review'].get('selection_note',row['selection_note'])
+        if row.get('reviewed_selection_note'):
+            row['selection_note'] = row['reviewed_selection_note']
         results[row['case_id']] = current or {}
         row['historical_tags'] = list(dict.fromkeys(row.get('historical_tags', []) + (old_tags[row['case_id']] if old_tags[row['case_id']] != row['current_tags'] else [])))
         row['tags'] = list(row['current_tags'])
-        purposes = [name for name in METRICS if row['metric_eligibility'][name]['status'] == 'ELIGIBLE'
-                    and (name != 'standing' or row['measurement']['standing']['status'] == 'PASS')]
+        purposes = recommendation_candidates_for(row)
         row['eligible_for'] = [name for name in METRICS if row['metric_eligibility'][name]['status'] == 'ELIGIBLE']
         manual = row.get('manual_review') or {}
         requested = manual.get('recommended_for', manual.get('selected_for', row.get('recommended_for', []) if row.get('status') in ('user_confirmed', 'user_confirmed_dev') else []))
@@ -336,13 +407,13 @@ def build(c):
             if conflict not in conflicts:
                 conflicts.append(conflict)
         row['recommended_for'] = []
-        row['recommendation_candidates_for'] = purposes if row.get('status') != 'excluded' and _classification_ready(row) else []
+        row['recommendation_candidates_for'] = purposes
         if row.get('status') not in ('excluded', 'user_confirmed', 'user_confirmed_dev'):
             row['status'] = 'needs_review'
     recommended = []
     for source in dict.fromkeys(r['source'] for r in values):
         available = [r for r in values if r['source'] == source and r['recommendation_candidates_for']]
-        for row in list(_round_robin(available))[:c.get('recommend_per_source', 10)]:
+        for row in _recommendations(available, c.get('recommend_per_source', 10)):
             row['recommended_for'] = row['recommendation_candidates_for']
             if row['status'] not in ('user_confirmed', 'user_confirmed_dev'):
                 row['status'] = 'recommended_dev'
@@ -353,7 +424,8 @@ def build(c):
                       and not (row['vlm_current'] and (a.get('called_at') == row['vlm_called_at'] if row['vlm_called_at'] else a.get('cache_key') == row['vlm_cache_key']))
                       for t in (a.get('output') or {}).get('tags', [])]
         row['historical_tags'] = list(dict.fromkeys(row['historical_tags'] + historical))
-    dump(root / 'manifests' / 'shortlist.json', shortlist(c, values))
+    # Physical diagnostics require the explicit --shortlist-only / --measure path.
+    dump(root / 'manifests' / 'shortlist.json', [])
     write_rows(path, values)
     write_rows(root / 'manifests' / 'recommended_dev20.jsonl', recommended)
     with (root / 'manifests' / 'candidates.csv').open('w', newline='') as stream:
@@ -373,16 +445,17 @@ def build(c):
     durations = [load(p).get('elapsed_seconds', 0) for p in (root / 'logs').rglob('process.json')]
     summary = '# Selection v1 actual results\n\n```json\n' + json.dumps(statistics, indent=2) + '\n```\n\n'
     summary += f'Recorded import/render process time: {sum(durations):.1f} s (serial process durations). Checker and VLM timings remain in their reports.\n\n'
-    summary += 'Eligibility is specific to appearance, overhang or standing. Measurement status is recorded separately; missing values are N/A. Standing FAIL can be an eligible reference measurement and awaits review before standing recommendation. Externally supported objects retain ground simulations as diagnostics. Recommendations require user review. Grouping tags are hypotheses; measured grouping and manual confirmation counts come from records. No generation comparison or FEA was run.\n\n'
-    summary += '| Case | Category | Recommended for | Standing | G | h mm | Score | Note |\n|---|---|---|---|---|---|---|---|\n'
+    summary += 'Task applicability is based on clear reference inputs, intended use and reviewed structural risk. GT closure, material islands, volume and standing/overhang results never gate recommendations. All GT measurements below are optional diagnostics; missing or invalid values are N/A. Wall-mounted/flying objects may serve appearance/printing tasks while independent standing is not applicable. Recommendations await user confirmation; risk labels do not assert failure or grouping gain. No generation comparison or FEA was run. Common cross-method print scale, voxel settings and frozen Dapper reference quantities remain to be specified separately; existing preview/GT settings do not freeze that evaluation protocol.\n\n'
+    summary += 'For later frozen-case evaluations, keep generation failures, invalid meshes and unmeasurable physics in each method’s case denominator. Analyze generated geometry with the existing topology checker; a baseline without interfaces has interface-specific metrics marked not applicable. No GT node-to-connection inference is made.\n\n'
+    summary += '| Case | Category | Tasks | Structural risk / ordinary control | Confirmation | GT standing diagnostic | GT G | GT h mm | GT score |\n|---|---|---|---|---|---|---|---|---|\n'
     for row in recommended:
         objective = (((results[row['case_id']].get('overhang') or {}).get('metrics') or {}).get('partition_objective') or {})
         standing = row['measurement']['standing']['status']
         if row['metric_eligibility']['standing']['status'] == 'NOT_APPLICABLE':
             standing = f'N/A (diagnostic {standing})'
-        summary += '| ' + ' | '.join(_cell(v) for v in (row['source_id'], row.get('category'), ', '.join(row['recommended_for']), standing, objective.get('gap_voxels'), objective.get('voxel_pitch_mm'), objective.get('score'), row['selection_note'])) + ' |\n'
+        summary += '| ' + ' | '.join(_cell(v) for v in (row['source_id'], row.get('category'), ', '.join(row['recommended_for']), row['selection_note'], 'pending' if row['needs_manual_confirmation'] else 'user confirmed', standing, objective.get('gap_voxels'), objective.get('voxel_pitch_mm'), objective.get('score'))) + ' |\n'
     (review / 'summary.md').write_text(summary)
-    readme = '# ABO / Toys4K selection review\n\nOpen the contactsheets and individual case images. Transparent PNGs contain no text. Recommendations are a union of eligible uses, not a frozen test set.\n\n'
+    readme = '# ABO / Toys4K selection review\n\nOpen the contactsheets and individual case images. Transparent PNGs contain no text. Development recommendations cover task applicability and structural risk, not GT physics qualification, and await user confirmation. Missing VLM labels mean pending review; humans may directly confirm clear previews. GT measurements are optional diagnostics.\n\n'
     for source in sources:
         readme += f'![{source}]({source}_contactsheet.jpg)\n\n'
     for row in values:
@@ -391,11 +464,11 @@ def build(c):
             readme += f" [input](../{row['input_image']}) · [native eight](../previews/{row['case_id']}/native/meta.json) · [neutral eight](../previews/{row['case_id']}/neutral/meta.json)"
         if row.get('measurement_path'):
             readme += f" · [measurement](../{row['measurement_path']})"
-        readme += '\n'
+        readme += f" Review: {row['review_source']}; user confirmation {'pending' if row['needs_manual_confirmation'] else 'recorded'}.\n"
         for name in METRICS:
             record = row['metric_eligibility'][name]
             readme += f"  {name}: {record['status']}. {record['reason']}\n"
-    readme += '\nSee summary.md and ../manifests/candidates.csv for actual counts. Standing uses one validated material island under gravity and does not measure connector retention. Dapper G is an empty-voxel proxy; categories and manifest order determine coverage, without score ranking. Original model files are stored outside this package.\n'
+    readme += '\nSee summary.md and ../manifests/candidates.csv for actual counts. Task applicability is independent of optional GT diagnostics. Dapper G is an empty-voxel proxy; no score or method success/failure enters selection. Risk labels consider print-orientation freedom rather than only use-pose suspension. Original model files are stored outside this package. No new physics, partition optimization or generation comparison was run.\n'
     (review / 'README.md').write_text(readme)
     dump(review / 'config.json', _safe_config(c))
     protocol = Path(__file__).parents[1] / 'selection_protocol.md'

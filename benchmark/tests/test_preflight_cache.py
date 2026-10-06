@@ -240,6 +240,47 @@ def test_physics_changes_invalidate_measurement_without_preview_or_label_invalid
     assert fake_vlm['calls'] == 1
 
 
+def test_optional_diagnostic_keeps_frozen_request_without_relaxing_geometry_or_physics(cache_case, monkeypatch):
+    root, c, row = cache_case
+    _fake_process(monkeypatch)
+    preview = runner.preflight(c, row, root / 'config.json')
+    row.update({k: preview[k] for k in ('input_image', 'reference_mesh', 'use_pose')})
+    monkeypatch.setattr(runner, '_standing_request', lambda c, row: dict(applicable=True, pose_confirmed=True))
+    record = _save_measurement(root, c, row)
+    record['cache_descriptor'] = common.cache_descriptor(c, row['raw_sha256'], stage='measurement',
+                                                        inputs=runner._measurement_inputs(c, row))
+    path = root / 'measurements' / row['case_id'] / 'reference_measurement_v2.json'
+    dump(path, record)
+    original = path.read_bytes()
+    # Risk-review policy can change while the actual measured GT and physics stay fixed.
+    monkeypatch.setattr(runner, '_standing_request', lambda c, row: dict(applicable=None, pose_confirmed=False))
+    assert runner.validated_measurement(c, row) is None
+    assert runner.validated_measurement(c, row, diagnostic=True)['cache_key'] == record['cache_key']
+    changed = deepcopy(c)
+    changed['physics']['standing']['duration_seconds'] = 9
+    assert runner.validated_measurement(changed, row, diagnostic=True) is None
+    (root / 'derived' / row['case_id'] / 'reference_whole.stl').write_bytes(b'changed mesh')
+    assert runner.validated_measurement(c, row, diagnostic=True) is None
+    assert path.read_bytes() == original
+
+
+def test_default_screening_never_calls_gt_physics(cache_case, monkeypatch):
+    root, c, row = cache_case
+    _fake_process(monkeypatch)
+    c['data_root'] = str(root.parent)
+    cfg = root / 'config.json'
+    dump(cfg, c)
+    row['asset_status'] = 'downloaded'
+    common.write_rows(root / 'manifests' / 'candidates.jsonl', [row])
+    monkeypatch.setattr(runner, 'measure', lambda *args: __import__('pytest').fail('GT diagnostics must be explicitly requested'))
+    monkeypatch.setattr(sys, 'argv', ['preflight_candidates.py', '--config', str(cfg)])
+    runner.main()
+    saved = common.rows(root / 'manifests' / 'candidates.jsonl')[0]
+    assert saved['preflight_status'] == 'PASS'
+    assert 'reference_measurement' not in saved
+    assert not list((root / 'measurements').glob('*/reference_measurement*.json'))
+
+
 def test_current_v2_measurement_report_path_precedes_legacy_record(cache_case, fake_vlm, monkeypatch):
     root, c, row = cache_case
     _fake_process(monkeypatch)

@@ -1,7 +1,9 @@
 # ABO / Toys4K selection v1
 
-This independent tool runs reference screening only. No production Agent workflow,
-Planner/Coder generation, FEA or generated-model benchmark is invoked.
+This independent tool selects reference-image tasks by visible structural risks.
+GT closure, connectivity, volume or physical checker results do not gate task
+applicability or recommendations. No production Agent workflow, Planner/Coder
+generation, FEA or generated-model benchmark is invoked.
 
 Baseline: `master@2a11b196fb7c09a72747fd8f6977b433f0428bf9`.
 Scripts and imported measurement implementations are hashed in cache records.
@@ -54,6 +56,11 @@ No arbitrary hole filling, thickening, missing-part deletion, or added base.
 The existing union_print_mesh combines signed shells within each node, then all valid node volumes are unioned, preventing double-counted overlap and preserving cavities. Cavity walls are not counted as separate material islands.
 Disconnected/unmeasurable objects cannot be forced into a standing rigid body.
 Readable but non-volume assets retain previews for manual inspection.
+These restrictions concern optional GT diagnostics only. A clear recognizable
+reference can be recommended with open edges, multiple material islands, missing
+physics reports or a valid standing FAIL. Missing/stale source identity or unusable
+input images still require review; genuinely missing target geometry is a visual
+input issue, not inferred from topology counts.
 
 Eight fixed review views (6 orbit at 15 degrees elevation, top, bottom), each in
 native and neutral materials: 512x512 transparent PNG, CPU Cycles, 32 samples,
@@ -67,33 +74,50 @@ No text in individual PNGs; white JPEG contactsheets identify cases.
 Allowed coarse tags only: complex_surface (curvature/section variation),
 standing_sensitive (support risk, not a verdict), grouping_tradeoff (hypothesis
 about split/merge), multipart_contact (visually contacting functional parts).
+Tags must describe one visible structural risk, not be assigned as a four-tag
+bundle. Prioritize small support footprints, thin legs, high bodies, large heads
+or upper bodies and visible offsets for standing sensitivity. For printing/grouping,
+consider protrusions in several directions, cantilevers and how splitting/merging
+may change support demand and part count after trying possible print orientations.
+Use-pose overhang alone does not prove a print challenge. Keep a small number of
+ordinary controls. Never use aDSL failure or another method's success to select
+cases; labels are not measured failures or demonstrated split/merge benefits.
+
 One StepCode gpt-5.6-sol VLM attempt per exact image/text/model/prompt/schema key,
 at most 50 cumulative attempts including 25 historical attempts. Serial labels,
 cache lookup before budget check, unsuccessful same-key calls are not retried.
 Use up to 25 new calls for Toys smoke and source-balanced recommendations, no credential
 fallback. Store prompt, image hashes, structured output, usage and failure state.
-Unavailable labels remain pending manual review. Automatic labels are not GT.
+Unavailable labels remain pending review, not unusable cases. A human may directly
+confirm previews without a VLM. Image-based coding-agent reviews bind their actual
+input-image hashes and identify the reviewer; they are development recommendations,
+not human confirmations. Explicit human decisions take precedence. Automatic
+labels are not GT.
 
-Round-robin shortlist up to 24 reliable material unions, initially twelve per
-source, then redistribute unused source capacity. Do not fill a material shortlist
-with appearance-only references. At most ten recommendations per source are the
-union of usable evaluation purposes, not ten per metric. `metric_eligibility`
-separates appearance, overhang and standing (ELIGIBLE / INDETERMINATE /
-NOT_APPLICABLE, each with a reason); measured PASS/FAIL is separate.
-Appearance requires current image evidence or explicit manual confirmation of
-complete, recognizable usable native input; open boundaries alone do not forbid it.
-Overhang requires reliable material/reference and valid measured results.
-Standing requires one material island, independent ground-standing use, confirmed
-pose and a valid measurement. Valid FAIL is measurable but pending pose review
-before standing recommendation. Externally supported cases can be recommended for
-appearance/overhang; their ground results remain diagnostics. Counts may be lower.
+At most ten development recommendations per source, with category coverage and
+specific risk reasons. Recommend on clear recognizable inputs, an explicit use
+scene/pose and clear task requirements. `task_applicability` and its compatible
+`metric_eligibility` alias describe generated-model tasks (ELIGIBLE /
+INDETERMINATE / NOT_APPLICABLE, each with a reason), not GT material measurability.
+Appearance and printing tasks can apply even with invalid GT volumes or no GT
+measurements. Natural independent ground-standing use and a clear pose establish
+standing task applicability; wall-mounted, hanging and flying-use objects are
+standing NOT_APPLICABLE while retaining appearance/printing uses. Ambiguous inputs
+or poses remain pending review. Preserve ordinary controls as well as risk coverage.
 All recommendations require user confirmation; excluded/confirmed manual choices
 are retained, with conflicts recorded rather than silently overwritten.
 Manual evidence that a product is wall-mounted or otherwise requires external
 support prevents its recommendation for free-standing development evaluation,
 even if its diagnostic ground simulation passes. Keep its measurements and
 mark standing applicability separately from the physical verdict.
-No split/merge candidates are constructed in this first screening round.
+No split/merge candidates are constructed in this screening round. Default commands
+collect/import/preview/label/build recommendations without running GT physics.
+`preflight_candidates.py --measure` explicitly enables optional GT diagnostics;
+`build_review_pack.py --shortlist-only` explicitly prepares a reliable-volume
+diagnostic shortlist. Neither list nor a diagnostic verdict gates recommendations.
+Existing diagnostics keep their frozen measured request/configuration and checked
+input/output hashes; a new risk-label prompt does not convert them to current labels
+or require re-simulation. Task applicability and GT diagnostics are counted separately.
 
 Standing: single connected material union as an overall free rigid body, density
 1240 kg/m³, gravity -9.81 m/s², existing rigid_flex surface contacts, 5 s, dt .002 s,
@@ -108,6 +132,21 @@ axis-aligned proper rotations. Report G cells, G*h³ mm³, score, best transform
 and area at that G-selected orientation; area is not independently minimized.
 G is an empty-column voxel support proxy, not actual slicer cost or print success.
 Thin geometry/coarse voxel limitations remain visible. Unknown quantities are null.
+The 150 mm normalization and these parameters document previews and optional GT
+diagnostics only. Common cross-method scale, voxel settings and Dapper reference
+quantities will be defined separately; this revision does not change the formula.
+
+## Later generated-model evaluation boundary
+
+After user confirmation, freeze tasks before method comparison. Reference meshes,
+risk labels and GT diagnostics remain evaluator-side and do not enter generation
+prompts. Reuse the existing topology checker for generated mesh, connectivity and
+assembly validity; do not infer a GT connection graph from nodes. Whole-output aDSL
+and assembly outputs use applicable checks, with interface-only metrics NOT_APPLICABLE
+for a baseline with no interfaces. Generation failures, invalid meshes and unavailable
+physics remain in each frozen case denominator, rather than silently dropping cases.
+This round only documents that protocol boundary; it does not implement new checkers
+or run methods.
 
 Import/render per-process budget 300 s; checker budget 900 s. One candidate failure
 does not stop another. Preview caches bind source/resources, normalization/pose/render settings and actual
@@ -138,7 +177,9 @@ python benchmark/scripts/preflight_candidates.py --config benchmark/configs/sele
 # Labels only chosen smoke/recommendation candidates, serial, within the cumulative budget:
 python benchmark/scripts/preflight_candidates.py --config benchmark/configs/selection_v1.json --case Toys4K_cat_057 --labels --workers 1
 python benchmark/scripts/build_review_pack.py --config benchmark/configs/selection_v1.json --shortlist-only
-# Run --measure --measure-only --case <each shortlist id>, then build:
+# Optional GT diagnostics only, if explicitly requested:
+# python benchmark/scripts/preflight_candidates.py --config benchmark/configs/selection_v1.json --measure --measure-only --case <shortlist id>
+# Default final step, without GT measurements:
 python benchmark/scripts/build_review_pack.py --config benchmark/configs/selection_v1.json
 ```
 

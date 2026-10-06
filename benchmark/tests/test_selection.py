@@ -64,7 +64,9 @@ def _case(tmp_path, monkeypatch, *, case='ABO_fixture', source='ABO', material=T
     measurement = dict(status='COMPLETED', cache_key='measurement', standing=dict(status=standing), overhang=dict(status=overhang))
     label = dict(status='PASS', cache_key='label', called_at='2026-10-06T01:00:00Z', output=dict(
         tags=['complex_surface'], appearance_input_usable=appearance, standing_applicable=applicable,
-        pose_observation='Upright use pose.' if pose else '', needs_manual_confirmation=not pose))
+        pose_observation='Upright use pose.' if pose else '', pose_confirmed=pose,
+        task_requirements_clear=True, selection_note='Curved upper body projects beyond its narrow support; print-orientation and grouping choices need comparison.',
+        needs_manual_confirmation=True))
     monkeypatch.setattr(pack, 'validated_preflight', lambda c, r: preflight)
     monkeypatch.setattr(pack, 'validated_measurement', lambda c, r: measurement if current else None)
     monkeypatch.setattr(pack, 'current_label', lambda c, r: label)
@@ -78,7 +80,7 @@ def _build_one(tmp_path, c, row):
     return rows(tmp_path / 'manifests' / 'candidates.jsonl')[0], load(tmp_path / 'review' / 'summary.json')
 
 
-def test_unknown_measurements_and_missing_assets_are_not_recommendations(tmp_path):
+def test_missing_source_and_preview_are_not_recommendations_even_with_report(tmp_path):
     values = [dict(case_id='ABO_bad', source='ABO', source_id='bad', category='lamp', status='needs_review', tags=[], selection_note='invalid'),
               dict(case_id='Toys4K_missing', source='Toys4K', source_id='missing', category='dog', status='needs_review', tags=[], selection_note='archive absent')]
     write_rows(tmp_path / 'manifests' / 'candidates.jsonl', values)
@@ -96,8 +98,10 @@ def test_appearance_can_recommend_open_toys_with_current_visual_evidence(tmp_pat
     row, c, preflight, _, _ = _case(tmp_path, monkeypatch, source='Toys4K', case='Toys4K_open', material=False)
     result, stats = _build_one(tmp_path, c, row)
     assert result['metric_eligibility']['appearance']['status'] == 'ELIGIBLE'
-    assert result['metric_eligibility']['overhang']['status'] == 'INDETERMINATE'
-    assert result['recommended_for'] == ['appearance'] and result['status'] == 'recommended_dev'
+    assert result['metric_eligibility']['overhang']['status'] == 'ELIGIBLE'
+    assert result['recommended_for'] == ['appearance', 'overhang', 'standing'] and result['status'] == 'recommended_dev'
+    assert result['task_applicability'] == result['metric_eligibility']
+    assert not result['material_current']
     assert stats['recommended']['Toys4K'] == 1
     assert load(tmp_path / 'manifests' / 'shortlist.json') == []
     assert 'N/A' in (tmp_path / 'review' / 'summary.md').read_text()
@@ -117,34 +121,60 @@ def test_current_visual_evidence_and_actual_source_sha_are_required(tmp_path, mo
 
 
 def test_wall_ground_pass_is_diagnostic_but_overhang_can_recommend(tmp_path, monkeypatch):
-    row, c, _, _, _ = _case(tmp_path, monkeypatch, appearance=False)
+    row, c, _, _, _ = _case(tmp_path, monkeypatch)
     row['manual_review'] = dict(standing_applicable=False, reason='Wall mounted.', user_confirmed=False)
     result, stats = _build_one(tmp_path, c, row)
     assert result['metric_eligibility']['standing']['status'] == 'NOT_APPLICABLE'
-    assert result['measurement']['standing'] == dict(status='PASS', valid=False, scope='diagnostic')
-    assert result['recommended_for'] == ['overhang']
-    assert stats['measurements']['current_valid']['standing']['ABO'] == dict(PASS=0, FAIL=0)
+    assert result['measurement']['standing'] == dict(status='PASS', valid=True, scope='gt_diagnostic', task_applicable=False, externally_supported=True)
+    assert result['recommended_for'] == ['appearance', 'overhang']
+    assert stats['measurements']['current_valid']['standing']['ABO'] == dict(PASS=1, FAIL=0)
+    assert stats['measurements']['externally_supported']['standing']['ABO'] == 1
     assert stats['measurements']['diagnostic']['standing']['ABO'] == 1
     assert stats['manual_confirmations'] == 0
 
 
-def test_valid_standing_fail_is_eligible_and_awaits_standing_review(tmp_path, monkeypatch):
-    row, c, _, _, _ = _case(tmp_path, monkeypatch, standing='FAIL', appearance=False, overhang='INDETERMINATE')
+def test_gt_standing_fail_and_unknown_overhang_do_not_gate_recommendation(tmp_path, monkeypatch):
+    row, c, _, _, _ = _case(tmp_path, monkeypatch, standing='FAIL', overhang='INDETERMINATE')
     result, stats = _build_one(tmp_path, c, row)
     assert result['metric_eligibility']['standing']['status'] == 'ELIGIBLE'
     assert result['measurement']['standing']['valid']
-    assert result['recommended_for'] == [] and result['status'] == 'needs_review'
+    assert result['recommended_for'] == ['appearance', 'overhang', 'standing'] and result['status'] == 'recommended_dev'
+    assert stats['measurements']['current_statuses']['overhang']['ABO'] == dict(INDETERMINATE=1)
     assert stats['measurements']['current_valid']['standing']['ABO'] == dict(PASS=0, FAIL=1)
     row['manual_review'] = dict(standing_applicable=True, pose_confirmed=False)
     assert review_evidence(c, row)[0]['metric_eligibility']['standing']['status'] == 'INDETERMINATE'
 
 
+def test_manual_pose_alias_and_partial_applicability_review_keep_their_priority(tmp_path, monkeypatch):
+    row, c, _, _, label = _case(tmp_path, monkeypatch)
+    row['selection_review'] = dict(label['output'], pose_confirmed=True, reviewer='coding_agent',
+                                  input_files_sha256={row['input_image']: sha(tmp_path / row['input_image'])})
+    row['manual_review'] = dict(use_pose_confirmed=False, standing_applicable=True)
+    result, _ = review_evidence(c, row)
+    assert result['task_applicability']['standing']['status'] == 'INDETERMINATE'
+    assert result['review_source'] == 'coding_agent'
+
+
+def test_risk_selection_covers_distinct_categories_and_a_low_risk_control():
+    def item(name, category, tags, ordinary=False):
+        return dict(case_id=name, category=category, current_tags=tags, ordinary_control=ordinary)
+    values = [item('cat_risk', 'cat', ['standing_sensitive', 'grouping_tradeoff']),
+              item('bunny_risk', 'bunny', ['standing_sensitive', 'grouping_tradeoff']),
+              item('robot_risk', 'robot', ['standing_sensitive', 'grouping_tradeoff']),
+              item('dragon_print', 'dragon', ['grouping_tradeoff']),
+              item('round_cat_control', 'cat', ['standing_sensitive'], True),
+              item('simple_bunny_control', 'bunny', [], True)]
+    selected = pack._recommendations(values, 4)
+    assert [row['case_id'] for row in selected] == ['cat_risk', 'robot_risk', 'dragon_print', 'simple_bunny_control']
+    assert len({row['category'] for row in selected}) == 4
+
+
 def test_stale_measurement_report_is_separate_from_valid_completed_counts(tmp_path, monkeypatch):
     row, c, _, _, _ = _case(tmp_path, monkeypatch, current=False)
     result, stats = _build_one(tmp_path, c, row)
-    assert result['measurement']['status'] == 'INDETERMINATE'
+    assert result['measurement']['status'] == 'STALE'
     assert result['measurement']['report_exists'] and not result['measurement_current']
-    assert result['recommended_for'] == ['appearance']
+    assert result['recommended_for'] == ['appearance', 'overhang', 'standing']
     assert stats['measured']['ABO'] == 1 and stats['completed_reference_measurements'] == dict(overhang=0, standing=0)
 
 
@@ -208,6 +238,105 @@ def test_vlm_history_counts_independent_calls_without_migration_duplicates_and_z
     assert any('attempt_old.json' in p for p in paths)
     assert not any(p.endswith(('.glb', '.blend', '.zip', '.npmrc', 'credentials.json')) for p in paths)
 
+
+
+def test_clear_preview_recommends_without_any_gt_measurement_or_connected_volume(tmp_path, monkeypatch):
+    row, c, preflight, _, _ = _case(tmp_path, monkeypatch, material=False, current=False)
+    preflight['basic']['connected_components'] = 9
+    (tmp_path / 'measurements' / row['case_id'] / 'reference_measurement.json').unlink()
+    result, stats = _build_one(tmp_path, c, row)
+    assert result['recommended_for'] == ['appearance', 'overhang', 'standing']
+    assert result['measurement']['status'] == 'NOT_RUN'
+    assert stats['completed_reference_measurements'] == dict(overhang=0, standing=0)
+    assert stats['measurements']['current_statuses']['standing']['ABO'] == dict(NOT_RUN=1)
+    assert load(tmp_path / 'manifests' / 'shortlist.json') == []
+
+
+def test_flying_use_does_not_prevent_printing_and_appearance_recommendation(tmp_path, monkeypatch):
+    row, c, _, _, label = _case(tmp_path, monkeypatch, source='Toys4K', case='dragon', current=False)
+    label['output'].update(standing_applicable=False, pose_observation='Flying pose with spread wings.',
+                           tags=['complex_surface', 'grouping_tradeoff'],
+                           selection_note='Wings and neck project in different directions; a print rotation may help but splitting changes support and part count.')
+    result, stats = _build_one(tmp_path, c, row)
+    assert result['recommended_for'] == ['appearance', 'overhang']
+    assert result['task_applicability']['standing']['status'] == 'NOT_APPLICABLE'
+    assert stats['risk_reasons_recommended'] == 1
+    assert 'Wings and neck' in (tmp_path / 'review' / 'summary.md').read_text()
+
+
+def test_direct_human_preview_review_without_vlm_is_accepted_without_user_confirmation_invention(tmp_path, monkeypatch):
+    row, c, _, _, _ = _case(tmp_path, monkeypatch, material=False, current=False)
+    monkeypatch.setattr(pack, 'current_label', lambda c, r: None)
+    row['manual_review'] = dict(appearance_input_usable=True, standing_applicable=True,
+                              pose_confirmed=True, task_requirements_clear=True,
+                              tags=['standing_sensitive'], selection_note='Tall body on narrow legs gives a small support footprint.',
+                              user_confirmed=False)
+    result, stats = _build_one(tmp_path, c, row)
+    assert result['recommended_for'] == ['appearance', 'overhang', 'standing']
+    assert result['review_source'] == 'manual' and not result['vlm_current']
+    assert result['needs_manual_confirmation'] and stats['manual_confirmations'] == 0
+
+
+def test_coding_agent_preview_review_is_hash_bound_and_human_fields_take_priority(tmp_path, monkeypatch):
+    row, c, _, _, _ = _case(tmp_path, monkeypatch, current=False)
+    monkeypatch.setattr(pack, 'current_label', lambda c, r: None)
+    row['selection_review'] = dict(reviewer='coding_agent', input_files_sha256={row['input_image']: sha(tmp_path / row['input_image'])},
+                                   appearance_input_usable=True, standing_applicable=True, pose_confirmed=True,
+                                   task_requirements_clear=True, tags=['grouping_tradeoff'],
+                                   selection_note='Several overhanging arms face different directions; compare whole-body orientation and grouping.',
+                                   needs_manual_confirmation=True)
+    result, _ = _build_one(tmp_path, c, row)
+    assert result['selection_review_current'] and result['status'] == 'recommended_dev'
+    assert result['needs_manual_confirmation'] and result['review_source'] == 'coding_agent'
+    unrelated = tmp_path / 'unrelated.png'
+    unrelated.write_bytes(b'not the input preview')
+    recorded = row['selection_review']['input_files_sha256']
+    row['selection_review']['input_files_sha256'] = {'unrelated.png': sha(unrelated)}
+    assert not review_evidence(c, row)[0]['selection_review_current']
+    row['selection_review']['input_files_sha256'] = recorded
+    row['manual_review'] = dict(standing_applicable=False, reason='Wall mounted.')
+    assert review_evidence(c, row)[0]['task_applicability']['standing']['status'] == 'NOT_APPLICABLE'
+    (tmp_path / row['input_image']).write_bytes(b'changed preview')
+    evidence, _ = review_evidence(c, row)
+    assert not evidence['selection_review_current']
+    assert evidence['task_applicability']['appearance']['status'] == 'INDETERMINATE'
+
+
+def test_missing_labels_leave_candidate_pending_not_excluded(tmp_path, monkeypatch):
+    row, c, _, _, _ = _case(tmp_path, monkeypatch, current=False)
+    monkeypatch.setattr(pack, 'current_label', lambda c, r: None)
+    result, stats = _build_one(tmp_path, c, row)
+    assert result['source_current'] and result['preflight_current']
+    assert result['status'] == 'needs_review' and result['review_source'] == 'pending'
+    assert stats['pending_structural_review']['ABO'] == 1
+    assert 'missing VLM labels do not invalidate' in result['task_applicability']['appearance']['reason']
+
+
+def test_structural_risk_priority_and_an_ordinary_control_ignore_gt_scores(tmp_path, monkeypatch):
+    row, c, _, measurement, label = _case(tmp_path, monkeypatch)
+    values = []
+    for i in range(12):
+        review = dict(appearance_input_usable=True, standing_applicable=True, pose_confirmed=True,
+                      task_requirements_clear=True, tags=['complex_surface'],
+                      selection_note=f'Curved body {i} has local protrusions requiring print-orientation review.')
+        if i == 0:
+            review.update(tags=[], ordinary_control=True, selection_note='Compact body and broad base provide an ordinary structural control.')
+        if i == 11:
+            review.update(tags=['standing_sensitive', 'grouping_tradeoff'],
+                          selection_note='Large offset upper body on a slim base combines standing risk and print-grouping tradeoffs.')
+        values.append(dict(row, case_id=f'ABO_{i}', source_id=str(i), manual_review=review))
+    measurement['overhang']['metrics'] = dict(partition_objective=dict(score=999999, gap_voxels=0))
+    write_rows(tmp_path / 'manifests' / 'candidates.jsonl', values)
+    build(c)
+    recommended = rows(tmp_path / 'manifests' / 'recommended_dev20.jsonl')
+    assert len(recommended) == 10
+    assert recommended[0]['case_id'] == 'ABO_11'
+    assert recommended[-1]['case_id'] == 'ABO_0'
+    stats = load(tmp_path / 'review' / 'summary.json')
+    assert stats['ordinary_controls_recommended'] == dict(ABO=1)
+    assert stats['risk_reasons_recommended'] == 10
+    assert all(r['selection_note'].strip() and r['status'] == 'recommended_dev' for r in recommended)
+    assert stats['recommendations_waiting_user_confirmation'] == 10
 
 def test_native_import_mm_and_glb_m_roundtrip(tmp_path):
     import os
