@@ -1,0 +1,616 @@
+"""Bounded model views of evidence. Raw controller/report data stays unchanged.
+
+This module is an input adapter, not a checker or a repair permission authority.
+Detailed arrays live in the original reports and are addressed by JSON pointer.
+"""
+from __future__ import annotations
+
+from collections.abc import Mapping, Sequence
+from copy import deepcopy
+import hashlib
+import json
+import math
+from pathlib import Path
+import re
+from typing import Any
+
+FEEDBACK_LIMIT_BYTES = 32 * 1024
+_TEXT_LIMIT = 240
+_FAILURE_FIELDS = ('failures', 'display_failures', 'failure_feedback', 'evaluation_failures')
+_HISTORY_FIELDS = ('repair_history', 'attempt_history', 'previous_image_decisions',
+                   'previous_code_decisions', 'code_critic_corrections')
+_SCALARS = (str, int, float, bool, type(None))
+_ID = re.compile(r'^eval:[0-9a-f]{64}$')
+
+
+class AgentFeedbackError(ValueError):
+    def __init__(self, code: str, details: Mapping[str, Any]):
+        self.code, self.details = code, dict(details)
+        super().__init__(f'{code}: {json.dumps(self.details, allow_nan=False)}')
+
+
+def _first(*values):
+    return next((value for value in values if value is not None), None)
+
+
+def evaluation_details(raw_failure: Mapping[str, Any]) -> dict[str, Any]:
+    diagnostic = raw_failure.get('diagnostic')
+    diagnostic = diagnostic if isinstance(diagnostic, Mapping) else {}
+    result = {key: _first(diagnostic.get(key), raw_failure.get(key)) for key in (
+        'code', 'stage', 'node_path', 'operation', 'input_count', 'operation_nodes',
+        'displacement_budget_mm', 'local_scale_mm', 'absolute_scale_floor_mm')}
+    result['metrics'] = _first(diagnostic.get('metrics'), diagnostic.get('internal_metrics'),
+                              raw_failure.get('metrics'), raw_failure.get('internal_metrics'))
+    result['attempts'] = _first(diagnostic.get('attempted_actions'), diagnostic.get('attempts'),
+                               raw_failure.get('attempted_actions'), raw_failure.get('attempts'))
+    return result
+
+
+def _json(value, *, fingerprint=False):
+    """Strict data conversion; never stringify arbitrary objects/datablocks."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return {'nonfinite': repr(value)} if fingerprint else None
+    if isinstance(value, _SCALARS):
+        return value
+    if isinstance(value, Mapping):
+        return {str(k): _json(v, fingerprint=fingerprint) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json(v, fingerprint=fingerprint) for v in value]
+    raise AgentFeedbackError('AGENT_FEEDBACK_INVALID', {'reason': 'non_json_feedback_value',
+                                                     'type': type(value).__name__})
+
+
+def _encoded(value):
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'),
+                      allow_nan=False).encode('utf-8')
+
+
+def _hash(value):
+    return hashlib.sha256(_encoded(_json(value, fingerprint=True))).hexdigest()
+
+
+def _short(value):
+    return value[:_TEXT_LIMIT] if isinstance(value, str) else value
+
+
+def _fields(value, names):
+    if not isinstance(value, Mapping):
+        return {}
+    result = {key: _short(_json(value[key])) for key in names if key in value
+              and isinstance(value[key], _SCALARS)}
+    if any(isinstance(value.get(key), float) and not math.isfinite(value[key]) for key in names):
+        result['value_status'] = 'NONFINITE'
+    return result
+
+
+def _vector(value, length=3):
+    if isinstance(value, (list, tuple)) and len(value) == length and all(
+            isinstance(v, (int, float)) and not isinstance(v, bool) for v in value):
+        return _json(value)
+    return None
+
+
+def _pointer(base, *tokens):
+    return (base or '') + ''.join('/' + str(token).replace('~', '~0').replace('/', '~1')
+                                 for token in tokens)
+
+
+def _at(document, pointer):
+    for token in (pointer or '').split('/')[1:]:
+        token = token.replace('~1', '/').replace('~0', '~')
+        document = document[int(token)] if isinstance(document, list) else document[token]
+    return document
+
+
+def _preview(owner, field, full, limit, full_ref=None):
+    owner[field] = full[:limit]
+    info = owner.setdefault('preview_info', {})
+    # Existing summaries retain original totals and references on re-projection.
+    old = info.get(field, {})
+    total = max(len(full), old.get('total', 0))
+    if total > len(owner[field]):
+        info[field] = {'total': total, 'omitted_count': total - len(owner[field]),
+                       'full_ref': full_ref or old.get('full_ref')}
+    elif field in info:
+        del info[field]
+    if not info:
+        owner.pop('preview_info', None)
+
+
+_METRIC_FIELDS = ('name', 'value', 'unit', 'threshold', 'comparator',
+                  'relative_tolerance', 'absolute_tolerance')
+_DETAIL_FIELDS = ('node_path', 'operation', 'input_count', 'stage', 'code',
+    'source_sha256', 'physical_verdict', 'output_role', 'manufacturing_status',
+    'boundary_edge_count', 'component_count', 'raw_intersection_mm3',
+    'undeclared_interference_mm3', 'length_tolerance_mm', 'volume_tolerance_mm3')
+_DOMAIN_FIELDS = ('failure_kind', 'geometry_repair_allowed', 'physical_verdict',
+    'output_role', 'manufacturing_status', 'evaluation_code', 'evaluation_stage',
+    'length_tolerance_mm', 'volume_tolerance_mm3', 'undeclared_interference_mm3',
+    'raw_intersection_mm3', 'boundary_edge_count', 'component_count', 'kind',
+    'part_id', 'pair_id', 'connection_id', 'part_local', 'overhang_only',
+    'optimization_opportunity', 'partition_optimization', 'print_partition_editable')
+
+
+def finding_for_agent(finding, *, result_ref, result_pointer, source_sha256):
+    raw = finding.model_dump() if hasattr(finding, 'model_dump') else finding
+    if not isinstance(raw, Mapping):
+        raise AgentFeedbackError('AGENT_FEEDBACK_INVALID', {'reason': 'finding_not_mapping'})
+    out = _fields(raw, ('finding_id', 'rule_id', 'category', 'applicability',
+        'applicability_basis', 'required', 'repairability', 'message', 'legacy_code',
+        'geometry_repair_allowed', 'failure_id', 'diagnostic_sha256', 'association_status'))
+    out.update(result_ref=result_ref, result_pointer=result_pointer)
+    # The caller may supply an original binding; this pure view makes no claim
+    # that it is available or matches the currently assigned source.
+    if source_sha256 is not None:
+        out['source_sha256'] = source_sha256
+    if raw.get('metric') is not None:
+        out['metric'] = _fields(raw['metric'], _METRIC_FIELDS)
+    region = raw.get('region')
+    if isinstance(region, Mapping):
+        r = _fields(region, ('kind', 'frame', 'unit'))
+        for key, length in (('point', 3), ('layer_range', 2)):
+            if key in region:
+                r[key] = _vector(region[key], length)
+        if 'bounds' in region:
+            bounds = region['bounds']
+            r['bounds'] = [_vector(v) for v in bounds] if isinstance(bounds, (list, tuple)) and len(bounds) == 2 else None
+        r['details'] = _fields(region.get('details'), _DETAIL_FIELDS)
+        for field in ('part_names', 'face_ids'):
+            values = [v for v in region.get(field, []) if isinstance(v, (str, int))]
+            r['preview_info'] = deepcopy(region.get('preview_info', {}))
+            _preview(r, field, values, 6, {'path': result_ref,
+                'json_pointer': _pointer(result_pointer, 'region', field)})
+        out['region'] = r
+    relations = []
+    for index, relation in enumerate(raw.get('relations') or []):
+        r = _fields(relation, ('kind', 'frame', 'unit', 'bridge_feature_id'))
+        r['distance'] = _fields(relation.get('distance'), _METRIC_FIELDS) if relation.get('distance') else None
+        r['details'] = _fields(relation.get('details'), _DETAIL_FIELDS)
+        r['endpoints'] = []
+        for endpoint in (relation.get('endpoints') or [])[:2]:
+            e = _fields(endpoint, ('role',))
+            e['point'] = _vector(endpoint.get('point'))
+            for key in ('part_names', 'feature_ids'):
+                _preview(e, key, list(endpoint.get(key) or []), 6, {'path': result_ref,
+                    'json_pointer': _pointer(result_pointer, 'relations', index, 'endpoints', len(r['endpoints']), key)})
+            r['endpoints'].append(e)
+        relations.append(r)
+    out['preview_info'] = deepcopy(raw.get('preview_info', {}))
+    _preview(out, 'relations', relations, 6, {'path': result_ref, 'json_pointer': _pointer(result_pointer, 'relations')})
+    candidates = []
+    for index, candidate in enumerate(raw.get('source_candidates') or []):
+        c = _fields(candidate, ('feature_id', 'method', 'ambiguous', 'relation_role', 'overlap_score'))
+        c['preview_info'] = deepcopy(candidate.get('preview_info', {}))
+        # Pair source IDs/locations; don't independently select unrelated halves.
+        for key in ('source_ids', 'source_locations'):
+            _preview(c, key, list(candidate.get(key) or []), 3, {'path': result_ref,
+                'json_pointer': _pointer(result_pointer, 'source_candidates', index, key)})
+        c['evidence_ref'] = candidate.get('evidence_ref') or {'path': result_ref,
+            'json_pointer': _pointer(result_pointer, 'source_candidates', index, 'evidence')}
+        candidates.append(c)
+    _preview(out, 'source_candidates', candidates, 6, {'path': result_ref,
+        'json_pointer': _pointer(result_pointer, 'source_candidates')})
+    domain = raw.get('domain') or raw.get('key_values') or {}
+    out['key_values'] = _fields(domain, _DOMAIN_FIELDS)
+    if raw.get('key_values'):
+        out['key_values'].update(_fields(raw['key_values'], _DOMAIN_FIELDS))
+    out['detail_ref'] = raw.get('detail_ref') or {'path': result_ref,
+        'json_pointer': _pointer(result_pointer, 'domain')}
+    out['evidence_refs'] = deepcopy(raw.get('evidence_refs') or [])[:6]
+    return _json(out)
+
+
+def _metrics(raw):
+    # Only bounded scalars; geometry arrays and arbitrary nested mappings stay on disk.
+    if not isinstance(raw, Mapping):
+        return None
+    allowed = ('valid', 'status', 'vertex_count', 'face_count', 'triangle_count',
+        'zero_area_faces', 'zero_area_triangles', 'boundary_edges', 'open_edges',
+        'nonmanifold_edges', 'nonmanifold_vertices', 'non_manifold_edges',
+        'non_manifold_vertices', 'duplicate_faces', 'duplicate_triangles',
+        'component_count', 'signed_volume', 'volume', 'volume_mm3', 'area',
+        'orientation_consistent', 'self_intersection', 'self_intersections',
+        'target_zero_normals', 'flipped_faces', 'remaining_bad_faces_total',
+        'minimum_normal_dot', 'displacement_max_mm', 'max_displacement_mm')
+    return _fields(raw, allowed)
+
+
+def _attempt(raw):
+    if isinstance(raw, str):
+        return {'action': _short(raw)}
+    if not isinstance(raw, Mapping):
+        return {'status': 'UNKNOWN'}
+    out = _fields(raw, ('method', 'status', 'code', 'stage', 'reason', 'rejection_reason',
+        'error_bound_mm', 'displacement_budget_mm', 'max_displacement_mm', 'tolerance',
+        'simplify_tolerance', 'ulp', 'remaining_bad_faces_total', 'target_zero_normals',
+        'flipped_faces', 'minimum_normal_dot', 'collapse_count', 'flip_count'))
+    diagnostic = raw.get('diagnostic')
+    diagnostic = diagnostic if isinstance(diagnostic, Mapping) else {}
+    repair = _first(diagnostic.get('repair'), raw.get('repair'))
+    if isinstance(repair, Mapping):
+        out['repair'] = _fields(repair, ('method', 'status', 'reason', 'rejection_reason',
+            'displacement_budget_mm', 'max_displacement_mm', 'error_bound_mm',
+            'remaining_bad_faces_total', 'target_zero_normals', 'flipped_faces',
+            'minimum_normal_dot', 'collapse_count', 'flip_count'))
+        for key in ('metrics_before', 'metrics_after', 'orientation', 'orientation_after'):
+            if key in repair:
+                out['repair'][key] = _metrics(repair[key])
+    for key in ('metrics', 'internal_metrics'):
+        value = _first(diagnostic.get(key), raw.get(key))
+        if value is not None:
+            out[key] = _metrics(value)
+    return out
+
+
+class _Projection:
+    def __init__(self, workspace, source_path, version, report_ref, evidence_files):
+        self.workspace = Path(workspace).resolve()
+        self.current_hash = hashlib.sha256(Path(source_path).read_bytes()).hexdigest() if source_path else None
+        self.version = version
+        self.directory = (Path(source_path).resolve().parent if source_path else self.workspace) / 'diagnostics' / 'agent_feedback'
+        if not self.directory.is_relative_to(self.workspace):
+            raise AgentFeedbackError('AGENT_FEEDBACK_INVALID', {'reason': 'source_outside_workspace'})
+        self.report_ref = report_ref
+        self.evidence_files = evidence_files
+        self.documents = {}
+        self.file_hashes = {}
+        self.diagnostic_hashes = {}
+        self.groups = {}
+        self.seen_rows = set()
+        self.failure_count = 0
+
+    def ref(self, supplied=None, *, pointer=None):
+        supplied = supplied if isinstance(supplied, Mapping) else {'path': supplied}
+        out = {key: supplied.get(key) for key in ('path', 'json_pointer', 'source_sha256',
+                                               'source_version', 'file_sha256')}
+        if pointer is not None:
+            out['json_pointer'] = pointer
+        out.update(availability='UNAVAILABLE', source_binding='UNKNOWN',
+                   matches_current_source=None, reason=None)
+        path = out['path']
+        if path:
+            target = Path(path).expanduser()
+            target = (target if target.is_absolute() else self.workspace / target).resolve()
+            if not target.is_relative_to(self.workspace):
+                out.update(path=None, reason='outside_workspace')
+            else:
+                out['path'] = target.relative_to(self.workspace).as_posix()
+                if target.is_file():
+                    out['availability'] = 'AVAILABLE'
+                    if out['file_sha256'] is None:
+                        token = str(target)
+                        if token not in self.file_hashes:
+                            self.file_hashes[token] = hashlib.sha256(target.read_bytes()).hexdigest()
+                        out['file_sha256'] = self.file_hashes[token]
+                else:
+                    out['reason'] = 'file_not_found'
+        else:
+            out['reason'] = 'file_not_found'
+        if out['source_sha256'] and self.current_hash:
+            current = out['source_sha256'] == self.current_hash
+            out.update(source_binding='CURRENT' if current else 'STALE', matches_current_source=current)
+        elif out['reason'] is None:
+            out['reason'] = 'source_binding_unknown'
+        return out
+
+    def document(self, ref):
+        if not ref or ref.get('availability') != 'AVAILABLE':
+            return None
+        path = ref['path']
+        if path not in self.documents:
+            try:
+                self.documents[path] = json.loads((self.workspace / path).read_text())
+            except (OSError, ValueError):
+                self.documents[path] = None
+        return self.documents[path]
+
+    def diagnostic_hash(self, raw):
+        token = id(raw)
+        if token not in self.diagnostic_hashes:
+            self.diagnostic_hashes[token] = (raw, _hash(evaluation_details(raw)))
+        return self.diagnostic_hashes[token][1]
+
+    def snapshot(self, content, prefix):
+        data = _encoded(_json(content, fingerprint=True))
+        path = self.directory / f'{prefix}_{hashlib.sha256(data).hexdigest()}.json'
+        self.directory.mkdir(parents=True, exist_ok=True)
+        if path.exists():
+            if path.read_bytes() != data:
+                raise AgentFeedbackError('AGENT_FEEDBACK_INVALID', {'reason': 'snapshot_hash_mismatch'})
+        else:
+            path.write_bytes(data)
+        return self.ref({'path': str(path)})
+
+    def source_ref(self, raw, container, field=None):
+        supplied = container.get('geometry_report_ref') or container.get('report_ref') or self.report_ref
+        if not supplied and container.get('report_path'):
+            supplied = next((r for r in self.evidence_files if r.get('path') == container['report_path']),
+                            {'path': container['report_path']})
+        supplied = dict(supplied or {})
+        base = self.ref(supplied)
+        document = self.document(base)
+        # Source provenance can be read from the original report, never assumed
+        # from the currently assigned source or an existing file's mere presence.
+        if isinstance(document, Mapping):
+            base = self.ref({**base,
+                'source_sha256': _first(supplied.get('source_sha256'), document.get('source_sha256'),
+                    (document.get('assumptions') or {}).get('source_sha256')),
+                'source_version': _first(supplied.get('source_version'), document.get('source_version'))})
+            for key in _FAILURE_FIELDS:
+                for index, original in enumerate(document.get(key) or []):
+                    if isinstance(original, Mapping) and self.diagnostic_hash(original) == self.diagnostic_hash(raw) and original.get('part_id') == raw.get('part_id') and original.get('file') == raw.get('file'):
+                        return self.ref(base, pointer=_pointer('', key, index))
+        # Old in-memory/book evidence without a matching report gets a fixed
+        # content-hash snapshot. Missing provenance remains UNKNOWN.
+        snapshot = self.snapshot({'failure': raw}, 'feedback_snapshot')
+        return self.ref({**snapshot,
+            'source_sha256': _first(raw.get('source_sha256'), supplied.get('source_sha256')),
+            'source_version': _first(raw.get('source_version'), supplied.get('source_version'))}, pointer='/failure')
+
+    def add(self, raw, ref, *, finding_id=None):
+        details = evaluation_details(raw)
+        diagnostic_hash = self.diagnostic_hash(raw)
+        file = _first(raw.get('file'), raw.get('glb'), raw.get('path'))
+        representation = _first(raw.get('target_representation'), raw.get('representation'),
+                                Path(file).suffix if isinstance(file, str) else None)
+        key = [ref.get('source_sha256'), ref.get('source_version'), raw.get('part_id'),
+               details['node_path'], details['operation'], details['code'], details['stage'],
+               representation, diagnostic_hash]
+        if not ref.get('source_sha256'):
+            key.append(ref.get('path'))
+        failure_id = 'eval:' + _hash(key)
+        group = self.groups.get(failure_id)
+        if group is None:
+            attempts = details['attempts']
+            group = {'failure_id': failure_id, 'diagnostic_sha256': diagnostic_hash,
+                **_fields(raw, ('part_id', 'failure_kind', 'geometry_repair_allowed')),
+                **_fields(details, ('code', 'stage', 'node_path', 'operation', 'input_count',
+                    'displacement_budget_mm', 'local_scale_mm', 'absolute_scale_floor_mm')),
+                'target_representation': representation, 'physical_verdict': 'NOT_EVALUATED',
+                'internal_metrics': _metrics(details['metrics']),
+                'attempt_count': len(attempts) if attempts is not None else None,
+                'attempts_summary': [_attempt(a) for a in attempts] if attempts is not None else [],
+                'finding_ids': [], 'occurrences': [], 'evidence_refs': []}
+            self.groups[failure_id] = group
+        if finding_id and finding_id not in group['finding_ids']:
+            group['finding_ids'].append(finding_id)
+        occurrence = _fields(raw, ('output_role', 'file', 'glb', 'path', 'status', 'cached_conversion',
+                                  'manufacturing_status', 'display_status'))
+        if occurrence not in group['occurrences']:
+            group['occurrences'].append(occurrence)
+        if ref not in group['evidence_refs']:
+            group['evidence_refs'].append(ref)
+        row_identity = [ref.get('source_sha256'), ref.get('source_version'), failure_id, occurrence]
+        if not ref.get('source_sha256'):
+            row_identity.append(ref.get('path'))
+        row_hash = _hash(row_identity)
+        if row_hash not in self.seen_rows:
+            self.seen_rows.add(row_hash)
+            self.failure_count += 1
+        group['occurrence_count'] = len(group['occurrences'])
+        return failure_id
+
+    def findings(self, raw_findings):
+        result = []
+        for raw in raw_findings or []:
+            row = finding_for_agent(raw, result_ref=raw.get('result_ref'),
+                result_pointer=raw.get('result_pointer'), source_sha256=raw.get('source_sha256'))
+            ref = self.ref({'path': row.get('result_ref'), 'json_pointer': row.get('result_pointer'),
+                'source_sha256': row.get('source_sha256')})
+            document = self.document(ref)
+            original = None
+            if document is not None:
+                try:
+                    original = _at(document, ref['json_pointer'])
+                except (KeyError, IndexError, TypeError, ValueError):
+                    pass
+            if isinstance(document, Mapping):
+                ref = self.ref({**ref, 'source_sha256': _first(ref.get('source_sha256'),
+                    (document.get('assumptions') or {}).get('source_sha256'), document.get('source_sha256')),
+                    'source_version': _first(ref.get('source_version'), document.get('source_version'),
+                                            (self.report_ref or {}).get('source_version'))})
+            domain = original.get('domain') if isinstance(original, Mapping) else raw.get('domain')
+            evaluation = (row.get('finding_id', '').startswith('assembly_mesh_evaluation:') or
+                          isinstance(domain, Mapping) and domain.get('failure_kind') == 'candidate_evaluation')
+            if evaluation:
+                if row.get('failure_id') in self.groups:
+                    row['association_status'] = 'RESOLVED'
+                elif isinstance(domain, Mapping) and domain:
+                    row['failure_id'] = self.add(domain, self.ref(ref,
+                        pointer=_pointer(ref.get('json_pointer'), 'domain')), finding_id=row.get('finding_id'))
+                    row['association_status'] = 'RESOLVED'
+                else:
+                    row['association_status'] = 'UNRESOLVED'
+            row['evidence_refs'] = [self.ref(r) for r in row.get('evidence_refs', [])]
+            result.append(row)
+        return result
+
+
+def _history(rows):
+    result = []
+    for row in rows or []:
+        if not isinstance(row, Mapping):
+            continue
+        out = _fields(row, ('round', 'proposal_id', 'candidate', 'accepted', 'status', 'reason',
+            'approved', 'severity', 'modification_summary', 'image_critic_corrections',
+            'addressed_image_issues', 'edit_purpose', 'partition_adopted', 'source_sha256', 'source_version'))
+        if isinstance(row.get('_history_meta'), Mapping):
+            out['_history_meta'] = _fields(row['_history_meta'], ('round', 'source_sha256', 'source_version'))
+        for key in ('target_improvements', 'regressions', 'errors', 'unavailable_checks', 'issues'):
+            values = row.get(key)
+            if values:
+                out[key] = [_fields(v, ('finding_id', 'code', 'status', 'message', 'severity', 'aspect',
+                    'summary', 'geometry_repair_allowed')) if isinstance(v, Mapping) else _short(v)
+                    for v in (values if isinstance(values, list) else [])[:3]]
+        result.append(out)
+    return result
+
+
+def payload_for_agent(payload, *, workspace, source_path, source_version, role,
+                      report_ref=None, evidence_files=()):
+    if role not in {'engineering', 'code_critic', 'image_critic', 'coder', 'debugger'}:
+        raise AgentFeedbackError('AGENT_FEEDBACK_INVALID', {'reason': 'invalid_role'})
+    try:
+        view = _Projection(workspace, source_path, source_version, report_ref, evidence_files)
+        out = deepcopy(dict(payload))
+        existing = out.get('evaluation_feedback')
+        if isinstance(existing, Mapping):
+            for group in existing.get('failures') or []:
+                if _ID.fullmatch(str(group.get('failure_id', ''))):
+                    # A projected input has no raw rows to re-fingerprint.
+                    clean = _fields(group, ('failure_id', 'diagnostic_sha256', 'part_id', 'failure_kind',
+                        'geometry_repair_allowed', 'code', 'stage', 'node_path', 'operation', 'input_count',
+                        'displacement_budget_mm', 'local_scale_mm', 'absolute_scale_floor_mm',
+                        'target_representation', 'physical_verdict', 'attempt_count', 'occurrence_count'))
+                    clean.update(internal_metrics=_metrics(group.get('internal_metrics')),
+                        attempts_summary=[_attempt(a) for a in group.get('attempts_summary') or []],
+                        finding_ids=[v for v in group.get('finding_ids') or [] if isinstance(v, str)],
+                        occurrences=[_fields(o, ('output_role', 'file', 'glb', 'path', 'status', 'cached_conversion',
+                            'manufacturing_status', 'display_status')) for o in group.get('occurrences') or []],
+                        evidence_refs=[view.ref(r) for r in group.get('evidence_refs') or []],
+                        preview_info=deepcopy(group.get('preview_info', {})))
+                    view.groups[clean['failure_id']] = clean
+            view.failure_count = existing.get('failure_count', 0)
+
+        def process(container):
+            if not isinstance(container, dict):
+                return
+            failure_ids = list(container.get('evaluation_failure_ids') or [])
+            for field in _FAILURE_FIELDS:
+                rows = container.pop(field, None)
+                if isinstance(rows, list):
+                    for row in rows:
+                        if not isinstance(row, Mapping):
+                            continue
+                        ref = view.source_ref(row, container, field)
+                        identity = view.add(row, ref)
+                        if identity not in failure_ids:
+                            failure_ids.append(identity)
+            if failure_ids:
+                container['evaluation_failure_ids'] = failure_ids
+            for key in ('typed_findings', 'checker_evidence'):
+                if isinstance(container.get(key), list):
+                    container[key] = view.findings(container[key])
+            for key in _HISTORY_FIELDS:
+                if isinstance(container.get(key), list):
+                    original = container[key]
+                    projected = _history(original)
+                    ref = container.get(key + '_ref')
+                    if len(projected) > 3 and not ref:
+                        snap = view.snapshot({'history': original}, 'history_snapshot')
+                        ref = {**snap, 'json_pointer': '/history'}
+                    container.setdefault('preview_info', {}).update(
+                        deepcopy(container.get('preview_info', {})))
+                    # Histories preview the latest decisions, with original provenance.
+                    total = max(len(projected), container.get('preview_info', {}).get(key, {}).get('total', 0))
+                    container[key] = projected[-3:]
+                    if total > len(container[key]):
+                        container['preview_info'][key] = {'total': total,
+                            'omitted_count': total - len(container[key]), 'full_ref': ref or container['preview_info'][key].get('full_ref')}
+            for key in ('render_issue', 'execution_error', 'error'):
+                if isinstance(container.get(key), Mapping):
+                    raw = container[key]
+                    container[key] = _fields(raw, ('code', 'stage', 'type', 'status', 'reason', 'message',
+                        'geometry_repair_allowed', 'report_path', 'path', 'source_sha256', 'source_version'))
+                elif isinstance(container.get(key), str):
+                    raw = container[key]
+                    container[key] = _short(raw)
+                    if len(raw) > _TEXT_LIMIT and key + '_evidence_ref' not in container:
+                        container[key + '_evidence_ref'] = view.snapshot({key: raw}, 'error_snapshot')
+            if isinstance(container.get('evidence_files'), list):
+                container['evidence_files'] = [view.ref(r) for r in container['evidence_files']]
+            for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback'):
+                process(container.get(key))
+            if not container.get('preview_info'):
+                container.pop('preview_info', None)
+
+        process(out)
+        if view.groups or existing:
+            groups = list(view.groups.values())
+            feedback = {'schema_version': 1, 'source_sha256': view.current_hash,
+                'source_version': source_version, 'failure_count': view.failure_count,
+                'unique_failure_count': max(len(groups), (existing or {}).get('unique_failure_count', 0)),
+                'failures': groups, 'preview_info': deepcopy((existing or {}).get('preview_info', {}))}
+            # Canonical index is needed only for aggregate lists without a single
+            # original array. It contains summaries/refs, never per-face arrays.
+            needs_index = len(groups) > 6 or any(len(g.get(k) or []) > limit for g in groups
+                for k, limit in (('finding_ids', 6), ('occurrences', 6), ('attempts_summary', 3), ('evidence_refs', 6)))
+            index_ref = view.snapshot({'failures': groups}, 'canonical_feedback') if needs_index else None
+            for index, group in enumerate(groups):
+                for key, limit in (('finding_ids', 6), ('occurrences', 6), ('attempts_summary', 3), ('evidence_refs', 6)):
+                    _preview(group, key, list(group.get(key) or []), limit,
+                        {**index_ref, 'json_pointer': _pointer('', 'failures', index, key)} if index_ref else None)
+            _preview(feedback, 'failures', groups, 6,
+                     {**index_ref, 'json_pointer': '/failures'} if index_ref else None)
+            out['evaluation_feedback'] = feedback
+
+        def feedback_only(container):
+            if not isinstance(container, Mapping):
+                return {}
+            names = ('evaluation_feedback', 'evaluation_failure_ids', 'typed_findings', 'checker_evidence',
+                'checker_summary', 'preview_info', 'evidence_files', 'render_issue', 'execution_error',
+                'error', 'error_evidence_ref', 'execution_error_evidence_ref', 'render_issue_evidence_ref', *_HISTORY_FIELDS)
+            selected = {k: container[k] for k in names if k in container}
+            for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback'):
+                if key in container:
+                    selected[key] = feedback_only(container[key])
+            return selected
+
+        def measure():
+            return len(_encoded(feedback_only(out)))
+
+        # Reduce explanations, never a verdict/permission or current metric.
+        for history_limit, candidate_limit, attempt_limit, occurrence_limit, group_limit in (
+                (1, 6, 3, 6, 6), (0, 6, 3, 6, 6), (0, 3, 3, 6, 6),
+                (0, 1, 3, 6, 6), (0, 1, 1, 6, 6), (0, 1, 1, 3, 6),
+                (0, 1, 1, 1, 6), (0, 1, 1, 1, 3), (0, 1, 1, 1, 1)):
+            if measure() <= FEEDBACK_LIMIT_BYTES:
+                break
+            def reduce(container):
+                for key in _HISTORY_FIELDS:
+                    if isinstance(container.get(key), list) and len(container[key]) > history_limit:
+                        info = container.setdefault('preview_info', {}).setdefault(key, {
+                            'total': len(container[key]), 'full_ref': container.get(key + '_ref')})
+                        container[key] = container[key][-history_limit:] if history_limit else []
+                        info['omitted_count'] = info['total'] - len(container[key])
+                for f in container.get('typed_findings') or []:
+                    _preview(f, 'source_candidates', f.get('source_candidates', []), candidate_limit)
+                for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback'):
+                    if isinstance(container.get(key), dict):
+                        reduce(container[key])
+            reduce(out)
+            feedback = out.get('evaluation_feedback')
+            if feedback:
+                # Retain full canonical mapping before any budget-driven reduction.
+                if not feedback.get('preview_info', {}).get('failures', {}).get('full_ref'):
+                    ref = view.snapshot({'failures': feedback['failures']}, 'canonical_feedback')
+                    feedback.setdefault('preview_info', {})['failures'] = {
+                        'total': feedback['unique_failure_count'], 'omitted_count': 0,
+                        'full_ref': {**ref, 'json_pointer': '/failures'}}
+                ref = feedback['preview_info']['failures']['full_ref']
+                for index, group in enumerate(feedback['failures']):
+                    for key, limit in (('attempts_summary', attempt_limit), ('finding_ids', occurrence_limit), ('occurrences', occurrence_limit)):
+                        _preview(group, key, group.get(key, []), limit,
+                            {**ref, 'json_pointer': _pointer('/failures', index, key)})
+                _preview(feedback, 'failures', feedback['failures'], group_limit, ref)
+        actual = measure()
+        if actual > FEEDBACK_LIMIT_BYTES:
+            raise AgentFeedbackError('AGENT_FEEDBACK_TOO_LARGE', {'actual_bytes': actual,
+                                                               'limit_bytes': FEEDBACK_LIMIT_BYTES})
+        # Feedback only is strict JSON. Images and task/source fields remain as
+        # delivered by the existing workflow, outside this engineering budget.
+        _encoded(feedback_only(out))
+        return out
+    except AgentFeedbackError:
+        raise
+    except (TypeError, ValueError, KeyError, OSError) as error:
+        raise AgentFeedbackError('AGENT_FEEDBACK_INVALID', {'reason': type(error).__name__}) from error
+
+
+def feedback_observation(payload):
+    """Small recorder metadata, kept outside the idempotent payload."""
+    text = json.dumps(payload, ensure_ascii=False, allow_nan=False)
+    evaluation = payload.get('evaluation_feedback') or {}
+    return {'text_chars': len(text), 'text_utf8_bytes': len(text.encode('utf-8')),
+            'evaluation_feedback_bytes': len(_encoded(evaluation)) if evaluation else 0,
+            'unique_failure_count': evaluation.get('unique_failure_count', 0)}
