@@ -24,7 +24,7 @@ CASE_ORDER = ('ABO_B075X2XZDD', 'Toys4K_dinosaur_020', 'Toys4K_robot_050',
               'Toys4K_dragon_007', 'ABO_B082JGPBLQ', 'Toys4K_bunny_004')
 ARMS = ('official', 'ours')
 EXPECTED_MODEL = 'gpt-6-astra'
-API_PORT = 8317
+API_PORT = 28317
 MAX_ROUNDS = 10
 SOURCE_REPAIR_LIMIT = 9
 HERE = Path(__file__).resolve()
