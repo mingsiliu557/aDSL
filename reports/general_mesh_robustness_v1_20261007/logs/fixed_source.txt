@@ -1,0 +1,20 @@
+could not get a list of mounted file-systems
+06:43:54 | ERROR: Draco mesh compression is not available because library could not be found at /tmp/adsl_mesh_validity_v1_20261007/4.0/python/lib/python3.10/site-packages/libextern_draco.so
+06:43:54 | INFO: Starting glTF 2.0 export
+06:43:54 | INFO: Extracting primitive: BooleanDifference_mesh
+06:43:54 | INFO: Primitives created: 3
+06:43:54 | INFO: Finished glTF 2.0 export in 0.041726112365722656 s
+
+06:43:57 | ERROR: Draco mesh compression is not available because library could not be found at /tmp/adsl_mesh_validity_v1_20261007/4.0/python/lib/python3.10/site-packages/libextern_draco.so
+06:43:57 | INFO: Starting glTF 2.0 export
+06:43:57 | INFO: Extracting primitive: circular_base_mesh
+06:43:57 | INFO: Primitives created: 2
+06:43:57 | INFO: Finished glTF 2.0 export in 0.05690622329711914 s
+
+06:43:59 | ERROR: Draco mesh compression is not available because library could not be found at /tmp/adsl_mesh_validity_v1_20261007/4.0/python/lib/python3.10/site-packages/libextern_draco.so
+06:43:59 | INFO: Starting glTF 2.0 export
+06:43:59 | INFO: Extracting primitive: base_body_mesh
+06:43:59 | INFO: Primitives created: 3
+06:43:59 | INFO: Finished glTF 2.0 export in 0.04364728927612305 s
+
+{"output": "/jiigan-hp/lms/aDSL/experiment/general_mesh_robustness_v1_20261007/release_evidence", "assembly": "FAIL", "topology": "INDETERMINATE", "small_reproduction": {"operand_count": 29, "original_operand_names": ["op_0", "op_1", "op_2", "op_3", "op_4", "op_5", "op_6", "op_7", "op_8", "op_9", "op_10", "op_11", "op_12", "op_13", "op_14", "op_15", "op_16", "op_17", "op_18", "op_19", "op_20", "op_21", "op_22", "op_23", "op_24", "op_25", "op_26", "op_27", "op_28"], "scope": "smallest failing prefix; not a proof of globally minimum subset", "reduced_operand_count": 3, "reduced_operand_names": ["op_2", "op_26", "op_28"], "reduction": "one greedy deletion pass preserving original operands; local reduction, not global minimum"}}

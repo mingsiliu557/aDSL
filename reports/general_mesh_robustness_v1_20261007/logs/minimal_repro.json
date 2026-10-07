@@ -1,0 +1,157 @@
+{
+  "operand_count": 3,
+  "internal_evaluation": {
+    "vertex_count": 679,
+    "triangle_count": 1350,
+    "self_intersection": "NOT_EVALUATED",
+    "self_intersection_reason": "No reliable complete triangle self-intersection detector is installed",
+    "nonfinite_coordinates": 0,
+    "invalid_indices": 0,
+    "exact_coordinate_duplicates": 0,
+    "duplicate_faces": 0,
+    "zero_area_triangles": 0,
+    "nonfinite_face_geometry": 0,
+    "nonfinite_geometry_measurements": 0,
+    "surface_area": 17.74840227664704,
+    "signed_volume": 4.341099575950211,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_edges": 0,
+    "nonmanifold_vertices": 0,
+    "shell_components": 2,
+    "empty": false,
+    "valid": true
+  },
+  "volume_scene_units3": 4.341099575950211,
+  "target_precision": {
+    "status": "FAIL",
+    "diagnostic": {
+      "code": "TARGET_PRECISION_UNREPRESENTABLE",
+      "message": "Mesh64 result is valid but no bounded float32 conversion passed validation",
+      "stage": "target_precision",
+      "failure_kind": "target_precision",
+      "attempts": [
+        {
+          "simplify_tolerance_scene_units": 0.0,
+          "diagnostic": {
+            "code": "INPUT_GEOMETRY_INVALID",
+            "message": "mesh is not closed, manifold and consistently oriented",
+            "stage": "target_precision",
+            "failure_kind": "input_geometry",
+            "metrics": {
+              "vertex_count": 679,
+              "triangle_count": 1350,
+              "self_intersection": "NOT_EVALUATED",
+              "self_intersection_reason": "No reliable complete triangle self-intersection detector is installed",
+              "nonfinite_coordinates": 0,
+              "invalid_indices": 0,
+              "exact_coordinate_duplicates": 3,
+              "duplicate_faces": 1,
+              "zero_area_triangles": 7,
+              "nonfinite_face_geometry": 0,
+              "nonfinite_geometry_measurements": 0,
+              "surface_area": 17.748401586793868,
+              "signed_volume": 4.341099222616709,
+              "boundary_edges": 0,
+              "nonmanifold_edges": 6,
+              "inconsistent_edges": 1,
+              "nonmanifold_vertices": 7,
+              "shell_components": 2,
+              "empty": false,
+              "valid": false
+            },
+            "node_path": ""
+          }
+        },
+        {
+          "simplify_tolerance_scene_units": 9.5367431640625e-07,
+          "diagnostic": {
+            "code": "INPUT_GEOMETRY_INVALID",
+            "message": "mesh is not closed, manifold and consistently oriented",
+            "stage": "target_precision",
+            "failure_kind": "input_geometry",
+            "metrics": {
+              "vertex_count": 614,
+              "triangle_count": 1220,
+              "self_intersection": "NOT_EVALUATED",
+              "self_intersection_reason": "No reliable complete triangle self-intersection detector is installed",
+              "nonfinite_coordinates": 0,
+              "invalid_indices": 0,
+              "exact_coordinate_duplicates": 1,
+              "duplicate_faces": 0,
+              "zero_area_triangles": 2,
+              "nonfinite_face_geometry": 0,
+              "nonfinite_geometry_measurements": 0,
+              "surface_area": 17.74840164841627,
+              "signed_volume": 4.341099218418586,
+              "boundary_edges": 0,
+              "nonmanifold_edges": 2,
+              "inconsistent_edges": 1,
+              "nonmanifold_vertices": 3,
+              "shell_components": 2,
+              "empty": false,
+              "valid": false
+            },
+            "node_path": ""
+          }
+        },
+        {
+          "simplify_tolerance_scene_units": 1.9073486328125e-06,
+          "diagnostic": {
+            "code": "INPUT_GEOMETRY_INVALID",
+            "message": "mesh is not closed, manifold and consistently oriented",
+            "stage": "target_precision",
+            "failure_kind": "input_geometry",
+            "metrics": {
+              "vertex_count": 614,
+              "triangle_count": 1220,
+              "self_intersection": "NOT_EVALUATED",
+              "self_intersection_reason": "No reliable complete triangle self-intersection detector is installed",
+              "nonfinite_coordinates": 0,
+              "invalid_indices": 0,
+              "exact_coordinate_duplicates": 1,
+              "duplicate_faces": 0,
+              "zero_area_triangles": 2,
+              "nonfinite_face_geometry": 0,
+              "nonfinite_geometry_measurements": 0,
+              "surface_area": 17.74840164841627,
+              "signed_volume": 4.341099218418586,
+              "boundary_edges": 0,
+              "nonmanifold_edges": 2,
+              "inconsistent_edges": 1,
+              "nonmanifold_vertices": 3,
+              "shell_components": 2,
+              "empty": false,
+              "valid": false
+            },
+            "node_path": ""
+          }
+        }
+      ],
+      "internal_metrics": {
+        "vertex_count": 679,
+        "triangle_count": 1350,
+        "self_intersection": "NOT_EVALUATED",
+        "self_intersection_reason": "No reliable complete triangle self-intersection detector is installed",
+        "nonfinite_coordinates": 0,
+        "invalid_indices": 0,
+        "exact_coordinate_duplicates": 0,
+        "duplicate_faces": 0,
+        "zero_area_triangles": 0,
+        "nonfinite_face_geometry": 0,
+        "nonfinite_geometry_measurements": 0,
+        "surface_area": 17.74840227664704,
+        "signed_volume": 4.341099575950211,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "nonmanifold_vertices": 0,
+        "shell_components": 2,
+        "empty": false,
+        "valid": true
+      },
+      "displacement_budget_mm": 2.7527232305146754e-05,
+      "node_path": ""
+    }
+  }
+}
