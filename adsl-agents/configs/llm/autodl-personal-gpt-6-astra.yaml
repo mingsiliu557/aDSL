@@ -8,7 +8,7 @@ credential:
   file: ../keys/autodl_personal_key.txt
 params:
   base_url: http://127.0.0.1:28317/v1
-  model: gpt-6-astra
+  model: gpt-6.1-sol
   timeout: 900
   max_retries: 2
   max_tokens: 32768

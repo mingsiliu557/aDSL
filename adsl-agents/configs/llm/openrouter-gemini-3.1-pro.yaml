@@ -4,7 +4,7 @@ credential:
   file: ../keys/openrouter_key.txt
 params:
   base_url: https://openrouter.ai/api/v1
-  model: google/gemini-3.1-pro-preview
+  model: gpt-6.1-sol
   timeout: 300
   max_retries: 0
   max_tokens: 32768

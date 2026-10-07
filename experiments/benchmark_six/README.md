@@ -16,7 +16,7 @@ requirement, which states the dimensions, millimetre units, and intended use pos
 Environment entries are `official`/`ours` or `arms.official`/`arms.ours`, each
 with `python`, `code_root` (or `repo`), and `profile`. `common_env` configures the
 shared CPU renderer. Both child imports and the launcher verify module files
-against the appropriate code root. Both profiles must use `gpt-6-astra` and
+against the appropriate code root. Both profiles must use `gpt-6.1-sol` and
 `http://127.0.0.1:28317/v1`; preflight rejects any different model before a call.
 The `profile` entries point to SSH personal API profiles. Start the SSH tunnel
 before running the experiment; the profile template is

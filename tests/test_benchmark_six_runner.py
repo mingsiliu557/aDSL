@@ -76,11 +76,11 @@ def test_worker_and_parent_reject_official_modules_from_ours(tmp_path, monkeypat
 
 
 @pytest.mark.parametrize('arm', run.ARMS)
-def test_probe_rejects_non_astra_model_before_native_request(tmp_path, monkeypatch, arm):
+def test_probe_rejects_non_sol_61_model_before_native_request(tmp_path, monkeypatch, arm):
     profile = tmp_path / f'{arm}.yaml'
     profile.write_text('params:\n  base_url: http://127.0.0.1:28317/v1\n  model: gpt-6-sol\n')
     monkeypatch.setattr(run, 'verify_module_origins', lambda env: {})
-    with pytest.raises(ValueError, match=f'{arm} profile model mismatch: expected gpt-6-astra'):
+    with pytest.raises(ValueError, match=f'{arm} profile model mismatch: expected gpt-6.1-sol'):
         run.probe(tmp_path, arm, {arm: {'profile': str(profile)}})
     assert not (tmp_path / 'preflight').exists()
 
@@ -162,7 +162,7 @@ class OfflinePlannerModel(Model):
 
 def planner_response(*, status='completed'):
     return Response(
-        id='offline-planner-response', created_at=0, model='gpt-6-astra', object='response',
+        id='offline-planner-response', created_at=0, model='gpt-6.1-sol', object='response',
         status=status, parallel_tool_calls=False, tool_choice='auto', tools=[],
         incomplete_details=dict(reason='max_output_tokens') if status == 'incomplete' else None,
         output=[dict(id='offline-planner-message', type='message', role='assistant', status=status,
