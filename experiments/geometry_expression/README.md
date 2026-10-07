@@ -45,7 +45,7 @@ Focused validation (from the implementation checkout):
 ```bash
 python -m pytest -q -p no:cacheprovider tests/test_constructive_geometry.py
 ADSL_TEST_GEOMETRY_REAL=1 python -m pytest -q -p no:cacheprovider \
-  tests/test_constructive_geometry.py tests/test_boolean_solver.py
+  tests/test_constructive_geometry.py tests/test_mesh64_evaluation.py
 python -m pytest -q -p no:cacheprovider tests/test_geometry_demo.py tests/test_prompts.py
 ```
 
