@@ -123,7 +123,8 @@ repair routing are documented in `reports/benchmark_six_boolean_failure_20261007
 # Request-error helper in future frozen runners
 
 When copying `run.py`, `evaluate.py` and `build_review.py` into a new experiment's
-runner directory, also copy `adsl-agents/utils/request_errors.py` as adjacent
-`request_errors.py`. Its SHA is part of the new frozen fingerprint. It has only
+runner directory, `frozen_fingerprint` also copies `adsl-agents/utils/request_errors.py`
+from the configured ours code root if the adjacent helper is missing and no
+checkpoint exists. Its SHA is part of the new frozen fingerprint. It has only
 standard-library imports and works in the official baseline environment without
 installing ours. Existing completed snapshots/fingerprints must not be rewritten.

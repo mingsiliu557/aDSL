@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import re
 import signal
+import shutil
 import socket
 import sqlite3
 import subprocess
@@ -234,6 +235,19 @@ def source_tree_hash(root):
 
 
 def frozen_fingerprint(root, cases, arms):
+    global _REQUEST_ERRORS
+    helper = HERE.with_name('request_errors.py')
+    direct_helper = HERE.parents[2] / 'adsl-agents/utils/request_errors.py'
+    if not helper.is_file() and not direct_helper.is_file():
+        # A newly frozen runner is outside the code tree. Copy the standalone
+        # helper before freezing, never silently modify a resumed batch.
+        if (root / 'checkpoint.json').exists() or (root / 'batch.json').exists():
+            raise ValueError('frozen request_errors.py snapshot missing')
+        origin = Path(arms['ours']['code_root']) / 'adsl-agents/utils/request_errors.py'
+        if not origin.is_file():
+            raise ValueError('ours request_errors.py source missing')
+        shutil.copy2(origin, helper)
+        _REQUEST_ERRORS = None
     return dict(config={name: sha256(root / 'config' / name) for name in ('cases.json', 'envs.json', 'physics.json')},
                 inputs={cid: c['input_sha256'] for cid, c in cases.items()},
                 sources={arm: source_tree_hash(e['code_root']) for arm, e in arms.items()},

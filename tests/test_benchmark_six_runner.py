@@ -131,6 +131,37 @@ def test_role_observation_counts_text_and_images_separately():
     assert observed['evaluation_feedback_bytes'] < 100
 
 
+@pytest.mark.parametrize('marker', ['checkpoint.json', 'batch.json'])
+def test_new_frozen_runner_copies_classifier_but_resume_never_invents_it(tmp_path, monkeypatch, marker):
+    import shutil
+    origin = Path(run.request_error_helpers().__file__)
+    runner = tmp_path/'runner'; runner.mkdir()
+    for name in ('run.py', 'evaluate.py', 'build_review.py'):
+        (runner/name).write_text('# frozen offline runner\n')
+    (tmp_path/'config').mkdir()
+    for name in ('cases.json', 'envs.json', 'physics.json'):
+        (tmp_path/'config'/name).write_text('{}')
+    arms = {}
+    for arm in run.ARMS:
+        code = tmp_path/arm
+        (code/'adsl-agents/utils').mkdir(parents=True)
+        (code/'adsl-agents/fake.py').write_text('x = 1')
+        profile = code/'profile.yaml'; profile.write_text('offline profile')
+        arms[arm] = {'code_root':str(code), 'profile':str(profile)}
+    shutil.copy2(origin, tmp_path/'ours/adsl-agents/utils/request_errors.py')
+    monkeypatch.setattr(run, 'HERE', runner/'run.py')
+    monkeypatch.setattr(run, '_REQUEST_ERRORS', None)
+    fingerprint = run.frozen_fingerprint(tmp_path, {}, arms)
+    assert fingerprint['request_error_classifier'] == run.sha256(origin)
+    assert (runner/'request_errors.py').read_bytes() == origin.read_bytes()
+    (tmp_path/marker).write_text('{"completed":true}')
+    (runner/'request_errors.py').unlink()
+    monkeypatch.setattr(run, '_REQUEST_ERRORS', None)
+    with pytest.raises(ValueError, match='snapshot missing'):
+        run.frozen_fingerprint(tmp_path, {}, arms)
+    assert not (runner/'request_errors.py').exists()
+
+
 def test_environment_drops_proxies_and_gpu_queue(tmp_path, monkeypatch):
     monkeypatch.setenv('HTTPS_PROXY', 'do-not-use')
     monkeypatch.setenv('ADSL_GPU_RENDER_QUEUE', 'do-not-use')
