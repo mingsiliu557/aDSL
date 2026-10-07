@@ -1,3 +1,5 @@
+# Legacy diagnostic: requires private Blender Boolean helpers at 2836c3d
+# (or the recorded historical SHA). Retained as evidence; not migrated or run.
 """Offline comparison of three saved-asset UNIONs; never changes production CSG.
 
 Capture exact Blender operands (including local transforms/materials) before the

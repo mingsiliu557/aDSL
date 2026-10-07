@@ -1,3 +1,5 @@
+# Legacy diagnostic: requires private Blender Boolean helpers at 2836c3d
+# (or the recorded historical SHA). Retained as evidence; not migrated or run.
 """Bounded read-only construction reproduction; snapshot existing Boolean stages.
 
 No geometry/config mutation or generation API. One selected print part only.

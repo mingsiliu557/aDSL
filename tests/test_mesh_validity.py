@@ -293,12 +293,18 @@ def test_native_restricted_input_repairs_use_shared_validator_and_rollback(kind)
         origin=.5, gap=.001 if kind == 'real_gap' else 2**-24)
     original = obj.data
     positions = np.asarray([tuple(v.co) for v in original.vertices])
+    polygons = tuple(tuple(p.vertices) for p in original.polygons)
+    materials = tuple(p.material_index for p in original.polygons)
     mesh_count = len(bpy.data.meshes)
+    object_count = len(bpy.data.objects)
     if kind in ('missing_face','real_gap'):
         with pytest.raises(MeshEvaluationError, match='INPUT_GEOMETRY_INVALID'):
             normalize_blender_input(obj, node_path='input')
         assert obj.data is original and len(bpy.data.meshes) == mesh_count
         np.testing.assert_array_equal(positions, [tuple(v.co) for v in original.vertices])
+        assert tuple(tuple(p.vertices) for p in original.polygons) == polygons
+        assert tuple(p.material_index for p in original.polygons) == materials
+        assert len(bpy.data.objects) == object_count
     else:
         row = normalize_blender_input(obj, node_path='input')
         assert row['status'] == 'APPLIED' and row['metrics_after']['valid']

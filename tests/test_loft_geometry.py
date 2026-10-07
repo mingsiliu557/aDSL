@@ -235,7 +235,7 @@ def test_clean_public_import_does_not_load_native_geometry():
 def test_real_loft_boolean_compatibility(operation):
     bpy = pytest.importorskip('bpy')
     from adsl.core import Cylinder, boolean_difference, boolean_union
-    from adsl.core.export.export_glb import _build_shape, _mesh_triangles
+    from adsl.core.export.mesh64 import evaluate_shape
     bpy.ops.object.select_all(action='SELECT')
     bpy.ops.object.delete(use_global=False)
     body = loft([rectangle(), rectangle()], [0, 4])
@@ -245,12 +245,14 @@ def test_real_loft_boolean_compatibility(operation):
     else:
         scene = boolean_difference(body, Cylinder(.25, p0=(0, 0, -1), p1=(0, 0, 5)))
         expected = 16 - 4 * .5 * 32 * .25**2 * math.sin(2*math.pi/32)
-    obj, = _build_shape(scene)
-    vertices, faces, _ = _mesh_triangles(obj.data, obj.matrix_world)
-    mesh = trimesh.Trimesh(vertices, faces, process=True)
+    result = evaluate_shape(scene)
+    mesh = result.pieces[0].world_mesh()
     assert_solid(mesh)
     assert mesh.volume == pytest.approx(expected, rel=1e-5)
-    assert len([o for o in bpy.data.objects if o.type == 'MESH']) == 1
+    assert not [o for o in bpy.data.objects if o.type == 'MESH']
+    assert mesh.face_attributes['material'].shape == (len(mesh.faces),)
+    assert all(result.materials[int(i)]['base_color'][:3] == [1., 1., 1.]
+               for i in set(mesh.face_attributes['material']))
 
 
 @pytest.mark.skipif(os.environ.get('ADSL_TEST_GEOMETRY_REAL') != '1', reason='native Blender opt-in')

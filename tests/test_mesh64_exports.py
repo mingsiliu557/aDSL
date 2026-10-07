@@ -36,10 +36,6 @@ def test_nested_boolean_files_keep_local_precision_and_world_placement(tmp_path,
         Cube((2,2,2), color=(1,0,0)), Cube((2,2,2), center=(1,0,0), color=(0,0,1))),
         Cube((1,4,4), center=(-.5,0,0))), Cube((4,1,4), center=(.5,0,0)))
     shape = translate_shape(shape, translation)
-    def forbidden(*args, **kwargs):
-        pytest.fail('canonical evaluation must never read Blender Boolean output')
-    monkeypatch.setattr(g, '_build_shape', forbidden)
-    monkeypatch.setattr(g, '_apply_boolean_group', forbidden)
     path = tmp_path/'nested.glb'
     g.export_glb(shape, path)
     _, actual = saved_world(path)

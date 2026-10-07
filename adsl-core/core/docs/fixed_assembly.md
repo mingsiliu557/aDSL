@@ -154,8 +154,47 @@ Manifests separately record `internal_evaluation`, `target_precision`,
 `canonical_mesh`, and `file_validation`. These checks include triangle topology
 and oriented solid construction. Complete triangle self-intersection detection
 is `NOT_EVALUATED`; Manifold `NoError` is not a substitute for that check.
-`visual_only` keeps manufacturing validation `NOT_EVALUATED`, while requiring
-valid canonical geometry and readable output files.
+`visual_only` keeps the assembly geometry contract `NOT_EVALUATED`, while
+requiring valid canonical geometry and independently readable output files.
+Its manufacturing and display file statuses describe those actual files;
+they do not imply that interfaces or assembly geometry were certified.
+
+### Common mesh validation and repair entry points
+
+The exporter uses `mesh_validity.py` for validation and orchestration.
+`mesh_repair.py` owns the existing restricted input normalization and float32
+edge contraction / diagonal flip algorithms. Coder uses the public modeling
+API; the executor calls these internal entry points automatically.
+
+| Entry point | Return value and scope |
+| --- | --- |
+| `normalize_blender_input(obj, *, mm_per_unit=1.0, node_path='', **context)` | Input normalization report; repair on a copy, validate, then atomically commit |
+| `validate_mesh(vertices, faces, *, allow_empty=False, stage='input_geometry', expected_components=None, face_ids=None, **context)` | `(solid, metrics)` for these arrays; validation does not repair them |
+| `checked_solid(solid, *, allow_empty=False, stage='internal_evaluation', **context)` | The validated Mesh64 solid |
+| `target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context)` | `(mesh, recenter_transform, conversion_record)` for the actual rounded display mesh |
+| `validate_written_mesh(path, *, transform=None, expected_components=None, **context)` | `(mesh, solid, report)` from the actual single-mesh file |
+
+The checked local repair result is reused within the current conversion call,
+including its rounded target solid, metrics and all-face direction check.
+Source validity does not substitute for target or file validity. Display
+repairs leave the canonical manufacturing mesh unchanged. GLB scene readback
+groups geometry by print-part ID across materials before validating each part;
+individual material regions need not be closed on their own.
+
+The full workflow remains Planner → Coder → executor / mesh evaluation and
+export → multiview Image / Code review → enabled Topology → Overhang → Standing
+→ Engineering / Coder feedback. Each source revision has its own output and
+review evidence. The internal 0 / 1 / 2 ULP conversion attempts are bounded
+mesh processing within one revision, not additional Agent model proposals.
+
+Assembly export writes final part, scene and exploded GLBs once, then records
+their separate readback results. Manufacturing STL status, display status,
+interface geometry and complete export status retain their distinct scopes.
+A failed scene file invalidates its publication reference without invalidating
+a separately verified part file. Diagnostic previews are generated only when
+normal display is unavailable or incomplete; their existence cannot certify
+completeness or approve a rejected scene. The diagnostic summary also exists
+on normal success and identifies the validated scene without an extra GLB.
 
 `INPUT_GEOMETRY_INVALID`, `BOOLEAN_EVALUATION_FAILED`, and
 `TARGET_PRECISION_UNREPRESENTABLE` carry a stage, node/part identity, measurements,

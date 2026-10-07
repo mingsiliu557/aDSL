@@ -1128,7 +1128,7 @@ def export_urdf(
                         continue
                     _export_mesh_with_optional_mtl(mesh, vis_path, rgba)
                 else:
-                    # Blender exact boolean backend (visual only).
+                    # Mesh64 evaluation and Blender GLB serialization (visual only).
                     from .export_glb import export_glb  # type: ignore
                     export_glb(link, vis_path, clear_scene=True, include_joint_children=False)
 

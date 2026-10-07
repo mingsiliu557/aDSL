@@ -40,11 +40,6 @@ def test_mesh64_boolean_volumes_materials_and_local_frame(operation, expected):
 
 
 def test_nested_csg_never_builds_blender_boolean_intermediates(monkeypatch, native_leaves):
-    exporter = importlib.import_module('adsl.core.export.export_glb')
-    def forbidden(*args, **kwargs):
-        pytest.fail('nested canonical evaluation must not instantiate an intermediate Blender mesh')
-    monkeypatch.setattr(exporter, '_build_shape', forbidden)
-    monkeypatch.setattr(exporter, '_apply_boolean_group', forbidden)
     shape = boolean_intersection(
         boolean_difference(boolean_union(Cube(2), Cube(2, center=(1, 0, 0))),
                            Cube((1, 4, 4), center=(-.5, 0, 0))),

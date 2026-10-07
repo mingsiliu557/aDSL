@@ -1,3 +1,5 @@
+# Legacy diagnostic: requires private Blender Boolean helpers at 2836c3d
+# (or the recorded historical SHA). Retained as evidence; not migrated or run.
 from pathlib import Path
 import hashlib
 import importlib

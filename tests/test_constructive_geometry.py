@@ -106,13 +106,11 @@ def test_revolve_negative_radius_and_missing_extra(monkeypatch):
 @pytest.mark.skipif(os.environ.get('ADSL_TEST_GEOMETRY_REAL') != '1', reason='native Blender opt-in')
 def test_real_hull_and_mesh_boolean():
     bpy=pytest.importorskip('bpy')
-    from adsl.core.export.export_glb import _build_shape, _mesh_triangles
+    from adsl.core.export.mesh64 import evaluate_shape
     bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
     profile=linear_extrude(Polygon([(0,0),(2,0),(2,2),(0,2)]),2)
     cut=boolean_difference(profile,Cylinder(.5,p0=(1,1,-1),p1=(1,1,3)))
-    obj,=_build_shape(cut)
-    v,f,_=_mesh_triangles(obj.data,obj.matrix_world)
-    mesh=trimesh.Trimesh(v,f,process=True)
+    mesh=evaluate_shape(cut).pieces[0].world_mesh()
     assert mesh.is_watertight and mesh.volume==pytest.approx(8-32*.5*.5*math.sin(2*math.pi/32),rel=.001)
     bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
     other=transform_shape(Cube((2,2,2)),translation_matrix((5,0,1)))
@@ -121,15 +119,18 @@ def test_real_hull_and_mesh_boolean():
     assert cut._parent is None and other._parent is None
     matrix=translation_matrix((10,20,30)) @ rotation_matrix((0,0,1),30)
     transformed=transform_shape(local,matrix)
-    obj,=_build_shape(transformed)
-    v,f,_=_mesh_triangles(obj.data,obj.matrix_world)
+    result=evaluate_shape(transformed)
+    mesh=result.pieces[0].world_mesh()
+    v=np.asarray(mesh.vertices)
     expected=np.array([(x,y,z) for x in (0,2) for y in (0,2) for z in (0,2)]+
                       [(x,y,z) for x in (4,6) for y in (-1,1) for z in (0,2)])
     expected=expected@matrix[:3,:3].T+matrix[:3,3]
     np.testing.assert_allclose([v.min(0),v.max(0)],[expected.min(0),expected.max(0)],atol=3e-6)
-    assert trimesh.Trimesh(v,f).volume==pytest.approx(trimesh.convex.convex_hull(expected).volume,rel=1e-5)
-    assert len([o for o in bpy.data.objects if o.type=='MESH'])==1
-    assert tuple(obj.data.materials[0].node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value)[:3]==pytest.approx((.2,.3,.4))
+    assert mesh.volume==pytest.approx(trimesh.convex.convex_hull(expected).volume,rel=1e-5)
+    assert not [o for o in bpy.data.objects if o.type=='MESH']
+    ids=set(mesh.face_attributes['material'])
+    assert len(ids)==1
+    assert result.materials[next(iter(ids))]['base_color'][:3]==pytest.approx((.2,.3,.4))
     np.testing.assert_allclose(shape_aabb(transformed),[expected.min(0),expected.max(0)])
 
 
