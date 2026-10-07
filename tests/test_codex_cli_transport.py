@@ -135,9 +135,13 @@ def test_prompt_limit_fails_without_invoking_process(tmp_path) -> None:
         process_runner=fake_runner,
         preflight=False,
     )
-    with pytest.raises(CodexCliError, match="refusing to truncate"):
+    with pytest.raises(CodexCliError, match="refusing to truncate") as caught:
         _invoke(model, "long input")
     assert not called
+    from adsl.agents.utils.request_errors import classify_model_request_error
+    assert caught.value.code == 'prompt_too_large'
+    assert caught.value.actual_chars > caught.value.limit == 10
+    assert classify_model_request_error(caught.value)['kind'] == 'context_limit'
 
 
 def test_missing_binary_fails_at_construction(tmp_path) -> None:

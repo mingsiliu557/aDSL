@@ -103,6 +103,34 @@ def test_venv_python_symlink_is_not_resolved_to_base_interpreter(tmp_path):
     assert loaded['ours']['python'] == arms['ours']['python']
 
 
+def test_frozen_request_classifier_loads_without_native_package(tmp_path, monkeypatch):
+    import shutil
+    helpers = run.request_error_helpers()
+    directory = tmp_path / 'runner'
+    directory.mkdir()
+    shutil.copy2(helpers.__file__, directory / 'request_errors.py')
+    monkeypatch.setattr(run, 'HERE', directory / 'run.py')
+    monkeypatch.setattr(run, '_REQUEST_ERRORS', None)
+    # The official environment does not import/install the new agents module.
+    monkeypatch.setattr(run.importlib, 'import_module', lambda name: pytest.fail(name))
+    assert run.request_error_helpers().classify_model_request_error(TypeError('bug')) is None
+    (directory / 'request_errors.py').unlink()
+    monkeypatch.setattr(run, '_REQUEST_ERRORS', None)
+    with pytest.raises(ValueError, match='snapshot missing'):
+        run.request_error_helpers()
+
+
+def test_role_observation_counts_text_and_images_separately():
+    import json
+    text = json.dumps({'evaluation_feedback': {'unique_failure_count': 1, 'failures': []}}, ensure_ascii=False)
+    value = [{'role':'user', 'content':[{'type':'input_text', 'text':text},
+        *[{'type':'input_image', 'image_url':'data:image/png;base64,' + 'a' * 100000} for _ in range(8)]]}]
+    observed = run.input_observation(value)
+    assert observed['text_utf8_bytes'] == len(text.encode())
+    assert observed['image_count'] == 8 and observed['unique_failure_count'] == 1
+    assert observed['evaluation_feedback_bytes'] < 100
+
+
 def test_environment_drops_proxies_and_gpu_queue(tmp_path, monkeypatch):
     monkeypatch.setenv('HTTPS_PROXY', 'do-not-use')
     monkeypatch.setenv('ADSL_GPU_RENDER_QUEUE', 'do-not-use')
