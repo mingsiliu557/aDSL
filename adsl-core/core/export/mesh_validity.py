@@ -234,16 +234,25 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
     transform = np.eye(4, dtype=np.float64)
     transform[:3, 3] = center
     attempts = []
+    source_ids = np.asarray(raw.face_id, dtype=np.uint64)
+    uniform_source = int(source_ids[0]) if len(source_ids) and np.all(source_ids == source_ids[0]) else None
+    # A single actual material has no visual boundary to protect. Resetting
+    # ancestral CSG face boundaries allows the existing bounded simplifier to
+    # collapse them; restore that material ID explicitly because as_original
+    # intentionally discards face provenance. Different materials keep lineage.
+    simplified_input = local_reference.as_original() if uniform_source is not None else local_reference
     for tolerance in (0.0, quantum, 2*quantum):
         try:
-            candidate = local_reference if not tolerance else local_reference.simplify(tolerance)
+            candidate = local_reference if not tolerance else simplified_input.simplify(tolerance)
             checked_solid(candidate, **context)
             v, f, raw = _mesh_arrays(candidate)
             with np.errstate(over='ignore', invalid='ignore'):
                 rounded = v.astype(np.float32).astype(np.float64)
             cast_distance = float(np.linalg.norm(rounded-v, axis=1).max())
+            face_ids = (np.full(len(f), uniform_source, dtype=np.uint64)
+                        if tolerance and uniform_source is not None else np.asarray(raw.face_id, dtype=np.uint64))
             measured, metrics = validate_mesh(rounded, f, stage='target_precision',
-                expected_components=components, face_ids=raw.face_id, **context)
+                expected_components=components, face_ids=face_ids, **context)
             geometry_bound = tolerance + cast_distance
             bounds_change = float(np.max(np.abs(np.array(measured.bounding_box())-np.array(local_reference.bounding_box()))))
             volume_change = abs(float(measured.volume())-reference_volume)
@@ -253,6 +262,7 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
             row = dict(stage='target_precision', status='PASS', precision='float32',
                 local_origin=center.tolist(), local_scale_scene_units=scale,
                 simplify_tolerance_scene_units=tolerance,
+                uniform_material_ancestry_reset=bool(tolerance and uniform_source is not None),
                 maximum_vertex_cast_displacement_mm=cast_distance*mm_per_unit,
                 surface_displacement_upper_bound_mm=geometry_bound*mm_per_unit,
                 displacement_budget_mm=bound*mm_per_unit,
@@ -266,7 +276,7 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
             # Keep original triangle order and source-face IDs; no deletion or
             # proximity welding is performed on a rounded invalid mesh.
             mesh = trimesh.Trimesh(rounded, f.astype(np.int64), process=False)
-            mesh.face_attributes['source_face_id'] = np.asarray(raw.face_id, dtype=np.uint64)
+            mesh.face_attributes['source_face_id'] = face_ids
             mesh.metadata['target_precision'] = row
             return mesh, transform, row
         except (MeshEvaluationError, ValueError, RuntimeError) as error:

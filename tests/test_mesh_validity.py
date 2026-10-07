@@ -216,3 +216,18 @@ def test_native_restricted_input_repairs_use_shared_validator_and_rollback(kind)
             assert row['metrics_before']['boundary_edges'] == 3
         assert len(bpy.data.meshes) == mesh_count
     bpy.ops.wm.read_factory_settings(use_empty=True)
+
+
+def test_uniform_material_reset_allows_bounded_collapse_of_artificial_csg_boundaries():
+    def box(offset):
+        raw = mf.Manifold.cube((1,1,1)).to_mesh64()
+        solid, _ = validate_mesh(raw.vert_properties[:,:3], raw.tri_verts,
+            face_ids=np.full(len(raw.tri_verts),42,dtype=np.uint64))
+        return solid.translate(offset)
+    solid = box((0,0,0)) + box((.5+1e-9,1e-9,0))
+    mesh, _, row = target_mesh(solid)
+    assert row['uniform_material_ancestry_reset']
+    assert row['simplify_tolerance_scene_units'] == np.spacing(np.float32(1.0))
+    assert set(mesh.face_attributes['source_face_id']) == {42}
+    assert row['surface_displacement_upper_bound_mm'] <= row['displacement_budget_mm']
+    assert row['metrics']['valid']
