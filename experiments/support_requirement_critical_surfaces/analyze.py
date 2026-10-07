@@ -210,6 +210,7 @@ def geometric_regions(mesh: trimesh.Trimesh, mask: np.ndarray) -> list[dict[str,
     components = trimesh.graph.connected_components(adjacency, nodes=selected, min_len=1)
     rows = []
     for ids in components:
+        ids = np.asarray(ids, dtype=int)
         centers, weights = mesh.triangles_center[ids], mesh.area_faces[ids]
         rows.append({"area_mm2": float(weights.sum()), "global_face_ids": ids.tolist(),
                      "centroid_mm": np.average(centers, weights=weights, axis=0).tolist(),
