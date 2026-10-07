@@ -78,7 +78,7 @@ def test_worker_and_parent_reject_official_modules_from_ours(tmp_path, monkeypat
 @pytest.mark.parametrize('arm', run.ARMS)
 def test_probe_rejects_non_astra_model_before_native_request(tmp_path, monkeypatch, arm):
     profile = tmp_path / f'{arm}.yaml'
-    profile.write_text('params:\n  base_url: http://127.0.0.1:28317/v1\n  model: gpt-6-sol\n')
+    profile.write_text('params:\n  base_url: http://127.0.0.1:8317/v1\n  model: gpt-6-sol\n')
     monkeypatch.setattr(run, 'verify_module_origins', lambda env: {})
     with pytest.raises(ValueError, match=f'{arm} profile model mismatch: expected gpt-6-astra'):
         run.probe(tmp_path, arm, {arm: {'profile': str(profile)}})
@@ -383,7 +383,7 @@ def test_existing_batch_budget_and_started_job_are_never_reset(tmp_path, monkeyp
 
 
 def api_status_error(status=408, code='request_timeout', cls=openai.APIStatusError):
-    response = httpx.Response(status, request=httpx.Request('POST', 'http://127.0.0.1:28317/v1/responses'),
+    response = httpx.Response(status, request=httpx.Request('POST', 'http://127.0.0.1:8317/v1/responses'),
                               headers={'x-request-id': 'fixture-request-id'})
     return cls('fixture API request failed', response=response, body={'code': code})
 
@@ -398,7 +398,7 @@ def test_request_api_status_errors_do_not_pause_batch(status):
 
 
 def test_api_connection_timeout_are_isolated_but_confirmed_infrastructure_pauses():
-    request = httpx.Request('POST', 'http://127.0.0.1:28317/v1/responses')
+    request = httpx.Request('POST', 'http://127.0.0.1:8317/v1/responses')
     for error in (openai.APIConnectionError(request=request), openai.APITimeoutError(request=request)):
         assert not run.shared_fault(error)
         assert run.api_interruption(error)

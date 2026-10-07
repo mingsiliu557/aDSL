@@ -17,8 +17,9 @@ Environment entries are `official`/`ours` or `arms.official`/`arms.ours`, each
 with `python`, `code_root` (or `repo`), and `profile`. `common_env` configures the
 shared CPU renderer. Both child imports and the launcher verify module files
 against the appropriate code root. Both profiles must use `gpt-6-astra` and
-`http://127.0.0.1:28317/v1`; preflight rejects any different model before a call.
-The SSH profile is `adsl-agents/configs/llm/autodl-personal-gpt-6-astra.yaml`.
+`http://127.0.0.1:8317/v1`; preflight rejects any different model before a call.
+The `profile` entries point to compatible YAML profiles for the local CLIProxy
+service. The experiment connects directly to that service without an SSH tunnel.
 Proxy variables are removed. Both arms use their native SDK clients and the
 frozen profile retry setting. The Planner streaming call mode is described below.
 

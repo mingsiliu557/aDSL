@@ -24,6 +24,7 @@ CASE_ORDER = ('ABO_B075X2XZDD', 'Toys4K_dinosaur_020', 'Toys4K_robot_050',
               'Toys4K_dragon_007', 'ABO_B082JGPBLQ', 'Toys4K_bunny_004')
 ARMS = ('official', 'ours')
 EXPECTED_MODEL = 'gpt-6-astra'
+API_PORT = 8317
 MAX_ROUNDS = 10
 SOURCE_REPAIR_LIMIT = 9
 HERE = Path(__file__).resolve()
@@ -213,8 +214,8 @@ def probe(root, arm, arms):
     env = arms[arm]
     paths = verify_module_origins(env)
     profile = yaml.safe_load(Path(env['profile']).read_text(encoding='utf-8'))
-    if profile['params']['base_url'].rstrip('/') != 'http://127.0.0.1:28317/v1':
-        raise ValueError('both profiles must use the fixed localhost:28317 endpoint')
+    if profile['params']['base_url'].rstrip('/') != f'http://127.0.0.1:{API_PORT}/v1':
+        raise ValueError(f'both profiles must use the fixed localhost:{API_PORT} endpoint')
     model = str(profile['params'].get('model', '')).strip()
     if model != EXPECTED_MODEL:
         raise ValueError(f'{arm} profile model mismatch: expected {EXPECTED_MODEL}, got {model!r}')
@@ -724,7 +725,7 @@ def batch(root, *, preflight_only=False):
         if preflight_only:
             return 0
         initialize(root, cases, arms, physics)
-        with socket.create_connection(('127.0.0.1', 28317), timeout=5):
+        with socket.create_connection(('127.0.0.1', API_PORT), timeout=5):
             pass
         checkpoint(root, 'RUNNING')
         for cid in CASE_ORDER:
