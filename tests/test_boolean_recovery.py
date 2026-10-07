@@ -93,32 +93,32 @@ def test_export_rejects_silently_omitted_mesh(tmp_path, monkeypatch):
         g.export_glb(Cube((1, 1, 1)), tmp_path/'bad.glb')
 
 
-def test_original_elephant_trunk_precision_failure_keeps_internal_and_ascii_evidence(tmp_path, blender):
-    """A Mesh64 PASS cannot certify an unrepresentable float32 GLB.
-
-    This fixture previously passed the Blender-quantized leaf recovery path.
-    Preserve its source and document the new high-precision boundary limitation
-    instead of discarding microscopic faces to claim successful export.
-    """
+def test_original_elephant_trunk_local_precision_repair_and_manufacturing(tmp_path, blender):
+    """Fixed original source survives actual GLB and independent ASCII STL."""
     import trimesh
     from adsl.core.assembly_topology import read_print_mesh, union_print_mesh
     from adsl.core.export.mesh64 import evaluate_shape
-    from adsl.core.export.mesh_validity import MeshEvaluationError, mesh_metrics
+    from adsl.core.export.mesh_validity import mesh_metrics
     source = Path(__file__).parent/'fixtures/elephant_trunk.py'
     scene = runpy.run_path(str(source))['scene']
     result = evaluate_shape(scene)
     mesh = result.pieces[0].world_mesh()
     assert mesh_metrics(mesh.vertices, mesh.faces)['valid']
     path = tmp_path/'trunk.glb'
-    with pytest.raises(MeshEvaluationError, match='TARGET_PRECISION_UNREPRESENTABLE') as caught:
-        g.export_glb(scene, path)
-    assert caught.value.diagnostic['stage'] == 'target_precision'
-    assert not path.exists()  # Never publish a missing/silently altered trunk.
+    g.export_glb(scene, path)
+    assert path.is_file()
+    saved = trimesh.load(path, force='scene', process=False)
+    actual = trimesh.util.concatenate(tuple(saved.geometry.values()))
+    assert mesh_metrics(actual.vertices, actual.faces)['valid']
     stl = tmp_path/'trunk_mesh64_diagnostic.stl'
     mesh.export(stl, file_type='stl_ascii')
     solid, components, _ = union_print_mesh(read_print_mesh(stl, np.eye(4)))
     assert len(components) == 1 and solid.volume() > 0
-    # The same precision failure reaches the assembly export caller.
+    # Manufacturing retains the original Mesh64 surface and has its own
+    # independently verified display; repairs never become checker geometry.
     from adsl.core.export.export_assembly import evaluated
-    with pytest.raises(MeshEvaluationError, match='TARGET_PRECISION_UNREPRESENTABLE'):
-        evaluated(scene, tmp_path/'assembly_input.glb', 1.)
+    canonical, manufactured, diagnostics = evaluated(scene, tmp_path/'assembly_input.glb', 1.)
+    assert diagnostics['manufacturing_status'] == 'PASS'
+    assert diagnostics['display_status'] == 'PASS'
+    assert manufactured.volume() == pytest.approx(result.pieces[0].solid.volume(), abs=1e-12)
+    assert mesh_metrics(canonical.vertices, canonical.faces)['valid']

@@ -29,6 +29,39 @@ def test_closed_cube_metrics_and_explicit_self_intersection_scope():
     json.dumps(row)
 
 
+def test_large_translation_keeps_analytic_volume_exact_world_triangles_and_materials():
+    import hashlib
+    base = mf.Manifold.cube((2,2,2),center=True)
+    source = ((base+base.translate((1+1e-5,0,0)))-
+        mf.Manifold.cube((1,4,4),center=True).translate((-.5,0,0))) ^ (
+        mf.Manifold.cube((4,1,4),center=True).translate((.5,0,0)))
+    v,f = arrays(source)
+    face_ids=np.full(len(f),42,dtype=np.uint64)
+    def geometry_hash(vertices,faces):
+        triangles=[]
+        for triangle in np.asarray(vertices)[faces]:
+            triangle=triangle[np.lexsort((triangle[:,2],triangle[:,1],triangle[:,0]))]
+            triangles.append(triangle.reshape(-1))
+        values=np.asarray(triangles,dtype=np.float64)
+        values=values[np.lexsort(tuple(values[:,i] for i in reversed(range(9))))]
+        return hashlib.sha256(np.ascontiguousarray(values).tobytes()).hexdigest()
+    measured=[]
+    for offset in [(0.,0,0),(1e7,2e7,-3e7)]:
+        world=v+offset
+        solid,metrics=validate_mesh(world,f,face_ids=face_ids)
+        assert solid.volume()==pytest.approx(4.00002,abs=2e-8,rel=0)
+        before=solid.volume()
+        raw=solid.to_mesh64()
+        assert solid.volume()==before
+        assert geometry_hash(raw.vert_properties[:,:3],raw.tri_verts)==geometry_hash(world,f)
+        assert set(raw.face_id)=={42}
+        assert metrics['solid_construction_frame']=='bbox_center_local_float64'
+        assert np.allclose(metrics['solid_construction_origin'],(world.min(axis=0)+world.max(axis=0))/2,
+                           rtol=0,atol=1e-9)
+        measured.append(solid.volume())
+    assert measured[1]==pytest.approx(measured[0],abs=2e-8,rel=0)
+
+
 @pytest.mark.parametrize('defect', ['missing_face', 'duplicate_face', 'winding', 'zero_area', 'nan', 'bad_index'])
 def test_invalid_geometry_is_rejected_without_mutating_input(defect):
     v, f = arrays(mf.Manifold.cube((2, 2, 2)))
@@ -226,8 +259,8 @@ def test_uniform_material_reset_allows_bounded_collapse_of_artificial_csg_bounda
         return solid.translate(offset)
     solid = box((0,0,0)) + box((.5+1e-9,1e-9,0))
     mesh, _, row = target_mesh(solid)
-    assert row['uniform_material_ancestry_reset']
-    assert row['simplify_tolerance_scene_units'] == np.spacing(np.float32(1.0))
+    assert row['local_precision_repair'] or row['uniform_material_ancestry_reset']
+    assert row['simplify_tolerance_scene_units'] in (0., np.spacing(np.float32(1.0)))
     assert set(mesh.face_attributes['source_face_id']) == {42}
     assert row['surface_displacement_upper_bound_mm'] <= row['displacement_budget_mm']
     assert row['metrics']['valid']

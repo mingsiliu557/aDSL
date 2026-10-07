@@ -68,8 +68,9 @@ def test_visual_mode_requires_valid_canonical_geometry_without_manufacturing_app
 def test_bounds_pose_comparison_only_runs_in_export_regression(tmp_path,monkeypatch):
     from test_fixed_assembly_exports import _files
     mesh,manifest,_=_files(tmp_path)
-    monkeypatch.setattr(exporter,'mesh_solid',lambda *a,**k:pytest.fail('no solid check'))
-    exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':mesh})
+    with monkeypatch.context() as verification:
+        verification.setattr(exporter,'mesh_solid',lambda *a,**k:pytest.fail('no solid check'))
+        exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':mesh})
     assert not manifest['failures']
     transform=np.asarray(manifest['parts'][0]['assembly_transform']).copy();transform[0,3]+=.5
     exporter._write_mesh_glb({'part':mesh},{'part':transform},tmp_path/'scene.glb',manifest['mm_per_unit'])
@@ -78,7 +79,9 @@ def test_bounds_pose_comparison_only_runs_in_export_regression(tmp_path,monkeypa
     assert manifest['placement_comparison']=='NOT_EXECUTED'
     assert all('placement_deviation_mm' not in row for row in manifest['export_consistency'])
     exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':mesh},compare_placement=True)
-    assert any(f['code']=='EXPORTED_FILE_PLACEMENT_OR_SCALE_MISMATCH' for f in manifest['failures'])
+    assert any(f['code']=='EXPORTED_FILE_PLACEMENT_OR_SCALE_MISMATCH'
+               for f in manifest['display_failures'])
+    assert not manifest['failures'] and manifest['manufacturing_status']=='PASS'
 
 
 def test_triangle_encoding_difference_is_regression_only(tmp_path):
@@ -110,22 +113,23 @@ def test_basic_export_errors_remain_failures(tmp_path,defect):
     else:
         (tmp_path/'scene.glb').write_bytes(b'not a glb file')
     exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':mesh})
-    assert any(f['code']=='EXPORTED_FILE_INVALID' and f['failure_kind']=='export' for f in manifest['failures'])
+    failures = manifest['failures'] if defect=='missing_file' else manifest['display_failures']
+    assert any(f['code']=='EXPORTED_FILE_INVALID' and f['failure_kind']=='export' for f in failures)
+    assert manifest['manufacturing_status']==('FAIL' if defect=='missing_file' else 'PASS')
+    if defect!='missing_file':
+        assert not manifest['failures'] and manifest['display_status']=='FAIL'
 
 
 def test_visual_export_only_evaluates_final_parts_not_bodies_or_interface_checks(tmp_path,monkeypatch):
-    from test_fixed_assembly_exports import _files
     from test_fixed_assembly import build,connect
-    fixture=tmp_path/'fixture';fixture.mkdir()
-    mesh,_,_=_files(fixture)
     assembly=build();connect(assembly)
     evaluated=[]
+    canonical_evaluated=exporter.evaluated
     def display(shape,path,unit,**kw):
-        assert kw=={'keep_materials':True,'validate_geometry':False}
+        assert kw['keep_materials'] is True and kw['validate_geometry'] is False
         evaluated.append(path.name)
-        return mesh.copy(),None,{'display_complete':True,'omitted_mesh_nodes':[]}
+        return canonical_evaluated(shape,path,unit,**kw)
     monkeypatch.setattr(exporter,'evaluated',display)
-    monkeypatch.setattr(exporter,'mesh_solid',lambda *a,**k:pytest.fail('no geometric check'))
     monkeypatch.setattr(exporter,'_serialization_triangles',lambda *a:pytest.fail('regression comparison in production'))
     result=exporter.export_assembly(assembly,tmp_path/'output',source_sha256='test',
         expected={**CONFIG,'validation_mode':'visual_only'})
@@ -153,9 +157,13 @@ def test_print_stl_preserves_small_faces_after_placement(tmp_path,monkeypatch):
     mesh.face_attributes['material']=np.zeros(len(mesh.faces),dtype=int)
     assembly=FixedAssembly(root_id='part',mm_per_unit=1.)
     assembly.add_part('part',Cube(1),components=('body',))
-    def evaluated(*a,**kw):
+    def evaluated(shape,path,unit,**kw):
         assert not kw['validate_geometry']
-        return mesh.copy(),None,dict(display_complete=True,omitted_mesh_nodes=[],mesh_face_groups=[[0,4]])
+        display=exporter._display_export({'part':mesh},{'part':np.eye(4)},path,unit)
+        return mesh.copy(),None,dict(manufacturing_status='PASS',manufacturing_geometry_valid=True,
+            display_complete=display['status']=='PASS',display_status=display['status'],
+            display_export=display,display_failures=[] if display['status']=='PASS' else [display['diagnostic']],
+            omitted_mesh_nodes=[],mesh_face_groups=[[0,4]])
     monkeypatch.setattr(exporter,'evaluated',evaluated)
     report=exporter.export_assembly(assembly,tmp_path/'output',source_sha256='test',
         expected=dict(mm_per_unit=1.,fit_offset_mm=.2,final_size_mm=[1.,1.,55.5000005],
@@ -164,8 +172,11 @@ def test_print_stl_preserves_small_faces_after_placement(tmp_path,monkeypatch):
     # it: recentering a 55.5 mm body does not make the 0.5 um feature representable.
     # A surviving STL must not cause the incomplete output set to report PASS.
     assert report['export_status']=='FAIL'
+    assert report['manufacturing_status']=='PASS' and report['display_status']=='FAIL'
+    assert report['status']=='NOT_EVALUATED' and not report['failures']
     assert any(f.get('diagnostic',{}).get('code')=='TARGET_PRECISION_UNREPRESENTABLE' or
-               'TARGET_PRECISION_UNREPRESENTABLE:' in f.get('reason','') for f in report['failures'])
+               f.get('code')=='TARGET_PRECISION_UNREPRESENTABLE' or
+               'TARGET_PRECISION_UNREPRESENTABLE:' in f.get('reason','') for f in report['display_failures'])
     path=tmp_path/'output'/report['parts'][0]['stl']
     assert path.read_bytes().startswith(b'solid ')
     loaded=trimesh.load_mesh(path,process=False)

@@ -36,7 +36,8 @@ def solid_mesh(solid):
     return trimesh.Trimesh(np.asarray(raw.vert_properties)[:, :3], np.asarray(raw.tri_verts), process=False)
 
 
-def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geometry=True):
+def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geometry=True,
+              _display_cache=None, _write_display=True):
     """Consume canonical Mesh64 directly, unioning only this declared part.
 
     Directed inner cavity shells stay in the same Manifold. This function never
@@ -45,7 +46,7 @@ def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geomet
     """
     import manifold3d as mf
     from .mesh64 import evaluate_shape, _nearby_frame
-    from .mesh_validity import checked_solid, target_mesh, validate_mesh
+    from .mesh_validity import checked_solid, validate_mesh
     evaluation = evaluate_shape(shape, mm_per_unit=mm_per_unit)
     pieces = [p for p in evaluation.pieces if not p.solid.is_empty()]
     if not pieces:
@@ -58,79 +59,148 @@ def evaluated(shape, path, mm_per_unit, *, keep_materials=False, validate_geomet
     merged = mf.Manifold.batch_boolean(inputs, mf.OpType.Add)
     checked_solid(merged, node_path=str(shape.label or 'part'), operation='WITHIN_PART_UNION',
                   input_count=len(inputs))
-    # Convert in a local physical-unit frame; translating the object never
-    # increases this precision budget.
+    # Manufacturing consumes the Mesh64 result directly. A display conversion
+    # may simplify/quantize its own copy, but cannot change this canonical mesh.
     linear = anchor.copy(); linear[:3, 3] = 0.0
     merged = merged.transform(np.ascontiguousarray(linear[:3], dtype=np.float64))
     merged = merged.scale((mm_per_unit,)*3)
-    mesh, recenter, conversion = target_mesh(merged, mm_per_unit=1.0,
-                                            node_path=str(shape.label or 'part'), operation='WITHIN_PART_UNION',
-                                            input_count=len(inputs), operation_nodes=[{key:r[key] for key in
-            ('node_path','operation','input_count') if key in r}
-            for r in evaluation.records if r.get('input_count') is not None])
+    raw = merged.to_mesh64()
+    import trimesh
+    vertices = np.asarray(raw.vert_properties, dtype=np.float64)[:, :3] + anchor[:3, 3]*mm_per_unit
+    mesh = trimesh.Trimesh(vertices,
+                          np.asarray(raw.tri_verts, dtype=np.int64), process=False)
+    mesh.face_attributes['source_face_id'] = np.asarray(raw.face_id, dtype=np.uint64)
     mesh.face_attributes['material'] = mesh.face_attributes['source_face_id'].astype(np.int64)
     mesh.metadata['materials'] = evaluation.materials
-    mesh.vertices += recenter[:3, 3]+anchor[:3, 3]*mm_per_unit
     canonical, metrics = validate_mesh(mesh.vertices, mesh.faces,
         face_ids=mesh.face_attributes['material'], stage='canonical_geometry')
     # Serialization only instantiates this exact mesh, without re-evaluating CSG.
-    _write_mesh_glb({str(shape.label or 'part'):mesh},
-                    {str(shape.label or 'part'):np.eye(4)}, Path(path), mm_per_unit)
+    display = (_display_export({str(shape.label or 'part'):mesh},
+        {str(shape.label or 'part'):np.eye(4)}, Path(path), mm_per_unit, _display_cache)
+        if _write_display else dict(status='NOT_EXECUTED', file=None,
+            reason='Internal canonical measurement does not require a display file'))
     normalizations = [dict(r) for r in evaluation.records if r.get('method') in
         ('planar_polygon_retriangulation', 'exact_zero_length_edge_cleanup', 'local_boundary_weld')]
     diagnostics = dict(input_shells=len(pieces), exact_duplicate_vertices_merged=0,
         proximity_welding=any(r.get('method') == 'local_boundary_weld' and r.get('status') == 'APPLIED'
                             for r in normalizations), mesh_face_groups=[[0,len(mesh.faces)]],
-        display_complete=True, omitted_mesh_nodes=[],
+        manufacturing_status='PASS', manufacturing_geometry_valid=True,
+        display_status=display['status'], display_export=display,
+        display_failures=[display['diagnostic']] if display['status']=='FAIL' else [],
+        display_complete=display['status']=='PASS', omitted_mesh_nodes=[],
         internal_evaluation=dict(status='PASS', method='recursive_manifold_mesh64',
             precision='float64', records=evaluation.records,
-            self_intersection='NOT_EVALUATED'), target_precision=conversion,
-        canonical_mesh=metrics, mesh_normalizations=normalizations+[conversion],
-        file_validation=dict(status='PASS', stage='file_readback', file=str(path)),
+            self_intersection='NOT_EVALUATED'),
+        target_precision=display.get('target_precision', display.get('diagnostic')),
+        canonical_mesh=metrics, mesh_normalizations=normalizations,
+        file_validation=dict(status=display['status'], stage='file_readback',
+                             file=display['file'], output_role='display'),
         geometry_validation='PASS' if validate_geometry else 'NOT_EVALUATED')
     return mesh, canonical if validate_geometry else None, diagnostics
 
 
-def _write_mesh_glb(meshes, transforms, path, mm_per_unit):
-    """Instantiate canonical local meshes and pair them with float64 transforms."""
+def _write_mesh_glb(meshes, transforms, path, mm_per_unit, *, display_cache=None):
+    """Convert display copies only; canonical manufacturing meshes stay intact."""
     import bpy
     import mathutils
     import trimesh
     from .export_glb import _instantiate_mesh, _patch_glb_transforms, _verify_glb_meshes
-    from .mesh_validity import validate_mesh, MeshEvaluationError
+    from .mesh_validity import target_mesh, MeshEvaluationError
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.wm.read_factory_settings(use_empty=True)
-    matrices, expected = {}, {}
+    matrices, expected, conversions = {}, {}, {}
     for name, mesh in meshes.items():
-        coordinates = np.asarray(mesh.vertices, dtype=np.float64)/mm_per_unit
-        center = coordinates.min(axis=0)+(coordinates.max(axis=0)-coordinates.min(axis=0))/2
-        local = coordinates-center
-        rounded = local.astype(np.float32).astype(np.float64)
-        try:
-            _, metrics = validate_mesh(rounded, mesh.faces, stage='target_precision', part_id=name)
-        except ValueError as error:
-            raise MeshEvaluationError('TARGET_PRECISION_UNREPRESENTABLE', str(error),
-                stage='target_precision', failure_kind='target_precision', part_id=name,
-                metrics=getattr(error, 'diagnostic', {}).get('metrics'),
-                attempted_actions=['local_origin_float32_serialization']) from error
-        local_mesh = trimesh.Trimesh(rounded, mesh.faces, process=False)
+        material_ids = np.asarray(mesh.face_attributes['material'], dtype=np.uint64)
+        digest = hashlib.sha256()
+        for values in (mesh.vertices, mesh.faces, material_ids, np.asarray([mm_per_unit])):
+            digest.update(np.ascontiguousarray(values).tobytes())
+        key = digest.hexdigest()
+        prepared = display_cache.get(key) if display_cache is not None else None
+        if isinstance(prepared, dict):
+            diagnostic = dict(prepared)
+            code, message = diagnostic.pop('code'), diagnostic.pop('message')
+            diagnostic.update(part_id=name, node_path=name, cached_conversion=True)
+            raise MeshEvaluationError(code, message, **diagnostic)
+        if prepared is None:
+            display_input = mesh.copy()
+            display_input.vertices = np.asarray(mesh.vertices, dtype=np.float64)/mm_per_unit
+            display_solid = mesh_solid(display_input, face_ids=material_ids)
+            try:
+                prepared = target_mesh(display_solid, mm_per_unit=mm_per_unit,
+                    part_id=name, node_path=name, output_role='display')
+            except MeshEvaluationError as error:
+                if display_cache is not None:
+                    display_cache[key] = dict(error.diagnostic)
+                raise
+            if display_cache is not None:
+                display_cache[key] = prepared
+        local_mesh, recenter, conversion = prepared
+        local_mesh = local_mesh.copy()
+        conversions[name] = conversion
         local_mesh.metadata['materials'] = mesh.metadata['materials']
-        local_mesh.face_attributes['material'] = mesh.face_attributes['material']
+        local_mesh.face_attributes['material'] = local_mesh.face_attributes['source_face_id'].astype(np.int64)
         parent = bpy.data.objects.new(name, None)
         parent['adsl_print_part_id'] = name
         bpy.context.collection.objects.link(parent)
         matrices[name] = np.asarray(transforms[name], dtype=np.float64)
         parent.matrix_world = mathutils.Matrix(matrices[name].tolist())
-        recenter = np.eye(4)
-        recenter[:3, 3] = center
         obj = _instantiate_mesh(local_mesh, name+'_mesh', parent, recenter)
         matrices[obj.name] = recenter
-        expected[obj.name] = len(mesh.faces)
+        expected[obj.name] = len(local_mesh.faces)
     bpy.ops.export_scene.gltf(filepath=str(path), export_format='GLB', export_yup=True,
         export_apply=False, export_extras=True, export_draco_mesh_compression_enable=False)
     _patch_glb_transforms(path, matrices)
     _verify_glb_meshes(path, expected)
+    return conversions
+
+
+def _display_export(meshes, transforms, path, mm_per_unit, display_cache=None):
+    """Record display failure without discarding valid manufacturing geometry."""
+    try:
+        conversions = (_write_mesh_glb(meshes, transforms, path, mm_per_unit,
+                                     display_cache=display_cache) if display_cache is not None
+                       else _write_mesh_glb(meshes, transforms, path, mm_per_unit))
+        return dict(status='PASS', file=Path(path).name, target_precision=conversions,
+                    file_validation='PASS')
+    except (ValueError, RuntimeError, OSError, ImportError) as error:
+        diagnostic = dict(getattr(error, 'diagnostic', {}) or dict(
+            code='DISPLAY_EXPORT_FAILED', stage='display_export', failure_kind='export', message=str(error)))
+        diagnostic.update(output_role='display', file=Path(path).name)
+        Path(path).unlink(missing_ok=True)
+        return dict(status='FAIL', file=None, diagnostic=diagnostic, file_validation='FAIL')
+
+
+def _display_failure(manifest, failure, output=None):
+    """Display diagnostics never certify or invalidate manufacturing files."""
+    failure = dict(failure, output_role='display')
+    rows = manifest.setdefault('display_failures', [])
+    if failure not in rows:
+        rows.append(failure)
+    manifest['display_status'] = 'FAIL'
+    for part in manifest.get('parts', []):
+        if part.get('glb') == failure.get('file'):
+            part.update(glb=None, display_status='FAIL', display_complete=False)
+            part.setdefault('display_failures', []).append(failure)
+            part['display_export'] = dict(part.get('display_export', {}),
+                status='FAIL', file=None, readback_failure=failure)
+            if 'diagnostic' in manifest:
+                manifest['diagnostic']['display_available'] = False
+    for key in ('scene_glb', 'exploded_glb'):
+        if manifest.get(key) == failure.get('file'):
+            manifest[key] = None
+            manifest.setdefault('display_exports', {})[key] = dict(
+                manifest.get('display_exports', {}).get(key, {}),
+                status='FAIL', file=None, readback_failure=failure)
+    if failure.get('file') == 'scene.glb' and 'diagnostic' in manifest:
+        manifest['diagnostic']['display_available'] = False
+    if output is not None and failure.get('file'):
+        path = (Path(output)/failure['file']).resolve()
+        if path.parent == Path(output).resolve() and path.suffix == '.glb':
+            try:
+                path.unlink(missing_ok=True)
+            except OSError as error:
+                failure['cleanup_error'] = str(error)[:240]
 
 
 def _serialization_triangles(mesh):
@@ -166,12 +236,22 @@ def _verify_written_exports(output, manifest, solids, *, surface_meshes=None,
     manifest['triangle_comparison'] = 'REGRESSION_ONLY' if compare_triangles else 'NOT_EXECUTED'
     manifest['placement_comparison'] = 'REGRESSION_ONLY' if compare_placement else 'NOT_EXECUTED'
     files = [(p['stl'], {name: np.asarray(p['print_transform_mm'])}, False) for name,p in parts.items()]
-    files += [(p['glb'], {name: np.eye(4)}, True) for name,p in parts.items()]
+    for name, part in parts.items():
+        if part.get('glb'):
+            files.append((part['glb'], {name:np.eye(4)}, True))
+        else:
+            checks.append(dict(file=f'{name}.glb', part_id=name, status='NOT_EVALUATED',
+                               output_role='display', reason='Display conversion unavailable'))
     for filename, field in [('scene.glb','assembly_transform'), ('exploded.glb','exploded_transform')]:
         transforms = {name:np.array(p[field], dtype=float) for name,p in parts.items()}
         for transform in transforms.values():
             transform[:3,3] *= unit
-        files.append((filename, transforms, True))
+        manifest_key = 'scene_glb' if filename == 'scene.glb' else 'exploded_glb'
+        if manifest.get(manifest_key, filename):
+            files.append((filename, transforms, True))
+        else:
+            checks.append(dict(file=filename, status='NOT_EVALUATED', output_role='display',
+                               reason='Display conversion unavailable'))
     for filename, transforms, glb in files:
         try:
             grouped = {name:[] for name in transforms}
@@ -201,6 +281,7 @@ def _verify_written_exports(output, manifest, solids, *, surface_meshes=None,
                 actual, file_metrics = validate_mesh(mesh.vertices, mesh.faces,
                     stage='file_readback', part_id=name, file=filename)
                 checks.append(dict(file=filename, part_id=name, status='PASS',
+                    output_role='display' if glb else 'manufacturing',
                     scope='mesh_validity', metrics=file_metrics,
                     self_intersection='NOT_EVALUATED'))
                 if surface_meshes is not None:
@@ -223,9 +304,10 @@ def _verify_written_exports(output, manifest, solids, *, surface_meshes=None,
                             scope='placement_regression_only', local_bounds_deviation_mm=bounds_error,
                             placement_deviation_mm=pose_error))
                         if not passed:
-                            manifest['failures'].append(dict(code='EXPORTED_FILE_PLACEMENT_OR_SCALE_MISMATCH',
+                            failure = dict(code='EXPORTED_FILE_PLACEMENT_OR_SCALE_MISMATCH',
                                 file=filename, part_id=name, local_bounds_deviation_mm=bounds_error,
-                                placement_deviation_mm=pose_error))
+                                placement_deviation_mm=pose_error)
+                            _display_failure(manifest, failure, output) if glb else manifest['failures'].append(failure)
                     if not compare_triangles:
                         if not compare_placement:
                             checks.append(dict(file=filename, part_id=name, status='PASS',
@@ -247,8 +329,9 @@ def _verify_written_exports(output, manifest, solids, *, surface_meshes=None,
                         triangle_coordinate_deviation_mm=deviation, scope='serialization_only',
                         actual_encoding=actual_encoding, reference_encoding=reference_encoding))
                     if not passed:
-                        manifest['failures'].append(dict(code='EXPORTED_FILE_GEOMETRY_MISMATCH',
-                            file=filename, part_id=name, triangle_coordinate_deviation_mm=deviation))
+                        failure = dict(code='EXPORTED_FILE_GEOMETRY_MISMATCH',
+                            file=filename, part_id=name, triangle_coordinate_deviation_mm=deviation)
+                        _display_failure(manifest, failure, output) if glb else manifest['failures'].append(failure)
                     continue
                 # Exact duplicate vertices arise at STL/material seams, not repair.
                 vertices, inverse = np.unique(mesh.vertices, axis=0, return_inverse=True)
@@ -259,12 +342,29 @@ def _verify_written_exports(output, manifest, solids, *, surface_meshes=None,
                 checks.append(dict(file=filename, part_id=name, status='PASS' if passed else 'FAIL',
                                    symmetric_difference_mm3=difference))
                 if not passed:
-                    manifest['failures'].append(dict(code='EXPORTED_FILE_GEOMETRY_MISMATCH',
-                        file=filename, part_id=name, symmetric_difference_mm3=difference))
+                    failure = dict(code='EXPORTED_FILE_GEOMETRY_MISMATCH',
+                        file=filename, part_id=name, symmetric_difference_mm3=difference)
+                    _display_failure(manifest, failure, output) if glb else manifest['failures'].append(failure)
         except (ValueError, RuntimeError, OSError, KeyError) as error:
-            checks.append(dict(file=filename, status='FAIL', reason=str(error)[:300]))
-            manifest['failures'].append(dict(code='EXPORTED_FILE_INVALID', file=filename,
-                stage='read_written_exports', failure_kind='export', reason=str(error)[:300]))
+            checks.append(dict(file=filename, status='FAIL',
+                output_role='display' if glb else 'manufacturing', reason=str(error)[:300]))
+            failure = dict(code='EXPORTED_FILE_INVALID', file=filename,
+                stage='read_written_exports', failure_kind='export', reason=str(error)[:300])
+            _display_failure(manifest, failure, output) if glb else manifest['failures'].append(failure)
+    required = {p['id'] for p in manifest.get('part_declarations', manifest['parts'])}
+    printed = {row['part_id'] for row in checks if row.get('output_role') == 'manufacturing'
+               and row.get('scope') == 'mesh_validity' and row['status'] == 'PASS'}
+    stl_files = {p['stl'] for p in parts.values()}
+    stl_failures = any(row['status'] == 'FAIL' and row.get('file') in stl_files for row in checks)
+    manifest['manufacturing_geometry_valid'] = required == set(parts) and all(
+        p.get('manufacturing_geometry_valid', True) for p in parts.values())
+    manifest['manufacturing_status'] = 'PASS' if (
+        manifest['manufacturing_geometry_valid'] and printed == required and not stl_failures) else 'FAIL'
+    manifest['manufacturing_file_validation'] = [row for row in checks
+        if row.get('output_role') == 'manufacturing']
+    for name, part in parts.items():
+        part['manufacturing_status'] = 'PASS' if (name in printed and not any(
+            row['status']=='FAIL' and row.get('file')==part['stl'] for row in checks)) else 'FAIL'
 
 
 def _write(path, value):
@@ -273,7 +373,7 @@ def _write(path, value):
     temporary.replace(path)
 
 
-def _diagnostic_view(assembly, output, meshes, manifest):
+def _diagnostic_view(assembly, output, meshes, manifest, display_cache=None):
     """Place saved candidate meshes without CSG, repair or certification."""
     import trimesh
     scene = trimesh.Scene()
@@ -286,7 +386,8 @@ def _diagnostic_view(assembly, output, meshes, manifest):
             path = output/f'{name}.glb'
             if name in meshes:
                 path = output/f'{name}.diagnostic.glb'
-                _write_mesh_glb({name:meshes[name]}, {name:np.eye(4)}, path, assembly.mm_per_unit)
+                _write_mesh_glb({name:meshes[name]}, {name:np.eye(4)}, path, assembly.mm_per_unit,
+                                display_cache=display_cache)
             saved = trimesh.load(path, force='scene', process=False)
             placement = z_to_y @ assembly.transforms[name] @ np.linalg.inv(z_to_y)
             omitted = []
@@ -353,7 +454,9 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
         connections=[{key:connection[key] for key in
             ('id','tab_part','slot_part','tab_port','slot_port','parameter_name',
              'parameters','tab_frame','slot_frame')} for connection in assembly.connections],
-        status='RUNNING', verification_scope='interface_geometry_only',
+        status='RUNNING', manufacturing_status='RUNNING', manufacturing_geometry_valid=None,
+        display_status='RUNNING', display_failures=[], scene_glb=None, exploded_glb=None,
+        verification_scope='interface_geometry_only',
         unverified=['insertion_path', 'press_fit_retention', 'load_bearing', 'printability'],
         physical_checkers={name: 'NOT_EXECUTED' for name in ('topology', 'standing', 'overhang', 'fea')},
         backend={'boolean':'Manifold Mesh64', 'within_part_union':'Manifold Mesh64',
@@ -397,7 +500,7 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
         manifest['plan_changes'] = dict(status='CHANGED' if codes else 'UNCHANGED', codes=codes,
             parts=parts_delta, connections=links_delta, connection_order_changed=order_changed)
         manifest['initial_plan_sha256'] = hashlib.sha256(json.dumps(plan, sort_keys=True).encode()).hexdigest()
-    meshes, solids, bodies = {}, {}, {}
+    meshes, solids, bodies, display_cache = {}, {}, {}, {}
     # Float32 Blender coordinates: a fixed representation-error bound, not fit.
     for name, part in assembly.parts.items():
         manifest['stage'] = f'part:{name}'
@@ -406,7 +509,7 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
         try:
             if visual_only:
                 mesh, _, diagnostics = evaluated(part, output/f'{name}.glb', assembly.mm_per_unit,
-                    keep_materials=True, validate_geometry=False)
+                    keep_materials=True, validate_geometry=False, _display_cache=display_cache)
                 meshes[name] = mesh
                 part_stage = 'write_print_mesh'
                 print_transform = assembly.print_rotation(name)
@@ -416,15 +519,16 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
                 # valid faces can collapse. Preserve coordinates in ASCII.
                 printed.export(output/f'{name}.stl', file_type='stl_ascii')
                 manifest['parts'].append(dict(id=name, components=assembly.components[name],
-                    stl=f'{name}.stl', glb=f'{name}.glb', assembly_transform=assembly.transforms[name].tolist(),
+                    stl=f'{name}.stl', glb=diagnostics['display_export']['file'],
+                    assembly_transform=assembly.transforms[name].tolist(),
                     print_transform_mm=print_transform.tolist(), **diagnostics))
-                if not diagnostics['display_complete']:
-                    manifest['failures'].append(dict(code='DISPLAY_INCOMPLETE', part_id=name,
-                        stage='evaluate_part', failure_kind='candidate_geometry',
-                        omitted_mesh_nodes=diagnostics['omitted_mesh_nodes']))
+                for failure in diagnostics['display_failures']:
+                    _display_failure(manifest, dict(failure, part_id=name))
                 continue
-            mesh, solid, diagnostics = evaluated(part, output/f'{name}.glb', assembly.mm_per_unit, keep_materials=True)
-            _, body, _ = evaluated(assembly.bodies[name], output/f'{name}.body.glb', assembly.mm_per_unit)
+            mesh, solid, diagnostics = evaluated(part, output/f'{name}.glb', assembly.mm_per_unit,
+                keep_materials=True, _display_cache=display_cache)
+            _, body, _ = evaluated(assembly.bodies[name], output/f'{name}.body.glb',
+                                   assembly.mm_per_unit, _write_display=False)
             meshes[name], solids[name], bodies[name] = mesh, solid, body
             components = sum(float(component.volume()) > 0 for component in solid.decompose())
             require(components == 1, 'DISCONNECTED_PRINT_PART', part_id=name, components=components)
@@ -436,10 +540,13 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
             stl = output/f'{name}.stl'
             printed.export(stl, file_type='stl_ascii')
             manifest['parts'].append(dict(id=name, components=assembly.components[name], stl=stl.name,
-                glb=f'{name}.glb', assembly_transform=assembly.transforms[name].tolist(),
+                glb=diagnostics['display_export']['file'],
+                assembly_transform=assembly.transforms[name].tolist(),
                 print_transform_mm=print_transform.tolist(), volume_mm3=float(mesh.volume),
                 bounds_mm=mesh.bounds.tolist(), closed=bool(mesh.is_watertight), connected_components=components,
                 zero_area_faces=int(np.count_nonzero(mesh.area_faces <= 0)), **diagnostics))
+            for failure in diagnostics['display_failures']:
+                _display_failure(manifest, dict(failure, part_id=name))
         except (ValueError, RuntimeError, OSError) as error:
             from .mesh_validity import MeshEvaluationError
             if isinstance(error, MeshEvaluationError):
@@ -479,7 +586,8 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
             try:
                 body = bodies.get(name)
                 if body is None:
-                    _, body, _ = evaluated(assembly.bodies[name], output/f'{name}.body.glb', assembly.mm_per_unit)
+                    _, body, _ = evaluated(assembly.bodies[name], output/f'{name}.body.glb',
+                                          assembly.mm_per_unit, _write_display=False)
                 reference_mesh = solid_mesh(body)
                 path = output/f'{name}.body.npz'
                 np.savez(path, vertices=np.asarray(reference_mesh.vertices, dtype=np.float64),
@@ -491,7 +599,7 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
             manifest['partition_reference_inputs'].append(row)
     # A failed part must not prevent visual feedback about available geometry.
     try:
-        _diagnostic_view(assembly, output, meshes, manifest)
+        _diagnostic_view(assembly, output, meshes, manifest, display_cache)
     except (ValueError, RuntimeError, OSError, KeyError) as error:
         manifest['diagnostic'] = {'diagnostic_only':True, 'display_available':False,
                                   'glb':None, 'reason':str(error)[:240]}
@@ -513,7 +621,7 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
             manifest['stage'] = 'write_and_verify_final_meshes'
             _write(target, manifest)
             try:
-                _write_final_meshes(assembly, output, manifest, meshes, extent)
+                _write_final_meshes(assembly, output, manifest, meshes, extent, display_cache)
                 _verify_written_exports(output, manifest, {}, surface_meshes=meshes)
             except (ValueError, RuntimeError, OSError, KeyError) as error:
                 from .mesh_validity import MeshEvaluationError
@@ -527,14 +635,26 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
                 else:
                     manifest['failures'].append(dict(code='EXPORTED_FILE_INVALID',
                         stage='write_final_meshes', failure_kind='export', reason=str(error)[:300]))
-        manifest.update(status='NOT_EVALUATED', export_status='FAIL' if manifest['failures'] else 'PASS',
+        manifest.setdefault('manufacturing_file_validation', [])
+        if manifest['manufacturing_status'] == 'RUNNING':
+            manifest['manufacturing_status'] = 'FAIL'
+            manifest['manufacturing_geometry_valid'] = False
+        if manifest['display_status'] == 'RUNNING':
+            manifest['display_status'] = 'FAIL'
+        manifest.update(status='NOT_EVALUATED', export_status='PASS' if (
+            not manifest['failures'] and manifest['manufacturing_status']=='PASS'
+            and manifest['display_status']=='PASS') else 'FAIL',
             stage='complete', elapsed_seconds=time.monotonic()-start)
         manifest['files_sha256']={p.name:hashlib.sha256(p.read_bytes()).hexdigest()
             for p in output.iterdir() if p.suffix in ('.glb','.stl')}
         _write(target,manifest)
         return manifest
     if len(solids) != len(assembly.parts):
-        manifest.update(status='FAIL', elapsed_seconds=time.monotonic()-start)
+        manifest.update(status='FAIL', export_status='FAIL', manufacturing_status='FAIL',
+                        manufacturing_geometry_valid=False, display_status='FAIL',
+                        elapsed_seconds=time.monotonic()-start)
+        manifest['files_sha256'] = {p.name:hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in output.iterdir() if p.suffix in ('.glb','.stl')}
         _write(target, manifest)
         return manifest
     max_coord = max(1.0, *(float(np.max(np.abs(m.vertices))) for m in meshes.values()))
@@ -548,8 +668,10 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
         cid, tab_id, slot_id = connection['id'], connection['tab_part'], connection['slot_part']
         manifest['stage'] = f'interface:{cid}'
         _write(target, manifest)
-        _, tab, _ = evaluated(connection['tab_solid'], output/f'{cid}.tab.glb', assembly.mm_per_unit)
-        _, cutter, _ = evaluated(connection['slot_cutter'], output/f'{cid}.cutter.glb', assembly.mm_per_unit)
+        _, tab, _ = evaluated(connection['tab_solid'], output/f'{cid}.tab.glb',
+                              assembly.mm_per_unit, _write_display=False)
+        _, cutter, _ = evaluated(connection['slot_cutter'], output/f'{cid}.cutter.glb',
+                                 assembly.mm_per_unit, _write_display=False)
         added = (tab - bodies[tab_id]).volume()
         removed = (bodies[slot_id] ^ cutter).volume()
         attached = (tab ^ bodies[tab_id]).volume()
@@ -615,7 +737,7 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
     manifest['stage'] = 'write_and_verify_final_meshes'
     _write(target, manifest)
     try:
-        _write_final_meshes(assembly, output, manifest, meshes, extent)
+        _write_final_meshes(assembly, output, manifest, meshes, extent, display_cache)
         _verify_written_exports(output, manifest, solids)
     except (ValueError, RuntimeError, OSError, KeyError) as error:
         from .mesh_validity import MeshEvaluationError
@@ -631,19 +753,44 @@ def export_assembly(assembly: FixedAssembly, output: Path, *, source_sha256: str
                 stage='write_final_meshes', failure_kind='export', reason=str(error)[:300]))
     manifest.update(status='PASS' if not manifest['failures'] else 'FAIL', stage='complete',
                     elapsed_seconds=time.monotonic()-start, assembled_size_mm=extent.tolist())
+    if manifest['manufacturing_status'] == 'RUNNING':
+        manifest['manufacturing_status'] = 'FAIL'
+    manifest['export_status'] = 'PASS' if (manifest['status']=='PASS'
+        and manifest['manufacturing_status']=='PASS' and manifest['display_status']=='PASS') else 'FAIL'
     manifest['files_sha256'] = {p.name:hashlib.sha256(p.read_bytes()).hexdigest()
         for p in output.iterdir() if p.suffix in ('.glb','.stl')}
     _write(target, manifest)
     return manifest
 
 
-def _write_final_meshes(assembly, output, manifest, meshes, extent):
+def _write_final_meshes(assembly, output, manifest, meshes, extent, display_cache=None):
     """Shared serialization of this candidate's meshes, not another CSG pass."""
     exploded = {name:np.array(matrix, copy=True) for name,matrix in assembly.transforms.items()}
+    manifest['display_failures'] = []
+    manifest['display_status'] = 'PASS'
+    manifest['canonical_scene_consistency'] = dict(status='FAIL' if any(
+        failure['code']=='EXPORTED_INTERFACE_GEOMETRY_MISMATCH'
+        for failure in manifest['failures']) else 'PASS',
+        method='canonical_mesh64_parts_and_assembly_transforms',
+        source='manufacturing_geometry', independent_print_parts=True,
+        part_ids=list(meshes), assembled_size_mm=np.asarray(extent).tolist(),
+        display_mesh_used=False, self_intersection='NOT_EVALUATED')
     for i, part in enumerate(manifest['parts']):
         name = part['id']
         exploded[name][0,3] += i*float(np.max(extent))*1.25/assembly.mm_per_unit
         part['exploded_transform'] = exploded[name].tolist()
-        _write_mesh_glb({name:meshes[name]}, {name:np.eye(4)}, output/part['glb'], assembly.mm_per_unit)
-    _write_mesh_glb(meshes, assembly.transforms, output/'scene.glb', assembly.mm_per_unit)
-    _write_mesh_glb(meshes, exploded, output/'exploded.glb', assembly.mm_per_unit)
+        display = _display_export({name:meshes[name]}, {name:np.eye(4)},
+                                  output/f'{name}.glb', assembly.mm_per_unit, display_cache)
+        part.update(glb=display['file'], display_status=display['status'],
+                    display_complete=display['status']=='PASS', display_export=display,
+                    target_precision=display.get('target_precision', display.get('diagnostic')),
+                    display_failures=[] if display['status']=='PASS' else [display['diagnostic']])
+        if display['status'] != 'PASS':
+            _display_failure(manifest, dict(display['diagnostic'], part_id=name))
+    for key, transforms in [('scene_glb', assembly.transforms), ('exploded_glb', exploded)]:
+        filename = 'scene.glb' if key == 'scene_glb' else 'exploded.glb'
+        display = _display_export(meshes, transforms, output/filename, assembly.mm_per_unit, display_cache)
+        manifest[key] = display['file']
+        manifest.setdefault('display_exports', {})[key] = display
+        if display['status'] != 'PASS':
+            _display_failure(manifest, display['diagnostic'])

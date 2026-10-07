@@ -24,6 +24,43 @@ def measure_part(mesh, transform, config):
                 regions=regions,print_transform_mm=np.asarray(transform).tolist()),colored
 
 
+def _display_overlay(mesh, path):
+    """Optional float32 visualization; never gate a float64 measurement."""
+    import trimesh
+    from adsl.core.export.mesh_validity import mesh_metrics
+    try:
+        mesh.export(path)
+        saved = trimesh.load(path, force='scene', process=False)
+        values = []
+        for name in saved.graph.nodes_geometry:
+            transform, geometry = saved.graph[name]
+            item = saved.geometry[geometry].copy()
+            item.apply_transform(np.asarray(transform, dtype=np.float64))
+            values.append(item)
+        if not values:
+            raise ValueError('empty saved overlay')
+        actual = trimesh.util.concatenate(values)
+        metrics = mesh_metrics(actual.vertices, actual.faces)
+        if not metrics['valid']:
+            return dict(status='FAIL', file=str(path), metrics=metrics,
+                        reason='saved display overlay mesh invalid; material measurement unchanged')
+        return dict(status='PASS', file=str(path), metrics=metrics)
+    except (ValueError, RuntimeError, OSError) as error:
+        return dict(status='FAIL', file=str(path), reason=str(error)[:240])
+
+
+def _verify_recommended_stl(path, printed):
+    """Read the actual ASCII STL and verify its mesh and exact print pose."""
+    import trimesh
+    from adsl.core.export.mesh_validity import validate_mesh
+    loaded = trimesh.load_mesh(path, process=False)
+    _, metrics = validate_mesh(loaded.vertices, loaded.faces, stage='recommended_print_readback')
+    if not np.array_equal(loaded.triangles, printed.triangles):
+        raise ValueError('recommended ASCII STL does not match the measured print mesh/pose')
+    return dict(status='PASS', stage='recommended_print_readback', precision='ASCII float64',
+                exact_triangles_match=True, metrics=metrics)
+
+
 def analyze(args,physics):
     config=physics.get('overhang',{})
     partition = config.get('partition_objective')
@@ -43,10 +80,11 @@ def analyze(args,physics):
             rows.append(dict(part_id=name,status='PASS',area_mm2=None,uncertainty={'bound_mm2':None}))
             continue
         measured,colored=measure_part(meshes[name],parts[name]['print_transform_mm'],config)
-        colored.export(args.output/f'{name}.overhang.glb')
+        overlay = _display_overlay(colored, args.output/f'{name}.overhang.glb')
         write_json(args.output/f'{name}.regions.json',measured)
         regions=[{k:v for k,v in r.items() if k!='global_face_ids'} for r in measured.pop('regions')[:3]]
-        rows.append(dict(part_id=name,status='PASS',**measured,largest_regions=regions))
+        rows.append(dict(part_id=name,status='PASS',**measured,largest_regions=regions,
+                         display_overlay=overlay))
         if partition is None and config.get('orientation_editable',False) and measured['area_mm2']>measured['uncertainty']['bound_mm2']:
             findings.append(finding(NAME,'PRINT_ORIENTATION_OPPORTUNITY',
                 f'{name}: geometric overhang remains; consider print rotation only, not assembly/shape edits.',
@@ -100,13 +138,17 @@ def partition_measurement(args, physics, report, meshes, result, area_available)
             printed.apply_transform(measured['recommended_print_transform_mm'])
             path = args.output/f'{name}.recommended.stl'
             printed.export(path, file_type='stl_ascii')
+            print_validation = _verify_recommended_stl(path, printed)
+            row['recommended_print_validation'] = print_validation
             if area_available:
                 area,colored = measure_part(meshes[name], measured['recommended_print_transform_mm'], config)
                 row['recommended_pose_area_mm2'] = area['area_mm2']
-                colored.export(args.output/f'{name}.recommended_pose.overhang.glb')
+                row['recommended_pose_display_overlay'] = _display_overlay(
+                    colored, args.output/f'{name}.recommended_pose.overhang.glb')
                 write_json(args.output/f'{name}.recommended_pose.regions.json', area)
             layouts.append(dict(part_id=name, stl=str(path.resolve()), stl_sha256=sha256_file(path),
                 mesh_sha256=sha256_file(args.output/f'{name}.solid.npz'),
+                file_validation=print_validation,
                 **{k:v for k,v in measured.items() if k != 'orientations'}))
         except (ValueError, RuntimeError, OSError) as error:
             row.update(status='INDETERMINATE', gap_voxels=None, reason=str(error)[:240])

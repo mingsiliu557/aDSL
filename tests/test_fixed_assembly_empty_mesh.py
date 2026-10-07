@@ -20,7 +20,10 @@ def _scene(monkeypatch, vertices, faces):
         xform=np.eye(4), color=(1., 1., 1.), alpha=None))
     monkeypatch.setattr(exporter, 'export_glb', lambda *args, **kwargs:
                         pytest.fail('Canonical evaluation must not recover geometry from a GLB'))
-    monkeypatch.setattr(exporter, '_write_mesh_glb', lambda *args, **kwargs:None)
+    # This fixture isolates Mesh64 evaluation; native display/file boundaries
+    # have their own tests and are deliberately stubbed here.
+    monkeypatch.setattr(exporter, '_write_mesh_glb', lambda *args, **kwargs:
+                        {'status':'PASS', 'method':'offline_display_stub'})
     return shape
 
 

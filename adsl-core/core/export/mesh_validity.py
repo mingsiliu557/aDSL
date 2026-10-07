@@ -183,10 +183,18 @@ def validate_mesh(vertices, faces, *, allow_empty=False, stage='input_geometry',
     if not len(faces):
         return mf.Manifold(), metrics
     unique, inverse = np.unique(vertices, axis=0, return_inverse=True)
+    lower, upper = unique.min(axis=0), unique.max(axis=0)
+    origin = lower + (upper-lower)/2
+    metrics.update(solid_construction_frame='bbox_center_local_float64',
+                   solid_construction_origin=origin.tolist())
     kw = {} if face_ids is None else dict(face_id=np.asarray(face_ids, dtype=np.uint64))
     try:
-        solid = mf.Manifold(mf.Mesh64(np.ascontiguousarray(unique, dtype=np.float64),
+        # Construct at local scale before restoring the existing coordinates.
+        # An eager global-coordinate Mesh64 constructor can cancel the volume
+        # of a perfectly valid small mesh translated far from the origin.
+        solid = mf.Manifold(mf.Mesh64(np.ascontiguousarray(unique-origin, dtype=np.float64),
                                      np.ascontiguousarray(inverse[faces], dtype=np.uint64), **kw))
+        solid = solid.translate(origin)
     except (ValueError, TypeError, RuntimeError) as error:
         raise MeshEvaluationError('INPUT_GEOMETRY_INVALID', str(error), stage=stage,
                                   failure_kind='input_geometry', metrics=metrics, **context) from error
@@ -230,7 +238,9 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
     quantum = float(np.spacing(np.float32(scale)))
     bound = float(16*np.finfo(np.float32).eps*scale)
     reference_area, reference_volume = float(reference.surface_area()), float(reference.volume())
-    components = sum(float(piece.volume()) > 0 for piece in reference.decompose())
+    signed_components = reference.decompose()
+    components = sum(float(piece.volume()) > 0 for piece in signed_components)
+    negative_shells = sum(float(piece.volume()) < 0 for piece in signed_components)
     transform = np.eye(4, dtype=np.float64)
     transform[:3, 3] = center
     attempts = []
@@ -251,10 +261,23 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
             cast_distance = float(np.linalg.norm(rounded-v, axis=1).max())
             face_ids = (np.full(len(f), uniform_source, dtype=np.uint64)
                         if tolerance and uniform_source is not None else np.asarray(raw.face_id, dtype=np.uint64))
-            measured, metrics = validate_mesh(rounded, f, stage='target_precision',
-                expected_components=components, face_ids=face_ids, **context)
             effective_tolerance = max(tolerance, float(simplified_input.get_tolerance())) if tolerance else 0.0
-            geometry_bound = effective_tolerance + cast_distance
+            local_repair = None
+            try:
+                measured, metrics = validate_mesh(rounded, f, stage='target_precision',
+                    expected_components=components, face_ids=face_ids, **context)
+                conversion_bound = cast_distance
+            except MeshEvaluationError:
+                from .local_precision_repair import repair_float32_mesh
+                rounded, f, face_ids, local_repair = repair_float32_mesh(v, f, face_ids,
+                    displacement_budget=max(0.0,bound-effective_tolerance), expected_components=components)
+                measured, metrics = validate_mesh(rounded, f, stage='target_precision',
+                    expected_components=components, face_ids=face_ids, **context)
+                cast_distance = local_repair['maximum_vertex_cast_displacement']
+                conversion_bound = local_repair['surface_displacement_upper_bound']
+            if sum(float(piece.volume()) < 0 for piece in measured.decompose()) != negative_shells:
+                raise ValueError('precision conversion changed signed cavity shell count')
+            geometry_bound = effective_tolerance + conversion_bound
             bounds_change = float(np.max(np.abs(np.array(measured.bounding_box())-np.array(local_reference.bounding_box()))))
             volume_change = abs(float(measured.volume())-reference_volume)
             volume_bound = reference_area*bound + 64*np.finfo(float).eps*reference_volume
@@ -272,11 +295,12 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
                 volume_change_mm3=volume_change*mm_per_unit**3,
                 volume_budget_mm3=volume_bound*mm_per_unit**3,
                 shell_components=metrics['shell_components'], material_components=components,
-                metrics=metrics, attempts=attempts, node_path=node_path,
+                metrics=metrics, attempts=attempts, node_path=node_path, local_precision_repair=local_repair,
                 file_validation='NOT_EVALUATED',
-                displacement_basis='Manifold simplify API bound plus triangle vertex float32 displacement')
-            # Keep original triangle order and source-face IDs; no deletion or
-            # proximity welding is performed on a rounded invalid mesh.
+                displacement_basis='Manifold simplify bound plus verified local contraction/diagonal bound and float32 cast')
+            # Source-face IDs remain aligned with surviving/retriangulated faces.
+            # Every removed pair came from a link-safe contraction on a valid
+            # float64 source, never arbitrary filtering of a failed cast.
             mesh = trimesh.Trimesh(rounded, f.astype(np.int64), process=False)
             mesh.face_attributes['source_face_id'] = face_ids
             mesh.metadata['target_precision'] = row

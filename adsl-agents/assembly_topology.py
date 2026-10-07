@@ -154,7 +154,8 @@ def evaluation_evidence_run(report, failures, source, output, source_index=None)
         details['metrics'] = diagnostic.get('metrics', diagnostic.get('internal_metrics', row.get('metrics')))
         details['attempted_actions'] = diagnostic.get('attempted_actions', diagnostic.get('attempts', row.get('attempted_actions')))
         details.update(stage=row['evaluation_stage'], code=row['evaluation_code'],
-                       source_sha256=sha256_file(source), physical_verdict='NOT_EVALUATED')
+                       source_sha256=sha256_file(source), physical_verdict='NOT_EVALUATED',
+                       output_role=row.get('output_role'), manufacturing_status=report.get('manufacturing_status'))
         findings.append(CheckerFinding(
             finding_id=f'assembly_mesh_evaluation:{ordinal}:{row.get("part_id", "scene")}:{row["evaluation_code"]}',
             rule_id=row['evaluation_code'], category='geometry_failure', repairability='geometry',
@@ -165,7 +166,7 @@ def evaluation_evidence_run(report, failures, source, output, source_index=None)
                 part_names=names, details=details), source_candidates=candidates,
             evidence_refs=[str(output/'report.json')], domain=row))
     result = CheckerResult(checker='assembly_mesh_evaluation', status='FAIL',
-        summary='Current-source geometry evaluation failed; dependent physical properties remain unverified.',
+        summary='Current-source evaluation/display representation failed; physical verdicts remain independent.',
         findings=findings, assumptions={'source_sha256':sha256_file(source),
             'scope':'saved source evaluation diagnostics only; no physical measurement'},
         artifacts={'report':str(output/'report.json')})

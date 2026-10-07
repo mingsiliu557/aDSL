@@ -25,8 +25,11 @@ from .utils.io import read_json, write_json
 def _failure_feedback(report, *, source_sha256=None):
     """Classify saved evidence, not the physical cause of an export exception."""
     rows = []
-    for failure in report.get('failures', []):
+    failures = [(failure, 'manufacturing') for failure in report.get('failures', [])]
+    failures += [(failure, 'display') for failure in report.get('display_failures', [])]
+    for failure, output_role in failures:
         row = dict(failure)
+        row.setdefault('output_role', output_role)
         code = row.get('code', '')
         kind = row.get('failure_kind')
         diagnostic = row.get('diagnostic') if isinstance(row.get('diagnostic'), dict) else {}
@@ -110,6 +113,21 @@ def _assembly_context(source, report, *, version_role):
         'failure_feedback':_failure_feedback(report)[:6] if current else [],
         'failure_instruction':FAILURE_INSTRUCTION,
     }
+
+
+def _use_pose_display_valid(report):
+    """A failed saved assembly display cannot be approved by a visual critic."""
+    scene_checks = [row for row in report.get('export_consistency', [])
+                    if row.get('file') == 'scene.glb']
+    if any(row.get('status') != 'PASS' for row in scene_checks):
+        return False
+    if 'scene_glb' in report and not report['scene_glb']:
+        return False
+    if report.get('display_status') == 'FAIL':
+        # An exploded/standalone display may fail independently. Require saved
+        # assembly readback evidence rather than an earlier diagnostic preview.
+        return bool(report.get('scene_glb') and scene_checks)
+    return True
 
 
 def _geometry_visual_ready(reviews, display_available):
@@ -377,6 +395,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             # Availability is a controller safeguard, never evidence that the
             # semantic parts or intended shape survived CSG. Read old manifests too.
             display_available = bool(execution and execution.render_paths and reason != 'execution_failed'
+                and _use_pose_display_valid(report)
                 and display.get('display_available', display.get('complete', report['status'] == 'PASS')))
             render_issue = None if display_available else {
                 'stage':'render', 'reason':'Current display unavailable or partial; full appearance cannot be approved.',
@@ -412,8 +431,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     'image_review_status':'COMPLETED' if image_decision else 'SKIPPED',
                     'review_mode':'generation', 'render_issue':render_issue,
                     'assembly_context':assembly_context}
-                gate_passed = (report.get('export_status') == 'PASS' and report['status']=='NOT_EVALUATED'
-                               if visual_only else report['status'] == 'PASS')
+                gate_passed = (report.get('manufacturing_status', report.get('export_status')) == 'PASS'
+                              and report['status']=='NOT_EVALUATED' and not report.get('failures') if visual_only else
+                              report['status']=='PASS' and report.get('manufacturing_status','PASS')=='PASS')
                 accepted = bool(approved and gate_passed)
                 if accepted:
                     reason = 'visual_code_and_export_passed' if visual_only else 'interface_geometry_and_appearance_passed'
@@ -578,6 +598,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 partition_adopted or (edit_purpose=='required_repair' and partition_ready)):
             book['retained'] = version_id
         feedback = {'geometry_status':report['status'], 'failures':report.get('failures',[])[:6],
+            'manufacturing_status':report.get('manufacturing_status'),
+            'display_status':report.get('display_status'), 'display_failures':report.get('display_failures',[])[:6],
             'failure_feedback':failure_feedback[:6], 'failure_instruction':FAILURE_INSTRUCTION,
             'validation_mode':'visual_only' if visual_only else 'geometry',
             'export_status':report.get('export_status'),
@@ -736,8 +758,23 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
     glb, urdf, renders = None, None, []
     if selected['execution']:
         _, execution, _ = version_assets(selected)
-        glb, urdf, renders = workflow._publish(workspace, execution)
-        shutil.copytree(execution.output_root/'assembly', workspace/'assembly', dirs_exist_ok=True)
+        if str(execution.glb_path) in selected['files'] and execution.glb_path.is_file():
+            glb, urdf, renders = workflow._publish(workspace, execution)
+        else:
+            # A complete manufacturing bundle can lack a display artifact.
+            # Publish its print/checker inputs without borrowing an old render.
+            (workspace/'scene.glb').unlink(missing_ok=True)
+            if (workspace/'render').exists():
+                shutil.rmtree(workspace/'render')
+            if execution.source_index_path and execution.source_index_path.is_file():
+                shutil.copy2(execution.source_index_path, workspace/'source_index.json')
+            else:
+                (workspace/'source_index.json').unlink(missing_ok=True)
+        # Publish exactly this version: a missing display or merged print part
+        # must not leave an artifact from a previously selected assembly.
+        if (workspace/'assembly').exists():
+            shutil.rmtree(workspace/'assembly')
+        shutil.copytree(execution.output_root/'assembly', workspace/'assembly')
     else:
         # Preserve an unapproved diagnostic export if initial geometry succeeded
         # but later rendering failed; never borrow a rejected candidate's result.
@@ -769,6 +806,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         'working_version':book['working'], 'qualified_version':book['qualified'],
         **({'print_layout':print_layout,'print_parts':print_parts} if partition is not None else {}),
         'approved':approved, 'verification_scope':verification_scope,
+        'manufacturing_status':selected['reviews'].get('geometry',{}).get('manufacturing_status'),
+        'display_status':selected['reviews'].get('geometry',{}).get('display_status'),
         'visual_code_approved':selected['reviews'].get('appearance_approved'),
         'assembly_topology_status':final_topology['status'] if final_topology else 'NOT_EXECUTED',
         'geometry_validation':'NOT_EVALUATED' if visual_only else selected['reviews'].get('geometry',{}).get('status'),

@@ -221,7 +221,11 @@ def version_record(version_id, source, execution, runs=(), reviews=None, extra_f
     if not source.is_file():
         raise ValueError("version source is missing")
     if execution is not None:
-        if not execution.glb_path.is_file() or (execution.urdf_path and not execution.urdf_path.is_file()):
+        geometry = (reviews or {}).get('geometry', {})
+        manufacturing_without_display = (geometry.get('manufacturing_status')=='PASS' and
+                                         geometry.get('display_status')=='FAIL')
+        if ((not execution.glb_path.is_file() and not manufacturing_without_display) or
+                (execution.urdf_path and not execution.urdf_path.is_file())):
             raise ValueError("version generated asset is missing")
         if any(not p.is_file() for p in execution.render_paths):
             raise ValueError("version render is missing")

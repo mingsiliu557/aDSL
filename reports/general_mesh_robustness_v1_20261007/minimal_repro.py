@@ -1,8 +1,9 @@
 """Replay the reduced original operand data; do not change its geometry.
 
-The expected outcome on manifold3d 3.5.2 is a valid internal solid and an
-explicit TARGET_PRECISION_UNREPRESENTABLE result. This is a failure diagnostic,
-not a successful GLB export or a proof of the globally smallest reproduction.
+The first implementation recorded a valid internal solid and an explicit
+TARGET_PRECISION_UNREPRESENTABLE result. The follow-up adds bounded local
+precision repair. This replay reports the current actual outcome, and is not
+a proof of the globally smallest reproduction or a completed file export.
 """
 from pathlib import Path
 import json

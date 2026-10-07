@@ -64,6 +64,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     output = args.output.expanduser().resolve()
     if args.render_only:
         manifest = json.loads((output/'execution.json').read_text())
+        if (manifest.get('manufacturing_status') == 'PASS'
+                and manifest.get('display_status') == 'FAIL'
+                and not Path(manifest['glb_path']).is_file()):
+            manifest.update(render_status='NOT_EVALUATED',
+                render_reason='Display export unavailable; manufacturing files are independent')
+            (output/'execution.json').write_text(json.dumps(manifest, indent=2))
+            return 0
         render_video(output_dir=output/'render', glb_path=Path(manifest['glb_path']),
             elevations=(args.render_elevation,), num_camera_per_layer=args.render_view_count,
             view_layout=args.view_layout)
@@ -95,6 +102,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not isinstance(scene, Asset):
         raise TypeError("Generated source must assign an adsl Asset to `scene`")
     diagnostic = {}
+    assembly_report = None
     if args.fixed_assembly_config:
         from adsl.core import FixedAssembly
         from adsl.core.serialize import asset_to_dict
@@ -119,15 +127,26 @@ def main(argv: Sequence[str] | None = None) -> int:
                 'stage':report.get('stage'), 'reason':f'{type(error).__name__}: {error}'[:300]})
             write_json(target, report)
             traceback.print_exc()
+        assembly_report = report
         diagnostic = dict(report.get('diagnostic', {}))
-        diagnostic.update(diagnostic_only=report['status'] != 'PASS')
-        scene_path = output/'assembly'/'scene.glb'
-        if not scene_path.is_file():
-            scene_path = output/'assembly'/(diagnostic.get('glb') or 'diagnostic_scene.glb')
-        if not scene_path.is_file():
+        diagnostic.update(diagnostic_only=report['status'] != 'PASS'
+                          or report.get('display_status') == 'FAIL')
+        # A failed readback may leave bytes on disk. Only declared display
+        # assets can be rendered; existence must not override their verdict.
+        declared_scene = report.get('scene_glb', 'scene.glb')
+        scene_path = output/'assembly'/(declared_scene or 'display_unavailable.glb')
+        if not declared_scene or not scene_path.is_file():
+            scene_path = output/'assembly'/(diagnostic.get('glb') or 'display_unavailable.glb')
+        manufacturing_without_display = (report.get('manufacturing_status') == 'PASS'
+                                         and report.get('display_status') == 'FAIL')
+        if not scene_path.is_file() and not manufacturing_without_display:
             raise ValueError('No renderable candidate geometry; Code Critic can read source and assembly_manifest.json')
         (output/'render').mkdir(exist_ok=True)
-        shutil.copy2(scene_path, output/'render'/'scene.glb')
+        if scene_path.is_file():
+            shutil.copy2(scene_path, output/'render'/'scene.glb')
+        else:
+            diagnostic.update(display_available=False,
+                reason='Display export unavailable; manufacturing files are independent')
     source_index_path = output / "source_index.json"
     source_index_path.parent.mkdir(parents=True, exist_ok=True)
     analysis_geometry_path = output / "analysis_geometry.json"
@@ -165,7 +184,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     render_backend = "none"
     render_job: dict[str, object] | None = None
-    if args.render:
+    if args.render and glb_path.is_file():
         queue_value = os.environ.get("ADSL_GPU_RENDER_QUEUE", "").strip()
         if queue_value:
             render_backend = "gpu_queue"
@@ -206,6 +225,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     }
     if args.fixed_assembly_config:
         manifest['assembly_diagnostic'] = diagnostic
+        manifest['manufacturing_status'] = assembly_report.get('manufacturing_status')
+        manifest['display_status'] = assembly_report.get('display_status')
+        manifest['display_available'] = glb_path.is_file()
+        if args.render and not glb_path.is_file():
+            manifest.update(render_status='NOT_EVALUATED',
+                render_reason='Display export unavailable; manufacturing files are independent')
     (output / "execution.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False),
         encoding="utf-8",

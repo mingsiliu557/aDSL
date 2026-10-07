@@ -86,8 +86,16 @@ def test_changed_final_file_is_rejected(tmp_path, filename):
         exporter._write_mesh_glb({'part': mesh}, {'part': transform},
                                  tmp_path / filename, manifest['mm_per_unit'])
     exporter._verify_written_exports(tmp_path, manifest, solids)
+    failures = manifest['failures'] if filename.endswith('.stl') else manifest['display_failures']
     assert any(f['code'] in {'EXPORTED_FILE_GEOMETRY_MISMATCH', 'EXPORTED_FILE_INVALID'}
-               for f in manifest['failures']), manifest
+               for f in failures), manifest
+    assert manifest['manufacturing_status'] == ('FAIL' if filename.endswith('.stl') else 'PASS')
+    if filename.endswith('.glb'):
+        assert not manifest['failures'] and manifest['display_status']=='FAIL'
+        assert all(f['output_role']=='display' for f in failures)
+        assert not (tmp_path/filename).exists()
+        other = 'exploded.glb' if filename=='scene.glb' else 'scene.glb'
+        assert (tmp_path/other).is_file()
 
 
 def test_export_mismatch_blocks_approval_even_when_image_critic_passes(tmp_path, monkeypatch):

@@ -105,7 +105,7 @@ def test_two_print_parts_are_not_unioned_and_output_files_verified(tmp_path):
     assert len(loaded.geometry)==2
 
 
-def test_original_lamp_internal_pass_and_target_failure_are_distinct(tmp_path):
+def test_original_lamp_internal_and_locally_repaired_glb_are_valid(tmp_path):
     fixture=Path(__file__).parents[1]/'reports/benchmark_six_boolean_failure_20261007/source.py'
     ns=runpy.run_path(str(fixture))
     arm=ns['CurvedArm'](ns['UpperStructure']().offset_lamp_head)
@@ -113,11 +113,8 @@ def test_original_lamp_internal_pass_and_target_failure_are_distinct(tmp_path):
     piece=result.pieces[0]
     metrics=mesh_metrics(piece.world_mesh().vertices,piece.world_mesh().faces)
     assert metrics['valid'] and metrics['shell_components']==1
-    with pytest.raises(MeshEvaluationError, match='TARGET_PRECISION_UNREPRESENTABLE') as caught:
-        g.export_glb(arm,tmp_path/'arm.glb',mm_per_unit=1.)
-    diagnostic=caught.value.diagnostic
-    assert diagnostic['stage']=='target_precision'
-    assert len(diagnostic['attempts'])==3
-    assert all(a['diagnostic']['metrics']['zero_area_triangles']>0
-               for a in diagnostic['attempts'])
-    assert not (tmp_path/'arm.glb').exists()
+    g.export_glb(arm,tmp_path/'arm.glb',mm_per_unit=1.)
+    _, actual=saved_world(tmp_path/'arm.glb')
+    assert mesh_metrics(actual.vertices,actual.faces)['valid']
+    assert actual.volume==pytest.approx(piece.solid.volume(),abs=1e-4)
+    assert np.allclose(actual.bounds,piece.world_mesh().bounds,atol=3e-5,rtol=0)

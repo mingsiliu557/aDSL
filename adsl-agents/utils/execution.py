@@ -165,8 +165,17 @@ def execute_asset_source(
             f"Generated source exited with code {completed.returncode}.\n"
             f"STDOUT:\n{completed.stdout}\nSTDERR:\n{completed.stderr}"
         )
+    manifest_path = output / "execution.json"
+    if not manifest_path.is_file():
+        raise AssetExecutionError("Generated source did not write execution.json")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    glb_path = Path(manifest["glb_path"]).resolve()
+    manufacturing_without_display = bool(fixed_assembly
+        and manifest.get('manufacturing_status') == 'PASS'
+        and manifest.get('display_status') == 'FAIL'
+        and not glb_path.is_file())
     if fixed_assembly:
-        if render:
+        if render and not manufacturing_without_display:
             render_command = [sys.executable, str(Path(__file__).with_name('asset_executor.py')),
                 '--source', str(source), '--output', str(output), '--render-only', '--render',
                 '--render-view-count', str(render_view_count), '--render-elevation', str(render_elevation),
@@ -184,19 +193,18 @@ def execute_asset_source(
                 raise AssetExecutionError(f'Assembly rendering failed; see {output}/render.stderr.log')
             stdout += render_stdout
             stderr += render_stderr
-    manifest_path = output / "execution.json"
-    if not manifest_path.is_file():
-        raise AssetExecutionError("Generated source did not write execution.json")
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    glb_path = Path(manifest["glb_path"]).resolve()
-    if not glb_path.is_file():
+    if render and manufacturing_without_display:
+        manifest.update(render_status='NOT_EVALUATED',
+            render_reason='Display export unavailable; manufacturing files are independent')
+        manifest_path.write_text(json.dumps(manifest, indent=2))
+    if not glb_path.is_file() and not manufacturing_without_display:
         raise AssetExecutionError(f"Generated GLB is missing: {glb_path}")
     urdf_value = manifest.get("urdf_path")
     urdf_path = None if urdf_value is None else Path(urdf_value).resolve()
     if urdf_path is not None and not urdf_path.is_file():
         raise AssetExecutionError(f"Generated URDF is missing: {urdf_path}")
     render_paths = tuple(sorted((output / "render").glob("*.png")))
-    if render and not render_paths:
+    if render and not render_paths and not manufacturing_without_display:
         raise AssetExecutionError("Rendering was requested but no PNG was produced")
     source_index_value = manifest.get("source_index_path")
     source_index_path = (
