@@ -10,8 +10,9 @@ def import_reference(c, row, output):
     import mathutils
     import trimesh
     import manifold3d as mf
-    from adsl.core.export.export_glb import (_normalize_zero_area_tessellation,
-        _normalize_numeric_microcracks, _mesh_defects)
+    from adsl.core.export.mesh_repair import (_normalize_zero_area_tessellation,
+        _normalize_numeric_microcracks)
+    from adsl.core.export.mesh_validity import _mesh_defects
     from adsl.core.assembly_topology import mesh_solid, solid_mesh, checked, union_print_mesh
     root=Path(c['root']); raw=root/row['raw_mesh']
     bpy.ops.wm.read_factory_settings(use_empty=True)

@@ -144,6 +144,21 @@ def mesh_metrics(vertices, faces, *, allow_empty=False):
     return row
 
 
+def _mesh_defects(data):
+    """Return the existing defect fields from shared triangle measurements."""
+    data.calc_loop_triangles()
+    vertices = np.asarray([tuple(v.co) for v in data.vertices], dtype=np.float64).reshape((-1, 3))
+    faces = np.asarray([tuple(t.vertices) for t in data.loop_triangles], dtype=np.int64).reshape((-1, 3))
+    metrics = mesh_metrics(vertices, faces)
+    if metrics.get('empty') or metrics.get('malformed_arrays') or not len(faces):
+        return {'empty_or_nonfinite': True}
+    keys = ('nonfinite_coordinates', 'invalid_indices', 'zero_area_triangles',
+            'duplicate_faces', 'boundary_edges', 'nonmanifold_edges',
+            'nonmanifold_vertices', 'inconsistent_edges')
+    return {key:metrics[key] for key in keys if metrics.get(key)}
+
+
+
 def _mesh_arrays(solid):
     raw = solid.to_mesh64()
     return (np.array(raw.vert_properties[:, :3], dtype=np.float64, order='C', copy=True),
@@ -269,13 +284,13 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
             effective_tolerance = max(tolerance, float(simplified_input.get_tolerance())) if tolerance else 0.0
             local_repair = None
             try:
-                from .local_precision_repair import require_face_orientation
+                from .mesh_repair import require_face_orientation
                 orientation = require_face_orientation(v, rounded, f, **context)
                 measured, metrics = validate_mesh(rounded, f, stage='target_precision',
                     expected_components=components, face_ids=face_ids, **context)
                 conversion_bound = cast_distance
             except MeshEvaluationError:
-                from .local_precision_repair import repair_float32_mesh
+                from .mesh_repair import repair_float32_mesh
                 rounded, f, face_ids, local_repair = repair_float32_mesh(v, f, face_ids,
                     displacement_budget=max(0.0,bound-effective_tolerance), expected_components=components,
                     mm_per_unit=mm_per_unit)
@@ -335,9 +350,9 @@ def normalize_blender_input(obj, *, mm_per_unit=1.0, node_path='', **context):
     checks. Their result additionally passes the shared triangle validator and
     a local-size displacement budget. Open real holes remain invalid inputs.
     """
-    import importlib
     import bpy
-    exporter = importlib.import_module('.export_glb', __package__)
+    from .mesh_repair import (_normalize_zero_area_tessellation,
+        _normalize_numeric_microcracks, _remove_mesh_object)
     if not np.isfinite(mm_per_unit) or mm_per_unit <= 0:
         raise ValueError('mm_per_unit must be finite and positive')
     context = dict(node_path=node_path, **context)
@@ -367,8 +382,8 @@ def normalize_blender_input(obj, *, mm_per_unit=1.0, node_path='', **context):
         displacement_budget_mm = float(16*np.finfo(np.float32).eps*max(1.0, local_size_mm))
         if before.get('zero_area_triangles'):
             attempts.append(dict(method='restricted_zero_area_tessellation'))
-            exporter._normalize_zero_area_tessellation(trial)
-        crack = exporter._normalize_numeric_microcracks(trial, mm_per_unit)
+            _normalize_zero_area_tessellation(trial)
+        crack = _normalize_numeric_microcracks(trial, mm_per_unit)
         if crack is not None:
             attempts.append(crack)
             if crack.get('maximum_displacement_mm', 0) > displacement_budget_mm:
@@ -408,7 +423,7 @@ def normalize_blender_input(obj, *, mm_per_unit=1.0, node_path='', **context):
             attempted_measures=attempts, normalization_reason=str(error), **context) from error
     finally:
         if trial is not None:
-            exporter._remove_mesh_object(trial)
+            _remove_mesh_object(trial)
 
 
 def validate_written_mesh(path, *, transform=None, expected_components=None, **context):

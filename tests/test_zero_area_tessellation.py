@@ -9,7 +9,7 @@ import pytest
 
 pytestmark = pytest.mark.skipif(os.environ.get('ADSL_TEST_FIXED_REAL') != '1',
                                 reason='explicit native Blender geometry validation')
-exporter = importlib.import_module('adsl.core.export.export_glb')
+exporter = importlib.import_module('adsl.core.export.mesh_repair')
 
 
 def pyramid(*, reverse=False, open_mesh=False):

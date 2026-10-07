@@ -10,7 +10,7 @@ import pytest
 from adsl.core.export.mesh_validity import (
     MeshEvaluationError, mesh_metrics, target_mesh, validate_mesh,
 )
-from adsl.core.export.local_precision_repair import (
+from adsl.core.export.mesh_repair import (
     face_orientation_metrics, repair_float32_mesh, require_face_orientation,
 )
 

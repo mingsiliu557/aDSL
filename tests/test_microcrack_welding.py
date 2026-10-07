@@ -7,7 +7,7 @@ import pytest
 
 pytestmark = pytest.mark.skipif(os.environ.get('ADSL_TEST_FIXED_REAL') != '1',
                                 reason='explicit native Blender geometry validation')
-exporter = importlib.import_module('adsl.core.export.export_glb')
+exporter = importlib.import_module('adsl.core.export.mesh_repair')
 
 
 def cracked_cube(*, gap=2**-17, origin=100., extra_hole=False):
