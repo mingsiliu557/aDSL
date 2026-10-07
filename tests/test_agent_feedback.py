@@ -378,6 +378,21 @@ def test_legacy_nonfinite_original_stays_in_file_only(tmp_path):
     assert out == project(tmp_path, source, None, out)
 
 
+def test_unknown_source_merges_only_within_original_container(tmp_path):
+    source, _, _, _ = inputs(tmp_path, 1)
+    raw = {'code':'INPUT_GEOMETRY_INVALID', 'stage':'input_geometry', 'part_id':'body'}
+    payload = {'feedback':{'report_ref':{'path':'missing_a.json'}, 'failures':[raw]},
+               'assembly_context':{'report_ref':{'path':'missing_b.json'}, 'failure_feedback':[raw]}}
+    out = project(tmp_path, source, None, payload)
+    assert out['evaluation_feedback']['unique_failure_count'] == 2
+    payload['assembly_context']['report_ref']['path'] = 'missing_a.json'
+    out = project(tmp_path, source, None, payload)
+    assert out['evaluation_feedback']['unique_failure_count'] == 1
+    assert all(ref['source_binding'] == 'UNKNOWN'
+               for ref in out['evaluation_feedback']['failures'][0]['evidence_refs'])
+    assert out == project(tmp_path, source, None, out)
+
+
 def diagnostic(count=10000):
     return {'code': 'TARGET_PRECISION_UNREPRESENTABLE', 'stage': 'target_precision',
         'node_path': 'body/arm/union', 'operation': 'UNION', 'input_count': 3,

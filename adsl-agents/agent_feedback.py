@@ -307,6 +307,7 @@ class _Projection:
         self.documents = {}
         self.file_hashes = {}
         self.diagnostic_hashes = {}
+        self.container_origins = {}
         self.groups = {}
         self.seen_rows = set()
         self.failure_count = 0
@@ -377,7 +378,7 @@ class _Projection:
             path.write_bytes(data)
         return self.ref({'path': str(path)})
 
-    def source_ref(self, raw, container, field=None, ordinal=None):
+    def source_ref(self, raw, container, field=None, ordinal=None, container_identity=''):
         supplied = container.get('geometry_report_ref') or container.get('report_ref') or self.report_ref
         if not supplied and container.get('report_path'):
             supplied = next((r for r in self.evidence_files if r.get('path') == container['report_path']),
@@ -416,11 +417,15 @@ class _Projection:
         # content-hash snapshot. Missing provenance remains UNKNOWN.
         rows = container.get(field) if field else None
         content = {'failures': rows} if isinstance(rows, list) else {'failure': raw}
+        origin = supplied.get('path') or container_identity
+        content['container_identity'] = origin
         snapshot = self.snapshot(content, 'feedback_snapshot')
-        return self.ref({**snapshot,
+        reference = self.ref({**snapshot,
             'source_sha256': _first(raw.get('source_sha256'), supplied.get('source_sha256')),
             'source_version': _first(raw.get('source_version'), supplied.get('source_version'))},
             pointer=_pointer('/failures', ordinal) if isinstance(rows, list) else '/failure')
+        self.container_origins[(reference['path'], reference['json_pointer'])] = origin
+        return reference
 
     def add(self, raw, ref, *, finding_id=None):
         details = evaluation_details(raw)
@@ -432,7 +437,7 @@ class _Projection:
                details['node_path'], details['operation'], details['code'], details['stage'],
                representation, diagnostic_hash]
         if not ref.get('source_sha256'):
-            key.append(ref.get('path'))
+            key.append(self.container_origins.get((ref.get('path'), ref.get('json_pointer')), ref.get('path')))
         failure_id = 'eval:' + _hash(key)
         group = self.groups.get(failure_id)
         if group is None:
@@ -592,7 +597,7 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                     view.groups[clean['failure_id']] = clean
             view.failure_count = existing.get('failure_count', 0)
 
-        def process(container):
+        def process(container, container_identity=''):
             if not isinstance(container, dict):
                 return
             failure_ids = list(container.get('evaluation_failure_ids') or [])
@@ -602,7 +607,7 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                     for ordinal, row in enumerate(rows):
                         if not isinstance(row, Mapping):
                             continue
-                        ref = view.source_ref(row, container, field, ordinal)
+                        ref = view.source_ref(row, container, field, ordinal, container_identity)
                         identity = view.add(row, ref)
                         if identity not in failure_ids:
                             failure_ids.append(identity)
@@ -660,9 +665,9 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
             if isinstance(container.get('evidence_files'), list):
                 container['evidence_files'] = [view.ref(r) for r in container['evidence_files']]
             for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback'):
-                process(container.get(key))
+                process(container.get(key), _pointer(container_identity, key))
             if isinstance(container.get('checker_evidence'), dict):
-                process(container['checker_evidence'])
+                process(container['checker_evidence'], _pointer(container_identity, 'checker_evidence'))
             if not container.get('preview_info'):
                 container.pop('preview_info', None)
 
