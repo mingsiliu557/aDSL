@@ -155,3 +155,64 @@ def test_malformed_arrays_have_structured_diagnostics(vertices, faces):
     with pytest.raises(MeshEvaluationError, match='INPUT_GEOMETRY_INVALID') as error:
         validate_mesh(vertices, faces)
     json.dumps(error.value.diagnostic, allow_nan=False)
+
+
+def test_actual_print_readback_is_separate_and_missing_file_is_not_geometry(tmp_path):
+    from adsl.core.export.mesh_validity import validate_written_mesh
+    mesh, _, _ = target_mesh(mf.Manifold.cube((1,2,3)))
+    path = tmp_path/'cube.stl'
+    mesh.export(path)
+    read, solid, row = validate_written_mesh(path)
+    assert row['stage'] == 'file_readback' and solid.volume() == pytest.approx(6)
+    assert len(read.faces) == len(mesh.faces)
+    with pytest.raises(MeshEvaluationError, match='MESH_FILE_READ_FAILED') as error:
+        validate_written_mesh(tmp_path/'missing.stl')
+    assert error.value.diagnostic['failure_kind'] == 'file'
+    bad = mesh.copy()
+    bad.faces = bad.faces[1:]
+    bad.export(tmp_path/'open.stl')
+    with pytest.raises(MeshEvaluationError, match='WRITTEN_MESH_INVALID'):
+        validate_written_mesh(tmp_path/'open.stl')
+
+
+def test_real_connector_clearance_survives_target_conversion():
+    from adsl.core.assembly import TabSlot
+    from adsl.core.assembly_topology import query_solids
+    nominal_tab, nominal_slot = query_solids(TabSlot(12,6,6,7,.2))
+    tab, _, _ = target_mesh(nominal_tab)
+    slot, _, _ = target_mesh(nominal_slot)
+    # Re-centering frames are restored before comparing the actual dimensions.
+    np.testing.assert_allclose(slot.extents[:2]-tab.extents[:2], (.4,.4), atol=1e-6)
+    assert not np.array_equal(slot.extents, tab.extents)
+
+
+@pytest.mark.skipif(__import__('os').environ.get('ADSL_TEST_FIXED_REAL') != '1', reason='explicit native Blender input repair validation')
+@pytest.mark.parametrize('kind', ['planar', 'microcrack', 'missing_face', 'real_gap'])
+def test_native_restricted_input_repairs_use_shared_validator_and_rollback(kind):
+    import importlib
+    bpy = pytest.importorskip('bpy')
+    from adsl.core.export.mesh_validity import normalize_blender_input
+    zero = importlib.import_module('test_zero_area_tessellation')
+    cracks = importlib.import_module('test_microcrack_welding')
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    obj = zero.pyramid(open_mesh=kind == 'missing_face') if kind in ('planar','missing_face') else cracks.cracked_cube(
+        origin=.5, gap=.001 if kind == 'real_gap' else 2**-24)
+    original = obj.data
+    positions = np.asarray([tuple(v.co) for v in original.vertices])
+    mesh_count = len(bpy.data.meshes)
+    if kind in ('missing_face','real_gap'):
+        with pytest.raises(MeshEvaluationError, match='INPUT_GEOMETRY_INVALID'):
+            normalize_blender_input(obj, node_path='input')
+        assert obj.data is original and len(bpy.data.meshes) == mesh_count
+        np.testing.assert_array_equal(positions, [tuple(v.co) for v in original.vertices])
+    else:
+        row = normalize_blender_input(obj, node_path='input')
+        assert row['status'] == 'APPLIED' and row['metrics_after']['valid']
+        assert row['maximum_displacement_mm'] <= row['displacement_budget_mm']
+        if kind == 'planar':
+            assert row['metrics_before']['zero_area_triangles'] == 1
+            np.testing.assert_array_equal(positions, [tuple(v.co) for v in obj.data.vertices])
+        else:
+            assert row['metrics_before']['boundary_edges'] == 3
+        assert len(bpy.data.meshes) == mesh_count
+    bpy.ops.wm.read_factory_settings(use_empty=True)

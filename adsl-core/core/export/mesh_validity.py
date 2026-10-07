@@ -276,3 +276,116 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
         'Mesh64 result is valid but no bounded float32 conversion passed validation',
         stage='target_precision', failure_kind='target_precision', attempts=attempts,
         internal_metrics=mesh_metrics(rv, rf), displacement_budget_mm=bound*mm_per_unit, **context)
+
+
+def normalize_blender_input(obj, *, mm_per_unit=1.0, node_path='', **context):
+    """Apply existing restricted input repairs atomically, never to a failed cast.
+
+    The legacy polygon/edge operations retain their individual acceptance
+    checks. Their result additionally passes the shared triangle validator and
+    a local-size displacement budget. Open real holes remain invalid inputs.
+    """
+    import importlib
+    import bpy
+    exporter = importlib.import_module('.export_glb', __package__)
+    if not np.isfinite(mm_per_unit) or mm_per_unit <= 0:
+        raise ValueError('mm_per_unit must be finite and positive')
+    context = dict(node_path=node_path, **context)
+
+    def extract(current):
+        current.data.calc_loop_triangles()
+        return (np.asarray([tuple(v.co) for v in current.data.vertices], dtype=np.float64).reshape((-1,3)),
+                np.asarray([tuple(t.vertices) for t in current.data.loop_triangles], dtype=np.uint64).reshape((-1,3)))
+
+    vertices, faces = extract(obj)
+    before = mesh_metrics(vertices, faces)
+    if before['valid']:
+        validate_mesh(vertices, faces, **context)
+        return dict(stage='input_geometry', status='UNCHANGED', metrics_before=before,
+                    metrics_after=before, attempted_measures=[], normalizations=[], node_path=node_path)
+    trial = None
+    attempts = []
+    try:
+        trial = obj.copy()
+        trial.data = obj.data.copy()
+        bpy.context.collection.objects.link(trial)
+        # Use a plain float64 matrix for the independent local-size budget.
+        linear = np.asarray(obj.matrix_world, dtype=np.float64)[:3,:3]
+        center = vertices.min(axis=0)+(vertices.max(axis=0)-vertices.min(axis=0))/2 if len(vertices) else np.zeros(3)
+        offsets = (vertices-center) @ linear.T
+        local_size = max(1.0, float(np.abs(offsets).max())) if len(offsets) else 1.0
+        displacement_budget_mm = float(16*np.finfo(np.float32).eps*local_size*mm_per_unit)
+        if before.get('zero_area_triangles'):
+            attempts.append(dict(method='restricted_zero_area_tessellation'))
+            exporter._normalize_zero_area_tessellation(trial)
+        crack = exporter._normalize_numeric_microcracks(trial, mm_per_unit)
+        if crack is not None:
+            attempts.append(crack)
+            if crack.get('maximum_displacement_mm', 0) > displacement_budget_mm:
+                raise ValueError('input crack repair exceeds the fixed local-size numerical displacement budget')
+        after_v, after_f = extract(trial)
+        _, after = validate_mesh(after_v, after_f, **context)
+        import json
+        normalizations = []
+        if trial.get('adsl_retriangulated_polygons'):
+            normalizations.append(dict(method='planar_polygon_retriangulation',
+                polygons=int(trial['adsl_retriangulated_polygons']),
+                zero_area_triangles_before=int(trial['adsl_zero_area_triangles_before']),
+                zero_area_triangles_after=0, vertices_unchanged=True, closed=True,
+                manifold=True, winding_consistent=True,
+                shell_components=int(trial['adsl_mesh_shell_components'])))
+        for key in ('adsl_zero_length_normalization', 'adsl_microcrack_normalization'):
+            if trial.get(key):
+                normalizations.append(json.loads(trial[key]))
+        old = obj.data
+        obj.data = trial.data
+        # Preserve only plain diagnostic custom properties, not datablocks.
+        for key in ('adsl_retriangulated_polygons', 'adsl_zero_area_triangles_before',
+                    'adsl_mesh_shell_components', 'adsl_zero_length_normalization',
+                    'adsl_microcrack_normalization'):
+            if key in trial:
+                obj[key] = trial[key]
+        if old.users == 0:
+            bpy.data.meshes.remove(old)
+        return dict(stage='input_geometry', status='APPLIED', metrics_before=before,
+            metrics_after=after, attempted_measures=attempts, normalizations=normalizations, node_path=node_path,
+            displacement_budget_mm=displacement_budget_mm,
+            maximum_displacement_mm=max((a.get('maximum_displacement_mm', 0) for a in attempts), default=0))
+    except (ValueError, RuntimeError) as error:
+        raise MeshEvaluationError('INPUT_GEOMETRY_INVALID',
+            'restricted input normalization did not produce valid geometry',
+            stage='input_geometry', failure_kind='input_geometry', metrics=before,
+            attempted_measures=attempts, normalization_reason=str(error), **context) from error
+    finally:
+        if trial is not None:
+            exporter._remove_mesh_object(trial)
+
+
+def validate_written_mesh(path, *, transform=None, expected_components=None, **context):
+    """Read and validate one actual print mesh, separately from internal results.
+
+    Scene GLB groups must be validated by their existing object-aware reader:
+    material submeshes alone need not be closed and independent touching objects
+    must not be indiscriminately welded together.
+    """
+    import trimesh
+    from pathlib import Path
+    path = Path(path)
+    try:
+        mesh = trimesh.load_mesh(path, process=False)
+        if not isinstance(mesh, trimesh.Trimesh):
+            raise ValueError('expected one print mesh, not a scene')
+    except (OSError, ValueError, TypeError) as error:
+        raise MeshEvaluationError('MESH_FILE_READ_FAILED', str(error), stage='file_readback',
+            failure_kind='file', file=str(path), **context) from error
+    if transform is not None:
+        mesh.vertices = world_vertices(mesh.vertices, transform)
+    try:
+        solid, metrics = validate_mesh(mesh.vertices, mesh.faces, stage='file_readback',
+                                       expected_components=expected_components, **context)
+    except MeshEvaluationError as error:
+        raise MeshEvaluationError('WRITTEN_MESH_INVALID',
+            'actual written triangles failed validation', stage='file_readback',
+            failure_kind='target_precision', file=str(path),
+            measured_diagnostic=error.diagnostic, **context) from error
+    return mesh, solid, dict(stage='file_readback', status='PASS', file=str(path), metrics=metrics)
