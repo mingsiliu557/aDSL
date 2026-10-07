@@ -134,3 +134,32 @@ alone does not establish a visible finish failure. Judge the rendered evidence;
 if an essential finish is visibly unmet and cannot be expressed, report that
 limitation honestly rather than claiming it was repaired or automatically approved.
 Optional wood grain must not become a mandatory feature.
+
+### Mesh evaluation and output precision
+
+Asset CSG is evaluated recursively in local `Mesh64` / Manifold solids. Nested
+Boolean operations consume those solids directly. Independent objects and
+printing parts remain separate unless an explicit Boolean or one declared
+printing part joins them. Directed inner cavity shells are retained.
+
+The export boundary keeps float32 vertex coordinates local and pairs them with
+float64 GLTF node transforms. Conversion has a fixed local-size error budget;
+a large world translation does not increase it. The existing restricted
+zero-area and numerical-crack normalization applies to temporary input meshes,
+with validation before adoption. Invalid rounded output is not repaired by
+removing faces or increasing the bound. STL and GLB files are decoded and
+checked independently after writing.
+
+Manifests separately record `internal_evaluation`, `target_precision`,
+`canonical_mesh`, and `file_validation`. These checks include triangle topology
+and oriented solid construction. Complete triangle self-intersection detection
+is `NOT_EVALUATED`; Manifold `NoError` is not a substitute for that check.
+`visual_only` keeps manufacturing validation `NOT_EVALUATED`, while requiring
+valid canonical geometry and readable output files.
+
+`INPUT_GEOMETRY_INVALID`, `BOOLEAN_EVALUATION_FAILED`, and
+`TARGET_PRECISION_UNREPRESENTABLE` carry a stage, node/part identity, measurements,
+and attempted actions. Current-source diagnostics may enter the existing
+Engineering/Coder repair budget. A target-precision failure does not establish
+physical instability. File/environment errors and unavailable physical
+measurements do not authorize speculative design changes.

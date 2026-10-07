@@ -48,15 +48,21 @@ def test_visual_mode_critics_and_approval_scope(tmp_path,monkeypatch,complete,ex
     assert book['qualified']==('original' if accepted else None)
 
 
-def test_visual_mesh_does_not_require_a_closed_volume(tmp_path,monkeypatch):
+def test_visual_mode_requires_valid_canonical_geometry_without_manufacturing_approval(tmp_path,monkeypatch):
     from test_fixed_assembly_empty_mesh import _scene
-    _scene(monkeypatch,[(0,0,0),(1,0,0),(0,1,0)],[(0,1,2)])
-    monkeypatch.setattr(exporter,'mesh_solid',lambda *a,**k:pytest.fail('no solid validation in visual mode'))
-    mesh,solid,info=exporter.evaluated(None,tmp_path/'part.glb',2.,
+    shape = _scene(monkeypatch,[(0,0,0),(1,0,0),(0,1,0)],[(0,1,2)])
+    with pytest.raises(ValueError) as error:
+        exporter.evaluated(shape,tmp_path/'part.glb',2.,keep_materials=True,validate_geometry=False)
+    assert error.value.diagnostic['code']=='INPUT_GEOMETRY_INVALID'
+    assert error.value.diagnostic['metrics']['boundary_edges']==3
+    # Skipping manufacturing checks never permits an invalid source mesh.
+    shape = _scene(monkeypatch,[(0,0,0),(1,0,0),(0,1,0),(0,0,1)],
+                   [(0,2,1),(0,1,3),(0,3,2),(1,2,3)])
+    mesh,solid,info = exporter.evaluated(shape,tmp_path/'valid.glb',2.,
         keep_materials=True,validate_geometry=False)
     assert solid is None and info['geometry_validation']=='NOT_EVALUATED'
-    assert info['display_complete'] and len(mesh.faces)==1
-    assert np.allclose(mesh.bounds,[[0,0,0],[2,2,0]])
+    assert info['internal_evaluation']['status']=='PASS' and info['canonical_mesh']['valid']
+    assert info['display_complete'] and np.allclose(mesh.bounds,[[0,0,0],[2,2,2]])
 
 
 def test_bounds_pose_comparison_only_runs_in_export_regression(tmp_path,monkeypatch):
@@ -84,7 +90,7 @@ def test_triangle_encoding_difference_is_regression_only(tmp_path):
     exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':reference})
     assert not manifest['failures']
     assert manifest['triangle_comparison']=='NOT_EXECUTED'
-    assert all(row['scope']=='file_structure_only' for row in manifest['export_consistency'])
+    assert all(row['scope'] in ('file_structure_only','mesh_validity') for row in manifest['export_consistency'])
     exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':reference},compare_triangles=True)
     assert manifest['triangle_comparison']=='REGRESSION_ONLY'
     assert any(f['code']=='EXPORTED_FILE_GEOMETRY_MISMATCH' for f in manifest['failures'])
@@ -127,7 +133,7 @@ def test_visual_export_only_evaluates_final_parts_not_bodies_or_interface_checks
     assert result['status']=='NOT_EVALUATED' and result['export_status']=='PASS'
     assert result['diagnostic']['display_available']
     assert result['diagnostic']['semantic_completeness']=='NOT_EVALUATED'
-    assert result['backend']['within_part_union']=='NOT_EXECUTED'
+    assert result['backend']['within_part_union']=='Manifold Mesh64'
     assert result['triangle_comparison']=='NOT_EXECUTED'
     assert result['placement_comparison']=='NOT_EXECUTED'
     assert not any('connected_components' in p for p in result['parts'])
@@ -154,7 +160,12 @@ def test_print_stl_preserves_small_faces_after_placement(tmp_path,monkeypatch):
     report=exporter.export_assembly(assembly,tmp_path/'output',source_sha256='test',
         expected=dict(mm_per_unit=1.,fit_offset_mm=.2,final_size_mm=[1.,1.,55.5000005],
                       validation_mode='visual_only'))
-    assert report['export_status']=='PASS',report['failures']
+    # ASCII STL can preserve this mesh, but the GLB precision boundary rejects
+    # it: recentering a 55.5 mm body does not make the 0.5 um feature representable.
+    # A surviving STL must not cause the incomplete output set to report PASS.
+    assert report['export_status']=='FAIL'
+    assert any(f.get('diagnostic',{}).get('code')=='TARGET_PRECISION_UNREPRESENTABLE' or
+               'TARGET_PRECISION_UNREPRESENTABLE:' in f.get('reason','') for f in report['failures'])
     path=tmp_path/'output'/report['parts'][0]['stl']
     assert path.read_bytes().startswith(b'solid ')
     loaded=trimesh.load_mesh(path,process=False)
@@ -185,8 +196,9 @@ def test_serialization_redundant_faces_do_not_change_surface_or_mutate_mesh(tmp_
     assert not manifest['failures']
     assert np.array_equal(reference.faces,faces)  # No mesh repair/filtering.
     for row in manifest['export_consistency']:
-        assert row['reference_encoding']['exact_zero_area_faces']==1
-        assert row['reference_encoding']['exact_duplicate_surface_faces']==2
+        if row.get('scope')=='serialization_only':
+            assert row['reference_encoding']['exact_zero_area_faces']==1
+            assert row['reference_encoding']['exact_duplicate_surface_faces']==2
     # Losing a real surface must still fail, even when all vertices remain.
     reference=trimesh.Trimesh(mesh.vertices.copy(),mesh.faces[1:],process=False)
     exporter._verify_written_exports(tmp_path,manifest,{},surface_meshes={'part':reference},compare_triangles=True)

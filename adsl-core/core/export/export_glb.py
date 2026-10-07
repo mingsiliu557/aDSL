@@ -205,43 +205,16 @@ def _apply_boolean(
         raise last_exc
 
 def _mesh_defects(data):
-    """Validate actual float32 triangles, including exact export seam welding."""
-    vertices, faces, crosses = _mesh_triangles(data, mathutils.Matrix.Identity(4))
-    if not len(faces) or not np.isfinite(vertices).all():
+    """Legacy Blender repair helpers use the same measured mesh criteria."""
+    from .mesh_validity import mesh_metrics
+    vertices, faces, _ = _mesh_triangles(data, mathutils.Matrix.Identity(4))
+    metrics = mesh_metrics(vertices, faces)
+    if metrics.get('empty') or metrics.get('malformed_arrays') or not len(faces):
         return {'empty_or_nonfinite': True}
-    _, inverse = np.unique(vertices, axis=0, return_inverse=True)
-    faces = inverse[faces]
-    edges = np.concatenate([faces[:, [0, 1]], faces[:, [1, 2]], faces[:, [2, 0]]])
-    _, ids, counts = np.unique(np.sort(edges, axis=1), axis=0,
-                               return_inverse=True, return_counts=True)
-    winding = np.bincount(ids, weights=np.where(edges[:, 0] < edges[:, 1], 1, -1))
-    issues = dict(zero_area_triangles=int(np.all(crosses == 0, axis=1).sum()),
-                  duplicate_faces=len(faces)-len(np.unique(np.sort(faces, axis=1), axis=0)),
-                  boundary_edges=int((counts == 1).sum()),
-                  nonmanifold_edges=int((counts > 2).sum()),
-                  inconsistent_edges=int(((counts == 2) & (winding != 0)).sum()))
-    issues = {key: value for key, value in issues.items() if value}
-    if not issues:
-        import bmesh
-        bm = bmesh.new()
-        try:
-            bm.from_mesh(data)
-            # Coordinate duplicates have already been checked for edge incidence;
-            # exact weld additionally exposes pinched vertices across shells.
-            if len(np.unique(vertices, axis=0)) != len(vertices):
-                first, mapping = {}, {}
-                for v in bm.verts:
-                    key = tuple(v.co)
-                    if key in first:
-                        mapping[v] = first[key]
-                    else:
-                        first[key] = v
-                bmesh.ops.weld_verts(bm, targetmap=mapping)
-            if not all(v.is_manifold for v in bm.verts):
-                issues['nonmanifold_vertices'] = True
-        finally:
-            bm.free()
-    return issues
+    keys = ('nonfinite_coordinates', 'invalid_indices', 'zero_area_triangles',
+            'duplicate_faces', 'boundary_edges', 'nonmanifold_edges',
+            'nonmanifold_vertices', 'inconsistent_edges')
+    return {key:metrics[key] for key in keys if metrics.get(key)}
 
 
 def _remove_mesh_object(obj):
@@ -672,7 +645,9 @@ def _build_shape(
 
 def _mesh_triangles(data, matrix):
     data.calc_loop_triangles()
-    vertices = np.asarray([tuple(matrix @ v.co) for v in data.vertices], dtype=float).reshape(-1, 3)
+    local = np.asarray([tuple(v.co) for v in data.vertices], dtype=np.float64)
+    transform = np.asarray(matrix, dtype=np.float64)
+    vertices = local @ transform[:3, :3].T + transform[:3, 3].reshape(-1, 3)
     faces = np.asarray([tuple(t.vertices) for t in data.loop_triangles], dtype=np.int64).reshape(-1, 3)
     triangles = vertices[faces]
     crosses = np.cross(triangles[:, 1] - triangles[:, 0], triangles[:, 2] - triangles[:, 0])
@@ -1038,44 +1013,141 @@ def _normalize_numeric_microcracks(obj, mm_per_unit):
             obj['adsl_microcrack_normalization'] = json.dumps(report)
 
 
-def export_glb(
-    shape: Asset,
-    filepath: str | Path,
-    *,
-    clear_scene: bool = True,
-    apply_modifiers: bool = True,
-    draco: bool = False,
-    include_joint_children: bool = True,
-    mm_per_unit: float | None = None,
-):
+def _patch_glb_transforms(path, transforms):
+    """Keep affine node transforms in float64 at the GLTF JSON boundary.
+
+    Blender stores object matrices in float32. Accessor positions deliberately
+    stay float32/local; serializing the paired NumPy transforms avoids losing
+    a small object solely because its world translation is large.
+    """
+    import struct
+    data = Path(path).read_bytes()
+    chunks, offset = [], 12
+    while offset < len(data):
+        length, kind = struct.unpack_from('<II', data, offset)
+        chunks.append((kind, data[offset+8:offset+8+length]))
+        offset += 8+length
+    document = json.loads(chunks[0][1])
+    y_up = np.array([[1.,0,0,0], [0,0,1,0], [0,-1,0,0], [0,0,0,1]])
+    z_up = y_up.T
+    found = set()
+    for node in document.get('nodes', []):
+        name = node.get('name')
+        if name not in transforms:
+            continue
+        matrix = y_up @ np.asarray(transforms[name], dtype=np.float64) @ z_up
+        for key in ('translation', 'rotation', 'scale'):
+            node.pop(key, None)
+        node['matrix'] = matrix.T.reshape(-1).tolist()
+        found.add(name)
+    missing = set(transforms)-found
+    if missing:
+        raise ValueError(f'GLB_EXPORT_INCOMPLETE: missing transform nodes={sorted(missing)!r}')
+    payload = json.dumps(document, separators=(',', ':')).encode()
+    payload += b' ' * (-len(payload) % 4)
+    chunks[0] = (chunks[0][0], payload)
+    body = b''.join(struct.pack('<II', len(payload), kind)+payload for kind,payload in chunks)
+    Path(path).write_bytes(struct.pack('<4sII', b'glTF', 2, 12+len(body))+body)
+
+
+def _instantiate_mesh(mesh, name, parent, transform):
+    """Instantiate canonical local coordinates and plain material provenance."""
+    data = bpy.data.meshes.new(name)
+    data.from_pydata(mesh.vertices.tolist(), [], mesh.faces.tolist())
+    specs = mesh.metadata.get('materials', [])
+    for spec in specs:
+        material = bpy.data.materials.new(spec['name'])
+        material.use_nodes = True
+        bsdf = material.node_tree.nodes.get('Principled BSDF')
+        for key, field in [('Base Color','base_color'), ('Alpha','alpha'),
+                           ('Metallic','metallic'), ('Roughness','roughness')]:
+            bsdf.inputs[key].default_value = spec[field]
+        material.blend_method = spec.get('blend_method', 'OPAQUE')
+        material.use_backface_culling = spec.get('use_backface_culling', False)
+        data.materials.append(material)
+    for polygon, material in zip(data.polygons, mesh.face_attributes.get('material',
+                                np.zeros(len(mesh.faces), dtype=int)), strict=True):
+        polygon.material_index = int(material)
+    obj = bpy.data.objects.new(name, data)
+    bpy.context.collection.objects.link(obj)
+    obj.parent = parent
+    obj.matrix_parent_inverse.identity()
+    obj.matrix_basis = mathutils.Matrix(np.asarray(transform, dtype=np.float64).tolist())
+    obj['adsl_kind'] = 'geometry'
+    return obj
+
+
+def _export_evaluation(evaluation, path, *, mm_per_unit=1.0, apply_modifiers=True, draco=False):
+    """Only the final canonical mesh crosses the Blender precision boundary."""
+    from .mesh_validity import target_mesh, checked_solid
+    nodes, transforms, expected = {}, {}, {}
+    for node in evaluation.nodes:
+        parent = nodes.get(node['parent'])
+        obj = _new_asset_node(node['name'], parent=parent, path=node['path'],
+                              attach_mode=node['attach_mode'])
+        # Joint metadata is plain data; no Joint object/datablock is retained.
+        if 'joint' in node:
+            for key, value in node['joint'].items():
+                if value is not None:
+                    obj['adsl_joint_'+('type' if key == 'joint_type' else key)] = value
+        world = np.asarray(node['world_transform'], dtype=np.float64)
+        parent_world = (np.eye(4) if node['parent'] is None else
+                        np.asarray(next(n['world_transform'] for n in evaluation.nodes
+                                        if n['path'] == node['parent']), dtype=np.float64))
+        local = np.linalg.inv(parent_world) @ world
+        obj.matrix_basis = mathutils.Matrix(local.tolist())
+        nodes[node['path']] = obj
+        transforms[obj.name] = local
+    for index, piece in enumerate(evaluation.pieces):
+        if piece.solid.is_empty():
+            continue  # Empty CSG intermediates may coexist with valid outputs.
+        checked_solid(piece.solid, node_path=piece.node_path)
+        affine = piece.transform.copy()
+        translation = affine[:3, 3].copy()
+        affine[:3, 3] = 0
+        actual_local = piece.solid.transform(np.ascontiguousarray(affine[:3], dtype=np.float64))
+        mesh, recenter, record = target_mesh(actual_local, mm_per_unit=mm_per_unit,
+                                           node_path=piece.node_path, operation=piece.primitive_type.upper(),
+                                           input_count=piece.records[-1].get('input_count', 1),
+                                           operation_nodes=[{key:r[key] for key in ('node_path','operation','input_count') if key in r}
+                                               for r in evaluation.records if r.get('input_count') is not None])
+        mesh.face_attributes['material'] = mesh.face_attributes['source_face_id']
+        mesh.metadata['materials'] = evaluation.materials
+        world = np.eye(4)
+        world[:3, 3] = translation+recenter[:3, 3]
+        parent = nodes[piece.node_path]
+        node_world = np.asarray(next(n['world_transform'] for n in evaluation.nodes
+                                   if n['path'] == piece.node_path), dtype=np.float64)
+        local = np.linalg.inv(node_world) @ world
+        obj = _instantiate_mesh(mesh, f'{piece.node_path}/geometry_{index}_{piece.primitive_type}', parent, local)
+        obj['adsl_mesh_evaluation'] = json.dumps(dict(method='recursive_manifold_mesh64',
+            records=piece.records, target_precision=record))
+        transforms[obj.name] = local
+        expected[obj.name] = len(mesh.faces)
+    if not expected:
+        from .mesh_validity import MeshEvaluationError
+        raise MeshEvaluationError('EMPTY_REQUIRED_GEOMETRY', 'scene has no nonempty final geometry')
+    bpy.ops.export_scene.gltf(filepath=str(path), export_format='GLB', use_selection=False,
+        export_apply=apply_modifiers, export_draco_mesh_compression_enable=bool(draco), export_extras=True)
+    _patch_glb_transforms(path, transforms)
+    _verify_glb_meshes(path, expected)
+    return Path(path)
+
+
+def export_glb(shape: Asset, filepath: str | Path, *, clear_scene: bool = True,
+               apply_modifiers: bool = True, draco: bool = False,
+               include_joint_children: bool = True, mm_per_unit: float | None = None):
     _require_blender()
+    from .mesh64 import evaluate_shape
     export_path = Path(filepath)
     export_path.parent.mkdir(parents=True, exist_ok=True)
     if clear_scene:
         bpy.ops.wm.read_factory_settings(use_empty=True)
-    _build_shape(shape, include_joint_children=include_joint_children)
-    expected_meshes = {}
-    for obj in bpy.context.scene.objects:
-        if obj.type == "MESH":
-            _normalize_zero_area_tessellation(obj)
-            if mm_per_unit is not None:
-                _normalize_numeric_microcracks(obj, mm_per_unit)
-            defects = _mesh_defects(obj.data)
-            if defects:
-                raise ValueError(f"EVALUATED_MESH_INVALID: object={obj.name!r} defects={defects}")
-            expected_meshes[obj.name] = len(obj.data.loop_triangles)
-    if not any(obj.type == "MESH" for obj in bpy.data.objects):
-        raise RuntimeError("Nothing to export: scene has no objects.")
-    bpy.ops.export_scene.gltf(
-        filepath=str(export_path),
-        export_format='GLB',
-        use_selection=False,
-        export_apply=apply_modifiers,
-        export_draco_mesh_compression_enable=bool(draco),
-        export_extras=True,
-    )
-    _verify_glb_meshes(export_path, expected_meshes)
-    return export_path
+    evaluation = evaluate_shape(shape, include_joint_children=include_joint_children,
+                                mm_per_unit=1.0 if mm_per_unit is None else mm_per_unit)
+    return _export_evaluation(evaluation, export_path,
+        mm_per_unit=1.0 if mm_per_unit is None else mm_per_unit,
+        apply_modifiers=apply_modifiers, draco=draco)
 
 
 def _verify_glb_meshes(path, expected):
@@ -1097,5 +1169,26 @@ def _verify_glb_meshes(path, expected):
                         and 'POSITION' in p.get('attributes', {}))
         if triangles != triangle_count:
             raise ValueError(f'GLB_EXPORT_INCOMPLETE: object={name!r} expected_triangles={triangle_count} actual={triangles}')
+
+    import trimesh
+    from .mesh_validity import validate_mesh
+    scene = trimesh.load(path, force='scene', process=False)
+    for name in expected:
+        # GLTF material splitting is encoding, not separate physical shells.
+        pieces = []
+        for node in scene.graph.nodes_geometry:
+            cursor = node
+            while cursor is not None and cursor != name:
+                cursor = scene.graph.transforms.parents.get(cursor)
+            if cursor == name:
+                _, geometry = scene.graph[node]
+                pieces.append(scene.geometry[geometry])
+        if not pieces:
+            raise ValueError(f'GLB_EXPORT_INCOMPLETE: no decoded mesh object={name!r}')
+        mesh = trimesh.util.concatenate(pieces)
+        try:
+            _, metrics = validate_mesh(mesh.vertices, mesh.faces, stage='file_readback', node_path=name)
+        except ValueError as error:
+            raise ValueError(f'GLB_WRITTEN_MESH_INVALID: object={name!r}: {error}') from error
 
 __all__ = ["export_glb"]

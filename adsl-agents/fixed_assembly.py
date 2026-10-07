@@ -22,13 +22,31 @@ from .utils.execution import execute_asset_source, AssetExecutionError, AssetInf
 from .utils.io import read_json, write_json
 
 
-def _failure_feedback(report):
+def _failure_feedback(report, *, source_sha256=None):
     """Classify saved evidence, not the physical cause of an export exception."""
     rows = []
     for failure in report.get('failures', []):
         row = dict(failure)
         code = row.get('code', '')
         kind = row.get('failure_kind')
+        diagnostic = row.get('diagnostic') if isinstance(row.get('diagnostic'), dict) else {}
+        evaluation_code = diagnostic.get('code', code)
+        evaluation_stage = diagnostic.get('stage', row.get('stage'))
+        # These failures are observed source evaluation failures, not a physical
+        # verdict. An arbitrary exporter exception remains unassessed.
+        explicit_evaluation = (evaluation_code in {
+            'INPUT_GEOMETRY_INVALID', 'BOOLEAN_EVALUATION_FAILED',
+            'TARGET_PRECISION_UNREPRESENTABLE', 'INVALID_EVALUATED_MESH',
+            'EMPTY_REQUIRED_GEOMETRY', 'INVALID_TRANSFORM', 'INVALID_PRIMITIVE',
+            'INVALID_BOOLEAN_OPERATION', 'MESH_COMPONENTS_CHANGED'} and evaluation_stage in {
+                'input_geometry', 'solid_evaluation', 'internal_evaluation', 'canonical_geometry', 'target_precision'})
+        legacy_boolean = (code == 'BOOLEAN_RECOVERY_FAILED' or
+            str(row.get('reason', '')).startswith('BOOLEAN_RECOVERY_FAILED:')) and row.get('stage') in {
+                'evaluate_part', 'evaluate_body', 'solid_evaluation', 'target_precision'}
+        if kind not in ('export', 'environment') and (explicit_evaluation or legacy_boolean):
+            kind = 'candidate_evaluation'
+            row.update(evaluation_code=evaluation_code if explicit_evaluation else 'BOOLEAN_EVALUATION_FAILED',
+                       evaluation_stage=evaluation_stage if explicit_evaluation else 'solid_evaluation')
         if kind is None:
             if code in ('DISPLAY_INCOMPLETE', 'DISCONNECTED_PRINT_PART', 'INTERNAL_PART_DISCONNECTED'):
                 kind = 'candidate_geometry'
@@ -41,14 +59,21 @@ def _failure_feedback(report):
             else:
                 kind = 'unknown'
         row.update(failure_kind=kind, stage=row.get('stage') or report.get('stage') or 'unknown',
-                   geometry_repair_allowed=kind == 'candidate_geometry')
+                   geometry_repair_allowed=kind == 'candidate_geometry' or
+                       kind == 'candidate_evaluation' and (explicit_evaluation or legacy_boolean))
+        if kind == 'candidate_evaluation' and source_sha256 is not None and report.get('source_sha256') != source_sha256:
+            row.update(geometry_repair_allowed=False, evidence_source_status='UNAVAILABLE_OR_SOURCE_MISMATCH')
         rows.append(row)
     return rows
 
 
 FAILURE_INSTRUCTION = (
     'Candidate geometry evidence (empty/missing generated parts or disconnected components) may guide '
-    'local source repair. File save/read and exporter errors are unassessed, not physical failures: '
+    'local source repair. Explicit input/Boolean/target-precision failures may guide a bounded local '
+    'source evaluation repair using the recorded operation, node path and attempted actions. '
+    'They are not measured physical failures or proof of a particular design cause. Preserve required '
+    'parts and visible features; do not change mesh processing, tolerances or checker settings. '
+    'File save/read and exporter errors are unassessed, not physical failures: '
     'do not change object shape to fix them. Unknown means cause unknown, not a confirmed shared bug. '
     'Use actual part IDs, stages and evidence; independently justified appearance/topology repairs remain allowed.')
 
@@ -104,7 +129,8 @@ def _geometry_visual_ready(reviews, display_available):
 async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, source_path, plan,
                                  initial_execution=None, initial_topology_run=None, evidence_files=()):
     from .service import _asset_executor_timeout_seconds, _actionable_findings, VISUAL_FEEDBACK_INSTRUCTION
-    from .assembly_topology import NAME, TOPOLOGY_SCOPE_VERSION, run_assembly_topology, engineer, prepare_evidence, EVIDENCE_PATH_INSTRUCTION
+    from .assembly_topology import (NAME, TOPOLOGY_SCOPE_VERSION, run_assembly_topology, engineer,
+        prepare_evidence, evaluation_evidence_run, EVIDENCE_PATH_INSTRUCTION)
     from .assembly_physics import NAMES, run_assembly_checks, orientation_only, area_comparison
     specs = [s for s in request.checker_specs if s.name in NAMES]
     if len({s.name for s in specs}) != len(specs):
@@ -198,7 +224,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 finding_ids=feedback.get('actionable_finding_ids') or ['assembly_or_appearance'],
                 hypothesis='Use current review and measured evidence; preserve task and paired interfaces',
                 target=RepairTarget(), action='reshape')
-            if specs and feedback.get('engineering_proposal'):
+            if feedback.get('engineering_proposal'):
                 proposal = RepairProposal.model_validate(feedback['engineering_proposal'])
             policy = request.repair_policy.model_copy(update={'max_total_candidates':book['max_rounds']-1})
             controller = RepairController(workspace=workspace, round_root=root, baseline_source=parent,
@@ -523,7 +549,14 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             reviews.update(partition_ready=partition_ready,partition_adopted=partition_adopted,
                            feasible_without_surface=feasible_without_surface)
         reviews.update(geometry=report, accepted=accepted, reason=reason)
+        failure_feedback = _failure_feedback(report, source_sha256=file_hash(current))
+        evaluation_run = evaluation_evidence_run(report, failure_feedback, current,
+            candidate_root/'evaluation_feedback', execution.source_index_path if execution else None)
+        evidence_runs = [*runs, *([evaluation_run] if evaluation_run else [])]
+        if evaluation_run:
+            reviews['evaluation_failure_feedback'] = evaluation_run.result.model_dump()
         extra = sorted((candidate_root/'asset'/'assembly').rglob('*'))
+        extra += sorted((candidate_root/'evaluation_feedback').rglob('*'))
         if specs:
             extra += sorted((candidate_root/'checkers').rglob('*'))
             extra += sorted((candidate_root/'partition_reference_refresh').rglob('*'))
@@ -544,7 +577,6 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         elif partition is not None and not book['qualified'] and (
                 partition_adopted or (edit_purpose=='required_repair' and partition_ready)):
             book['retained'] = version_id
-        failure_feedback = _failure_feedback(report)
         feedback = {'geometry_status':report['status'], 'failures':report.get('failures',[])[:6],
             'failure_feedback':failure_feedback[:6], 'failure_instruction':FAILURE_INSTRUCTION,
             'validation_mode':'visual_only' if visual_only else 'geometry',
@@ -556,12 +588,12 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             'image_critic':reviews.get('image_critic'), 'code_critic':reviews.get('code_critic'),
             'resolved_visual_feedback':workflow._resolved_visual_feedback(
                 reviews.get('image_critic'), reviews.get('code_critic'))}
-        if runs:
+        if evidence_runs:
             from .service import _checker_evidence
-            feedback.update(_checker_evidence(runs,workspace=workspace))
+            feedback.update(_checker_evidence(evidence_runs,workspace=workspace))
             # Detailed absolute paths can exceed the shared scalar-preview limit.
             # Keep explicit references, not whole domains/logs, in this adapter.
-            findings={f.finding_id:f for r in runs for f in r.result.findings}
+            findings={f.finding_id:f for r in evidence_runs for f in r.result.findings}
             for row in feedback['typed_findings']:
                 for field in ('boundary_report','report_path'):
                     value=findings[row['finding_id']].domain.get(field)
@@ -582,11 +614,11 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         feedback['engineering']={'status':'NOT_REQUESTED'}
         actionable = []
         optimize = False
-        if runs:
+        if evidence_runs:
             objective=reviews.get('assembly_overhang',{}).get('metrics',{}).get('partition_objective',{})
             reference_id=objective.get('reference_sha256')
             optional_allowed=bool(partition_ready and reference_id and book.get('partition_stop_reference')!=reference_id)
-            actionable = [f for r in runs for f in _actionable_findings(r)
+            actionable = [f for r in evidence_runs for f in _actionable_findings(r)
                           if f.category!='optimization_opportunity' or
                           (request.repair_policy.print_partition_editable and optional_allowed if partition is not None
                            else request.repair_policy.print_orientation_editable)]
@@ -625,7 +657,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     next_proposal=None
                     try:
                         next_proposal = await engineer(workflow,runtime,request,plan,current,execution,
-                            candidate_root,runs if len(runs)>1 or not topology_run else topology_run,_assembly_context(current,report,version_role='current_candidate'),
+                            candidate_root,evidence_runs if len(evidence_runs)>1 or not topology_run else topology_run,_assembly_context(current,report,version_role='current_candidate'),
                             feedback,remaining)
                         if next_proposal:
                             feedback['engineering_proposal']=next_proposal.model_dump()

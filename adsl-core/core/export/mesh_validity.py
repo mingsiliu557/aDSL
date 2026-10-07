@@ -253,7 +253,8 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
                         if tolerance and uniform_source is not None else np.asarray(raw.face_id, dtype=np.uint64))
             measured, metrics = validate_mesh(rounded, f, stage='target_precision',
                 expected_components=components, face_ids=face_ids, **context)
-            geometry_bound = tolerance + cast_distance
+            effective_tolerance = max(tolerance, float(simplified_input.get_tolerance())) if tolerance else 0.0
+            geometry_bound = effective_tolerance + cast_distance
             bounds_change = float(np.max(np.abs(np.array(measured.bounding_box())-np.array(local_reference.bounding_box()))))
             volume_change = abs(float(measured.volume())-reference_volume)
             volume_bound = reference_area*bound + 64*np.finfo(float).eps*reference_volume
@@ -262,6 +263,7 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
             row = dict(stage='target_precision', status='PASS', precision='float32',
                 local_origin=center.tolist(), local_scale_scene_units=scale,
                 simplify_tolerance_scene_units=tolerance,
+                effective_simplify_tolerance_scene_units=effective_tolerance,
                 uniform_material_ancestry_reset=bool(tolerance and uniform_source is not None),
                 maximum_vertex_cast_displacement_mm=cast_distance*mm_per_unit,
                 surface_displacement_upper_bound_mm=geometry_bound*mm_per_unit,

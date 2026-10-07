@@ -1,0 +1,127 @@
+{
+  "mm_per_unit": 1.0,
+  "fit_offset_mm": 0.2,
+  "final_size_mm": [
+    26.693637297766752,
+    50.56927536447469,
+    150.0
+  ],
+  "validation_mode": "visual_only",
+  "require_multiple_parts": false,
+  "physics": {
+    "material": {
+      "density_kg_m3": 1240
+    },
+    "standing": {
+      "duration_seconds": 5,
+      "timestep_seconds": 0.002,
+      "friction": [
+        0.5,
+        0.005,
+        0.0001
+      ],
+      "tilt_threshold_deg": 25,
+      "settle_window_seconds": 0.5,
+      "settle_linear_m_s": 0.001,
+      "settle_angular_rad_s": 0.01,
+      "collision_backend": "rigid_flex"
+    },
+    "overhang": {
+      "overhang_threshold_from_horizontal_deg": 45,
+      "layer_height_mm": 0.2,
+      "partition_objective": {
+        "method": "dapper_fdm_2015",
+        "alpha": 0.3,
+        "r_vox": 0.1,
+        "orientation_set": "axis_aligned_24",
+        "layout": "independent_bed"
+      },
+      "orientation_editable": true,
+      "partition_editable": true
+    }
+  },
+  "assembly_plan": {
+    "object_name": "Slender offset-head floor lamp",
+    "components": [
+      {
+        "name": "circular_base",
+        "description": "Low circular weighted-looking base centered at x=0, y=0, resting flat at z=0. Outside diameter 26.693637297766752 mm; approximate thickness 3.6 mm. The outline is a shallow disk with softly rounded or beveled perimeter, a dark gray upper surface and a slightly lighter perimeter band. Use rotate_extrude of a sampled radial section to preserve the flat underside and softened upper edge. Reserve solid central material for the upright's blind receiving slot; do not hollow the base or add feet."
+      },
+      {
+        "name": "upright_pole",
+        "description": "Very slender, straight vertical dark gray pole rising from the base near its center. Use a circular section approximately 1.8\u20132.0 mm in diameter, with a subtle narrower upper extension rather than a bulky telescoping mechanism. It occupies most of the lamp height, running from the base top to approximately z=126\u2013129 mm. Preserve a continuous upright silhouette; any visible collar should be only a small local diameter change. The bottom has enough solid material to embed the generated connector root."
+      },
+      {
+        "name": "curved_upper_arm",
+        "description": "Thin upper continuation of the upright, approximately 1.2\u20131.5 mm in diameter, rising toward z=149 mm before smoothly turning toward negative y into a nearly horizontal arm. The bend is compact and rounded, not an angular elbow or a large semicircular arch. The horizontal reach places the lamp head roughly 30 mm forward of the pole. Build the changing centerline using corresponding circular sections in successive parallel loft planes, or overlapping short cylinders and local hull segments, Boolean-unioned into a continuous tube-like solid. No unsupported sweep operation is required. Tune the uppermost surface to z=150 mm."
+      },
+      {
+        "name": "offset_lamp_head",
+        "description": "Small shallow circular lamp head at the free end of the upper arm, noticeably wider than the pole but smaller than the base. Approximate diameter 14\u201316 mm and housing thickness 4\u20135 mm. Its oblique view should read as the compact rounded rectangular/elliptical form in the reference, not a deep bell or cone. Tilt the head modestly within the yz plane so its light-emitting underside faces predominantly downward and slightly toward the pole. Use a revolved shallow housing with a softened rim and an inset pale gray underside. Preserve a shallow underside recess bounded by the housing rim rather than filling the entire underside flush. The back of the head joins the arm without an oversized bracket. Determine the exact center and tilt from the full assembled bounds."
+      }
+    ],
+    "relations": [
+      "Use millimetres directly: +z is up, +x is lateral, and the head offset is toward -y. The lamp remains in its upright use pose, with the original circular base alone contacting the floor.",
+      "The assembled bounds must be 26.693637297766752 mm along x, 50.56927536447469 mm along y, and 150 mm along z. The base establishes the x extent; keep all upper geometry inside its lateral width.",
+      "With the base centered at y=0, its backmost edge is y=13.346818648883376 mm. Position the tilted head so the foremost assembled surface is y=-37.222456715591314 mm. Resolve this using actual transformed geometry bounds rather than unrotated head dimensions.",
+      "The base, upright and beginning of the upper arm share one vertical centerline. The arm bends toward the head without changing the standing pose or adding another support.",
+      "The head, curved arm and pole form one continuous upper print part. Boolean-union touching structural solids with real overlap; retain the recessed underside and its visible rim.",
+      "Initially use two print groups: the base provides a broad flat bed face, while the complete upper structure avoids conspicuous joints at the thin curved arm and head. The upper structure may be reoriented for printing independently of its assembled pose; this grouping does not claim support-free printing.",
+      "The upper structure connects downward into the base through a concealed central tab and blind slot. Use a shared TabSlot parameter value with width_mm=1.2, thickness_mm=1.2, insertion_mm=2.0, slot_depth_mm=2.2, fit_offset_mm=0.2, root_overlap_mm=0.5, opening_extension_mm=0.5 and lead_in_mm=0.15. Preserve adequate base floor thickness beneath the slot.",
+      "Both interface frames point from the upright into the base along -z and have matching world stop planes at the base top. The base is placed first; assembly.connect places the upper part from its tab frame even though the already-placed root is the slot receiver.",
+      "Use the native FixedAssembly and assembly.connect operations to generate both connector sides. Do not model independent duplicate tabs or slot cutters. Keep geometry and appearance edits on the print bodies before assembling.",
+      "This is a static model: add no articulation, wiring, external stand or unrelated decorative details. Match the reference's muted gray appearance using supported color controls.",
+      "Preserve the frozen single-sided fit allowance, scale, dimensions and supplied physics settings. Visual-only interface validation must not be represented as geometric or manufacturing certification; FEA remains disabled."
+    ],
+    "critic_checklist": [
+      "The complete assembled object is upright, its flat circular base rests at z=0, and no other stand or support is present.",
+      "Actual assembled bounds match the frozen x, y and z dimensions, including the tilted head, rounded upper bend and base perimeter.",
+      "The silhouette includes a low circular base, a very slender long upright, a compact upper curve, a nearly horizontal offset arm and a shallow downward-facing head.",
+      "The upright remains straight and visually continuous; the curved arm has no disconnected segments, abrupt square elbow or excessively thick joint.",
+      "The head is substantially smaller than the base, has a visible rim and inset underside, and is not replaced by a sphere, deep cone or solid flush-ended cylinder.",
+      "The head and arm extend toward -y, while the base remains centered under the upright and determines the overall x width.",
+      "Every named semantic component belongs to exactly one declared print part, and the upper print part contains connected structural material.",
+      "The central connector is concealed in the assembled view, the slot is blind, and the tab root and receiver both have sufficient surrounding mounting material.",
+      "The connector uses the fixed 0.2 mm single-sided allowance exactly once through TabSlot, with the specified shared parameter name.",
+      "Connection evaluation begins with the base root already placed, and the two interface frames agree in direction and assembled stop-plane location.",
+      "Print orientation changes do not rotate the assembled lamp away from its intended use pose or alter its frozen size.",
+      "No strength, retention, standing stability or support-free printability claim is inferred solely from visual approval."
+    ],
+    "print_parts": [
+      {
+        "id": "base_body",
+        "components": [
+          "circular_base"
+        ]
+      },
+      {
+        "id": "upper_structure",
+        "components": [
+          "upright_pole",
+          "curved_upper_arm",
+          "offset_lamp_head"
+        ]
+      }
+    ],
+    "connections": [
+      {
+        "id": "upright_to_base",
+        "tab_part": "upper_structure",
+        "slot_part": "base_body",
+        "tab_port": "upright_bottom_tab",
+        "slot_port": "base_center_blind_slot",
+        "parameter_name": "upright_base_fit",
+        "interface_type": "tab_slot",
+        "insertion_direction": "-z, from the upright bottom into the base top",
+        "fit_intent": "Concealed square locating tab with 0.2 mm single-sided clearance and a blind receiver. Provides alignment for the static assembly; clearance alone does not establish retention."
+      }
+    ],
+    "root_part": "base_body",
+    "mm_per_unit": 1.0,
+    "final_size_mm": [
+      26.693637297766752,
+      50.56927536447469,
+      150.0
+    ]
+  }
+}

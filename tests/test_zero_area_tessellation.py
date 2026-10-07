@@ -158,13 +158,20 @@ def test_normalized_mesh_is_shared_by_stl_glb_and_topology(tmp_path, monkeypatch
     from adsl.core import Cube, FixedAssembly
     from adsl.core.assembly_topology import read_print_mesh, part_measurement
     from adsl.core.export.export_assembly import export_assembly, _verify_written_exports
+    from adsl.core.export import mesh64
+    from adsl.core.export.mesh_validity import normalize_blender_input
     factory = pyramid if fixture == 'planar' else zero_length_fixture
     bounds = mesh_of(factory()).bounds
-    def build(*args, **kwargs):
-        return [factory()]
-    monkeypatch.setattr(exporter, '_build_shape', build)
+    def tessellate(*args, **kwargs):
+        obj = factory()
+        normalization = normalize_blender_input(obj, node_path='fixture')
+        vertices, faces, _ = exporter._mesh_triangles(obj.data, obj.matrix_world)
+        return vertices, faces, normalization['normalizations']
+    # The legacy polygon defect enters through the leaf tessellator. Every
+    # subsequent CSG/export/checker step uses the real canonical evaluator.
+    monkeypatch.setattr(mesh64, '_unit_mesh', tessellate)
     assembly = FixedAssembly(root_id='part', mm_per_unit=1)
-    assembly.add_part('part', Cube((1,5,1)), components=('fixture',))
+    assembly.add_part('part', Cube(1), components=('fixture',))
     report = export_assembly(assembly, tmp_path, source_sha256='test', expected=dict(
         mm_per_unit=1, fit_offset_mm=.2, final_size_mm=(bounds[1]-bounds[0]).tolist(), validation_mode=mode))
     if mode == 'visual_only':
@@ -204,7 +211,7 @@ def test_tiny_positive_faces_survive_retriangulation_elsewhere():
         assert any(np.array_equal(triangle, other) for other in after.triangles)
 
 
-def test_unsuccessful_normalization_does_not_claim_a_design_defect(tmp_path, monkeypatch):
+def test_unsuccessful_normalization_reports_an_evaluation_failure(tmp_path, monkeypatch):
     from adsl.core import Cube, FixedAssembly
     from adsl.core.export import export_assembly as assembly_exporter
     assembly = FixedAssembly(root_id='part', mm_per_unit=1)
@@ -216,7 +223,7 @@ def test_unsuccessful_normalization_does_not_claim_a_design_defect(tmp_path, mon
         expected=dict(mm_per_unit=1, fit_offset_mm=.2, validation_mode='visual_only'))
     failure = report['failures'][0]
     assert report['export_status'] == 'FAIL'
-    assert failure['failure_kind'] == 'unknown'
+    assert failure['failure_kind'] == 'candidate_evaluation'
     assert failure['reason'].startswith('EVALUATED_MESH_DEGENERATE:')
 
 

@@ -130,7 +130,16 @@ def test_welded_mesh_is_shared_by_stl_glb_and_topology(tmp_path, monkeypatch, mo
     from adsl.core import Cube, FixedAssembly
     from adsl.core.assembly_topology import read_print_mesh, part_measurement
     from adsl.core.export.export_assembly import export_assembly, _verify_written_exports
-    monkeypatch.setattr(exporter, '_build_shape', lambda *args, **kwargs: [cracked_cube()])
+    from adsl.core.export import mesh64
+    from adsl.core.export.mesh_validity import normalize_blender_input
+    def tessellate(*args, **kwargs):
+        # Gap is inside the unit object's local precision budget. Translating
+        # an object may not increase its permitted repair displacement.
+        obj = cracked_cube(origin=.5, gap=2**-24)
+        normalization = normalize_blender_input(obj, node_path='fixture')
+        vertices, faces, _ = exporter._mesh_triangles(obj.data, obj.matrix_world)
+        return vertices, faces, normalization['normalizations']
+    monkeypatch.setattr(mesh64, '_unit_mesh', tessellate)
     assembly = FixedAssembly(root_id='part', mm_per_unit=1)
     assembly.add_part('part', Cube(1), components=('fixture',))
     report = export_assembly(assembly, tmp_path, source_sha256='test', expected=dict(

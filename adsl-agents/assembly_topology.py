@@ -79,6 +79,102 @@ def source_candidates(source, source_index, names):
     except (OSError,ValueError,KeyError): return []
 
 
+def evaluation_evidence_run(report, failures, source, output, source_index=None):
+    """Adapt saved evaluation errors to feedback; never run a physical checker.
+
+    The failure is in constructing/exporting this source's geometry. Dependent
+    topology/standing statuses are left untouched in the caller's real runs.
+    """
+    if report.get('source_sha256') != sha256_file(source):
+        return None
+    rows = [row for row in failures if row.get('failure_kind') == 'candidate_evaluation'
+            and row.get('geometry_repair_allowed')]
+    if not rows:
+        return None
+    parts = {p['id']:p for p in report.get('part_declarations', report.get('parts', []))}
+    # Match the IDs to the current source AST as well as the current index hash.
+    # Diagnostic-supplied IDs are not proof of source ownership.
+    from .source_index import parse_source_nodes
+    try:
+        nodes = {n.source_id:n for n in parse_source_nodes(source)}
+    except (OSError, SyntaxError, ValueError):
+        nodes = {}
+    findings = []
+    for ordinal, row in enumerate(rows):
+        names = [row['part_id']] if row.get('part_id') else []
+        candidates = source_candidates(source, source_index, set(names) | {
+            component for name in names for component in parts.get(name, {}).get('components', [])})
+        diagnostic = row.get('diagnostic') if isinstance(row.get('diagnostic'), dict) else {}
+        # The declared print-part may be a generated Boolean container with no
+        # direct source IDs. Follow only recorded operation paths inside that
+        # part's current runtime subtree, never similarly named other parts.
+        try:
+            index = read_json(source_index) if source_index and source_index.is_file() else {}
+            features = index.get('features', []) if index.get('source_sha256')==sha256_file(source) else []
+        except (OSError, ValueError, TypeError):
+            features = []
+        part_paths = [f['semantic_path'] for f in features if f.get('name') in names and f.get('semantic_path')]
+        operation_nodes = diagnostic.get('operation_nodes') or []
+        paths = [diagnostic.get('node_path'), *(n.get('node_path') for n in operation_nodes if isinstance(n, dict))]
+        paths = [tuple(p.split('/')) for p in paths if isinstance(p, str)]
+        located = []
+        for feature in features:
+            if feature.get('resolution') != 'complete':
+                continue
+            semantic_path = feature.get('semantic_path', '')
+            matched_paths = []
+            for part_path in part_paths:
+                if not semantic_path.startswith(part_path+'/'):
+                    continue
+                relative = tuple(semantic_path[len(part_path)+1:].split('/'))
+                if any(any(path[offset:offset+len(relative)]==relative
+                           for offset in range(len(path)-len(relative)+1)) for path in paths):
+                    matched_paths.append(relative)
+            source_ids = [sid for sid in feature.get('source_ids', []) if sid in nodes]
+            if matched_paths and source_ids:
+                located.append((max(map(len, matched_paths)), SourceCandidate(
+                    feature_id=feature['feature_id'], source_ids=source_ids,
+                    source_locations=[nodes[sid].span.display for sid in source_ids],
+                    method='direct', ambiguous=True, evidence=[
+                        'Recorded evaluation operation path matches a resolved current-index descendant '
+                        'of the named print part; source IDs verified against the current AST. '
+                        'Candidate operation/source context, not unique defect ownership.'])))
+        located.sort(key=lambda item:(-item[0], item[1].feature_id))
+        unique_candidates = {}
+        for candidate in [*(c for _, c in located), *candidates]:
+            unique_candidates.setdefault(candidate.feature_id, candidate)
+        candidates = list(unique_candidates.values())[:6]
+        candidates = [candidate.model_copy(update={
+            'source_ids':[sid for sid in candidate.source_ids if sid in nodes],
+            'source_locations':[nodes[sid].span.display for sid in candidate.source_ids if sid in nodes],
+            'ambiguous':candidate.ambiguous or any(sid not in nodes for sid in candidate.source_ids),
+        }) for candidate in candidates]
+        details = {key:diagnostic.get(key, row.get(key)) for key in (
+            'node_path', 'operation', 'input_count', 'metrics', 'attempted_actions', 'operation_nodes')}
+        details['metrics'] = diagnostic.get('metrics', diagnostic.get('internal_metrics', row.get('metrics')))
+        details['attempted_actions'] = diagnostic.get('attempted_actions', diagnostic.get('attempts', row.get('attempted_actions')))
+        details.update(stage=row['evaluation_stage'], code=row['evaluation_code'],
+                       source_sha256=sha256_file(source), physical_verdict='NOT_EVALUATED')
+        findings.append(CheckerFinding(
+            finding_id=f'assembly_mesh_evaluation:{ordinal}:{row.get("part_id", "scene")}:{row["evaluation_code"]}',
+            rule_id=row['evaluation_code'], category='geometry_failure', repairability='geometry',
+            message=(f'{row.get("part_id", "scene")}: {row["evaluation_code"]} at {row["evaluation_stage"]}; '
+                     'observed evaluation failure, not a topology/standing verdict. Read the current '
+                     'source and operation evidence before a bounded local source repair.'),
+            region=RegionEvidence(kind='parts', frame='authored_scene', unit='scene_unit',
+                part_names=names, details=details), source_candidates=candidates,
+            evidence_refs=[str(output/'report.json')], domain=row))
+    result = CheckerResult(checker='assembly_mesh_evaluation', status='FAIL',
+        summary='Current-source geometry evaluation failed; dependent physical properties remain unverified.',
+        findings=findings, assumptions={'source_sha256':sha256_file(source),
+            'scope':'saved source evaluation diagnostics only; no physical measurement'},
+        artifacts={'report':str(output/'report.json')})
+    write_json(output/'report.json', {'source_sha256':sha256_file(source), 'failures':rows})
+    write_json(output/'result.json', result.model_dump())
+    spec = CheckerSpec(name=result.checker, command=['evidence-only'], required=False)
+    return CheckerRun(spec, result, output, ())
+
+
 def make_result(report, rows, source, output, source_index=None):
     status='FAIL' if any(r['status']=='FAIL' for r in rows) else (
         'INDETERMINATE' if not rows or any(r['status']!='PASS' for r in rows) else 'PASS')
@@ -358,6 +454,15 @@ boundary evidence; local body/decoration simplification may be proposed without
 assuming the connector is at fault. Preserve required visible features. The exact
 cause remains uncertain until re-export and recheck. Never fill holes in exported
 meshes, change tolerances/checker settings, or treat unavailable interfaces as FAIL.
+INPUT_GEOMETRY_INVALID, BOOLEAN_EVALUATION_FAILED and
+TARGET_PRECISION_UNREPRESENTABLE are saved source evaluation errors, not measured
+topology or standing failures. Inspect their part, operation, node path, precision
+stage, defect metrics and attempted actions. A bounded local source correction is
+allowed within the existing repair budget, preserving required geometry and visible
+features. A valid Mesh64 followed by failed float32 conversion does not prove the
+design is physically invalid. Do not propose checker/mesh repair/tolerance changes,
+delete required parts, or infer a design cause from unavailable measurements alone.
+File, environment and arbitrary unknown errors are not source geometry findings.
 UNDECLARED_PART_INTERFERENCE identifies overlapping material between the named
 print parts in assembly coordinates. Inspect the reported region, current body
 geometry and the connections positioning those parts. Propose a minimal coordinated
@@ -375,6 +480,7 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
     from .tools import READ_TOOLS, AgentToolContext
     from .utils.inputs import user_input
     runs = list(run) if isinstance(run,(list,tuple)) else [run]
+    physical_runs = [r for r in runs if r.spec.name != 'assembly_mesh_evaluation']
     instruction = ENGINEERING_INSTRUCTION + (
         '\nAssembly physics: combine all current tools in ONE proposal. Self-weight standing and '
         'ideal-bonded FEA have different assumptions; neither proves real fastening. '
@@ -382,8 +488,8 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
         'for overhang optimization. Use change_print_orientation only when enabled, naming actual '
         'print-part IDs in target.parameters. It edits set_print_orientation calls, not the use pose. '
         'Do not change shapes just for overhang, loads, material, support, friction or tool settings. '
-        'A source change requires rechecking all selected applicable tools.' if len(runs)>1 or
-        any(r.spec.name!='assembly_topology' for r in runs) else '')
+        'A source change requires rechecking all selected applicable tools.' if len(physical_runs)>1 or
+        any(r.spec.name!='assembly_topology' for r in physical_runs) else '')
     partition_enabled = bool(request.fixed_assembly.get('physics',{}).get('overhang',{}).get('partition_objective'))
     if partition_enabled and request.repair_policy.print_partition_editable:
         instruction = ENGINEERING_INSTRUCTION + '''
@@ -420,6 +526,7 @@ visual failures remain necessary repairs; a high score cannot excuse them.
         **{k:feedback.get(k) for k in ('checker_summary','typed_findings','evidence_access',
                                      'evidence_files','evidence_path_instruction')},
         'source_sha256':sha256_file(source), 'source_version':feedback.get('source_version'),
+        'evaluation_failures':feedback.get('failure_feedback', []),
         'assembly_item_statuses':[{k:r.get(k) for k in ('kind','part_id','connection_id','pair_id','part_ids','status','code')}
             for result in runs for r in result.result.metrics.get('items',[])],
         'print_orientation_editable':request.repair_policy.print_orientation_editable,

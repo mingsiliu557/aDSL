@@ -93,30 +93,32 @@ def test_export_rejects_silently_omitted_mesh(tmp_path, monkeypatch):
         g.export_glb(Cube((1, 1, 1)), tmp_path/'bad.glb')
 
 
-def test_original_elephant_trunk_glb_stl_and_checker_readback(tmp_path, blender):
+def test_original_elephant_trunk_precision_failure_keeps_internal_and_ascii_evidence(tmp_path, blender):
+    """A Mesh64 PASS cannot certify an unrepresentable float32 GLB.
+
+    This fixture previously passed the Blender-quantized leaf recovery path.
+    Preserve its source and document the new high-precision boundary limitation
+    instead of discarding microscopic faces to claim successful export.
+    """
     import trimesh
     from adsl.core.assembly_topology import read_print_mesh, union_print_mesh
+    from adsl.core.export.mesh64 import evaluate_shape
+    from adsl.core.export.mesh_validity import MeshEvaluationError, mesh_metrics
     source = Path(__file__).parent/'fixtures/elephant_trunk.py'
     scene = runpy.run_path(str(source))['scene']
+    result = evaluate_shape(scene)
+    mesh = result.pieces[0].world_mesh()
+    assert mesh_metrics(mesh.vertices, mesh.faces)['valid']
     path = tmp_path/'trunk.glb'
-    g.export_glb(scene, path)
-    objects = [o for o in blender.context.scene.objects if o.type == 'MESH']
-    assert len(objects) == 1
-    obj = objects[0]
-    assert obj.get('adsl_boolean_recovery')
-    report = json.loads(obj['adsl_boolean_recovery'])
-    assert report['max_vertex_to_surface_sample_distance_scene_units'] <= report['displacement_bound_scene_units']
-    loaded = trimesh.load(path, force='scene', process=False)
-    assert len(loaded.geometry) >= 1  # glTF may split a mesh by material.
-    solid, components, _ = union_print_mesh(trimesh.util.concatenate(list(loaded.geometry.values())))
-    assert len(components) == 1 and solid.volume() > 0
-    v, f, _ = g._mesh_triangles(obj.data, obj.matrix_world)
-    stl = tmp_path/'trunk.stl'
-    trimesh.Trimesh(v, f, process=False).export(stl)
+    with pytest.raises(MeshEvaluationError, match='TARGET_PRECISION_UNREPRESENTABLE') as caught:
+        g.export_glb(scene, path)
+    assert caught.value.diagnostic['stage'] == 'target_precision'
+    assert not path.exists()  # Never publish a missing/silently altered trunk.
+    stl = tmp_path/'trunk_mesh64_diagnostic.stl'
+    mesh.export(stl, file_type='stl_ascii')
     solid, components, _ = union_print_mesh(read_print_mesh(stl, np.eye(4)))
     assert len(components) == 1 and solid.volume() > 0
-    assert not g._mesh_defects(obj.data)
-    # The same recovery metadata must reach the assembly export consumer.
+    # The same precision failure reaches the assembly export caller.
     from adsl.core.export.export_assembly import evaluated
-    mesh, solid, row = evaluated(scene, tmp_path/'assembly_input.glb', 1.)
-    assert any(r['method'] == 'manifold_boolean_recompute' for r in row['mesh_normalizations'])
+    with pytest.raises(MeshEvaluationError, match='TARGET_PRECISION_UNREPRESENTABLE'):
+        evaluated(scene, tmp_path/'assembly_input.glb', 1.)
