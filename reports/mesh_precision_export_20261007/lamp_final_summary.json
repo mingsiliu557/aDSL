@@ -1,0 +1,82 @@
+{
+  "status": "NOT_EVALUATED",
+  "manufacturing_status": "PASS",
+  "display_status": "FAIL",
+  "export_status": "FAIL",
+  "source_sha256": "286f51cb95bed9d3fe996369ba406378d13465299ce0feb6ee10e908eb70f068",
+  "elapsed_seconds": 48.81054290942848,
+  "parts": [
+    {
+      "id": "base_body",
+      "stl": "base_body.stl",
+      "display_status": "PASS",
+      "canonical_mesh": {
+        "vertex_count": 1033,
+        "triangle_count": 2062,
+        "self_intersection": "NOT_EVALUATED",
+        "self_intersection_reason": "No reliable complete triangle self-intersection detector is installed",
+        "nonfinite_coordinates": 0,
+        "invalid_indices": 0,
+        "exact_coordinate_duplicates": 0,
+        "duplicate_faces": 0,
+        "zero_area_triangles": 0,
+        "nonfinite_face_geometry": 0,
+        "nonfinite_geometry_measurements": 0,
+        "surface_area": 1366.8093610322935,
+        "signed_volume": 1969.4814598698447,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "nonmanifold_vertices": 0,
+        "shell_components": 1,
+        "empty": false,
+        "valid": true,
+        "solid_construction_frame": "bbox_center_local_float64",
+        "solid_construction_origin": [
+          0.0,
+          0.0,
+          1.800000000745058
+        ],
+        "solid_status": "Error.NoError",
+        "material_components": 1
+      }
+    },
+    {
+      "id": "upper_structure",
+      "stl": "upper_structure.stl",
+      "display_status": "FAIL",
+      "canonical_mesh": {
+        "vertex_count": 8040,
+        "triangle_count": 16076,
+        "self_intersection": "NOT_EVALUATED",
+        "self_intersection_reason": "No reliable complete triangle self-intersection detector is installed",
+        "nonfinite_coordinates": 0,
+        "invalid_indices": 0,
+        "exact_coordinate_duplicates": 0,
+        "duplicate_faces": 0,
+        "zero_area_triangles": 0,
+        "nonfinite_face_geometry": 0,
+        "nonfinite_geometry_measurements": 0,
+        "surface_area": 1552.8643138767616,
+        "signed_volume": 1023.7809129490743,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "nonmanifold_vertices": 0,
+        "shell_components": 1,
+        "empty": false,
+        "valid": true,
+        "solid_construction_frame": "bbox_center_local_float64",
+        "solid_construction_origin": [
+          0.0,
+          -18.081228357795656,
+          75.8
+        ],
+        "solid_status": "Error.NoError",
+        "material_components": 1
+      }
+    }
+  ],
+  "scope": "mesh only; no post-topology tests",
+  "artifact_root": "/jiigan-hp/lms/aDSL/experiment/mesh_precision_export_20261007/lamp_final"
+}
