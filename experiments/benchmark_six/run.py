@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-from contextlib import closing
+from contextlib import closing, suppress
 from dataclasses import asdict, is_dataclass
 import hashlib
 import importlib
@@ -23,6 +23,7 @@ import traceback
 CASE_ORDER = ('ABO_B075X2XZDD', 'Toys4K_dinosaur_020', 'Toys4K_robot_050',
               'Toys4K_dragon_007', 'ABO_B082JGPBLQ', 'Toys4K_bunny_004')
 ARMS = ('official', 'ours')
+EXPECTED_MODEL = 'gpt-6-astra'
 MAX_ROUNDS = 10
 SOURCE_REPAIR_LIMIT = 9
 HERE = Path(__file__).resolve()
@@ -214,6 +215,9 @@ def probe(root, arm, arms):
     profile = yaml.safe_load(Path(env['profile']).read_text(encoding='utf-8'))
     if profile['params']['base_url'].rstrip('/') != 'http://127.0.0.1:28317/v1':
         raise ValueError('both profiles must use the fixed localhost:28317 endpoint')
+    model = str(profile['params'].get('model', '')).strip()
+    if model != EXPECTED_MODEL:
+        raise ValueError(f'{arm} profile model mismatch: expected {EXPECTED_MODEL}, got {model!r}')
     if any(k.lower().endswith('_proxy') for k in os.environ):
         raise ValueError('proxy variables reached the isolated worker')
     models = importlib.import_module('adsl.agents.models')
@@ -246,13 +250,20 @@ def probe(root, arm, arms):
                    'height': int(os.environ.get('ADSL_RENDER_HEIGHT', 1024)),
                    'samples': int(os.environ.get('ADSL_RENDER_SAMPLES', 256)),
                    'native_render_kwargs_adapter': os.environ.get('ADSL_NATIVE_RENDER_KWARGS') == '1'},
-               profile_max_retries=profile['params'].get('max_retries', 0)))
+               profile_model=model, profile_max_retries=profile['params'].get('max_retries', 0)))
     return paths
 
 
 def local_session_directory(root, case_id, arm, kind='generation'):
     key = digest(str(root.resolve()))[:16]
     return Path('/tmp') / f'adsl-six-sessions-{key}' / case_id / arm / kind
+
+
+class PlannerStreamInterrupted(RuntimeError):
+    def __init__(self, code, *, status_code=None):
+        super().__init__(f'Planner stream interrupted: {code}')
+        self.code = str(code)
+        self.status_code = status_code
 
 
 def audited_runtime(runtime, *, root, case_id, arm, kind='generation'):
@@ -264,6 +275,54 @@ def audited_runtime(runtime, *, root, case_id, arm, kind='generation'):
     counters = {'initial': 0, 'repairs': 0}
     runtime.six_shared_faults = []
     runtime.six_api_interruptions = []
+    async def streamed_planner(kwargs, row):
+        from agents import ModelBehaviorError, Runner
+        started = time.monotonic()
+        result = Runner.run_streamed(kwargs['agent'], kwargs['input'],
+                    context=kwargs.get('context'), max_turns=kwargs.get('max_turns', 16),
+                    session=runtime.sessions.for_role(kwargs['role']))
+        failure = None
+        incomplete = False
+        try:
+            try:
+                async for event in result.stream_events():
+                    if event.type != 'raw_response_event':
+                        continue
+                    if row['first_event_elapsed_seconds'] is None:
+                        row['first_event_elapsed_seconds'] = time.monotonic() - started
+                    data = event.data
+                    if data.type == 'response.completed':
+                        row['response_completed'] = getattr(data.response, 'status', None) == 'completed'
+                    elif data.type in {'response.created', 'response.in_progress'}:
+                        row['response_completed'] = False
+                    elif data.type == 'response.incomplete':
+                        incomplete = True
+                    elif data.type in {'error', 'response.error', 'response.failed'}:
+                        detail = getattr(data, 'error', None) or getattr(getattr(data, 'response', None), 'error', None) or data
+                        code = (detail.get('code') if isinstance(detail, dict) else getattr(detail, 'code', None)) or data.type
+                        status = (detail.get('status_code') if isinstance(detail, dict) else getattr(detail, 'status_code', None))
+                        failure = PlannerStreamInterrupted(code, status_code=status)
+                if result.run_loop_exception:
+                    raise result.run_loop_exception
+            except Exception as error:
+                if failure:
+                    raise failure from error
+                if not row['response_completed'] and not incomplete and isinstance(error, ModelBehaviorError) and \
+                        str(error) == 'Model did not produce a final response!':
+                    raise PlannerStreamInterrupted('stream_missing_completion') from error
+                raise
+            if failure:
+                raise failure
+            if not row['response_completed']:
+                raise PlannerStreamInterrupted('stream_missing_completion')
+            runtime.usage.record(stage=kwargs['stage'], agent=kwargs['agent'].name, result=result)
+            return result
+        except BaseException:
+            result.cancel()
+            with suppress(BaseException):
+                async for _ in result.stream_events():
+                    pass
+            raise
     async def recorded_run(**kwargs):
         stage = kwargs['stage']
         initial = stage.startswith('initial_code')
@@ -281,11 +340,17 @@ def audited_runtime(runtime, *, root, case_id, arm, kind='generation'):
                    instructions=agent.instructions, input=kwargs['input'],
                    tools=[getattr(t, 'name', type(t).__name__) for t in agent.tools],
                    started_at=time.time(), status='RUNNING', budget=dict(counters))
+        if kwargs['role'] == 'planner':
+            row.update(transport='Runner.run_streamed', first_event_elapsed_seconds=None,
+                       response_completed=False)
+        else:
+            row['transport'] = 'native_run'
         write_json(path, row)
         try:
-            result = await call(**kwargs)
+            result = await streamed_planner(kwargs, row) if kwargs['role'] == 'planner' else await call(**kwargs)
             row.update(status='COMPLETED', output=result.final_output,
-                       new_items=[json_value(i) for i in result.new_items])
+                       new_items=[json_value(i) for i in result.new_items
+                                  if kwargs['role'] != 'planner' or getattr(i, 'type', None) != 'reasoning_item'])
             return result
         except Exception as error:
             row.update(status='ERROR', error=error_evidence(error))
@@ -339,7 +404,8 @@ def shared_fault(error):
         detail = body.get('error', body)
         code = detail.get('code') if isinstance(detail, dict) else None
     if isinstance(code, str) and code in {'insufficient_quota', 'quota_exceeded', 'billing_hard_limit_reached',
-                                         'billing_not_active', 'account_deactivated', 'account_disabled', 'invalid_api_key'}:
+                                         'billing_not_active', 'account_deactivated', 'account_disabled', 'invalid_api_key',
+                                         'authentication_error', 'permission_denied'}:
         return True
     return any(s in str(error).lower() for s in ('module origin mismatch', 'frozen source',
                'frozen reference image changed', 'frozen batch hashes changed', 'common review frozen image input changed', 'no space left',
@@ -348,7 +414,7 @@ def shared_fault(error):
 
 def api_interruption(error):
     names = {cls.__name__ for cls in type(error).__mro__}
-    return bool(names & {'APIError', 'APIConnectionError', 'APITimeoutError', 'APIStatusError',
+    return bool(names & {'PlannerStreamInterrupted', 'APIError', 'APIConnectionError', 'APITimeoutError', 'APIStatusError',
                          'RateLimitError', 'InternalServerError'}) and not shared_fault(error)
 
 

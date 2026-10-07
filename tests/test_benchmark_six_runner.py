@@ -7,6 +7,10 @@ from types import SimpleNamespace
 import pytest
 import httpx
 import openai
+from agents import Agent, Model, ModelBehaviorError, RunConfig, Runner
+from openai.types.responses import (Response, ResponseCompletedEvent, ResponseErrorEvent,
+                                    ResponseIncompleteEvent, ResponseTextDeltaEvent)
+from pydantic import BaseModel
 
 from experiments.benchmark_six import run
 
@@ -71,6 +75,16 @@ def test_worker_and_parent_reject_official_modules_from_ours(tmp_path, monkeypat
         run.verify_module_origins({'code_root': str(official)})
 
 
+@pytest.mark.parametrize('arm', run.ARMS)
+def test_probe_rejects_non_astra_model_before_native_request(tmp_path, monkeypatch, arm):
+    profile = tmp_path / f'{arm}.yaml'
+    profile.write_text('params:\n  base_url: http://127.0.0.1:28317/v1\n  model: gpt-6-sol\n')
+    monkeypatch.setattr(run, 'verify_module_origins', lambda env: {})
+    with pytest.raises(ValueError, match=f'{arm} profile model mismatch: expected gpt-6-astra'):
+        run.probe(tmp_path, arm, {arm: {'profile': str(profile)}})
+    assert not (tmp_path / 'preflight').exists()
+
+
 def test_venv_python_symlink_is_not_resolved_to_base_interpreter(tmp_path):
     base = tmp_path / 'basepython'
     base.write_text('not run')
@@ -125,6 +139,203 @@ def test_actual_role_call_adapter_allows_one_initial_and_nine_source_repairs(tmp
     assert len(records) == 10
     assert run.read_json(records[0])['instructions'] == 'unchanged native prompt'
     assert runtime.sessions.workspace.is_relative_to('/tmp')
+
+
+class OfflinePlannerOutput(BaseModel):
+    description: str
+
+
+class OfflinePlannerModel(Model):
+    """Exercise the real SDK stream parser without a client or API connection."""
+    def __init__(self, events):
+        self.events = events
+        self.calls = []
+
+    async def get_response(self, *args, **kwargs):
+        raise AssertionError('Planner must use the SDK streaming entry point')
+
+    async def stream_response(self, *args, **kwargs):
+        self.calls.append((args, kwargs))
+        for event in self.events:
+            yield event
+
+
+def planner_response(*, status='completed'):
+    return Response(
+        id='offline-planner-response', created_at=0, model='gpt-6-astra', object='response',
+        status=status, parallel_tool_calls=False, tool_choice='auto', tools=[],
+        incomplete_details=dict(reason='max_output_tokens') if status == 'incomplete' else None,
+        output=[dict(id='offline-planner-message', type='message', role='assistant', status=status,
+                     content=[dict(type='output_text', text='{"description":"native typed plan"}',
+                                   annotations=[])])],
+        usage=dict(input_tokens=8, output_tokens=4, total_tokens=12,
+                   input_tokens_details=dict(cached_tokens=0, cache_write_tokens=0),
+                   output_tokens_details=dict(reasoning_tokens=1)),
+    )
+
+
+def planner_completed():
+    return ResponseCompletedEvent(type='response.completed', sequence_number=1,
+                                  response=planner_response())
+
+
+def offline_planner_runtime(tmp_path, monkeypatch, events, *, case_id='planner_fixture'):
+    from adsl.agents.utils.usage import UsageRecorder
+
+    native_calls = []
+    native_result = SimpleNamespace(final_output='native result', new_items=[])
+    async def native_run(**kwargs):
+        native_calls.append(kwargs)
+        return native_result
+
+    runtime = SimpleNamespace(run=native_run, usage=UsageRecorder(tmp_path / case_id / 'native'))
+    run.audited_runtime(runtime, root=tmp_path, case_id=case_id, arm='official')
+    model = OfflinePlannerModel(events)
+    agent = Agent(name='native-planner', instructions='native planner instructions', model=model,
+                  output_type=OfflinePlannerOutput)
+    return runtime, agent, model, native_calls, native_result
+
+
+@pytest.fixture
+def real_planner_stream(monkeypatch):
+    """Observe public SDK arguments, then run its real offline model boundary."""
+    native_streamed = Runner.run_streamed
+    calls = []
+    def observed(*args, **kwargs):
+        calls.append((args, kwargs.copy()))
+        return native_streamed(*args, **kwargs, run_config=RunConfig(tracing_disabled=True))
+    monkeypatch.setattr(Runner, 'run_streamed', observed)
+    return calls
+
+
+def test_planner_stream_returns_sdk_typed_output_and_records_native_usage(tmp_path, monkeypatch,
+                                                                        real_planner_stream):
+    runtime, agent, model, native_calls, _ = offline_planner_runtime(
+        tmp_path, monkeypatch, [planner_completed()])
+    context = SimpleNamespace(events=[])
+    async def invoke():
+        result = await runtime.run(agent=agent, input='frozen planner input', role='planner',
+                                   stage='planner', context=context)
+        history = await runtime.sessions.for_role('planner').get_items()
+        return result, history
+    result, history = asyncio.run(invoke())
+    assert isinstance(result.final_output, OfflinePlannerOutput)
+    assert result.final_output.description == 'native typed plan'
+    assert result.context_wrapper.context is context and not native_calls
+    assert len(model.calls) == len(real_planner_stream) == 1
+    args, kwargs = real_planner_stream[0]
+    assert args == (agent, 'frozen planner input')
+    assert kwargs['context'] is context and kwargs['max_turns'] == 16
+    assert kwargs['session'].session_id.endswith(':planner')
+    assert history[0]['content'] == 'frozen planner input'
+    usage = runtime.usage.events()
+    assert len(usage) == 1 and usage[0].stage == 'planner' and usage[0].agent == agent.name
+    assert usage[0].requests == 1 and usage[0].total_tokens == 12 and usage[0].reasoning_tokens == 1
+    row = run.read_json(next((tmp_path / 'jobs/planner_fixture/official/generation/role_calls').glob('*.json')))
+    assert row['status'] == 'COMPLETED' and row['transport'] == 'Runner.run_streamed'
+    assert row['response_completed'] and row['first_event_elapsed_seconds'] >= 0
+    assert row['output'] == {'description': 'native typed plan'}
+
+
+def test_planner_partial_json_without_completion_is_isolated_and_has_unknown_usage(
+        tmp_path, monkeypatch, real_planner_stream):
+    partial = ResponseTextDeltaEvent(type='response.output_text.delta', sequence_number=0,
+        content_index=0, output_index=0, item_id='partial-plan', logprobs=[],
+        delta='{"description":"unconfirmed plan"}')
+    runtime, agent, _, native_calls, _ = offline_planner_runtime(tmp_path, monkeypatch, [partial])
+    with pytest.raises(run.PlannerStreamInterrupted) as caught:
+        asyncio.run(runtime.run(agent=agent, input='frozen input', role='planner', stage='planner'))
+    assert caught.value.code == 'stream_missing_completion'
+    assert run.api_interruption(caught.value) and not run.shared_fault(caught.value)
+    assert not native_calls and not runtime.usage.events() and not runtime.six_shared_faults
+    assert runtime.six_api_interruptions[0]['code'] == 'stream_missing_completion'
+    row = run.read_json(next((tmp_path / 'jobs/planner_fixture/official/generation/role_calls').glob('*.json')))
+    assert row['status'] == 'ERROR' and not row['response_completed']
+    assert 'output' not in row and 'unconfirmed plan' not in str(row)
+    next_runtime, next_agent, _, _, _ = offline_planner_runtime(
+        tmp_path, monkeypatch, [planner_completed()], case_id='next_planner_fixture')
+    result = asyncio.run(next_runtime.run(agent=next_agent, input='next frozen input', role='planner',
+                                         stage='planner'))
+    assert isinstance(result.final_output, OfflinePlannerOutput)
+    assert len(next_runtime.usage.events()) == 1 and not next_runtime.six_api_interruptions
+    assert runtime.sessions.database_path != next_runtime.sessions.database_path
+
+
+@pytest.mark.parametrize('code,status,shared', [('request_timeout', None, False),
+    ('request_timeout', 408, False), ('invalid_api_key', None, True),
+    ('authentication_error', None, True), ('permission_denied', None, True),
+    ('insufficient_quota', None, True)])
+def test_planner_stream_error_classification_uses_provider_code(tmp_path, monkeypatch,
+                                                               real_planner_stream, code, status, shared):
+    error = ResponseErrorEvent(type='error', sequence_number=0, code=code,
+                               message='offline provider failure',
+                               **({'status_code': status} if status is not None else {}))
+    runtime, agent, _, native_calls, _ = offline_planner_runtime(tmp_path, monkeypatch, [error])
+    with pytest.raises(run.PlannerStreamInterrupted) as caught:
+        asyncio.run(runtime.run(agent=agent, input='frozen input', role='planner', stage='planner'))
+    assert caught.value.code == code and caught.value.status_code == status
+    assert run.shared_fault(caught.value) is shared
+    assert run.api_interruption(caught.value) is not shared
+    assert not native_calls and not runtime.usage.events()
+    evidence = runtime.six_shared_faults if shared else runtime.six_api_interruptions
+    assert len(evidence) == 1 and evidence[0]['code'] == code
+
+
+def test_planner_incomplete_keeps_sdk_model_behavior_failure(tmp_path, monkeypatch, real_planner_stream):
+    response = planner_response(status='incomplete')
+    event = ResponseIncompleteEvent(type='response.incomplete', sequence_number=0, response=response)
+    runtime, agent, _, _, _ = offline_planner_runtime(tmp_path, monkeypatch, [event])
+    with pytest.raises(ModelBehaviorError):
+        asyncio.run(runtime.run(agent=agent, input='frozen input', role='planner', stage='planner'))
+    assert not runtime.six_api_interruptions and not runtime.six_shared_faults
+    assert not runtime.usage.events()
+
+
+def test_cancelled_planner_stream_closes_provider_and_settles_sdk_task(tmp_path, monkeypatch,
+                                                                    real_planner_stream):
+    streamed_results = []
+    native_streamed = Runner.run_streamed
+    def capture(*args, **kwargs):
+        result = native_streamed(*args, **kwargs)
+        streamed_results.append(result)
+        return result
+    monkeypatch.setattr(Runner, 'run_streamed', capture)
+    runtime, agent, _, _, _ = offline_planner_runtime(tmp_path, monkeypatch, [])
+    async def cancel_running_stream():
+        started, closed = asyncio.Event(), asyncio.Event()
+        class BlockingPlannerModel(OfflinePlannerModel):
+            async def stream_response(self, *args, **kwargs):
+                try:
+                    yield ResponseTextDeltaEvent(type='response.output_text.delta', sequence_number=0,
+                        content_index=0, output_index=0, item_id='pending-plan', logprobs=[], delta='{')
+                    started.set()
+                    await asyncio.Event().wait()
+                finally:
+                    closed.set()
+        agent.model = BlockingPlannerModel([])
+        task = asyncio.create_task(runtime.run(agent=agent, input='frozen input', role='planner',
+                                               stage='planner'))
+        await asyncio.wait_for(started.wait(), timeout=2)
+        await asyncio.sleep(0)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await asyncio.wait_for(task, timeout=2)
+        assert closed.is_set()
+        assert streamed_results[0].run_loop_task.done()
+    asyncio.run(cancel_running_stream())
+    assert not runtime.usage.events()
+
+
+def test_non_planner_keeps_native_runtime_call(tmp_path, monkeypatch, real_planner_stream):
+    runtime, agent, _, native_calls, native_result = offline_planner_runtime(
+        tmp_path, monkeypatch, [planner_completed()])
+    context = SimpleNamespace(events=[])
+    kwargs = dict(agent=agent, input='native coder input', role='coder', stage='initial_code',
+                  context=context, max_turns=7)
+    assert asyncio.run(runtime.run(**kwargs)) is native_result
+    assert native_calls == [kwargs] and not real_planner_stream
+    row = run.read_json(next((tmp_path / 'jobs/planner_fixture/official/generation/role_calls').glob('*.json')))
+    assert row['transport'] == 'native_run' and row['status'] == 'COMPLETED'
 
 
 def test_native_selection_never_reads_better_offline_score(tmp_path):

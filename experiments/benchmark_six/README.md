@@ -16,12 +16,19 @@ requirement, which states the dimensions, millimetre units, and intended use pos
 Environment entries are `official`/`ours` or `arms.official`/`arms.ours`, each
 with `python`, `code_root` (or `repo`), and `profile`. `common_env` configures the
 shared CPU renderer. Both child imports and the launcher verify module files
-against the appropriate code root. Profiles use `http://127.0.0.1:28317/v1`.
-Proxy variables are removed. Both arms preserve their native SDK clients and
-the frozen profile retry setting; no transport implementation is replaced.
+against the appropriate code root. Both profiles must use `gpt-6-astra` and
+`http://127.0.0.1:28317/v1`; preflight rejects any different model before a call.
+The SSH profile is `adsl-agents/configs/llm/autodl-personal-gpt-6-astra.yaml`.
+Proxy variables are removed. Both arms use their native SDK clients and the
+frozen profile retry setting. The Planner streaming call mode is described below.
 
 Official uses its unmodified native `ObjectWorkflow.generate(ObjectRequest)`
-planner, coder, and critics. Ours directly instantiates the existing workflow's
+planner, coder, and critics. The harness consumes Planner calls through the
+official SDK's `Runner.run_streamed`, preserving the native session, context,
+turn limit, and schema. A Planner result and its usage are accepted only after
+`response.completed` and full stream completion; interrupted streams never use
+partial output. Other roles keep the native runtime call.
+Ours directly instantiates the existing workflow's
 FixedAssembly branch with `visual_only`, `mm_per_unit=1`, `fit_offset_mm=0.2`,
 the case dimensions, topology/overhang, and standing except for the flying
 dragon. Partition repair is enabled with the existing Dapper objective
