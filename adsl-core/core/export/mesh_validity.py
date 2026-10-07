@@ -158,7 +158,6 @@ def _mesh_defects(data):
     return {key:metrics[key] for key in keys if metrics.get(key)}
 
 
-
 def _mesh_arrays(solid):
     raw = solid.to_mesh64()
     return (np.array(raw.vert_properties[:, :3], dtype=np.float64, order='C', copy=True),
@@ -290,15 +289,16 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
                     expected_components=components, face_ids=face_ids, **context)
                 conversion_bound = cast_distance
             except MeshEvaluationError:
-                from .mesh_repair import repair_float32_mesh
-                rounded, f, face_ids, local_repair = repair_float32_mesh(v, f, face_ids,
+                from .mesh_repair import _repair_float32_mesh_checked
+                repaired = _repair_float32_mesh_checked(v, f, face_ids,
                     displacement_budget=max(0.0,bound-effective_tolerance), expected_components=components,
                     mm_per_unit=mm_per_unit)
-                # The repair validates every final edited-source/target face,
-                # including faces outside the edited neighborhood, before return.
-                orientation = local_repair['face_orientation']
-                measured, metrics = validate_mesh(rounded, f, stage='target_precision',
-                    expected_components=components, face_ids=face_ids, **context)
+                # The checked repair's solid and metrics describe these exact
+                # rounded target arrays, including every unedited face.
+                rounded,f,face_ids,local_repair = (
+                    repaired.vertices,repaired.faces,repaired.face_ids,repaired.report)
+                orientation = repaired.orientation
+                measured,metrics = repaired.solid,repaired.metrics
                 cast_distance = local_repair['maximum_vertex_cast_displacement']
                 conversion_bound = local_repair['surface_displacement_upper_bound']
             if sum(float(piece.volume()) < 0 for piece in measured.decompose()) != negative_shells:

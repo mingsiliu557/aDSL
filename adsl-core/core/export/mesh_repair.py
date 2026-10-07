@@ -7,6 +7,7 @@ projected quadrilateral. No search between unrelated vertices or shells occurs.
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+from dataclasses import dataclass
 import json
 import numpy as np
 
@@ -178,16 +179,22 @@ def _defect_evidence(vertices,rounded,faces,materials,data,mm_per_unit,*,index_c
         total_bad_faces=len(indices),recorded_bad_faces=len(evidence),truncated=len(indices)>len(evidence),faces=evidence))
 
 
-def require_face_orientation(source_vertices, target_vertices, faces, **context):
-    """Reject a cast unless all source/target face normals stay comparable."""
+def _require_face_orientation_data(data, **context):
+    """Assert already-computed all-face orientation without measuring twice."""
     from .mesh_validity import MeshEvaluationError
-    metrics = face_orientation_metrics(source_vertices,target_vertices,faces)
+    metrics = data['metrics']
     if not metrics['valid']:
         raise MeshEvaluationError('TARGET_PRECISION_FACE_ORIENTATION_INVALID',
             'float32 conversion changed or collapsed a corresponding geometric face normal',
             stage='target_precision',failure_kind='target_precision',
             face_orientation=metrics,**context)
     return metrics
+
+
+def require_face_orientation(source_vertices, target_vertices, faces, **context):
+    """Reject a cast unless all source/target face normals stay comparable."""
+    return _require_face_orientation_data(
+        _face_orientation_data(source_vertices,target_vertices,faces), **context)
 
 
 def _edges(faces):
@@ -204,7 +211,28 @@ def _vertex_link(faces, vertex):
     return {v for edge in opposite for v in edge}, set(opposite)
 
 
+@dataclass(frozen=True)
+class _RepairResult:
+    """One call's validated rounded target; native objects never enter JSON."""
+    vertices: np.ndarray
+    faces: np.ndarray
+    face_ids: np.ndarray
+    solid: object
+    metrics: dict
+    orientation: dict
+    report: dict
+
+
 def repair_float32_mesh(vertices, faces, face_ids, *, displacement_budget,
+                        expected_components=None, mm_per_unit=1.0):
+    """Keep the existing four-tuple contract over the common checked path."""
+    result = _repair_float32_mesh_checked(vertices,faces,face_ids,
+        displacement_budget=displacement_budget,
+        expected_components=expected_components,mm_per_unit=mm_per_unit)
+    return result.vertices,result.faces,result.face_ids,result.report
+
+
+def _repair_float32_mesh_checked(vertices, faces, face_ids, *, displacement_budget,
                         expected_components=None, mm_per_unit=1.0):
     """Return rounded vertices, faces, material IDs and verified repair record.
 
@@ -239,8 +267,10 @@ def repair_float32_mesh(vertices, faces, face_ids, *, displacement_budget,
             raise MeshEvaluationError('LOCAL_PRECISION_REPAIR_REJECTED',
                 'unchanged cast exceeds fixed geometric displacement budget',
                 stage='target_precision',failure_kind='target_precision')
-        return rounded, current_faces, materials, dict(status='UNCHANGED', operations=[],
-            metrics_before=before, metrics_after=before,
+        target_solid, target_metrics = validate_mesh(rounded,current_faces,
+            stage='target_precision',face_ids=materials,expected_components=expected_components)
+        report = dict(status='UNCHANGED', operations=[],
+            metrics_before=before, metrics_after=target_metrics,
             face_orientation=orientation,
             bad_face_count_before=0,bad_face_count_after=0,
             defect_counts_before=_defect_counts(initial_data),defect_counts_after=_defect_counts(initial_data),
@@ -250,6 +280,8 @@ def repair_float32_mesh(vertices, faces, face_ids, *, displacement_budget,
             remaining_bad_faces_recorded=0,remaining_bad_faces_truncated=False,mm_per_unit=mm_per_unit,
             maximum_vertex_cast_displacement=cast_distance,
             surface_displacement_upper_bound=cast_distance)
+        return _RepairResult(rounded,current_faces,materials,target_solid,
+                             target_metrics,orientation,report)
     vertices = original.copy()
     representatives = np.arange(len(vertices), dtype=np.int64)
     operations, rejected = [], Counter()
@@ -419,20 +451,18 @@ def repair_float32_mesh(vertices, faces, face_ids, *, displacement_budget,
     # validated topological contraction, not arbitrary filtering after casting.
     used, inverse = np.unique(current_faces,return_inverse=True)
     final_vertices, final_faces = rounded[used],inverse.reshape((-1,3))
-    metrics = mesh_metrics(final_vertices,final_faces)
     contraction_distance = float(np.linalg.norm(vertices[representatives]-original,axis=1).max())
     cast_distance = float(np.linalg.norm(rounded[used]-vertices[used],axis=1).max())
     error_bound = contraction_distance+flip_bound+cast_distance
-    final_data = _face_orientation_data(vertices[used],final_vertices,final_faces)
-    # Detailed records use the current pre-compaction vertex IDs, shared with
-    # the corresponding float64 source, while counts cover every final face.
-    current_final_data = _face_orientation_data(vertices,rounded,current_faces)
-    final_evidence = _defect_evidence(vertices,rounded,current_faces,materials,current_final_data,
+    # Compression retains face order; measure direction once using current
+    # local IDs, and reuse it for acceptance, counts and detailed evidence.
+    final_data = _face_orientation_data(vertices,rounded,current_faces)
+    final_evidence = _defect_evidence(vertices,rounded,current_faces,materials,final_data,
         mm_per_unit,index_context='current_local_edit_mesh')
     remaining = [row for row in final_evidence['faces'] if 'ZERO_OR_COLLAPSED_FACE' in row['defect_kinds']]
     report = dict(method='local_precision_edge_repair',status='REJECTED',
         operation_limit=operation_limit,operations=operations,rejected_candidates=dict(rejected),
-        metrics_before=before,metrics_after=metrics,remaining_precision_degeneracies=remaining,
+        metrics_before=before,metrics_after=None,remaining_precision_degeneracies=remaining,
         bad_face_count_before=initial_bad,bad_face_count_after=int(final_data['bad'].sum()),
         defect_counts_before=_defect_counts(initial_data),defect_counts_after=_defect_counts(final_data),
         precision_defects_before=initial_evidence,remaining_bad_faces=final_evidence['faces'],
@@ -447,12 +477,21 @@ def repair_float32_mesh(vertices, faces, face_ids, *, displacement_budget,
         maximum_vertex_cast_displacement=cast_distance,
         surface_displacement_upper_bound=error_bound,displacement_budget=displacement_budget)
     report['face_orientation'] = final_data['metrics']
+    target_metrics = None
     try:
         _,source_after = validate_mesh(vertices[used],final_faces,face_ids=materials,expected_components=expected_components)
         report['metrics_after_local_edit_float64'] = source_after
-        require_face_orientation(vertices[used],final_vertices,final_faces)
-        validate_mesh(final_vertices,final_faces,face_ids=materials,expected_components=expected_components)
-        if metrics.get('shell_components') != source_metrics.get('shell_components'):
+        orientation = _require_face_orientation_data(final_data)
+        try:
+            target_solid,target_metrics = validate_mesh(final_vertices,final_faces,
+                stage='target_precision',face_ids=materials,expected_components=expected_components)
+        except MeshEvaluationError as error:
+            # These metrics describe the rounded target, unlike a preceding
+            # source-after validation error's float64 source measurements.
+            target_metrics = error.diagnostic.get('metrics')
+            raise
+        report['metrics_after'] = target_metrics
+        if target_metrics.get('shell_components') != source_metrics.get('shell_components'):
             raise ValueError('local repair changed oriented shell connectivity')
         if report['euler_characteristic_after'] != original_euler:
             raise ValueError('local repair changed the boundary Euler characteristic')
@@ -461,12 +500,17 @@ def repair_float32_mesh(vertices, faces, face_ids, *, displacement_budget,
         if error_bound > displacement_budget:
             raise ValueError('local repair exceeds fixed geometric displacement budget')
     except (MeshEvaluationError,ValueError) as error:
+        # A source/orientation failure occurs before target construction. Only
+        # that failure path measures target metrics separately, once.
+        report['metrics_after'] = (target_metrics if target_metrics is not None
+                                   else mesh_metrics(final_vertices,final_faces))
         raise MeshEvaluationError('LOCAL_PRECISION_REPAIR_REJECTED',
             'local link-safe edits did not produce a valid bounded float32 result',
             stage='target_precision',failure_kind='target_precision',repair=report,
             validation_reason=str(error)) from error
     report['status'] = 'APPLIED'
-    return final_vertices,final_faces,materials,report
+    return _RepairResult(final_vertices,final_faces,materials,target_solid,
+                         target_metrics,orientation,report)
 
 
 def _remove_mesh_object(obj):
@@ -848,4 +892,3 @@ def _normalize_numeric_microcracks(obj, mm_per_unit):
             bpy.data.meshes.remove(candidate)
         if report is not None:
             obj['adsl_microcrack_normalization'] = json.dumps(report)
-
