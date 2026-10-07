@@ -168,6 +168,24 @@ def test_failed_generation_keeps_denominators_dragon_na_and_null_metrics(tmp_pat
     assert "arm" not in request
 
 
+@pytest.mark.parametrize("arm", ["official", "ours"])
+def test_api_interrupted_generation_stays_unknown_in_fixed_denominator(tmp_path, monkeypatch, arm):
+    _, job = prepare_job(tmp_path, arm=arm)
+    job["generation"] = {"status": "API_INTERRUPTED", "reason": "APIStatusError: HTTP 408",
+                         "api_interruptions": [{"stage": "initial_code", "status_code": 408}]}
+    directory = tmp_path / "jobs" / "Toys4K_dragon_007" / arm
+    evaluation.write_json(directory / "job.json", job)
+    monkeypatch.setattr(evaluation, "render_final", lambda *a, **k: pytest.fail("interrupted output rendered"))
+    result = evaluation.evaluate(tmp_path, "Toys4K_dragon_007", arm)
+    assert result["status"] == "API_INTERRUPTED" and result["included_in_denominator"]
+    assert result["failure_stage"] == "generation_api_interruption"
+    assert result["denominators"] == {"appearance": True, "printing": True, "standing": False}
+    assert result["appearance"]["status"] == result["topology"]["status"] == "INDETERMINATE"
+    assert result["metrics"]["G"] is result["metrics"]["min_overhang_area_mm2"] is None
+    assert result["standing"]["status"] == "NA"
+    assert result["generation"]["api_interruptions"][0]["status_code"] == 408
+
+
 def test_render_failure_never_falls_back_to_native_generation_views(tmp_path, monkeypatch):
     _, job = prepare_job(tmp_path, "robot_050", failed=False)
     directory = tmp_path / "jobs" / "robot_050" / "official"

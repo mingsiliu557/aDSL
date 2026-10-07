@@ -263,6 +263,7 @@ def audited_runtime(runtime, *, root, case_id, arm, kind='generation'):
     call = runtime.run
     counters = {'initial': 0, 'repairs': 0}
     runtime.six_shared_faults = []
+    runtime.six_api_interruptions = []
     async def recorded_run(**kwargs):
         stage = kwargs['stage']
         initial = stage.startswith('initial_code')
@@ -287,9 +288,11 @@ def audited_runtime(runtime, *, root, case_id, arm, kind='generation'):
                        new_items=[json_value(i) for i in result.new_items])
             return result
         except Exception as error:
-            row.update(status='ERROR', error={'type': type(error).__name__, 'reason': safe_reason(error)})
+            row.update(status='ERROR', error=error_evidence(error))
             if shared_fault(error):
                 runtime.six_shared_faults.append({'stage': stage, **row['error']})
+            elif api_interruption(error):
+                runtime.six_api_interruptions.append({'stage': stage, **row['error']})
             raise
         finally:
             row.update(finished_at=time.time(),
@@ -316,14 +319,37 @@ def snapshot_sessions(runtime, target):
         return {'status': 'ERROR', 'live_path': str(source), 'reason': safe_reason(error)}
 
 
+def error_evidence(error):
+    evidence = {'type': type(error).__name__, 'reason': safe_reason(error)}
+    for key in ('status_code', 'request_id', 'code'):
+        value = getattr(error, key, None)
+        if value is not None:
+            evidence[key] = value if isinstance(value, int) else safe_reason(value)
+    return evidence
+
+
 def shared_fault(error):
     names = {cls.__name__ for cls in type(error).__mro__}
-    if names & {'APIError', 'APIConnectionError', 'APITimeoutError', 'RateLimitError', 'AuthenticationError',
-                'PermissionDeniedError', 'InternalServerError', 'AssetInfrastructureError',
-                'ImportError', 'ModuleNotFoundError', 'ConnectionError', 'TimeoutError'}:
+    if names & {'AuthenticationError', 'PermissionDeniedError', 'AssetInfrastructureError',
+                'ImportError', 'ModuleNotFoundError'} or getattr(error, 'status_code', None) in {401, 403}:
         return True
-    return any(s in str(error).lower() for s in ('module origin mismatch', 'frozen source', 'no space left',
+    body = getattr(error, 'body', None)
+    code = getattr(error, 'code', None)
+    if not code and isinstance(body, dict):
+        detail = body.get('error', body)
+        code = detail.get('code') if isinstance(detail, dict) else None
+    if isinstance(code, str) and code in {'insufficient_quota', 'quota_exceeded', 'billing_hard_limit_reached',
+                                         'billing_not_active', 'account_deactivated', 'account_disabled', 'invalid_api_key'}:
+        return True
+    return any(s in str(error).lower() for s in ('module origin mismatch', 'frozen source',
+               'frozen reference image changed', 'frozen batch hashes changed', 'common review frozen image input changed', 'no space left',
                'database disk image is malformed', 'disk i/o error', 'shared_environment_unavailable'))
+
+
+def api_interruption(error):
+    names = {cls.__name__ for cls in type(error).__mro__}
+    return bool(names & {'APIError', 'APIConnectionError', 'APITimeoutError', 'APIStatusError',
+                         'RateLimitError', 'InternalServerError'}) and not shared_fault(error)
 
 
 def artifact_hashes(job):
@@ -342,17 +368,19 @@ def hashes_match(hashes):
 
 def generation_result(job, native, work):
     """Read only the native returned selection; offline metrics never enter here."""
-    job.update(source=str(native.source_path), selected_glb=str(native.glb_path) if native.glb_path else None,
+    job.update(source=str(native.source_path) if native.source_path else None,
+               selected_glb=str(native.glb_path) if native.glb_path else None,
                selected_manifest=str(work / 'assembly/assembly_manifest.json') if
                job['arm'] == 'ours' and (work / 'assembly/assembly_manifest.json').is_file() else None,
                render_paths=[str(p) for p in native.render_paths], approved=bool(native.approved),
                approved_round=int(native.selected_round), usage=json_value(native.usage))
-    usable = bool(native.glb_path and Path(native.glb_path).is_file())
-    job['selected_source_sha256'] = sha256(native.source_path)
+    source_available = bool(native.source_path and Path(native.source_path).is_file())
+    usable = bool(source_available and native.glb_path and Path(native.glb_path).is_file())
+    job['selected_source_sha256'] = sha256(native.source_path) if source_available else None
     job['selected_glb_sha256'] = sha256(native.glb_path) if usable else None
     job['selected_manifest_sha256'] = sha256(job['selected_manifest']) if job['selected_manifest'] else None
     job['generation'].update(status='COMPLETED' if usable else 'generation_failed',
-                             reason=None if usable else 'native workflow returned no selected GLB')
+                             reason=None if usable else 'native workflow returned no usable selected source/GLB')
     if job['arm'] == 'ours' and usable:
         job.update(native_assembly_result=str(work / 'assembly_result.json'),
                    native_version_ledger=str(work / 'assembly_versions.json'))
@@ -392,6 +420,7 @@ async def generate_worker(root, case_id, arm, cases, arms, physics):
     models = importlib.import_module('adsl.agents.models')
     service = importlib.import_module('adsl.agents.service')
     work = folder / 'generation/native'
+    work.parent.mkdir(parents=True, exist_ok=True)
     request_values = {k: v for k, v in fields.items() if k not in {'checker_names', 'repair_policy'}}
     request_values['image_paths'] = tuple(Path(p) for p in fields['image_paths'])
     if arm == 'ours':
@@ -410,12 +439,14 @@ async def generate_worker(root, case_id, arm, cases, arms, physics):
     started = time.time()
     job['generation'].update(status='RUNNING', started_at=started, initial_generation_reserved=True)
     write_json(path, job)
+    interruption = None
     try:
         native = await workflow.generate(request)
         generation_result(job, native, work)
     except Exception as error:
         pause = shared_fault(error)
-        job['generation'].update(status='PAUSED' if pause else 'generation_failed',
+        interruption = error_evidence(error) if api_interruption(error) else None
+        job['generation'].update(status='PAUSED' if pause else 'API_INTERRUPTED' if interruption else 'generation_failed',
                                  reason=safe_reason(error), error_type=type(error).__name__)
         job['pause_batch'] = pause
         (folder / 'generation/error.log').write_text(safe_reason(error) + '\n' + traceback.format_exc(), encoding='utf-8')
@@ -430,11 +461,21 @@ async def generate_worker(root, case_id, arm, cases, arms, physics):
             job['pause_batch'] = True
             job['generation'].update(status='PAUSED', reason='shared API/infrastructure fault recorded in native role call',
                                      shared_failures=runtime.six_shared_faults)
+    interruptions = list(getattr(runtime, 'six_api_interruptions', []))
+    if interruption and not interruptions:
+        interruptions.append({'stage': 'generation', **interruption})
+    if interruptions:
+        job['generation']['api_interruptions'] = interruptions
+        if not job.get('pause_batch') and job['generation']['status'] != 'COMPLETED':
+            job['generation'].update(status='API_INTERRUPTED', reason=job['generation'].get('reason') or
+                                    'native workflow recorded API interruption without a usable selected output')
     job['generation'].update(finished_at=time.time(), elapsed_seconds=time.time() - started)
     job['artifact_hashes'] = artifact_hashes(job)
     job['sessions'] = snapshot_sessions(runtime, folder / 'generation/sessions_snapshot.sqlite3')
     if job['generation']['status'] == 'generation_failed':
         write_json(folder / 'generation_failed.json', job['generation'])
+    elif job['generation']['status'] == 'API_INTERRUPTED':
+        write_json(folder / 'api_interrupted.json', job['generation'])
     write_json(path, job)
     return 2 if job.get('pause_batch') else 0
 
@@ -485,10 +526,18 @@ async def review_worker(root, case_id, arm, cases, arms):
                    sessions=snapshot_sessions(runtime, folder / 'review/sessions_snapshot.sqlite3')))
         return 0
     except Exception as error:
-        write_json(folder / 'review/error.json', dict(status='PAUSED', error_type=type(error).__name__,
+        pause = shared_fault(error)
+        saved = dict(status='PAUSED' if pause else 'INDETERMINATE', error_type=type(error).__name__,
                    reason=safe_reason(error), usage=json_value(runtime.usage.totals()),
-                   sessions=snapshot_sessions(runtime, folder / 'review/sessions_snapshot.sqlite3')))
-        return 2
+                   error=error_evidence(error), api_interruption=api_interruption(error),
+                   unknown_usage_role_calls=sum(read_json(p).get('status') == 'ERROR' for p in
+                                                (folder / 'review/role_calls').glob('*.json')),
+                   read_only=True, no_candidate_selection=True,
+                   sessions=snapshot_sessions(runtime, folder / 'review/sessions_snapshot.sqlite3'))
+        write_json(folder / 'review/error.json', saved)
+        if not pause:
+            write_json(destination, saved)
+        return 2 if pause else 0
 
 
 def checkpoint(root, status, *, reason=None, current_job=None):
@@ -574,7 +623,7 @@ def evaluate_child(root, case_id, arm, arms, common):
 def merge_final_appearance(evaluation_path, review_path):
     evaluation = read_json(evaluation_path)
     review = read_json(review_path)
-    if evaluation.get('failure_stage') == 'generation':
+    if evaluation.get('failure_stage') in {'generation', 'generation_api_interruption'}:
         evaluation['appearance']['final_review'] = str(review_path)
     elif review['status'] == 'COMPLETED':
         decision = review['decision']
@@ -628,7 +677,7 @@ def batch(root, *, preflight_only=False):
                     if child(root, arms, common, arm, ['--worker', '--case', cid, '--arm', arm], folder / 'generation.log'):
                         raise RuntimeError(f'{cid}/{arm}: generation paused; see generation.log and job.json')
                     job = read_json(path)
-                elif generation_status not in {'COMPLETED', 'generation_failed'}:
+                elif generation_status not in {'COMPLETED', 'generation_failed', 'API_INTERRUPTED'}:
                     raise RuntimeError(f'{cid}/{arm}: started generation requires review; no automatic regeneration')
                 if job['generation']['status'] == 'COMPLETED' and not hashes_match(job['artifact_hashes']):
                     raise ValueError(f'native selected artifacts changed: {cid}/{arm}')

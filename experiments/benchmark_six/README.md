@@ -56,7 +56,9 @@ separately from source-repair usage.
 manifest, native render paths, approval/selected round, usage, and exact artifact
 hashes. Ours' native partition score is read only from the selected version's
 explicit checker report, bound to source and manifest hashes. `generation_failed.json`
-retains individual failed designs. Actual role instructions, inputs, outputs,
+retains individual failed designs; `api_interrupted.json` retains generation
+interruptions without a usable selected source/model. Actual role instructions,
+inputs, outputs,
 SDK items, and tool events are archived in `generation/role_calls/`. SQLite
 sessions live in batch-specific `/tmp` directories during execution, then are
 backed up into each job's evidence directory.
@@ -67,8 +69,16 @@ the per-arm measurements, request/token usage, and available paired images at
 `review/<case_id>/comparison_0001.png` through `comparison_0008.png`. Paired
 images keep official on the left and ours on the right, without independent
 object crops or scaling. The report builder's hash is frozen with the batch.
-API/public infrastructure faults pause the batch. A single generated design's
-execution failure remains in the denominator and allows later jobs to proceed.
+After finite native SDK retries, request timeouts, connection errors, HTTP 408,
+429, and 5xx errors end the affected job and allow later jobs to proceed.
+Without a usable selected source/model, generation is `API_INTERRUPTED`, with
+unknown G/overhang measurements and `INDETERMINATE` appearance, in the fixed denominator.
+An earlier API interruption does not replace a usable native returned selection;
+its role-call diagnostics and unknown usage remain in the evidence. A transient
+common final critic error records `INDETERMINATE` appearance and also continues.
+Definite authentication, permission, account/quota, frozen input/version, import,
+disk, or confirmed shared infrastructure faults pause the batch. A single
+generated design's execution failure remains in the denominator and also continues.
 Resume skips completed jobs only when all frozen inputs/code/profile and selected
 artifact/evaluation hashes still match. A started generation or common review
 without a terminal record requires inspection; invoking the runner never resets

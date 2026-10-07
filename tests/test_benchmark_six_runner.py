@@ -5,6 +5,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+import httpx
+import openai
 
 from experiments.benchmark_six import run
 
@@ -169,13 +171,166 @@ def test_existing_batch_budget_and_started_job_are_never_reset(tmp_path, monkeyp
         run.initialize(tmp_path, cases, arms, {})
 
 
-def test_api_fault_pauses_but_single_design_execution_error_does_not():
-    class APIConnectionError(Exception):
-        pass
+def api_status_error(status=408, code='request_timeout', cls=openai.APIStatusError):
+    response = httpx.Response(status, request=httpx.Request('POST', 'http://127.0.0.1:28317/v1/responses'),
+                              headers={'x-request-id': 'fixture-request-id'})
+    return cls('fixture API request failed', response=response, body={'code': code})
+
+
+@pytest.mark.parametrize('status', [408, 429, 500, 503])
+def test_request_api_status_errors_do_not_pause_batch(status):
+    error = api_status_error(status)
+    assert isinstance(error, openai.APIError)
+    assert not run.shared_fault(error)
+    assert run.api_interruption(error)
+    assert run.error_evidence(error)['status_code'] == status
+
+
+def test_api_connection_timeout_are_isolated_but_confirmed_infrastructure_pauses():
+    request = httpx.Request('POST', 'http://127.0.0.1:28317/v1/responses')
+    for error in (openai.APIConnectionError(request=request), openai.APITimeoutError(request=request)):
+        assert not run.shared_fault(error)
+        assert run.api_interruption(error)
     class AssetExecutionError(Exception):
         pass
-    assert run.shared_fault(APIConnectionError('unreachable'))
+    class AssetInfrastructureError(AssetExecutionError):
+        pass
     assert not run.shared_fault(AssetExecutionError('generated source failed export'))
+    assert run.shared_fault(AssetInfrastructureError('renderer installation unavailable'))
+    assert run.shared_fault(ImportError('native module unavailable'))
+    assert run.shared_fault(OSError('No space left on device'))
+
+
+@pytest.mark.parametrize('error', [api_status_error(401, 'invalid_api_key', openai.AuthenticationError),
+                                  api_status_error(403, 'permission_denied', openai.PermissionDeniedError),
+                                  api_status_error(429, 'insufficient_quota')])
+def test_definite_auth_permission_and_account_faults_remain_shared(error):
+    assert run.shared_fault(error)
+    assert not run.api_interruption(error)
+
+
+def install_failing_native(monkeypatch, error, *, returned='raise'):
+    """Run the real worker/audit around a tiny native workflow; no API request."""
+    @dataclass
+    class UsageTotals:
+        requests: int = 0
+        total_tokens: int = 0
+    class Sessions:
+        def __init__(self, workspace, task_id):
+            self.database_path = workspace / 'not-created.sqlite3'
+    class Runtime:
+        def __init__(self, **kwargs):
+            self.usage = SimpleNamespace(totals=UsageTotals)
+        def agent(self, **kwargs):
+            return SimpleNamespace(**kwargs)
+        async def run(self, **kwargs):
+            raise error
+    class Workflow:
+        def __init__(self, *args):
+            pass
+        def _runtime(self, *args, **kwargs):
+            return Runtime()
+        @staticmethod
+        def _review_view_labels(rendered, **kwargs):
+            return [p.name for p in rendered]
+        async def generate(self, request):
+            runtime = self._runtime(request, request.workspace)
+            agent = runtime.agent(name='native-coder', instructions='native instructions', tools=[])
+            try:
+                await runtime.run(agent=agent, input='frozen input', role='coder', stage='initial_code')
+            except Exception:
+                if returned == 'raise':
+                    raise
+            request.workspace.mkdir(parents=True, exist_ok=True)
+            source = request.workspace / 'source.py'
+            source.write_text('native retained source')
+            glb = request.workspace / 'selected.glb' if returned == 'usable' else None
+            if glb:
+                glb.write_bytes(b'native returned selection')
+            return SimpleNamespace(source_path=source, glb_path=glb, render_paths=(), approved=False,
+                                   selected_round=1, usage=runtime.usage.totals())
+    modules = {'adsl.agents.models': SimpleNamespace(ObjectRequest=lambda **kw: SimpleNamespace(**kw),
+                                                   GradedImageCriticDecision=object),
+               'adsl.agents.service': SimpleNamespace(ObjectWorkflow=Workflow),
+               'adsl.agents.utils.sessions': SimpleNamespace(SessionManager=Sessions),
+               'adsl.agents.utils.runner': SimpleNamespace(AgentRuntime=Runtime),
+               'adsl.agents.utils.inputs': SimpleNamespace(user_input=lambda *args: args),
+               'adsl.agents.prompts': SimpleNamespace(object_prompt=lambda *args, **kw: 'native critic prompt')}
+    native_import = run.importlib.import_module
+    monkeypatch.setattr(run.importlib, 'import_module',
+                        lambda name: modules[name] if name in modules else native_import(name))
+    monkeypatch.setattr(run, 'probe', lambda *args: None)
+    return Runtime
+
+
+@pytest.mark.parametrize('returned', ['raise', 'no_output', 'usable'])
+def test_generation_api408_keeps_audit_and_only_usable_native_selection(tmp_path, monkeypatch, returned):
+    install_failing_native(monkeypatch, api_status_error(), returned=returned)
+    row = case(tmp_path)
+    folder = tmp_path / 'jobs' / row['case_id'] / 'official'
+    fields = run.request_fields(row, 'official', {})
+    run.write_json(folder / 'job.json', dict(case_id=row['case_id'], arm='official',
+                   input_sha256=row['input_sha256'], request_sha256=run.digest(fields), generation={'status': 'PENDING'}))
+    rc = asyncio.run(run.generate_worker(tmp_path, row['case_id'], 'official', {row['case_id']: row},
+                                         {'official': {'profile': 'not loaded'}}, {}))
+    assert rc == 0
+    job = run.read_json(folder / 'job.json')
+    assert not job.get('pause_batch')
+    assert job['generation']['status'] == ('COMPLETED' if returned == 'usable' else 'API_INTERRUPTED')
+    assert job['generation']['unknown_usage_role_calls'] == 1
+    assert job['generation']['actual_initial_calls'] == 1 and job['generation']['actual_source_repairs'] == 0
+    evidence = job['generation']['api_interruptions']
+    assert len(evidence) == 1 and evidence[0]['stage'] == 'initial_code'
+    assert evidence[0]['type'] == 'APIStatusError' and evidence[0]['status_code'] == 408
+    assert evidence[0]['request_id'] == 'fixture-request-id'
+    assert job['usage']['requests'] == 0  # Failed call usage is unknown, not an invented successful request.
+    if returned == 'usable':
+        assert job['selected_glb_sha256'] == run.sha256(job['selected_glb'])
+        assert not (folder / 'api_interrupted.json').exists()
+    else:
+        assert (folder / 'api_interrupted.json').is_file()
+        assert not (folder / 'generation_failed.json').exists()
+    with pytest.raises(ValueError, match='no automatic replay'):
+        asyncio.run(run.generate_worker(tmp_path, row['case_id'], 'official', {row['case_id']: row},
+                                        {'official': {'profile': 'not loaded'}}, {}))
+
+
+def test_swallowed_native_auth_error_still_pauses(tmp_path, monkeypatch):
+    install_failing_native(monkeypatch, api_status_error(401, 'invalid_api_key', openai.AuthenticationError),
+                           returned='no_output')
+    row = case(tmp_path)
+    folder = tmp_path / 'jobs' / row['case_id'] / 'official'
+    run.write_json(folder / 'job.json', dict(arm='official', input_sha256=row['input_sha256'],
+                   request_sha256=run.digest(run.request_fields(row, 'official', {})), generation={'status': 'PENDING'}))
+    assert asyncio.run(run.generate_worker(tmp_path, row['case_id'], 'official', {row['case_id']: row},
+                                           {'official': {'profile': 'not loaded'}}, {})) == 2
+    job = run.read_json(folder / 'job.json')
+    assert job['pause_batch'] and job['generation']['status'] == 'PAUSED'
+    assert job['generation']['shared_failures'][0]['status_code'] == 401
+
+
+def test_common_review_api408_is_indeterminate_without_pause_or_replay(tmp_path, monkeypatch):
+    install_failing_native(monkeypatch, api_status_error())
+    row = case(tmp_path)
+    folder = tmp_path / 'jobs' / row['case_id'] / 'official'
+    views = [tmp_path / f'view_{n}.png' for n in range(8)]
+    for path in views:
+        path.write_bytes(b'fixture view')
+    run.write_json(folder / 'evaluation/image_critic_request.json',
+                   dict(status='READY', rendered_images=[str(p) for p in views], reference_image=row['input_image']))
+    assert asyncio.run(run.review_worker(tmp_path, row['case_id'], 'official', {row['case_id']: row},
+                                         {'ours': {'profile': 'not loaded'}})) == 0
+    review_path = folder / 'review/image_critic.json'
+    saved = run.read_json(review_path)
+    assert saved['status'] == 'INDETERMINATE' and saved['api_interruption']
+    assert saved['error']['status_code'] == 408 and saved['unknown_usage_role_calls'] == 1
+    assert saved['read_only'] and saved['no_candidate_selection']
+    run.write_json(folder / 'evaluation/result.json', {'status': 'PASS', 'appearance': {'status': 'PENDING'}})
+    measured, _ = run.merge_final_appearance(folder / 'evaluation/result.json', review_path)
+    assert measured['status'] == measured['appearance']['status'] == 'INDETERMINATE'
+    before = review_path.read_bytes()
+    assert asyncio.run(run.review_worker(tmp_path, row['case_id'], 'official', {}, {})) == 0
+    assert review_path.read_bytes() == before
 
 
 def test_failed_unified_views_do_not_fall_back_to_generation_images(tmp_path, monkeypatch):
@@ -187,7 +342,10 @@ def test_failed_unified_views_do_not_fall_back_to_generation_images(tmp_path, mo
     assert saved['status'] == 'INDETERMINATE' and saved['no_candidate_selection']
 
 
-def test_serial_twelve_jobs_and_completed_resume_make_no_new_generation(tmp_path, monkeypatch):
+@pytest.mark.parametrize('api408', [False, True])
+def test_serial_twelve_jobs_and_completed_resume_make_no_new_generation(tmp_path, monkeypatch, api408):
+    if api408:
+        install_failing_native(monkeypatch, api_status_error())
     cases = {cid: case(tmp_path, cid) for cid in run.CASE_ORDER}
     arms = {}
     for arm in run.ARMS:
@@ -200,6 +358,7 @@ def test_serial_twelve_jobs_and_completed_resume_make_no_new_generation(tmp_path
     monkeypatch.setattr(run, 'load_envs', lambda root: (arms, {}))
     monkeypatch.setattr(run, 'frozen_fingerprint', lambda *args: {'unchanged': True})
     run.write_json(tmp_path / 'config/physics.json', {})
+    run.write_json(tmp_path / 'config/cases.json', {'cases': list(cases.values())})
     generations = []
     def fake_child(root, configured, common, arm, arguments, log):
         if '--probe' in arguments:
@@ -211,6 +370,8 @@ def test_serial_twelve_jobs_and_completed_resume_make_no_new_generation(tmp_path
         folder = root / 'jobs' / cid / method
         if '--worker' in arguments:
             generations.append((cid, method))
+            if api408 and (cid, method) == (run.CASE_ORDER[0], 'official'):
+                return asyncio.run(run.generate_worker(root, cid, method, cases, arms, {}))
             job = run.read_json(folder / 'job.json')
             job['generation']['status'] = 'generation_failed'
             run.write_json(folder / 'job.json', job)
@@ -218,6 +379,10 @@ def test_serial_twelve_jobs_and_completed_resume_make_no_new_generation(tmp_path
             run.write_json(folder / 'review/image_critic.json', {'status': 'INDETERMINATE'})
         return 0
     def fake_evaluation(root, cid, arm, *args):
+        if api408:
+            from experiments.benchmark_six import evaluate
+            evaluate.evaluate(root, cid, arm)
+            return 0
         folder = root / 'jobs' / cid / arm / 'evaluation'
         run.write_json(folder / 'result.json', {'status': 'FAIL', 'failure_stage': 'generation', 'appearance': {'status': 'FAIL'}})
         run.write_json(folder / 'image_critic_request.json', {'status': 'INDETERMINATE'})
@@ -235,6 +400,15 @@ def test_serial_twelve_jobs_and_completed_resume_make_no_new_generation(tmp_path
     assert run.batch(tmp_path) == 0
     assert generations == [(cid, arm) for cid in run.CASE_ORDER for arm in run.ARMS]
     assert run.read_json(tmp_path / 'results.json')['status'] == 'COMPLETED'
+    if api408:
+        interrupted = run.read_json(tmp_path / 'jobs' / run.CASE_ORDER[0] / 'official/job.json')
+        assert interrupted['status'] == 'COMPLETED'
+        assert interrupted['generation']['status'] == 'API_INTERRUPTED'
+        assert interrupted['generation']['api_interruptions'][0]['status_code'] == 408
+        measured = interrupted['offline_evaluation']
+        assert measured['status'] == 'API_INTERRUPTED' and measured['included_in_denominator']
+        assert measured['appearance']['status'] == 'INDETERMINATE' and measured['metrics']['G'] is None
+        assert run.read_json(tmp_path / 'jobs' / run.CASE_ORDER[-1] / 'ours/job.json')['status'] == 'COMPLETED'
     assert run.batch(tmp_path) == 0
     assert len(generations) == 12
 

@@ -355,11 +355,15 @@ def evaluate(run_root, case_id, arm, *, render_python=None, skip_render=False):
     write_json(output / "result.json", result)
     status = str(job.get("generation", {}).get("status", "")).lower()
     published = job.get("selected_glb") and resolve_path(job["selected_glb"], directory).is_file()
-    failed = status in ("fail", "failed", "error", "generation_failed", "timeout") or not published
+    failed = status in ("fail", "failed", "error", "generation_failed", "timeout", "api_interrupted") or not published
     if failed:
         reason = job.get("generation", {}).get("reason", "native generation did not publish selected GLB")
-        result.update(status="FAIL", failure_stage="generation", reason=reason)
-        result["appearance"] = unavailable(reason, "FAIL")
+        interrupted = status == "api_interrupted"
+        result.update(status="API_INTERRUPTED" if interrupted else "FAIL",
+                      failure_stage="generation_api_interruption" if interrupted else "generation", reason=reason)
+        result["appearance"] = unavailable(reason, "INDETERMINATE" if interrupted else "FAIL")
+        if interrupted:
+            result["topology"] = unavailable(reason)
     else:
         glb = resolve_path(job["selected_glb"], directory)
         result["selected_glb"] = str(glb)
