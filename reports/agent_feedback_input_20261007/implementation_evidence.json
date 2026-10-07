@@ -1,0 +1,57 @@
+{
+  "workspace": "/tmp/pytest-of-root/pytest-458/test_four_actual_role_boundari0",
+  "raw_payload_utf8_bytes": 3218732,
+  "roles": {
+    "image_critic": {
+      "text_utf8_bytes": 3417,
+      "unique_failure_count": 1
+    },
+    "code_critic": {
+      "text_utf8_bytes": 4247,
+      "unique_failure_count": 1
+    },
+    "assembly_engineering": {
+      "text_utf8_bytes": 18469,
+      "unique_failure_count": 1
+    },
+    "repair": {
+      "text_utf8_bytes": 14577,
+      "unique_failure_count": 1
+    }
+  },
+  "pointer_reads": [
+    {
+      "path": "evaluation_feedback/result.json",
+      "json_pointer": "/findings/0/domain/diagnostic/internal_metrics",
+      "read_result": {
+        "valid": true,
+        "zero_area_triangles": 0,
+        "boundary_edges": 0
+      }
+    }
+  ],
+  "code_baseline": "a4a43ac95ffd9e3dad72d2f2263a4ce98fa84f59",
+  "implementation_commit": "f31a8b713c3de9e1ca3aefaacf529db3feb6443e",
+  "branch": "codex/agent-feedback-input-v1",
+  "real_model_calls": 0,
+  "blender_or_checker_processes": 0,
+  "module_roots": {
+    "agents": "/tmp/adsl_agent_feedback_20261007/adsl-agents",
+    "core": "/tmp/adsl_agent_feedback_20261007/adsl-core/core",
+    "tools": "/tmp/adsl_agent_feedback_20261007/adsl-tools",
+    "chat": "/tmp/adsl_agent_feedback_20261007/adsl-chat"
+  },
+  "artifacts_sha256": {
+    "README.md": "75fab6446fb29d8ebdf2fc533633d64f5619cb3d4037375b63310af0a7a4f5bb",
+    "capture_evidence.json": "65bbda14bc41c0adb2ec2730795f9a2de143d0c0ffbac1254000cc8e9ae036a8",
+    "captured_assembly_engineering.json": "5fbd00ef8cdceeec04461065dce88b53162ee4d63ac3af81456377d9f379233e",
+    "captured_code_critic.json": "cfddde79a425482cf2fdea2735bf459f12532f4a6e487e0626c6b006e143b183",
+    "captured_image_critic.json": "fdd77f28991e3e05d3426c481615fc1f211793cd7893510b1d5e13e15732653d",
+    "captured_repair.json": "46d6201f12819f96f1db672b9dd6b9702dc2b2851107adca79428f3b42ee3cd3",
+    "pytest_final.log": "b1f2f741b5622c673a9336e8ede0ca6b2f6f5b83c7ff5a9999211d36f6825d46",
+    "pytest_runner.log": "3f7e605f13f32fd644c92853130f33506bcedd7a626d83c5289962ea90b89f08",
+    "synthetic_original_evidence.zip": "82373b8fee2cd0098efaf75d960f9633bd7174b625e1fea2d5b3fe3f80cfbaed",
+    "terminal_request_evidence.json": "b2d8fc7a95396de5508934e0b9d185e36ad5601fba5e5e25b900b20ac3d69bb7",
+    "validation.json": "164c1ee454af03ca61ce853c5e9b6a53f3dfaa0ba70e571ee8d09ae287a07c4e"
+  }
+}

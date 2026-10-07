@@ -1,0 +1,65 @@
+{
+  "engineering_rejection": {
+    "test_workspace": "/tmp/pytest-of-root/pytest-458/test_engineering_request_rejec0",
+    "book": {
+      "completed": true,
+      "stop_reason": "agent_input_too_large",
+      "next_round": 2,
+      "working": "original",
+      "retained": "original",
+      "qualified": null
+    },
+    "versions": [
+      "original"
+    ],
+    "repair_history_entries": 0,
+    "current_source_sha256": "935f5d82339034151e24d3d1891ecb54ec432f2330cbd583e710403ed646aa9b",
+    "original_source_sha256": "935f5d82339034151e24d3d1891ecb54ec432f2330cbd583e710403ed646aa9b",
+    "request_error": {
+      "kind": "context_limit",
+      "code": "context_too_large",
+      "status_code": 400,
+      "request_id": null,
+      "reason": "request rejected",
+      "retryable_same_input": false
+    }
+  },
+  "coder_rejection": {
+    "test_workspace": "/tmp/pytest-of-root/pytest-458/test_coder_request_error_keeps0",
+    "book": {
+      "completed": true,
+      "stop_reason": "agent_input_too_large",
+      "next_round": 3,
+      "working": "original",
+      "retained": "original",
+      "qualified": null
+    },
+    "versions": [
+      "original",
+      "attempt_0001"
+    ],
+    "repair_history_entries": 1,
+    "current_source_sha256": "935f5d82339034151e24d3d1891ecb54ec432f2330cbd583e710403ed646aa9b",
+    "original_source_sha256": "935f5d82339034151e24d3d1891ecb54ec432f2330cbd583e710403ed646aa9b",
+    "edit_outcome": {
+      "tool_events": [],
+      "before_sha256": "935f5d82339034151e24d3d1891ecb54ec432f2330cbd583e710403ed646aa9b",
+      "after_sha256": "935f5d82339034151e24d3d1891ecb54ec432f2330cbd583e710403ed646aa9b",
+      "status": "TOOL_ERROR",
+      "reason": "request rejected",
+      "request_error": {
+        "kind": "context_limit",
+        "code": "context_too_large",
+        "status_code": 400,
+        "request_id": null,
+        "reason": "request rejected",
+        "retryable_same_input": false
+      },
+      "error_evidence_ref": {
+        "path": "rounds/round_02/candidates/01_assembly_or_appearance/repair_request_error.json",
+        "source_sha256": "935f5d82339034151e24d3d1891ecb54ec432f2330cbd583e710403ed646aa9b",
+        "source_version": "original"
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "runs": [
+    {
+      "stage": "A",
+      "result": "12 passed",
+      "seconds": 105.1,
+      "log_note": "earlier tool output; original log not persisted"
+    },
+    {
+      "stage": "B",
+      "result": "58 passed",
+      "seconds": 27.38,
+      "log_note": "earlier tool output; original log not persisted"
+    },
+    {
+      "stage": "C",
+      "result": "146 passed",
+      "seconds": 52.54,
+      "log_note": "earlier tool output; original log not persisted"
+    },
+    {
+      "stage": "D/E broad offline regressions",
+      "result": "234 passed, 1 deselected",
+      "seconds": 60.0,
+      "log": "pytest_final.log"
+    },
+    {
+      "stage": "new frozen-runner helper regression",
+      "result": "46 passed",
+      "seconds": 2.66,
+      "log": "pytest_runner.log"
+    },
+    {
+      "stage": "final feedback module including unknown-container provenance guard",
+      "result": "42 passed",
+      "seconds": 27.71,
+      "log_note": "latest tool output; original log not persisted"
+    }
+  ],
+  "deselected_test": "test_interference_real_geometry_drives_engineering_coder_recheck",
+  "real_model_calls": 0,
+  "blender_or_checker_processes": 0,
+  "benchmark_resumed": false,
+  "note": "All model/executor/checker workflow states were stubbed. Existing pure mathematical geometry/voxel fixtures were included in the offline partition regressions."
+}
