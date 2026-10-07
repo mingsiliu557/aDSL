@@ -277,7 +277,8 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
             except MeshEvaluationError:
                 from .local_precision_repair import repair_float32_mesh
                 rounded, f, face_ids, local_repair = repair_float32_mesh(v, f, face_ids,
-                    displacement_budget=max(0.0,bound-effective_tolerance), expected_components=components)
+                    displacement_budget=max(0.0,bound-effective_tolerance), expected_components=components,
+                    mm_per_unit=mm_per_unit)
                 # The repair validates every final edited-source/target face,
                 # including faces outside the edited neighborhood, before return.
                 orientation = local_repair['face_orientation']

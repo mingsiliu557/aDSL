@@ -105,29 +105,37 @@ def test_two_print_parts_are_not_unioned_and_output_files_verified(tmp_path):
     assert len(loaded.geometry)==2
 
 
-def test_original_lamp_valid_manufacturing_rejects_flipped_display_faces(tmp_path):
+def test_original_lamp_repairs_flipped_display_faces_and_preserves_manufacturing(tmp_path):
     from adsl.core.export.mesh_validity import validate_written_mesh
     fixture=Path(__file__).parents[1]/'reports/benchmark_six_boolean_failure_20261007/source.py'
     ns=runpy.run_path(str(fixture))
     arm=ns['CurvedArm'](ns['UpperStructure']().offset_lamp_head)
     result=evaluate_shape(arm)
     piece=result.pieces[0]
-    metrics=mesh_metrics(piece.world_mesh().vertices,piece.world_mesh().faces)
+    original=piece.world_mesh()
+    metrics=mesh_metrics(original.vertices,original.faces)
     assert metrics['valid'] and metrics['shell_components']==1
     mesh,solid,diagnostics=a.evaluated(arm,tmp_path/'arm.glb',1.,keep_materials=True)
     assert diagnostics['manufacturing_geometry_valid']
-    assert diagnostics['display_status']=='FAIL'
-    assert diagnostics['target_precision']['code']=='TARGET_PRECISION_UNREPRESENTABLE'
-    # Old closedness-only checks accepted a simplified cast with flipped
-    # geometric normals. All corresponding-face validation must reject it.
-    attempts=diagnostics['target_precision']['attempts']
-    assert len(attempts)==3
-    for attempt in attempts[1:]:
-        repair=attempt['diagnostic']['repair']
-        assert repair['metrics_after']['valid']
-        assert repair['face_orientation']['flipped_faces']>0
-        assert not repair['face_orientation']['valid']
-    assert not (tmp_path/'arm.glb').exists()
+    assert diagnostics['manufacturing_status']==diagnostics['display_status']=='PASS'
+    assert not diagnostics['display_failures']
+    conversion=next(iter(diagnostics['target_precision'].values()))
+    repair=conversion['local_precision_repair']
+    assert repair['status']=='APPLIED' and repair['defect_counts_before']['flipped_faces']>0
+    assert repair['bad_face_count_after']==0 and repair['operations']
+    assert conversion['face_orientation']['valid']
+    assert conversion['face_orientation']['flipped_faces']==conversion['face_orientation']['target_zero_normals']==0
+    assert conversion['surface_displacement_upper_bound_mm']<=conversion['displacement_budget_mm']
+    assert (tmp_path/'arm.glb').exists()
+    _,display=saved_world(tmp_path/'arm.glb')
+    assert mesh_metrics(display.vertices,display.faces)['valid']
+    assert conversion['face_orientation']['triangle_count']==len(display.faces)
+    assert display.volume==pytest.approx(solid.volume(),abs=conversion['volume_budget_mm3'],rel=0)
+    # Display-only local repair cannot alter canonical manufacturing vertices.
+    assert len(mesh.faces)==len(original.faces)
+    np.testing.assert_allclose(np.unique(mesh.vertices,axis=0),np.unique(original.vertices,axis=0),
+                               atol=1e-12,rtol=0)
+    json.dumps(conversion,allow_nan=False)
     mesh.export(tmp_path/'arm.stl',file_type='stl_ascii')
     actual,restored,readback=validate_written_mesh(tmp_path/'arm.stl')
     assert readback['status']=='PASS'

@@ -2,6 +2,8 @@
 
 日期：2026-10-07。分支：`codex/mesh-validity-v1`。修改前 HEAD：`7addd31119760b020c09cde8591136d7c709a566`。仅补用户指定的三个问题，没有恢复 benchmark 或调用真实模型。
 
+后续已补齐翻面进入局部修复搜索；原灯臂、象鼻及含 connector 的完整上部现已通过实际 GLB／STL 读回，见 [后续实现及验证](mesh_precision_flip_repair_20261007.md)。本文保留当次真实结果。
+
 ## 实现
 
 1. `adsl-core/core/export/mesh64.py::evaluate_shape()`：INTERSECT 保留每个声明操作数，包括没有任何 piece 的空 Asset。每个操作数内部的多个 piece 先作 UNION，再与其它操作数求交。验证 `A ∩ ∅`、`∅ ∩ A`、嵌套空集及多 piece 操作数；没有改变独立对象、UNION/HULL 或多 base 共用 cutters 的 DIFFERENCE 语义。

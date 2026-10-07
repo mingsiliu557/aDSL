@@ -151,7 +151,8 @@ def test_precision_budget_has_same_millimeter_floor_for_different_scene_units(di
     assert records[0]['volume_budget_mm3']==pytest.approx(records[-1]['volume_budget_mm3'],rel=1e-14)
 
 
-def test_target_conversion_rejects_direct_cast_geometric_flip_before_bounded_retry():
+@pytest.mark.parametrize('material_guard',[False,True])
+def test_target_conversion_searches_geometric_flips_before_bounded_retry(material_guard):
     ulp = float(np.spacing(np.float32(1.)))
     vertices = np.array([(0,0,2),(1+.49*ulp,1+.51*ulp,2),
         (2,2+.98*ulp,2),(0,3,2),(1,1,3)],dtype=np.float64)
@@ -160,16 +161,35 @@ def test_target_conversion_rejects_direct_cast_geometric_flip_before_bounded_ret
     # so the real target_mesh local cast retains this rounding counterexample.
     vertices = np.vstack((vertices,-vertices))
     faces = np.vstack((faces,faces[:,::-1]+5))
-    solid,source = validate_mesh(vertices,faces,face_ids=np.arange(len(faces),dtype=np.uint64))
+    face_ids=(np.arange(len(faces),dtype=np.uint64) if material_guard
+              else np.full(len(faces),42,dtype=np.uint64))
+    solid,source = validate_mesh(vertices,faces,face_ids=face_ids)
     _,cast = validate_mesh(vertices.astype(np.float32).astype(np.float64),faces)
     assert source['valid'] and cast['valid']
     mesh,_,row = target_mesh(solid)
-    rejected = row['attempts'][0]['diagnostic']
-    assert rejected['code']=='TARGET_PRECISION_FACE_ORIENTATION_INVALID'
-    assert rejected['face_orientation']['flipped_faces']==2
-    assert row['simplify_tolerance_scene_units']>0
+    if material_guard:
+        rejected = row['attempts'][0]['diagnostic']
+        assert rejected['code']=='LOCAL_PRECISION_REPAIR_REJECTED'
+        repair=rejected['repair']
+        assert not repair['operations']
+        assert any('material' in key and count>0 for key,count in repair['rejected_candidates'].items())
+        assert row['simplify_tolerance_scene_units']>0
+    else:
+        assert row['attempts']==[] and row['simplify_tolerance_scene_units']==0
+        repair=row['local_precision_repair']
+        assert repair['status']=='APPLIED' and repair['bad_face_count_after']==0
+        assert repair['operations'] and all(op['operation']=='diagonal_flip' for op in repair['operations'])
+        assert set(mesh.face_attributes['source_face_id'])=={42}
+    assert repair['defect_counts_before']['flipped_faces']==2
+    assert repair['bad_face_count_before']==2
+    evidence=repair['precision_defects_before']
+    assert evidence['total_bad_faces']==evidence['recorded_bad_faces']==2
+    assert not evidence['truncated']
+    assert all('GEOMETRIC_NORMAL_FLIP' in face['defect_kinds'] and face['one_ring']['faces']
+               for face in evidence['faces'])
     assert row['face_orientation']['valid']
     assert row['face_orientation']['triangle_count']==len(mesh.faces)
+    json.dumps(row,allow_nan=False)
 
 
 def test_real_narrow_gap_does_not_get_welded_or_component_selected():

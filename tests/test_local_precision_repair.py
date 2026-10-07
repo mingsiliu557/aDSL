@@ -153,8 +153,12 @@ def test_float32_collinear_triangle_uses_local_planar_diagonal_flip():
         displacement_budget=2e-6,expected_components=1)
     assert row['metrics_before']['zero_area_triangles']==1
     assert row['metrics_after']['valid']
-    assert row['operations']==[dict(operation='diagonal_flip',edge_before=[0,2],edge_after=[1,3],
-        zero_area_before=1,zero_area_after=0,surface_displacement_upper_bound=0.)]
+    assert len(row['operations'])==1
+    operation=row['operations'][0]
+    assert {key:operation[key] for key in ('operation','edge_before','edge_after',
+        'zero_area_before','zero_area_after','surface_displacement_upper_bound')}==dict(
+        operation='diagonal_flip',edge_before=[0,2],edge_after=[1,3],
+        zero_area_before=1,zero_area_after=0,surface_displacement_upper_bound=0.)
     assert len(new_faces)==len(faces)
     np.testing.assert_array_equal(original,vertices)
     rebuilt,_ = validate_mesh(rounded,new_faces)
@@ -191,12 +195,31 @@ def test_actual_closed_positive_volume_cast_can_flip_one_geometric_face():
     assert orientation['minimum_normal_dot']==pytest.approx(-1.)
     with pytest.raises(MeshEvaluationError,match='TARGET_PRECISION_FACE_ORIENTATION_INVALID'):
         require_face_orientation(vertices,rounded,faces)
-    with pytest.raises(MeshEvaluationError,match='TARGET_PRECISION_FACE_ORIENTATION_INVALID'):
-        repair_float32_mesh(vertices,faces,np.zeros(len(faces),dtype=np.uint64),
-            displacement_budget=2e-6)
+    original=vertices.copy(),faces.copy()
+    repaired,triangles,ids,row=repair_float32_mesh(vertices,faces,np.full(len(faces),42,dtype=np.uint64),
+        displacement_budget=2e-6)
+    assert row['status']=='APPLIED'
+    assert row['metrics_before']['valid'] and row['metrics_before']['zero_area_triangles']==0
+    assert row['defect_counts_before']['flipped_faces']==1
+    assert row['bad_face_count_before']==1 and row['bad_face_count_after']==0
+    assert row['metrics_after']['valid'] and row['face_orientation']['valid']
+    assert row['face_orientation']['triangle_count']==len(triangles)
+    assert row['surface_displacement_upper_bound']<=2e-6
+    assert row['operations'] and all(op['bad_face_count_after']<op['bad_face_count_before']
+                                   for op in row['operations'])
+    assert any(op['operation']=='diagonal_flip' for op in row['operations'])
+    assert set(ids)=={42}
+    # The four healthy side faces share vertices with the repaired base.
+    # Their triangles and cast coordinates remain unchanged, with no flip.
+    for face in faces[2:]:
+        assert any(np.array_equal(face,other) for other in triangles)
+    np.testing.assert_array_equal(repaired,rounded)
+    np.testing.assert_array_equal(vertices,original[0])
+    np.testing.assert_array_equal(faces,original[1])
+    json.dumps(row,allow_nan=False)
 
 
-def test_final_repair_checks_untouched_faces_outside_degenerate_neighborhood():
+def test_repair_search_includes_flips_outside_zero_area_neighborhood():
     raw = sliver_cube().to_mesh64()
     pyramid,pyramid_faces = rounding_flip_pyramid()
     pyramid += (10,0,0)
@@ -205,17 +228,92 @@ def test_final_repair_checks_untouched_faces_outside_degenerate_neighborhood():
     original = vertices.copy(),faces.copy()
     _,source = validate_mesh(vertices,faces)
     assert source['valid'] and source['material_components']==2
-    with pytest.raises(MeshEvaluationError,match='LOCAL_PRECISION_REPAIR_REJECTED') as error:
-        repair_float32_mesh(vertices,faces,np.zeros(len(faces),dtype=np.uint64),
-            displacement_budget=2e-6,expected_components=2)
-    row = error.value.diagnostic['repair']
+    rounded,triangles,_,row=repair_float32_mesh(vertices,faces,np.zeros(len(faces),dtype=np.uint64),
+        displacement_budget=2e-6,expected_components=2)
     assert row['operations'] and row['metrics_after']['zero_area_triangles']==0
     assert row['metrics_after_local_edit_float64']['valid']
     assert row['face_orientation']['triangle_count']==row['metrics_after']['triangle_count']
-    assert row['face_orientation']['flipped_faces']==1
-    assert not row['face_orientation']['valid']
+    assert row['metrics_before']['zero_area_triangles']>0
+    assert row['defect_counts_before']['flipped_faces']==1
+    assert row['bad_face_count_after']==0 and row['face_orientation']['valid']
+    assert row['face_orientation']['flipped_faces']==0
+    assert row['surface_displacement_upper_bound']<=2e-6
+    measured,after=validate_mesh(rounded,triangles,expected_components=2)
+    assert after['valid'] and len(measured.decompose())==2
     np.testing.assert_array_equal(vertices,original[0])
     np.testing.assert_array_equal(faces,original[1])
+    json.dumps(row,allow_nan=False)
+
+
+@pytest.mark.parametrize('protection',['budget','material'])
+def test_flip_search_preserves_budget_and_material_guards_with_complete_evidence(protection):
+    vertices,faces=rounding_flip_pyramid()
+    ids=(np.arange(len(faces),dtype=np.uint64) if protection=='material'
+         else np.full(len(faces),42,dtype=np.uint64))
+    original=vertices.copy(),faces.copy()
+    budget=2e-6 if protection=='material' else 1e-9
+    with pytest.raises(MeshEvaluationError,match='LOCAL_PRECISION_REPAIR_REJECTED') as error:
+        repair_float32_mesh(vertices,faces,ids,displacement_budget=budget,mm_per_unit=.25)
+    row=error.value.diagnostic['repair']
+    assert row['bad_face_count_before']==row['bad_face_count_after']==1
+    assert row['defect_counts_before']['flipped_faces']==row['defect_counts_after']['flipped_faces']==1
+    assert not row['operations']
+    assert row['rejected_candidates']
+    if protection=='budget':
+        assert row['rejected_candidates'].get('flip_displacement_budget',0)>0
+    else:
+        assert any('material' in key and count>0 for key,count in row['rejected_candidates'].items())
+    initial=row['precision_defects_before']
+    assert initial['index_context']=='initial_input_mesh'
+    assert initial['total_bad_faces']==initial['recorded_bad_faces']==1
+    assert not initial['truncated']
+    assert initial['faces'][0]['triangle_index']==0
+    remaining=row['remaining_bad_faces']
+    assert len(remaining)==1
+    assert row['remaining_bad_faces_total']==row['remaining_bad_faces_recorded']==1
+    assert not row['remaining_bad_faces_truncated']
+    triangle=remaining[0]
+    assert triangle['triangle_index']==0 and triangle['material_id']==int(ids[0])
+    assert 'GEOMETRIC_NORMAL_FLIP' in triangle['defect_kinds']
+    assert triangle['normal_dot']<0
+    assert len(triangle['source_normal'])==len(triangle['target_normal'])==3
+    for stage in ('source','target'):
+        assert triangle['minimum_height_mm'][stage]==pytest.approx(
+            triangle['minimum_height_scene_units'][stage]*.25)
+    ulps=np.asarray(triangle['float32_ulp_scene_units'])
+    assert ulps.shape==(3,3) and (ulps>0).all()
+    np.testing.assert_array_equal(triangle['float32_ulp_mm'],ulps*.25)
+    assert len(triangle['edited_vertices_local_float64'])==len(triangle['target_vertices_local'])==3
+    ring=triangle['one_ring']
+    assert set(ring['triangle_indices'])==set(range(len(faces)))
+    assert len(ring['vertex_indices'])==len(ring['edited_vertices_local_float64'])==len(ring['target_vertices_local'])
+    assert len(ring['faces'])==len(ring['triangle_indices'])
+    for neighbor in ring['faces']:
+        assert neighbor['material_id']==int(ids[neighbor['triangle_index']])
+        assert len(neighbor['source_normal'])==len(neighbor['target_normal'])==3
+        assert neighbor['normal_dot'] is not None
+    json.dumps(error.value.diagnostic,allow_nan=False)
+    np.testing.assert_array_equal(vertices,original[0])
+    np.testing.assert_array_equal(faces,original[1])
+
+
+def test_flip_failure_evidence_marks_truncation_and_keeps_complete_bad_face_counts():
+    pyramid,base_faces=rounding_flip_pyramid()
+    vertices=np.vstack([pyramid+(0,0,3*i) for i in range(10)])
+    faces=np.vstack([base_faces+len(pyramid)*i for i in range(10)])
+    with pytest.raises(MeshEvaluationError,match='LOCAL_PRECISION_REPAIR_REJECTED') as error:
+        repair_float32_mesh(vertices,faces,np.full(len(faces),42,dtype=np.uint64),
+            displacement_budget=1e-9,expected_components=10)
+    row=error.value.diagnostic['repair']
+    assert row['bad_face_count_before']==row['bad_face_count_after']==10
+    for evidence in (row['precision_defects_before'],dict(
+            total_bad_faces=row['remaining_bad_faces_total'],
+            recorded_bad_faces=row['remaining_bad_faces_recorded'],
+            truncated=row['remaining_bad_faces_truncated'],faces=row['remaining_bad_faces'])):
+        assert evidence['total_bad_faces']==10 and evidence['recorded_bad_faces']==8
+        assert evidence['truncated'] and len(evidence['faces'])==8
+        assert all(len(face['one_ring']['faces'])==6 for face in evidence['faces'])
+    json.dumps(error.value.diagnostic,allow_nan=False)
 
 
 def test_orientation_normalization_avoids_area_squared_underflow():
