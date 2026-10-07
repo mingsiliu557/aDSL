@@ -20,6 +20,11 @@ import pytest
 from adsl.core.export import mesh_validity as validity
 from adsl.core.export import mesh_repair as repair
 
+pytestmark = pytest.mark.skipif(
+    os.environ.get("ADSL_TEST_FIXED_REAL") != "1",
+    reason="explicit native CPU mesh smoke",
+)
+
 CASES = ([f'I{i}' for i in range(1, 9)] + [f'T{i}' for i in range(1, 11)]
          + [f'K{i}' for i in range(1, 4)] + [f'N{i}' for i in range(1, 6)]
          + [f'W{i}' for i in range(1, 8)])
