@@ -1,0 +1,5165 @@
+{
+  "source": "/jiigan-hp/lms/aDSL/experiment/benchmark_six_main_20261007T045229Z/jobs/ABO_B075X2XZDD/ours/generation/native/source.py",
+  "source_sha256": "286f51cb95bed9d3fe996369ba406378d13465299ce0feb6ee10e908eb70f068",
+  "exporter_file": "/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-core/core/export/export_glb.py",
+  "elapsed_seconds": 9.009952206164598,
+  "groups": [
+    {
+      "group_id": 0,
+      "operation": "UNION",
+      "shape_stack": [
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure",
+          "node_name": null,
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "upper_structure",
+          "path": "upper_structure/op_0",
+          "node_name": "op_0",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components",
+          "node_name": "connected_upper_components",
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "curved_upper_arm",
+          "path": "upper_structure/op_0/connected_upper_components/op_1",
+          "node_name": "op_1",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components/op_1/continuous_rounded_arm",
+          "node_name": "continuous_rounded_arm",
+          "primitive_types": [
+            "boolean"
+          ]
+        }
+      ],
+      "operand_count": 53,
+      "base_name": "geometry_0_cylinder.003",
+      "operands": [
+        {
+          "name": "geometry_0_cylinder.003",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.004",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.005",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.006",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.007",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.008",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.009",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.010",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.011",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.012",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.013",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.014",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.015",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.016",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.017",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.018",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.019",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.020",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.021",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.022",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_sphere.001",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.002",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.003",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_cylinder.023",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_sphere.004",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.005",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.006",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.007",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.008",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.009",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.010",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.011",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.012",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.013",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_cylinder.024",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_sphere.014",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.015",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.016",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.017",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.018",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.019",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.020",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.021",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.022",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.023",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_cylinder.025",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_sphere.024",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere.025",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_sphere",
+          "vertices": 482,
+          "polygons": 512
+        },
+        {
+          "name": "geometry_0_cylinder.026",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.027",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.028",
+          "vertices": 64,
+          "polygons": 34
+        },
+        {
+          "name": "geometry_0_cylinder.029",
+          "vertices": 64,
+          "polygons": 34
+        }
+      ],
+      "status": "FAILED",
+      "error": "BOOLEAN_RECOVERY_FAILED: object='geometry_0_cylinder.030' attempts=['target precision weld is not manifold', 'target precision weld is not manifold', 'target precision weld is not manifold']",
+      "elapsed_seconds": 8.335047200322151
+    }
+  ],
+  "events": [
+    {
+      "event": "start_build",
+      "elapsed_seconds": 0.12307965382933617,
+      "shape_stack": [],
+      "part_id": "upper_structure",
+      "shape_label": "BooleanUnion"
+    },
+    {
+      "event": "exact_boolean_normalization_failed",
+      "elapsed_seconds": 6.896887926384807,
+      "shape_stack": [
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure",
+          "node_name": null,
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "upper_structure",
+          "path": "upper_structure/op_0",
+          "node_name": "op_0",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components",
+          "node_name": "connected_upper_components",
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "curved_upper_arm",
+          "path": "upper_structure/op_0/connected_upper_components/op_1",
+          "node_name": "op_1",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components/op_1/continuous_rounded_arm",
+          "node_name": "continuous_rounded_arm",
+          "primitive_types": [
+            "boolean"
+          ]
+        }
+      ],
+      "object": "geometry_0_cylinder.030",
+      "error": "EVALUATED_MESH_DEGENERATE: object='geometry_0_cylinder.030' zero_area_triangles=2 polygons=[69, 698] coincident_vertices=0 reason=polygon 69 is nonplanar: max_plane_distance_scene_units=6.12624994e-05 planarity_bound_scene_units=1.98951658e-14",
+      "stats": {
+        "vertices": 5663,
+        "triangles": 11207,
+        "exact_coordinate_duplicates": 0,
+        "zero_area_triangles": 2,
+        "duplicate_faces": 14,
+        "boundary_edges": 453,
+        "nonmanifold_edges": 242,
+        "inconsistent_edges": 3,
+        "smallest_positive_triangle_area": 3.3306690738754696e-16,
+        "defect_bounds": [
+          [
+            -0.699999988079071,
+            -27.472959518432617,
+            145.8220977783203
+          ],
+          [
+            0.699999988079071,
+            0.331408828496933,
+            149.34616088867188
+          ]
+        ],
+        "defect_edge_samples": [
+          [
+            [
+              -0.699999988079071,
+              -27.472959518432617,
+              149.3000030517578
+            ],
+            [
+              -0.6999984979629517,
+              -27.472946166992188,
+              149.30001831054688
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -27.472959518432617,
+              149.3000030517578
+            ],
+            [
+              -0.6865496635437012,
+              -27.336397171020508,
+              149.16343688964844
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -1.362616777420044,
+              148.30735778808594
+            ],
+            [
+              -0.6999993324279785,
+              -1.362616777420044,
+              148.30735778808594
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -1.362616777420044,
+              148.30735778808594
+            ],
+            [
+              -0.6999993324279785,
+              -1.3626166582107544,
+              148.30735778808594
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.412509024143219,
+              147.06915283203125
+            ],
+            [
+              -0.6999993324279785,
+              -0.412509024143219,
+              147.06915283203125
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.412509024143219,
+              147.06915283203125
+            ],
+            [
+              -0.6865496635437012,
+              -0.5350164175033569,
+              147.00865173339844
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.3044818639755249,
+              146.83074951171875
+            ],
+            [
+              -0.6999978423118591,
+              -0.30448174476623535,
+              146.83074951171875
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.3044818639755249,
+              146.83074951171875
+            ],
+            [
+              -0.6999977827072144,
+              -0.30448243021965027,
+              146.83074951171875
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.3044818639755249,
+              146.83074951171875
+            ],
+            [
+              -0.6865496635437012,
+              -0.4307229220867157,
+              146.77847290039062
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ],
+            [
+              -0.699999988079071,
+              -0.03422055020928383,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ],
+            [
+              -0.699999988079071,
+              -0.03422053903341293,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.03422055020928383,
+              145.8220977783203
+            ],
+            [
+              -0.699999988079071,
+              -0.03422053903341293,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              -0.6999998688697815,
+              -27.472959518432617,
+              149.3000030517578
+            ],
+            [
+              -0.6865496635437012,
+              -27.336397171020508,
+              149.16343688964844
+            ]
+          ],
+          [
+            [
+              -0.6999998688697815,
+              -27.472959518432617,
+              149.3000030517578
+            ],
+            [
+              -0.6865495443344116,
+              -27.336397171020508,
+              149.16343688964844
+            ]
+          ],
+          [
+            [
+              -0.6999993324279785,
+              -1.7777190208435059,
+              148.62588500976562
+            ],
+            [
+              -0.6999993324279785,
+              -1.7777189016342163,
+              148.62588500976562
+            ]
+          ],
+          [
+            [
+              -0.6999993324279785,
+              -1.7777190208435059,
+              148.62588500976562
+            ],
+            [
+              -0.6769108176231384,
+              -1.6798580884933472,
+              148.762451171875
+            ]
+          ],
+          [
+            [
+              -0.6999993324279785,
+              -1.7777189016342163,
+              148.62588500976562
+            ],
+            [
+              -0.6769108176231384,
+              -1.6798580884933472,
+              148.762451171875
+            ]
+          ],
+          [
+            [
+              -0.6999993324279785,
+              -1.564954161643982,
+              148.47341918945312
+            ],
+            [
+              -0.6999979019165039,
+              -1.5649406909942627,
+              148.47341918945312
+            ]
+          ],
+          [
+            [
+              -0.6999993324279785,
+              -1.564954161643982,
+              148.47341918945312
+            ],
+            [
+              -0.6999979019165039,
+              -1.5649398565292358,
+              148.47341918945312
+            ]
+          ],
+          [
+            [
+              -0.6999993324279785,
+              -1.564954161643982,
+              148.47341918945312
+            ],
+            [
+              -0.6999788284301758,
+              -1.5650404691696167,
+              148.47329711914062
+            ]
+          ]
+        ]
+      },
+      "polygon_count": 3645,
+      "snapshot": "exact_boolean_failed.npz"
+    },
+    {
+      "event": "recovery_operands",
+      "elapsed_seconds": 7.05249946564436,
+      "shape_stack": [
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure",
+          "node_name": null,
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "upper_structure",
+          "path": "upper_structure/op_0",
+          "node_name": "op_0",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components",
+          "node_name": "connected_upper_components",
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "curved_upper_arm",
+          "path": "upper_structure/op_0/connected_upper_components/op_1",
+          "node_name": "op_1",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components/op_1/continuous_rounded_arm",
+          "node_name": "continuous_rounded_arm",
+          "primitive_types": [
+            "boolean"
+          ]
+        }
+      ],
+      "operands": [
+        {
+          "object": "geometry_0_cylinder.003",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018368153834136258
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 9.941802099517156
+        },
+        {
+          "object": "geometry_0_cylinder.004",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018367617386340726
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.4003518211724238
+        },
+        {
+          "object": "geometry_0_cylinder.005",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018362880154049778
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.4003587442324792
+        },
+        {
+          "object": "geometry_0_cylinder.006",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018364345809723894
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.4003450046856221
+        },
+        {
+          "object": "geometry_0_cylinder.007",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018360306925928912
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.40036483545091783
+        },
+        {
+          "object": "geometry_0_cylinder.008",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018362499628207863
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.40034451893020295
+        },
+        {
+          "object": "geometry_0_cylinder.009",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018359062568798676
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.40036171518310076
+        },
+        {
+          "object": "geometry_0_cylinder.010",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.001835961718884362
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.4003537216092724
+        },
+        {
+          "object": "geometry_0_cylinder.011",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018356173292946394
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.40034446021128456
+        },
+        {
+          "object": "geometry_0_cylinder.012",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.001835896273070415
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.40035980282554656
+        },
+        {
+          "object": "geometry_0_cylinder.013",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018362670615128635
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.40034507356213755
+        },
+        {
+          "object": "geometry_0_cylinder.014",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018360962199088853
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.4003575592877679
+        },
+        {
+          "object": "geometry_0_cylinder.015",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018367350046859712
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.4003381687214232
+        },
+        {
+          "object": "geometry_0_cylinder.016",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018361792004954506
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.40034750086222387
+        },
+        {
+          "object": "geometry_0_cylinder.017",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018359182038321467
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.4003572275291547
+        },
+        {
+          "object": "geometry_0_cylinder.018",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018360580706531131
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.4003501995328397
+        },
+        {
+          "object": "geometry_0_cylinder.019",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018363349500020224
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.4003537989824732
+        },
+        {
+          "object": "geometry_0_cylinder.020",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018366518954907587
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.4003530397088834
+        },
+        {
+          "object": "geometry_0_cylinder.021",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018358185213855904
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 35.90220234191455
+        },
+        {
+          "object": "geometry_0_cylinder.022",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018366846587696273
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 2.9060836767274396
+        },
+        {
+          "object": "geometry_0_sphere.001",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280421887084577
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138322948246942
+        },
+        {
+          "object": "geometry_0_sphere.002",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.001828042176362507
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.413832294878966
+        },
+        {
+          "object": "geometry_0_sphere.003",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280421887084577
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138322971518664
+        },
+        {
+          "object": "geometry_0_cylinder.023",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.001836620546250021
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.40037357099804366
+        },
+        {
+          "object": "geometry_0_sphere.004",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280421887084577
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138322947944104
+        },
+        {
+          "object": "geometry_0_sphere.005",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280421887084577
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138322947571376
+        },
+        {
+          "object": "geometry_0_sphere.006",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280421887084577
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138322942160013
+        },
+        {
+          "object": "geometry_0_sphere.007",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280421887084577
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138322940971217
+        },
+        {
+          "object": "geometry_0_sphere.008",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280419892398897
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138322918108628
+        },
+        {
+          "object": "geometry_0_sphere.009",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280419892398897
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138323005736237
+        },
+        {
+          "object": "geometry_0_sphere.010",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280419892398897
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.413832301429534
+        },
+        {
+          "object": "geometry_0_sphere.011",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280419892398897
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.413832303286452
+        },
+        {
+          "object": "geometry_0_sphere.012",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280396068329028
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138322882853633
+        },
+        {
+          "object": "geometry_0_sphere.013",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.00182804004413771
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138322878502279
+        },
+        {
+          "object": "geometry_0_cylinder.024",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018366231308695252
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.40035054287763466
+        },
+        {
+          "object": "geometry_0_sphere.014",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.00182804004413771
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138322940413999
+        },
+        {
+          "object": "geometry_0_sphere.015",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.00182804004413771
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138322683599918
+        },
+        {
+          "object": "geometry_0_sphere.016",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.00182804004413771
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.413832263109115
+        },
+        {
+          "object": "geometry_0_sphere.017",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280392325606834
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138322664808942
+        },
+        {
+          "object": "geometry_0_sphere.018",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280392325606834
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138323048375294
+        },
+        {
+          "object": "geometry_0_sphere.019",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280392325606834
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138323110625681
+        },
+        {
+          "object": "geometry_0_sphere.020",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280392325606834
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138323089220288
+        },
+        {
+          "object": "geometry_0_sphere.021",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280392325606834
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138323089220286
+        },
+        {
+          "object": "geometry_0_sphere.022",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280392325606834
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138322742382035
+        },
+        {
+          "object": "geometry_0_sphere.023",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280392325606834
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138323165293893
+        },
+        {
+          "object": "geometry_0_cylinder.025",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018366865178493577
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.4003400235130788
+        },
+        {
+          "object": "geometry_0_sphere.024",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280392325606834
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138323016406675
+        },
+        {
+          "object": "geometry_0_sphere.025",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018280306437107945
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.413832243945183
+        },
+        {
+          "object": "geometry_0_sphere",
+          "stats": {
+            "vertices": 482,
+            "triangles": 960,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018279999015384872
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 1.4138320500028598
+        },
+        {
+          "object": "geometry_0_cylinder.026",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018364166562025
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.40035821511934716
+        },
+        {
+          "object": "geometry_0_cylinder.027",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018363319874578358
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.4003489595335137
+        },
+        {
+          "object": "geometry_0_cylinder.028",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018364670456204326
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.40035938885506334
+        },
+        {
+          "object": "geometry_0_cylinder.029",
+          "stats": {
+            "vertices": 64,
+            "triangles": 124,
+            "exact_coordinate_duplicates": 0,
+            "zero_area_triangles": 0,
+            "duplicate_faces": 0,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 0,
+            "inconsistent_edges": 0,
+            "smallest_positive_triangle_area": 0.0018362823745282377
+          },
+          "manifold_status": "Error.NoError",
+          "empty": false,
+          "volume": 0.4003448554336361
+        }
+      ]
+    },
+    {
+      "event": "recover_start",
+      "elapsed_seconds": 7.098782977089286,
+      "shape_stack": [
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure",
+          "node_name": null,
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "upper_structure",
+          "path": "upper_structure/op_0",
+          "node_name": "op_0",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components",
+          "node_name": "connected_upper_components",
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "curved_upper_arm",
+          "path": "upper_structure/op_0/connected_upper_components/op_1",
+          "node_name": "op_1",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components/op_1/continuous_rounded_arm",
+          "node_name": "continuous_rounded_arm",
+          "primitive_types": [
+            "boolean"
+          ]
+        }
+      ],
+      "operation": "UNION",
+      "base": "geometry_0_cylinder.030",
+      "operand_count": 53
+    },
+    {
+      "event": "manifold_reference",
+      "elapsed_seconds": 7.541750077158213,
+      "shape_stack": [
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure",
+          "node_name": null,
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "upper_structure",
+          "path": "upper_structure/op_0",
+          "node_name": "op_0",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components",
+          "node_name": "connected_upper_components",
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "curved_upper_arm",
+          "path": "upper_structure/op_0/connected_upper_components/op_1",
+          "node_name": "op_1",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components/op_1/continuous_rounded_arm",
+          "node_name": "continuous_rounded_arm",
+          "primitive_types": [
+            "boolean"
+          ]
+        }
+      ],
+      "status": "Error.NoError",
+      "empty": false,
+      "volume": 58.25714957343866,
+      "surface_area": 170.36229070772245,
+      "components": 1,
+      "raw_stats": {
+        "vertices": 8748,
+        "triangles": 17492,
+        "exact_coordinate_duplicates": 0,
+        "zero_area_triangles": 0,
+        "duplicate_faces": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "smallest_positive_triangle_area": 3.0791787065317707e-20
+      },
+      "quantum": 1.52587890625e-05,
+      "displacement_bound": 0.000286102294921875
+    },
+    {
+      "event": "recovery_target_pre_weld",
+      "elapsed_seconds": 7.680252494290471,
+      "shape_stack": [
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure",
+          "node_name": null,
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "upper_structure",
+          "path": "upper_structure/op_0",
+          "node_name": "op_0",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components",
+          "node_name": "connected_upper_components",
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "curved_upper_arm",
+          "path": "upper_structure/op_0/connected_upper_components/op_1",
+          "node_name": "op_1",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components/op_1/continuous_rounded_arm",
+          "node_name": "continuous_rounded_arm",
+          "primitive_types": [
+            "boolean"
+          ]
+        }
+      ],
+      "tolerance": 0.0,
+      "manifold_status": "Error.NoError",
+      "volume": 58.25714957343866,
+      "stats64": {
+        "vertices": 8748,
+        "triangles": 17492,
+        "exact_coordinate_duplicates": 0,
+        "zero_area_triangles": 0,
+        "duplicate_faces": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "smallest_positive_triangle_area": 3.0791787065317707e-20
+      },
+      "stats32": {
+        "vertices": 8748,
+        "triangles": 17492,
+        "exact_coordinate_duplicates": 43,
+        "zero_area_triangles": 103,
+        "duplicate_faces": 23,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 81,
+        "inconsistent_edges": 19,
+        "smallest_positive_triangle_area": 1.0191466540045852e-15,
+        "defect_bounds": [
+          [
+            -0.699999988079071,
+            -27.73569107055664,
+            145.56161499023438
+          ],
+          [
+            0.699999988079071,
+            0.10168500244617462,
+            149.4365692138672
+          ]
+        ],
+        "defect_edge_samples": [
+          [
+            [
+              -0.699999988079071,
+              -27.472959518432617,
+              149.3000030517578
+            ],
+            [
+              -0.6999998688697815,
+              -27.472959518432617,
+              149.3000030517578
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -2.469266176223755,
+              148.99549865722656
+            ],
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              -0.699999988079071,
+              -2.2308452129364014,
+              148.8874969482422
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              -0.699999988079071,
+              -2.0,
+              148.7641143798828
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              -0.6999958157539368,
+              -2.230865478515625,
+              148.88746643066406
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -2.2308452129364014,
+              148.8874969482422
+            ],
+            [
+              -0.699999988079071,
+              -2.2308452129364014,
+              148.8874969482422
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -2.2308452129364014,
+              148.8874969482422
+            ],
+            [
+              -0.6999996900558472,
+              -2.2308437824249268,
+              148.8874969482422
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -1.7777190208435059,
+              148.62588500976562
+            ],
+            [
+              -0.6999993324279785,
+              -1.7777189016342163,
+              148.62588500976562
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -1.362616777420044,
+              148.30735778808594
+            ],
+            [
+              -0.6999993324279785,
+              -1.3626166582107544,
+              148.30735778808594
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.9926407933235168,
+              147.9373779296875
+            ],
+            [
+              -0.6999993324279785,
+              -0.9926406741142273,
+              147.9373779296875
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.8265866637229919,
+              147.73504638671875
+            ],
+            [
+              -0.6999993324279785,
+              -0.8265865445137024,
+              147.73504638671875
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.412509024143219,
+              147.06915283203125
+            ],
+            [
+              -0.6999993324279785,
+              -0.41250890493392944,
+              147.06915283203125
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.3044818639755249,
+              146.83074951171875
+            ],
+            [
+              -0.6999978423118591,
+              -0.30448174476623535,
+              146.83074951171875
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              -0.6999993324279785,
+              -0.21227949857711792,
+              146.58575439453125
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.07685887813568115,
+              146.0803680419922
+            ],
+            [
+              -0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.07685887813568115,
+              146.0803680419922
+            ],
+            [
+              -0.6999993324279785,
+              -0.0768587589263916,
+              146.0803680419922
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.034220557659864426,
+              145.8220977783203
+            ],
+            [
+              -0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ],
+            [
+              -0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ]
+          ]
+        ]
+      },
+      "collapsed_vertex_groups": [
+        {
+          "indices": [
+            1594,
+            1598,
+            1600,
+            1601
+          ],
+          "float32": [
+            -0.699999988079071,
+            -2.2308454513549805,
+            148.8874969482422
+          ],
+          "float64": [
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              -0.6999999832293939,
+              -2.2308454281423624,
+              148.88749699166743
+            ],
+            [
+              -0.6999999689304365,
+              -2.230845496737152,
+              148.88749686334657
+            ],
+            [
+              -0.6999999815943317,
+              -2.2308454359861507,
+              148.88749697699419
+            ]
+          ],
+          "max_separation": 1.4620516156378376e-07
+        },
+        {
+          "indices": [
+            1593,
+            1595
+          ],
+          "float32": [
+            -0.699999988079071,
+            -2.2308452129364014,
+            148.8874969482422
+          ],
+          "float64": [
+            [
+              -0.699999988079071,
+              -2.2308452129364014,
+              148.8874969482422
+            ],
+            [
+              -0.6999999825389067,
+              -2.2308452361494147,
+              148.88749689700003
+            ]
+          ],
+          "max_separation": 5.652694680882374e-08
+        },
+        {
+          "indices": [
+            248,
+            250,
+            254
+          ],
+          "float32": [
+            -0.699999988079071,
+            -0.03422055393457413,
+            145.8220977783203
+          ],
+          "float64": [
+            [
+              -0.6999999877135392,
+              -0.034220553871019334,
+              145.8220977777157
+            ],
+            [
+              -0.6999999877166768,
+              -0.03422055399813916,
+              145.82209777868127
+            ],
+            [
+              -0.6999999875944841,
+              -0.03422055523541453,
+              145.82209777855914
+            ]
+          ],
+          "max_separation": 1.6084600910228746e-09
+        },
+        {
+          "indices": [
+            249,
+            253
+          ],
+          "float32": [
+            -0.699999988079071,
+            -0.03422053903341293,
+            145.8220977783203
+          ],
+          "float64": [
+            [
+              -0.6999999862492402,
+              -0.03422053917078065,
+              145.8220977801429
+            ],
+            [
+              -0.6999999843875365,
+              -0.034220539190647326,
+              145.82209778013961
+            ]
+          ],
+          "max_separation": 1.8618125971953933e-09
+        },
+        {
+          "indices": [
+            15,
+            17
+          ],
+          "float32": [
+            -0.6999998688697815,
+            -27.472959518432617,
+            149.3000030517578
+          ],
+          "float64": [
+            [
+              -0.6999998688718481,
+              -27.472959518432617,
+              149.3000018414024
+            ],
+            [
+              -0.6999998688715443,
+              -27.472959518432617,
+              149.3000042621163
+            ]
+          ],
+          "max_separation": 2.420713883566369e-06
+        },
+        {
+          "indices": [
+            1690,
+            1691
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -1.7777189016342163,
+            148.62588500976562
+          ],
+          "float64": [
+            [
+              -0.699999313547163,
+              -1.7777189016342163,
+              148.62588520147384
+            ],
+            [
+              -0.699999316044034,
+              -1.7777189016342163,
+              148.6258851761216
+            ]
+          ],
+          "max_separation": 2.5474879927365416e-08
+        },
+        {
+          "indices": [
+            1037,
+            1048
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -1.564954161643982,
+            148.47341918945312
+          ],
+          "float64": [
+            [
+              -0.6999993324279785,
+              -1.564954161643982,
+              148.47341918945312
+            ],
+            [
+              -0.6999993160436391,
+              -1.564954161643982,
+              148.47341935581312
+            ]
+          ],
+          "max_separation": 1.6716487324914213e-07
+        },
+        {
+          "indices": [
+            1053,
+            1054
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -1.3626166582107544,
+            148.30735778808594
+          ],
+          "float64": [
+            [
+              -0.6999993181593873,
+              -1.3626166582107544,
+              148.30735793296347
+            ],
+            [
+              -0.6999993198916638,
+              -1.3626166582107544,
+              148.30735791537464
+            ]
+          ],
+          "max_separation": 1.7673929474563914e-08
+        },
+        {
+          "indices": [
+            999,
+            1009
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -1.1715728044509888,
+            148.12843322753906
+          ],
+          "float64": [
+            [
+              -0.6999993324279785,
+              -1.1715728044509888,
+              148.12843322753906
+            ],
+            [
+              -0.6999993198926658,
+              -1.1715728044509888,
+              148.1284333548176
+            ]
+          ],
+          "max_separation": 1.2789432011064084e-07
+        },
+        {
+          "indices": [
+            1310,
+            1313
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -0.9926406741142273,
+            147.9373779296875
+          ],
+          "float64": [
+            [
+              -0.6999993214701838,
+              -0.9926406741141788,
+              147.93737804094854
+            ],
+            [
+              -0.6999993227928397,
+              -0.9926406741141847,
+              147.93737802751883
+            ]
+          ],
+          "max_separation": 1.3494687663536046e-08
+        },
+        {
+          "indices": [
+            1199,
+            1200
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -0.8265865445137024,
+            147.73504638671875
+          ],
+          "float64": [
+            [
+              -0.6999993227919717,
+              -0.8265865445136596,
+              147.7350464845589
+            ],
+            [
+              -0.6999993240146628,
+              -0.8265865445136651,
+              147.73504647214418
+            ]
+          ],
+          "max_separation": 1.24747807947159e-08
+        },
+        {
+          "indices": [
+            1137,
+            1147
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -0.6741214394569397,
+            147.52227783203125
+          ],
+          "float64": [
+            [
+              -0.6999993324279785,
+              -0.6741214394569397,
+              147.52227783203125
+            ],
+            [
+              -0.6999993240149344,
+              -0.6741214394569024,
+              147.52227791745392
+            ]
+          ],
+          "max_separation": 8.583595885278338e-08
+        },
+        {
+          "indices": [
+            1156,
+            1165
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -0.5358982682228088,
+            147.3000030517578
+          ],
+          "float64": [
+            [
+              -0.6999993324279785,
+              -0.5358982682228088,
+              147.3000030517578
+            ],
+            [
+              -0.6999993251636194,
+              -0.5358982682227766,
+              147.3000031255172
+            ]
+          ],
+          "max_separation": 7.411625509592729e-08
+        },
+        {
+          "indices": [
+            377,
+            378
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -0.41250890493392944,
+            147.06915283203125
+          ],
+          "float64": [
+            [
+              -0.6999993261901158,
+              -0.4125089049339156,
+              147.069152895368
+            ],
+            [
+              -0.6999993270989461,
+              -0.4125089049339176,
+              147.0691528861401
+            ]
+          ],
+          "max_separation": 9.272549836121766e-09
+        },
+        {
+          "indices": [
+            347,
+            352,
+            353
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -0.21227949857711792,
+            146.58575439453125
+          ],
+          "float64": [
+            [
+              -0.6999993192503675,
+              -0.212279498261438,
+              146.58575439453125
+            ],
+            [
+              -0.6999993183731723,
+              -0.21227950509472154,
+              146.5857543924581
+            ],
+            [
+              -0.6999993191199799,
+              -0.21227949958528786,
+              146.58575439453125
+            ]
+          ],
+          "max_separation": 7.19452081408394e-09
+        },
+        {
+          "indices": [
+            349,
+            354
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -0.21227936446666718,
+            146.58575439453125
+          ],
+          "float64": [
+            [
+              -0.6999993284303352,
+              -0.21227936446665832,
+              146.58575443512171
+            ],
+            [
+              -0.6999993274199888,
+              -0.21227936446665607,
+              146.58575444538036
+            ]
+          ],
+          "max_separation": 1.0308278567890246e-08
+        },
+        {
+          "indices": [
+            274,
+            275
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -0.0768587589263916,
+            146.0803680419922
+          ],
+          "float64": [
+            [
+              -0.6999993296908431,
+              -0.07685875892638554,
+              146.08036806978396
+            ],
+            [
+              -0.6999993304894258,
+              -0.0768587589263873,
+              146.08036806167547
+            ]
+          ],
+          "max_separation": 8.147716536075517e-09
+        },
+        {
+          "indices": [
+            255,
+            256
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -0.034220434725284576,
+            145.8220977783203
+          ],
+          "float64": [
+            [
+              -0.6999993305500279,
+              -0.03422043472528041,
+              145.82209779738827
+            ],
+            [
+              -0.6999993312264123,
+              -0.03422043472528191,
+              145.82209779052053
+            ]
+          ],
+          "max_separation": 6.900963836772698e-09
+        },
+        {
+          "indices": [
+            359,
+            361
+          ],
+          "float32": [
+            -0.6999978423118591,
+            -0.30448174476623535,
+            146.83074951171875
+          ],
+          "float64": [
+            [
+              -0.699997824433104,
+              -0.30448174476289397,
+              146.8307495645034
+            ],
+            [
+              -0.6999978252435857,
+              -0.30448174476289575,
+              146.8307495562741
+            ]
+          ],
+          "max_separation": 8.269121747845616e-09
+        },
+        {
+          "indices": [
+            852,
+            853
+          ],
+          "float32": [
+            -0.6865493059158325,
+            -4.0,
+            149.4365692138672
+          ],
+          "float64": [
+            [
+              -0.6865493059154163,
+              -4.0,
+              149.4365689754432
+            ],
+            [
+              -0.6865492824336942,
+              -4.0,
+              149.4365692138672
+            ]
+          ],
+          "max_separation": 2.3957751385294456e-07
+        },
+        {
+          "indices": [
+            4336,
+            4341
+          ],
+          "float32": [
+            0.6865494251251221,
+            -27.609521865844727,
+            149.3000030517578
+          ],
+          "float64": [
+            [
+              0.6865494251251221,
+              -27.609521865844727,
+              149.3000030517578
+            ],
+            [
+              0.6865494119786937,
+              -27.60952190918271,
+              149.3000030517578
+            ]
+          ],
+          "max_separation": 4.528807155517166e-08
+        },
+        {
+          "indices": [
+            6669,
+            6672,
+            6673,
+            6674
+          ],
+          "float32": [
+            0.6999997496604919,
+            -0.21227949857711792,
+            146.58575439453125
+          ],
+          "float64": [
+            [
+              0.6999997496494094,
+              -0.21227949846459457,
+              146.58575439453125
+            ],
+            [
+              0.699999749602924,
+              -0.21227949893656728,
+              146.58575439453125
+            ],
+            [
+              0.6999997496240207,
+              -0.21227949859312736,
+              146.58575439466048
+            ],
+            [
+              0.6999997493366921,
+              -0.21227950090076436,
+              146.58575439379214
+            ]
+          ],
+          "max_separation": 2.5649549448124165e-09
+        },
+        {
+          "indices": [
+            6582,
+            6592,
+            6593
+          ],
+          "float32": [
+            0.6999997496604919,
+            -0.13629670441150665,
+            146.3352813720703
+          ],
+          "float64": [
+            [
+              0.6999997496604919,
+              -0.13629670441150665,
+              146.3352813720703
+            ],
+            [
+              0.6999997493182517,
+              -0.13629670441150818,
+              146.3352813685954
+            ],
+            [
+              0.6999997491087713,
+              -0.13629670163780658,
+              146.3352813692422
+            ]
+          ],
+          "max_separation": 3.999496198242168e-09
+        },
+        {
+          "indices": [
+            6370,
+            6375,
+            6377
+          ],
+          "float32": [
+            0.6999997496604919,
+            -0.008564322255551815,
+            145.56161499023438
+          ],
+          "float64": [
+            [
+              0.6999997496604919,
+              -0.008564322255551815,
+              145.56161499023438
+            ],
+            [
+              0.6999997495804867,
+              -0.008564321853336733,
+              145.56161498982428
+            ],
+            [
+              0.6999997496156116,
+              -0.008564322222043447,
+              145.5616149898122
+            ]
+          ],
+          "max_separation": 5.799631290730835e-10
+        },
+        {
+          "indices": [
+            8556,
+            8558,
+            8562,
+            8564,
+            8565,
+            8566
+          ],
+          "float32": [
+            0.699999988079071,
+            -2.2308454513549805,
+            148.8874969482422
+          ],
+          "float64": [
+            [
+              0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              0.6999999768670866,
+              -2.2308454586581203,
+              148.88749693458146
+            ],
+            [
+              0.6999999689281239,
+              -2.2308454967426328,
+              148.8874968633363
+            ],
+            [
+              0.6999999829038296,
+              -2.230845337762446,
+              148.8874969471032
+            ],
+            [
+              0.6999999815938891,
+              -2.2308454359851013,
+              148.88749697699615
+            ],
+            [
+              0.6999999832291469,
+              -2.23084542814118,
+              148.88749699166965
+            ]
+          ],
+          "max_separation": 1.8024125491176014e-07
+        },
+        {
+          "indices": [
+            8555,
+            8557,
+            8559,
+            8563
+          ],
+          "float32": [
+            0.699999988079071,
+            -2.2308452129364014,
+            148.8874969482422
+          ],
+          "float64": [
+            [
+              0.699999988079071,
+              -2.2308452129364014,
+              148.8874969482422
+            ],
+            [
+              0.6999999825386312,
+              -2.2308452361505693,
+              148.88749689699748
+            ],
+            [
+              0.699999982865804,
+              -2.230845327190303,
+              148.8874969418903
+            ],
+            [
+              0.6999999772657861,
+              -2.2308452140117647,
+              148.88749694586235
+            ]
+          ],
+          "max_separation": 1.145490225285358e-07
+        },
+        {
+          "indices": [
+            6544,
+            6546,
+            6550
+          ],
+          "float32": [
+            0.699999988079071,
+            -0.03422055393457413,
+            145.8220977783203
+          ],
+          "float64": [
+            [
+              0.6999999877135389,
+              -0.03422055387102204,
+              145.8220977777157
+            ],
+            [
+              0.6999999877166768,
+              -0.03422055399813917,
+              145.82209777868127
+            ],
+            [
+              0.6999999875944841,
+              -0.03422055523541442,
+              145.82209777855914
+            ]
+          ],
+          "max_separation": 1.6084576766552537e-09
+        },
+        {
+          "indices": [
+            6545,
+            6549
+          ],
+          "float32": [
+            0.699999988079071,
+            -0.03422053903341293,
+            145.8220977783203
+          ],
+          "float64": [
+            [
+              0.6999999862492402,
+              -0.03422053917078065,
+              145.8220977801429
+            ],
+            [
+              0.6999999843875365,
+              -0.034220539190647326,
+              145.82209778013961
+            ]
+          ],
+          "max_separation": 1.8618125971953933e-09
+        }
+      ],
+      "max_rounding_displacement": 7.629023336375534e-06,
+      "snapshot": "attempt_0_0_preweld.npz"
+    },
+    {
+      "event": "target_precision_not_manifold",
+      "elapsed_seconds": 7.863758806139231,
+      "shape_stack": [
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure",
+          "node_name": null,
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "upper_structure",
+          "path": "upper_structure/op_0",
+          "node_name": "op_0",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components",
+          "node_name": "connected_upper_components",
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "curved_upper_arm",
+          "path": "upper_structure/op_0/connected_upper_components/op_1",
+          "node_name": "op_1",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components/op_1/continuous_rounded_arm",
+          "node_name": "continuous_rounded_arm",
+          "primitive_types": [
+            "boolean"
+          ]
+        }
+      ],
+      "tolerance": 0.0,
+      "exact_welds": 43,
+      "vertices": 8703,
+      "edges": 26079,
+      "faces": 17378,
+      "boundary_edges": 18,
+      "wire_edges": 0,
+      "nonmanifold_edges": 27,
+      "noncontiguous_edges": 27,
+      "nonmanifold_vertices": 18,
+      "defect_bounds": [
+        [
+          -0.699999988079071,
+          -1.7777190208435059,
+          145.8220977783203
+        ],
+        [
+          -0.6999978423118591,
+          -0.034220434725284576,
+          148.62588500976562
+        ]
+      ],
+      "defect_edges": [
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.0768587589263916,
+              146.0803680419922
+            ],
+            [
+              -0.6999993324279785,
+              -0.07685887813568115,
+              146.0803680419922
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 1.1920928955078125e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.699999988079071,
+              -1.362616777420044,
+              148.30735778808594
+            ],
+            [
+              -0.6999993324279785,
+              -1.3626166582107544,
+              148.30735778808594
+            ]
+          ],
+          "linked_faces": 3,
+          "boundary": false,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.664001830358757e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.699999988079071,
+              -1.362616777420044,
+              148.30735778808594
+            ],
+            [
+              -0.6999993324279785,
+              -1.362616777420044,
+              148.30735778808594
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.556510925292969e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999978423118591,
+              -0.3044818639755249,
+              146.83074951171875
+            ],
+            [
+              -0.699999988079071,
+              -0.3044818639755249,
+              146.83074951171875
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 2.1457672119140625e-06
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.9926406741142273,
+              147.9373779296875
+            ],
+            [
+              -0.6999993324279785,
+              -0.9926407933235168,
+              147.9373779296875
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 1.1920928955078125e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.9926406741142273,
+              147.9373779296875
+            ],
+            [
+              -0.699999988079071,
+              -0.9926407933235168,
+              147.9373779296875
+            ]
+          ],
+          "linked_faces": 3,
+          "boundary": false,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.664001830358757e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.9926407933235168,
+              147.9373779296875
+            ],
+            [
+              -0.699999988079071,
+              -0.9926407933235168,
+              147.9373779296875
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.556510925292969e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.699999988079071,
+              -0.412509024143219,
+              147.06915283203125
+            ],
+            [
+              -0.6999993324279785,
+              -0.412509024143219,
+              147.06915283203125
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.556510925292969e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.699999988079071,
+              -0.412509024143219,
+              147.06915283203125
+            ],
+            [
+              -0.6999993324279785,
+              -0.41250890493392944,
+              147.06915283203125
+            ]
+          ],
+          "linked_faces": 3,
+          "boundary": false,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.664001830358757e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -1.7777190208435059,
+              148.62588500976562
+            ],
+            [
+              -0.6999993324279785,
+              -1.7777189016342163,
+              148.62588500976562
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 1.1920928955078125e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.8265866637229919,
+              147.73504638671875
+            ],
+            [
+              -0.6999993324279785,
+              -0.8265865445137024,
+              147.73504638671875
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 1.1920928955078125e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.699999988079071,
+              -0.8265866637229919,
+              147.73504638671875
+            ],
+            [
+              -0.6999993324279785,
+              -0.8265866637229919,
+              147.73504638671875
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.556510925292969e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.699999988079071,
+              -0.8265866637229919,
+              147.73504638671875
+            ],
+            [
+              -0.6999993324279785,
+              -0.8265865445137024,
+              147.73504638671875
+            ]
+          ],
+          "linked_faces": 3,
+          "boundary": false,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.664001830358757e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -1.3626166582107544,
+              148.30735778808594
+            ],
+            [
+              -0.6999993324279785,
+              -1.362616777420044,
+              148.30735778808594
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 1.1920928955078125e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.699999988079071,
+              -0.07685887813568115,
+              146.0803680419922
+            ],
+            [
+              -0.6999993324279785,
+              -0.0768587589263916,
+              146.0803680419922
+            ]
+          ],
+          "linked_faces": 3,
+          "boundary": false,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.664001830358757e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.699999988079071,
+              -0.07685887813568115,
+              146.0803680419922
+            ],
+            [
+              -0.6999993324279785,
+              -0.07685887813568115,
+              146.0803680419922
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.556510925292969e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 1.341104507446289e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ],
+            [
+              -0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ]
+          ],
+          "linked_faces": 3,
+          "boundary": false,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.692263809782162e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999978423118591,
+              -0.30448174476623535,
+              146.83074951171875
+            ],
+            [
+              -0.6999978423118591,
+              -0.3044818639755249,
+              146.83074951171875
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 1.1920928955078125e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999978423118591,
+              -0.30448174476623535,
+              146.83074951171875
+            ],
+            [
+              -0.699999988079071,
+              -0.3044818639755249,
+              146.83074951171875
+            ]
+          ],
+          "linked_faces": 3,
+          "boundary": false,
+          "manifold": false,
+          "contiguous": false,
+          "length": 2.1490759536391124e-06
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.412509024143219,
+              147.06915283203125
+            ],
+            [
+              -0.6999993324279785,
+              -0.41250890493392944,
+              147.06915283203125
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 1.1920928955078125e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.699999988079071,
+              -1.7777190208435059,
+              148.62588500976562
+            ],
+            [
+              -0.6999993324279785,
+              -1.7777190208435059,
+              148.62588500976562
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.556510925292969e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.699999988079071,
+              -1.7777190208435059,
+              148.62588500976562
+            ],
+            [
+              -0.6999993324279785,
+              -1.7777189016342163,
+              148.62588500976562
+            ]
+          ],
+          "linked_faces": 3,
+          "boundary": false,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.664001830358757e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              -0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.556510925292969e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.034220434725284576,
+              145.8220977783203
+            ],
+            [
+              -0.6999993324279785,
+              -0.03422053903341293,
+              145.8220977783203
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 1.043081283569336e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.699999988079071,
+              -0.03422053903341293,
+              145.8220977783203
+            ],
+            [
+              -0.6999993324279785,
+              -0.034220434725284576,
+              145.8220977783203
+            ]
+          ],
+          "linked_faces": 3,
+          "boundary": false,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.638964578087325e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.699999988079071,
+              -0.03422053903341293,
+              145.8220977783203
+            ],
+            [
+              -0.6999993324279785,
+              -0.03422053903341293,
+              145.8220977783203
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.556510925292969e-07
+        }
+      ],
+      "defect_vertices": [
+        {
+          "co": [
+            -0.699999988079071,
+            -0.03422053903341293,
+            145.8220977783203
+          ],
+          "linked_edges": 10,
+          "linked_faces": 10
+        },
+        {
+          "co": [
+            -0.6999993324279785,
+            -0.034220434725284576,
+            145.8220977783203
+          ],
+          "linked_edges": 3,
+          "linked_faces": 3
+        },
+        {
+          "co": [
+            -0.699999988079071,
+            -0.07685887813568115,
+            146.0803680419922
+          ],
+          "linked_edges": 18,
+          "linked_faces": 18
+        },
+        {
+          "co": [
+            -0.6999993324279785,
+            -0.0768587589263916,
+            146.0803680419922
+          ],
+          "linked_edges": 3,
+          "linked_faces": 3
+        },
+        {
+          "co": [
+            -0.6999993324279785,
+            -0.21227936446666718,
+            146.58575439453125
+          ],
+          "linked_edges": 3,
+          "linked_faces": 3
+        },
+        {
+          "co": [
+            -0.699999988079071,
+            -0.21227949857711792,
+            146.58575439453125
+          ],
+          "linked_edges": 19,
+          "linked_faces": 19
+        },
+        {
+          "co": [
+            -0.6999978423118591,
+            -0.30448174476623535,
+            146.83074951171875
+          ],
+          "linked_edges": 4,
+          "linked_faces": 4
+        },
+        {
+          "co": [
+            -0.699999988079071,
+            -0.3044818639755249,
+            146.83074951171875
+          ],
+          "linked_edges": 13,
+          "linked_faces": 13
+        },
+        {
+          "co": [
+            -0.699999988079071,
+            -0.412509024143219,
+            147.06915283203125
+          ],
+          "linked_edges": 13,
+          "linked_faces": 13
+        },
+        {
+          "co": [
+            -0.6999993324279785,
+            -0.41250890493392944,
+            147.06915283203125
+          ],
+          "linked_edges": 3,
+          "linked_faces": 3
+        },
+        {
+          "co": [
+            -0.699999988079071,
+            -1.362616777420044,
+            148.30735778808594
+          ],
+          "linked_edges": 14,
+          "linked_faces": 14
+        },
+        {
+          "co": [
+            -0.6999993324279785,
+            -1.3626166582107544,
+            148.30735778808594
+          ],
+          "linked_edges": 4,
+          "linked_faces": 4
+        },
+        {
+          "co": [
+            -0.699999988079071,
+            -0.8265866637229919,
+            147.73504638671875
+          ],
+          "linked_edges": 14,
+          "linked_faces": 14
+        },
+        {
+          "co": [
+            -0.6999993324279785,
+            -0.8265865445137024,
+            147.73504638671875
+          ],
+          "linked_edges": 4,
+          "linked_faces": 4
+        },
+        {
+          "co": [
+            -0.6999993324279785,
+            -0.9926406741142273,
+            147.9373779296875
+          ],
+          "linked_edges": 4,
+          "linked_faces": 4
+        },
+        {
+          "co": [
+            -0.699999988079071,
+            -0.9926407933235168,
+            147.9373779296875
+          ],
+          "linked_edges": 13,
+          "linked_faces": 13
+        },
+        {
+          "co": [
+            -0.699999988079071,
+            -1.7777190208435059,
+            148.62588500976562
+          ],
+          "linked_edges": 13,
+          "linked_faces": 13
+        },
+        {
+          "co": [
+            -0.6999993324279785,
+            -1.7777189016342163,
+            148.62588500976562
+          ],
+          "linked_edges": 4,
+          "linked_faces": 4
+        }
+      ]
+    },
+    {
+      "event": "manifold_reference",
+      "elapsed_seconds": 7.97346630692482,
+      "shape_stack": [
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure",
+          "node_name": null,
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "upper_structure",
+          "path": "upper_structure/op_0",
+          "node_name": "op_0",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components",
+          "node_name": "connected_upper_components",
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "curved_upper_arm",
+          "path": "upper_structure/op_0/connected_upper_components/op_1",
+          "node_name": "op_1",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components/op_1/continuous_rounded_arm",
+          "node_name": "continuous_rounded_arm",
+          "primitive_types": [
+            "boolean"
+          ]
+        }
+      ],
+      "status": "Error.NoError",
+      "empty": false,
+      "volume": 58.25714957343866,
+      "surface_area": 170.36229070772245,
+      "components": 1,
+      "raw_stats": {
+        "vertices": 8748,
+        "triangles": 17492,
+        "exact_coordinate_duplicates": 0,
+        "zero_area_triangles": 0,
+        "duplicate_faces": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "smallest_positive_triangle_area": 3.0791787065317707e-20
+      },
+      "quantum": 1.52587890625e-05,
+      "displacement_bound": 0.000286102294921875
+    },
+    {
+      "event": "recovery_target_pre_weld",
+      "elapsed_seconds": 8.114367187023163,
+      "shape_stack": [
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure",
+          "node_name": null,
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "upper_structure",
+          "path": "upper_structure/op_0",
+          "node_name": "op_0",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components",
+          "node_name": "connected_upper_components",
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "curved_upper_arm",
+          "path": "upper_structure/op_0/connected_upper_components/op_1",
+          "node_name": "op_1",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components/op_1/continuous_rounded_arm",
+          "node_name": "continuous_rounded_arm",
+          "primitive_types": [
+            "boolean"
+          ]
+        }
+      ],
+      "tolerance": 1.52587890625e-05,
+      "manifold_status": "Error.NoError",
+      "volume": 58.25713553784104,
+      "stats64": {
+        "vertices": 8164,
+        "triangles": 16320,
+        "exact_coordinate_duplicates": 2,
+        "zero_area_triangles": 0,
+        "duplicate_faces": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 1,
+        "inconsistent_edges": 0,
+        "smallest_positive_triangle_area": 2.6709581714301e-20,
+        "defect_bounds": [
+          [
+            0.6999997496240207,
+            -0.21227949859312736,
+            146.58575439453125
+          ],
+          [
+            0.699999988079071,
+            -0.21227949857711792,
+            146.58575439466048
+          ]
+        ],
+        "defect_edge_samples": [
+          [
+            [
+              0.6999997496240207,
+              -0.21227949859312736,
+              146.58575439466048
+            ],
+            [
+              0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ]
+          ]
+        ]
+      },
+      "stats32": {
+        "vertices": 8164,
+        "triangles": 16320,
+        "exact_coordinate_duplicates": 11,
+        "zero_area_triangles": 19,
+        "duplicate_faces": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 17,
+        "inconsistent_edges": 5,
+        "smallest_positive_triangle_area": 6.661338147750939e-16,
+        "defect_bounds": [
+          [
+            -0.699999988079071,
+            -27.609521865844727,
+            145.8220977783203
+          ],
+          [
+            0.699999988079071,
+            -0.03422053903341293,
+            149.30001831054688
+          ]
+        ],
+        "defect_edge_samples": [
+          [
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              -0.699999988079071,
+              -2.0,
+              148.7641143798828
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              -0.6999958157539368,
+              -2.230865478515625,
+              148.88746643066406
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.07685887813568115,
+              146.0803680419922
+            ],
+            [
+              -0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.034220557659864426,
+              145.8220977783203
+            ],
+            [
+              -0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ],
+            [
+              -0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              -0.6999998688697815,
+              -27.472959518432617,
+              149.3000030517578
+            ],
+            [
+              -0.6999998688697815,
+              -27.472959518432617,
+              149.3000030517578
+            ]
+          ],
+          [
+            [
+              -0.6999998688697815,
+              -27.472959518432617,
+              149.3000030517578
+            ],
+            [
+              -0.6999984979629517,
+              -27.472946166992188,
+              149.30001831054688
+            ]
+          ],
+          [
+            [
+              -0.6999998688697815,
+              -27.472959518432617,
+              149.3000030517578
+            ],
+            [
+              -0.6865497827529907,
+              -27.609521865844727,
+              147.40000915527344
+            ]
+          ],
+          [
+            [
+              -0.6999993324279785,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ]
+          ],
+          [
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ],
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ]
+          ],
+          [
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ],
+            [
+              -0.6999993324279785,
+              -0.2122793048620224,
+              146.58575439453125
+            ]
+          ],
+          [
+            [
+              0.6865496635437012,
+              -2.1744890213012695,
+              149.0118865966797
+            ],
+            [
+              0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ]
+          ],
+          [
+            [
+              0.6999958157539368,
+              -2.230865478515625,
+              148.88746643066406
+            ],
+            [
+              0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ]
+          ],
+          [
+            [
+              0.6999997496604919,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              0.6999997496604919,
+              -0.21227949857711792,
+              146.58575439453125
+            ]
+          ],
+          [
+            [
+              0.6999997496604919,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ]
+          ],
+          [
+            [
+              0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ]
+          ],
+          [
+            [
+              0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              0.699999988079071,
+              -2.2308452129364014,
+              148.8874969482422
+            ]
+          ],
+          [
+            [
+              0.699999988079071,
+              -0.034220557659864426,
+              145.8220977783203
+            ],
+            [
+              0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ]
+          ]
+        ]
+      },
+      "collapsed_vertex_groups": [
+        {
+          "indices": [
+            1442,
+            1446
+          ],
+          "float32": [
+            -0.699999988079071,
+            -2.2308454513549805,
+            148.8874969482422
+          ],
+          "float64": [
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              -0.6999999832293939,
+              -2.2308454281423624,
+              148.88749699166743
+            ]
+          ],
+          "max_separation": 4.9478247362318804e-08
+        },
+        {
+          "indices": [
+            206,
+            207
+          ],
+          "float32": [
+            -0.699999988079071,
+            -0.03422055393457413,
+            145.8220977783203
+          ],
+          "float64": [
+            [
+              -0.6999999877135392,
+              -0.034220553871019334,
+              145.8220977777157
+            ],
+            [
+              -0.6999999877166768,
+              -0.03422055399813916,
+              145.82209777868127
+            ]
+          ],
+          "max_separation": 9.739076643273657e-10
+        },
+        {
+          "indices": [
+            13,
+            15
+          ],
+          "float32": [
+            -0.6999998688697815,
+            -27.472959518432617,
+            149.3000030517578
+          ],
+          "float64": [
+            [
+              -0.6999998688718481,
+              -27.472959518432617,
+              149.3000018414024
+            ],
+            [
+              -0.6999998688715443,
+              -27.472959518432617,
+              149.3000042621163
+            ]
+          ],
+          "max_separation": 2.420713883566369e-06
+        },
+        {
+          "indices": [
+            286,
+            289
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -0.21227936446666718,
+            146.58575439453125
+          ],
+          "float64": [
+            [
+              -0.6999993284303352,
+              -0.21227936446665832,
+              146.58575443512171
+            ],
+            [
+              -0.6999993274199888,
+              -0.21227936446665607,
+              146.58575444538036
+            ]
+          ],
+          "max_separation": 1.0308278567890246e-08
+        },
+        {
+          "indices": [
+            6305,
+            6306,
+            6307,
+            6309
+          ],
+          "float32": [
+            0.6999997496604919,
+            -0.21227949857711792,
+            146.58575439453125
+          ],
+          "float64": [
+            [
+              0.699999749602924,
+              -0.21227949893656728,
+              146.58575439453125
+            ],
+            [
+              0.6999997496240207,
+              -0.21227949859312736,
+              146.58575439466048
+            ],
+            [
+              0.6999997493366921,
+              -0.21227950090076436,
+              146.58575439379214
+            ],
+            [
+              0.6999997496240207,
+              -0.21227949859312736,
+              146.58575439466048
+            ]
+          ],
+          "max_separation": 2.4822894097648336e-09
+        },
+        {
+          "indices": [
+            8010,
+            8012,
+            8015
+          ],
+          "float32": [
+            0.699999988079071,
+            -2.2308454513549805,
+            148.8874969482422
+          ],
+          "float64": [
+            [
+              0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              0.6999999768670866,
+              -2.2308454586581203,
+              148.88749693458146
+            ],
+            [
+              0.6999999832291469,
+              -2.23084542814118,
+              148.88749699166965
+            ]
+          ],
+          "max_separation": 6.50447578418882e-08
+        },
+        {
+          "indices": [
+            6304,
+            6308
+          ],
+          "float32": [
+            0.699999988079071,
+            -0.21227949857711792,
+            146.58575439453125
+          ],
+          "float64": [
+            [
+              0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ]
+          ],
+          "max_separation": 0.0
+        },
+        {
+          "indices": [
+            6197,
+            6198
+          ],
+          "float32": [
+            0.699999988079071,
+            -0.03422055393457413,
+            145.8220977783203
+          ],
+          "float64": [
+            [
+              0.6999999877135389,
+              -0.03422055387102204,
+              145.8220977777157
+            ],
+            [
+              0.6999999877166768,
+              -0.03422055399813917,
+              145.82209777868127
+            ]
+          ],
+          "max_separation": 9.739073130856976e-10
+        }
+      ],
+      "max_rounding_displacement": 7.629023336375534e-06,
+      "snapshot": "attempt_1_52587890625e-05_preweld.npz"
+    },
+    {
+      "event": "target_precision_not_manifold",
+      "elapsed_seconds": 8.282548069953918,
+      "shape_stack": [
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure",
+          "node_name": null,
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "upper_structure",
+          "path": "upper_structure/op_0",
+          "node_name": "op_0",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components",
+          "node_name": "connected_upper_components",
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "curved_upper_arm",
+          "path": "upper_structure/op_0/connected_upper_components/op_1",
+          "node_name": "op_1",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components/op_1/continuous_rounded_arm",
+          "node_name": "continuous_rounded_arm",
+          "primitive_types": [
+            "boolean"
+          ]
+        }
+      ],
+      "tolerance": 1.52587890625e-05,
+      "exact_welds": 11,
+      "vertices": 8152,
+      "edges": 24448,
+      "faces": 16298,
+      "boundary_edges": 2,
+      "wire_edges": 0,
+      "nonmanifold_edges": 3,
+      "noncontiguous_edges": 3,
+      "nonmanifold_vertices": 2,
+      "defect_bounds": [
+        [
+          -0.699999988079071,
+          -0.21227949857711792,
+          146.58575439453125
+        ],
+        [
+          -0.6999993324279785,
+          -0.21227936446666718,
+          146.58575439453125
+        ]
+      ],
+      "defect_edges": [
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              -0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.556510925292969e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 1.341104507446289e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ],
+            [
+              -0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ]
+          ],
+          "linked_faces": 3,
+          "boundary": false,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.692263809782162e-07
+        }
+      ],
+      "defect_vertices": [
+        {
+          "co": [
+            -0.6999993324279785,
+            -0.21227936446666718,
+            146.58575439453125
+          ],
+          "linked_edges": 3,
+          "linked_faces": 3
+        },
+        {
+          "co": [
+            -0.699999988079071,
+            -0.21227949857711792,
+            146.58575439453125
+          ],
+          "linked_edges": 18,
+          "linked_faces": 18
+        }
+      ]
+    },
+    {
+      "event": "manifold_reference",
+      "elapsed_seconds": 8.36568434163928,
+      "shape_stack": [
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure",
+          "node_name": null,
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "upper_structure",
+          "path": "upper_structure/op_0",
+          "node_name": "op_0",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components",
+          "node_name": "connected_upper_components",
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "curved_upper_arm",
+          "path": "upper_structure/op_0/connected_upper_components/op_1",
+          "node_name": "op_1",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components/op_1/continuous_rounded_arm",
+          "node_name": "continuous_rounded_arm",
+          "primitive_types": [
+            "boolean"
+          ]
+        }
+      ],
+      "status": "Error.NoError",
+      "empty": false,
+      "volume": 58.25714957343866,
+      "surface_area": 170.36229070772245,
+      "components": 1,
+      "raw_stats": {
+        "vertices": 8748,
+        "triangles": 17492,
+        "exact_coordinate_duplicates": 0,
+        "zero_area_triangles": 0,
+        "duplicate_faces": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "smallest_positive_triangle_area": 3.0791787065317707e-20
+      },
+      "quantum": 1.52587890625e-05,
+      "displacement_bound": 0.000286102294921875
+    },
+    {
+      "event": "recovery_target_pre_weld",
+      "elapsed_seconds": 8.535904487594962,
+      "shape_stack": [
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure",
+          "node_name": null,
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "upper_structure",
+          "path": "upper_structure/op_0",
+          "node_name": "op_0",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components",
+          "node_name": "connected_upper_components",
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "curved_upper_arm",
+          "path": "upper_structure/op_0/connected_upper_components/op_1",
+          "node_name": "op_1",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components/op_1/continuous_rounded_arm",
+          "node_name": "continuous_rounded_arm",
+          "primitive_types": [
+            "boolean"
+          ]
+        }
+      ],
+      "tolerance": 3.0517578125e-05,
+      "manifold_status": "Error.NoError",
+      "volume": 58.25713506984689,
+      "stats64": {
+        "vertices": 8159,
+        "triangles": 16310,
+        "exact_coordinate_duplicates": 2,
+        "zero_area_triangles": 0,
+        "duplicate_faces": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 1,
+        "inconsistent_edges": 0,
+        "smallest_positive_triangle_area": 2.6709581714301e-20,
+        "defect_bounds": [
+          [
+            0.6999997496240207,
+            -0.21227949859312736,
+            146.58575439453125
+          ],
+          [
+            0.699999988079071,
+            -0.21227949857711792,
+            146.58575439466048
+          ]
+        ],
+        "defect_edge_samples": [
+          [
+            [
+              0.6999997496240207,
+              -0.21227949859312736,
+              146.58575439466048
+            ],
+            [
+              0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ]
+          ]
+        ]
+      },
+      "stats32": {
+        "vertices": 8159,
+        "triangles": 16310,
+        "exact_coordinate_duplicates": 13,
+        "zero_area_triangles": 23,
+        "duplicate_faces": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 21,
+        "inconsistent_edges": 7,
+        "smallest_positive_triangle_area": 6.661338147750939e-16,
+        "defect_bounds": [
+          [
+            -0.699999988079071,
+            -27.609521865844727,
+            145.8220977783203
+          ],
+          [
+            0.699999988079071,
+            0.10168500244617462,
+            149.30001831054688
+          ]
+        ],
+        "defect_edge_samples": [
+          [
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              -0.699999988079071,
+              -2.0,
+              148.7641143798828
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              -0.6999958157539368,
+              -2.230865478515625,
+              148.88746643066406
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.034220557659864426,
+              145.8220977783203
+            ],
+            [
+              -0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ],
+            [
+              -0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.03422055393457413,
+              145.8220977783203
+            ],
+            [
+              -0.699999988079071,
+              -0.03422053903341293,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.03422053903341293,
+              145.8220977783203
+            ],
+            [
+              -0.699999988079071,
+              -0.03422053903341293,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.03422053903341293,
+              145.8220977783203
+            ],
+            [
+              -0.6999985575675964,
+              -0.03421353921294212,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              -0.699999988079071,
+              -0.03422053903341293,
+              145.8220977783203
+            ],
+            [
+              -0.6865496635437012,
+              0.1005188375711441,
+              145.84434509277344
+            ]
+          ],
+          [
+            [
+              -0.6999998688697815,
+              -27.472959518432617,
+              149.3000030517578
+            ],
+            [
+              -0.6999998688697815,
+              -27.472959518432617,
+              149.3000030517578
+            ]
+          ],
+          [
+            [
+              -0.6999998688697815,
+              -27.472959518432617,
+              149.3000030517578
+            ],
+            [
+              -0.6999984979629517,
+              -27.472946166992188,
+              149.30001831054688
+            ]
+          ],
+          [
+            [
+              -0.6999998688697815,
+              -27.472959518432617,
+              149.3000030517578
+            ],
+            [
+              -0.6865497827529907,
+              -27.609521865844727,
+              147.40000915527344
+            ]
+          ],
+          [
+            [
+              -0.6999993324279785,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ]
+          ],
+          [
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ],
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ]
+          ],
+          [
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ],
+            [
+              -0.6999993324279785,
+              -0.2122793048620224,
+              146.58575439453125
+            ]
+          ],
+          [
+            [
+              0.6865496635437012,
+              -2.1744890213012695,
+              149.0118865966797
+            ],
+            [
+              0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ]
+          ],
+          [
+            [
+              0.6865496635437012,
+              0.1005188375711441,
+              145.84434509277344
+            ],
+            [
+              0.699999988079071,
+              -0.03422053903341293,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              0.6865496635437012,
+              0.10168500244617462,
+              145.8354949951172
+            ],
+            [
+              0.699999988079071,
+              -0.03422053903341293,
+              145.8220977783203
+            ]
+          ],
+          [
+            [
+              0.6999958157539368,
+              -2.230865478515625,
+              148.88746643066406
+            ],
+            [
+              0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ]
+          ]
+        ]
+      },
+      "collapsed_vertex_groups": [
+        {
+          "indices": [
+            1441,
+            1445
+          ],
+          "float32": [
+            -0.699999988079071,
+            -2.2308454513549805,
+            148.8874969482422
+          ],
+          "float64": [
+            [
+              -0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              -0.6999999832293939,
+              -2.2308454281423624,
+              148.88749699166743
+            ]
+          ],
+          "max_separation": 4.9478247362318804e-08
+        },
+        {
+          "indices": [
+            205,
+            207
+          ],
+          "float32": [
+            -0.699999988079071,
+            -0.03422055393457413,
+            145.8220977783203
+          ],
+          "float64": [
+            [
+              -0.6999999877135392,
+              -0.034220553871019334,
+              145.8220977777157
+            ],
+            [
+              -0.6999999877166768,
+              -0.03422055399813916,
+              145.82209777868127
+            ]
+          ],
+          "max_separation": 9.739076643273657e-10
+        },
+        {
+          "indices": [
+            206,
+            209
+          ],
+          "float32": [
+            -0.699999988079071,
+            -0.03422053903341293,
+            145.8220977783203
+          ],
+          "float64": [
+            [
+              -0.6999999862492402,
+              -0.03422053917078065,
+              145.8220977801429
+            ],
+            [
+              -0.6999999843875365,
+              -0.034220539190647326,
+              145.82209778013961
+            ]
+          ],
+          "max_separation": 1.8618125971953933e-09
+        },
+        {
+          "indices": [
+            13,
+            15
+          ],
+          "float32": [
+            -0.6999998688697815,
+            -27.472959518432617,
+            149.3000030517578
+          ],
+          "float64": [
+            [
+              -0.6999998688718481,
+              -27.472959518432617,
+              149.3000018414024
+            ],
+            [
+              -0.6999998688715443,
+              -27.472959518432617,
+              149.3000042621163
+            ]
+          ],
+          "max_separation": 2.420713883566369e-06
+        },
+        {
+          "indices": [
+            287,
+            290
+          ],
+          "float32": [
+            -0.6999993324279785,
+            -0.21227936446666718,
+            146.58575439453125
+          ],
+          "float64": [
+            [
+              -0.6999993284303352,
+              -0.21227936446665832,
+              146.58575443512171
+            ],
+            [
+              -0.6999993274199888,
+              -0.21227936446665607,
+              146.58575444538036
+            ]
+          ],
+          "max_separation": 1.0308278567890246e-08
+        },
+        {
+          "indices": [
+            6302,
+            6303,
+            6304,
+            6306
+          ],
+          "float32": [
+            0.6999997496604919,
+            -0.21227949857711792,
+            146.58575439453125
+          ],
+          "float64": [
+            [
+              0.699999749602924,
+              -0.21227949893656728,
+              146.58575439453125
+            ],
+            [
+              0.6999997496240207,
+              -0.21227949859312736,
+              146.58575439466048
+            ],
+            [
+              0.6999997493366921,
+              -0.21227950090076436,
+              146.58575439379214
+            ],
+            [
+              0.6999997496240207,
+              -0.21227949859312736,
+              146.58575439466048
+            ]
+          ],
+          "max_separation": 2.4822894097648336e-09
+        },
+        {
+          "indices": [
+            8007,
+            8009,
+            8012
+          ],
+          "float32": [
+            0.699999988079071,
+            -2.2308454513549805,
+            148.8874969482422
+          ],
+          "float64": [
+            [
+              0.699999988079071,
+              -2.2308454513549805,
+              148.8874969482422
+            ],
+            [
+              0.6999999768670866,
+              -2.2308454586581203,
+              148.88749693458146
+            ],
+            [
+              0.6999999832291469,
+              -2.23084542814118,
+              148.88749699166965
+            ]
+          ],
+          "max_separation": 6.50447578418882e-08
+        },
+        {
+          "indices": [
+            6301,
+            6305
+          ],
+          "float32": [
+            0.699999988079071,
+            -0.21227949857711792,
+            146.58575439453125
+          ],
+          "float64": [
+            [
+              0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ]
+          ],
+          "max_separation": 0.0
+        },
+        {
+          "indices": [
+            6193,
+            6195
+          ],
+          "float32": [
+            0.699999988079071,
+            -0.03422055393457413,
+            145.8220977783203
+          ],
+          "float64": [
+            [
+              0.6999999877135389,
+              -0.03422055387102204,
+              145.8220977777157
+            ],
+            [
+              0.6999999877166768,
+              -0.03422055399813917,
+              145.82209777868127
+            ]
+          ],
+          "max_separation": 9.739073130856976e-10
+        },
+        {
+          "indices": [
+            6194,
+            6197
+          ],
+          "float32": [
+            0.699999988079071,
+            -0.03422053903341293,
+            145.8220977783203
+          ],
+          "float64": [
+            [
+              0.6999999862492402,
+              -0.03422053917078065,
+              145.8220977801429
+            ],
+            [
+              0.6999999843875365,
+              -0.034220539190647326,
+              145.82209778013961
+            ]
+          ],
+          "max_separation": 1.8618125971953933e-09
+        }
+      ],
+      "max_rounding_displacement": 7.629023336375534e-06,
+      "snapshot": "attempt_3_0517578125e-05_preweld.npz"
+    },
+    {
+      "event": "target_precision_not_manifold",
+      "elapsed_seconds": 8.71578516997397,
+      "shape_stack": [
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure",
+          "node_name": null,
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "upper_structure",
+          "path": "upper_structure/op_0",
+          "node_name": "op_0",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components",
+          "node_name": "connected_upper_components",
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "curved_upper_arm",
+          "path": "upper_structure/op_0/connected_upper_components/op_1",
+          "node_name": "op_1",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components/op_1/continuous_rounded_arm",
+          "node_name": "continuous_rounded_arm",
+          "primitive_types": [
+            "boolean"
+          ]
+        }
+      ],
+      "tolerance": 3.0517578125e-05,
+      "exact_welds": 13,
+      "vertices": 8145,
+      "edges": 24427,
+      "faces": 16284,
+      "boundary_edges": 2,
+      "wire_edges": 0,
+      "nonmanifold_edges": 3,
+      "noncontiguous_edges": 3,
+      "nonmanifold_vertices": 2,
+      "defect_bounds": [
+        [
+          -0.699999988079071,
+          -0.21227949857711792,
+          146.58575439453125
+        ],
+        [
+          -0.6999993324279785,
+          -0.21227936446666718,
+          146.58575439453125
+        ]
+      ],
+      "defect_edges": [
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 1.341104507446289e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.21227949857711792,
+              146.58575439453125
+            ],
+            [
+              -0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ]
+          ],
+          "linked_faces": 1,
+          "boundary": true,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.556510925292969e-07
+        },
+        {
+          "vertices": [
+            [
+              -0.6999993324279785,
+              -0.21227936446666718,
+              146.58575439453125
+            ],
+            [
+              -0.699999988079071,
+              -0.21227949857711792,
+              146.58575439453125
+            ]
+          ],
+          "linked_faces": 3,
+          "boundary": false,
+          "manifold": false,
+          "contiguous": false,
+          "length": 6.692263809782162e-07
+        }
+      ],
+      "defect_vertices": [
+        {
+          "co": [
+            -0.6999993324279785,
+            -0.21227936446666718,
+            146.58575439453125
+          ],
+          "linked_edges": 3,
+          "linked_faces": 3
+        },
+        {
+          "co": [
+            -0.699999988079071,
+            -0.21227949857711792,
+            146.58575439453125
+          ],
+          "linked_edges": 19,
+          "linked_faces": 19
+        }
+      ]
+    },
+    {
+      "event": "manifold_reference",
+      "elapsed_seconds": 8.800149710848927,
+      "shape_stack": [
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure",
+          "node_name": null,
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "upper_structure",
+          "path": "upper_structure/op_0",
+          "node_name": "op_0",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components",
+          "node_name": "connected_upper_components",
+          "primitive_types": [
+            "boolean"
+          ]
+        },
+        {
+          "label": "curved_upper_arm",
+          "path": "upper_structure/op_0/connected_upper_components/op_1",
+          "node_name": "op_1",
+          "primitive_types": []
+        },
+        {
+          "label": "BooleanUnion",
+          "path": "upper_structure/op_0/connected_upper_components/op_1/continuous_rounded_arm",
+          "node_name": "continuous_rounded_arm",
+          "primitive_types": [
+            "boolean"
+          ]
+        }
+      ],
+      "status": "Error.NoError",
+      "empty": false,
+      "volume": 58.25714957343866,
+      "surface_area": 170.36229070772245,
+      "components": 1,
+      "raw_stats": {
+        "vertices": 8748,
+        "triangles": 17492,
+        "exact_coordinate_duplicates": 0,
+        "zero_area_triangles": 0,
+        "duplicate_faces": 0,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_edges": 0,
+        "smallest_positive_triangle_area": 3.0791787065317707e-20
+      },
+      "quantum": 1.52587890625e-05,
+      "displacement_bound": 0.000286102294921875
+    },
+    {
+      "event": "build_failed",
+      "elapsed_seconds": 8.905737468972802,
+      "shape_stack": [],
+      "error": "BOOLEAN_RECOVERY_FAILED: object='geometry_0_cylinder.030' attempts=['target precision weld is not manifold', 'target precision weld is not manifold', 'target precision weld is not manifold']",
+      "traceback": "Traceback (most recent call last):\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-core/core/export/export_glb.py\", line 397, in _apply_boolean_group\n    _normalize_zero_area_tessellation(candidate)\n  File \"/tmp/adsl_lamp_boolean_debug_20261007/trace_boolean.py\", line 104, in normalize\n    return original_normalize(obj)\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-core/core/export/export_glb.py\", line 825, in _normalize_zero_area_tessellation\n    reject(f'polygon {index} is nonplanar: max_plane_distance_scene_units={distance:.9g} '\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-core/core/export/export_glb.py\", line 797, in reject\n    raise ValueError(\nValueError: EVALUATED_MESH_DEGENERATE: object='geometry_0_cylinder.030' zero_area_triangles=2 polygons=[69, 698] coincident_vertices=0 reason=polygon 69 is nonplanar: max_plane_distance_scene_units=6.12624994e-05 planarity_bound_scene_units=1.98951658e-14\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/tmp/adsl_lamp_boolean_debug_20261007/trace_boolean.py\", line 192, in <module>\n    objs=eg._build_shape(shape, path='upper_structure')\n  File \"/tmp/adsl_lamp_boolean_debug_20261007/trace_boolean.py\", line 63, in build\n    return original_build(shape, world_xform, **kw)\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-core/core/export/export_glb.py\", line 634, in _build_shape\n    _build_local_geometry()\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-core/core/export/export_glb.py\", line 556, in _build_local_geometry\n    _build_shape(\n  File \"/tmp/adsl_lamp_boolean_debug_20261007/trace_boolean.py\", line 63, in build\n    return original_build(shape, world_xform, **kw)\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-core/core/export/export_glb.py\", line 640, in _build_shape\n    _build_shape(\n  File \"/tmp/adsl_lamp_boolean_debug_20261007/trace_boolean.py\", line 63, in build\n    return original_build(shape, world_xform, **kw)\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-core/core/export/export_glb.py\", line 634, in _build_shape\n    _build_local_geometry()\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-core/core/export/export_glb.py\", line 556, in _build_local_geometry\n    _build_shape(\n  File \"/tmp/adsl_lamp_boolean_debug_20261007/trace_boolean.py\", line 63, in build\n    return original_build(shape, world_xform, **kw)\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-core/core/export/export_glb.py\", line 640, in _build_shape\n    _build_shape(\n  File \"/tmp/adsl_lamp_boolean_debug_20261007/trace_boolean.py\", line 63, in build\n    return original_build(shape, world_xform, **kw)\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-core/core/export/export_glb.py\", line 634, in _build_shape\n    _build_local_geometry()\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-core/core/export/export_glb.py\", line 569, in _build_local_geometry\n    _apply_boolean_group(base, built_children[1:], mode)\n  File \"/tmp/adsl_lamp_boolean_debug_20261007/trace_boolean.py\", line 78, in group\n    result = original_group(base, others, operation)\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-core/core/export/export_glb.py\", line 402, in _apply_boolean_group\n    _recover_boolean(candidate, [base, *others], operation)\n  File \"/tmp/adsl_lamp_boolean_debug_20261007/trace_boolean.py\", line 125, in recover\n    return original_recover(base,operands,operation)\n  File \"/vepfs_default/chanxueyan/lhp/lms/aDSL/adsl-core/core/export/export_glb.py\", line 381, in _recover_boolean\n    raise ValueError(f'BOOLEAN_RECOVERY_FAILED: object={base.name!r} attempts={failures}')\nValueError: BOOLEAN_RECOVERY_FAILED: object='geometry_0_cylinder.030' attempts=['target precision weld is not manifold', 'target precision weld is not manifold', 'target precision weld is not manifold']\n"
+    }
+  ]
+}

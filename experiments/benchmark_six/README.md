@@ -38,10 +38,12 @@ dragon. Partition repair is enabled with the existing Dapper objective
 disabled. The native `RepairPolicy` time budget stays at its existing default.
 
 Both generation renderers use CPU software Eevee, eight original native camera
-views, 512 by 512 pixels, and 64 samples. Each isolated environment contains the
-same thin `sitecustomize` render-kwargs adapter because official's native render
-helper lacks environment controls. It adjusts resolution/samples only; native
-scene construction, cameras, algorithm, and upstream source files are retained.
+views, 512 by 512 pixels, and 64 samples. Official uses a thin `sitecustomize`
+render-kwargs adapter because its native render helper lacks environment controls.
+It adjusts resolution/samples only; native scene construction, cameras, algorithm,
+and upstream source files are retained. Ours uses its native render environment
+controls and may run directly in the existing main checkout and Python environment;
+a new isolated ours environment is not required.
 
 For a prepared root, perform the read-only/schema preflight and submit the batch:
 
@@ -98,3 +100,23 @@ Focused tests run without any API call:
 ```sh
 python -m pytest -q tests/test_benchmark_six_runner.py tests/test_benchmark_six_evaluation.py
 ```
+
+## Current main-environment submission (2026-10-07)
+
+Run root: `/jiigan-hp/lms/aDSL/experiment/benchmark_six_main_20261007T045229Z`.
+Ours uses `/vepfs_default/chanxueyan/lhp/lms/aDSL` with the existing
+`/vepfs_default/chanxueyan/lhp/lms/envs/adsl/bin/python`. The explicit Python path
+contains that checkout and the existing MuJoCo runtime at
+`/jiigan-hp/lms/aDSL/experiment/runtime/mujoco-py310`. Official remains the
+unchanged upstream checkout recorded in that run's `submission.json`. Both
+frozen experiment profiles use Astra via the SSH endpoint with `max_retries=3`
+(the reusable profile template's default remains 2). No package installation or
+download was needed to use the main environment. The one-line overhang region
+index normalization published with this branch accepts both list and NumPy
+component indices; it does not change the scoring algorithm.
+
+The user paused this batch on 2026-10-07 at 05:26:24 UTC. Three jobs had completed,
+and the ours dinosaur Coder was in progress. `pause.json` and `pause_archive/`
+record the stopped process tree and preserved progress. Do not reset a started
+job's budget or start another batch to resume it. The lamp's Boolean failure and
+repair routing are documented in `reports/benchmark_six_boolean_failure_20261007.md`.
