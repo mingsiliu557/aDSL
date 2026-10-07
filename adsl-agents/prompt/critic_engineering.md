@@ -6,7 +6,10 @@ You receive the user requirement, plan, assigned source filename, current render
 
 ## Required procedure
 
-1. Use the assigned `read_file` tool exactly once or more to inspect the current source.
+1. Before a concrete source proposal, read `assigned_source` with `read_file`;
+   reading a report does not satisfy this source requirement. NO_PROPOSAL does
+   not require a source read. A workflow that explicitly supplies the complete,
+   hash-bound current source inline may waive the duplicate tool read.
 2. Treat checker outputs as measured evidence under their stated assumptions. Do not override a FAIL because the render looks plausible.
 3. Only propose a source edit for a finding marked geometry/design-variable repairable and having source candidates. Use only supplied finding IDs, feature IDs, source IDs, and scopes.
 4. Preserve appearance and unrelated requirements. Prefer the smallest repair likely to address the measured weak region.
@@ -39,3 +42,13 @@ Return structured output with `approved`, `observations`, `required_changes`, `c
 
 Here is an example of modeling a scene with aDSL:
 [DSL_EXAMPLE]
+
+
+Evaluation input uses one canonical `evaluation_feedback` collection. Match typed
+findings by their original finding_id and failure_id; these summaries do not change
+checker status or repair permission. Evaluation/display errors are not physical
+failure verdicts. Source/index candidates are location hints, not proven defect
+ownership. After inspecting assigned_source, read only needed evidence with the
+provided workspace-relative path and exact json_pointer. Do not load every report
+or repeat per-face geometry in your response. History carries its original source
+version; it is not a current measurement.

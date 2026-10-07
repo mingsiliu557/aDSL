@@ -104,7 +104,8 @@ def test_existing_geometry_failure_is_not_relabelled_as_unavailable(tmp_path, mo
         if len(attempts) == 1:
             manifest = out/'assembly'/'assembly_manifest.json'
             manifest.parent.mkdir(parents=True)
-            manifest.write_text(json.dumps({'status': 'FAIL', 'failures': findings}))
+            manifest.write_text(json.dumps({'status': 'FAIL', 'failures': findings,
+                                            'source_sha256':flow.file_hash(source)}))
             raise flow.AssetExecutionError('no assembly render produced after geometric rejection')
         return execute(source, out, **kwargs)
 

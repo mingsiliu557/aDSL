@@ -120,3 +120,10 @@ and the ours dinosaur Coder was in progress. `pause.json` and `pause_archive/`
 record the stopped process tree and preserved progress. Do not reset a started
 job's budget or start another batch to resume it. The lamp's Boolean failure and
 repair routing are documented in `reports/benchmark_six_boolean_failure_20261007.md`.
+# Request-error helper in future frozen runners
+
+When copying `run.py`, `evaluate.py` and `build_review.py` into a new experiment's
+runner directory, also copy `adsl-agents/utils/request_errors.py` as adjacent
+`request_errors.py`. Its SHA is part of the new frozen fingerprint. It has only
+standard-library imports and works in the official baseline environment without
+installing ours. Existing completed snapshots/fingerprints must not be rewritten.

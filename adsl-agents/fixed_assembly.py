@@ -20,6 +20,9 @@ from .tools import PATCH_TOOLS, READ_TOOLS
 from .models import GradedImageCriticDecision, GradedCodeCriticDecision
 from .utils.execution import execute_asset_source, AssetExecutionError, AssetInfrastructureError, ExecutionResult
 from .utils.io import read_json, write_json
+from .agent_feedback import evaluation_details
+from .utils.request_errors import (classify_model_request_error, terminal_stop_reason,
+                                   propagate_request_error, safe_request_reason)
 
 
 def _failure_feedback(report, *, source_sha256=None):
@@ -32,9 +35,9 @@ def _failure_feedback(report, *, source_sha256=None):
         row.setdefault('output_role', output_role)
         code = row.get('code', '')
         kind = row.get('failure_kind')
-        diagnostic = row.get('diagnostic') if isinstance(row.get('diagnostic'), dict) else {}
-        evaluation_code = diagnostic.get('code', code)
-        evaluation_stage = diagnostic.get('stage', row.get('stage'))
+        diagnostic = evaluation_details(row)
+        evaluation_code = diagnostic['code'] if diagnostic['code'] is not None else code
+        evaluation_stage = diagnostic['stage']
         # These failures are observed source evaluation failures, not a physical
         # verdict. An arbitrary exporter exception remains unassessed.
         explicit_evaluation = (evaluation_code in {
@@ -64,10 +67,30 @@ def _failure_feedback(report, *, source_sha256=None):
         row.update(failure_kind=kind, stage=row.get('stage') or report.get('stage') or 'unknown',
                    geometry_repair_allowed=kind == 'candidate_geometry' or
                        kind == 'candidate_evaluation' and (explicit_evaluation or legacy_boolean))
-        if kind == 'candidate_evaluation' and source_sha256 is not None and report.get('source_sha256') != source_sha256:
+        if kind in {'candidate_evaluation', 'candidate_geometry'} and source_sha256 is not None and report.get('source_sha256') != source_sha256:
             row.update(geometry_repair_allowed=False, evidence_source_status='UNAVAILABLE_OR_SOURCE_MISMATCH')
         rows.append(row)
     return rows
+
+
+def _bound_manifest(report, path, source, versions):
+    """Missing legacy source hashes require an existing checked file binding."""
+    expected = file_hash(source)
+    if report.get('source_sha256') == expected:
+        return report
+    if report.get('source_sha256') is None:
+        for version in versions.values():
+            if version.get('files', {}).get(version.get('source')) != expected or str(path) not in version.get('files', {}):
+                continue
+            assert_version(version)
+            return {**report, 'source_sha256':expected, 'source_binding_basis':'verified_version_files'}
+    # Preserve the original hash and rows. A mismatched report is neither a
+    # current manufacturing verdict nor authorization to change this source.
+    return {**report, 'status':'ERROR', 'export_status':'FAIL',
+        'source_binding':'STALE' if report.get('source_sha256') else 'UNKNOWN',
+        'failures':[*report.get('failures', []), {'code':'MANIFEST_SOURCE_UNBOUND',
+            'failure_kind':'export', 'stage':'read_assembly_manifest',
+            'reason':'Manifest is not bound to the current source'}]}
 
 
 FAILURE_INSTRUCTION = (
@@ -81,7 +104,7 @@ FAILURE_INSTRUCTION = (
     'Use actual part IDs, stages and evidence; independently justified appearance/topology repairs remain allowed.')
 
 
-def _assembly_context(source, report, *, version_role):
+def _assembly_context(source, report, *, version_role, report_ref=None):
     """Use only this source's declarations, never the previous mesh as fact."""
     source_hash = file_hash(source)
     current = bool(report and report.get('source_sha256') == source_hash)
@@ -110,7 +133,8 @@ def _assembly_context(source, report, *, version_role):
         } if current else None,
         'plan_changes':report.get('plan_changes') if current else None,
         'task_constraints':report.get('task_constraints') if current else None,
-        'failure_feedback':_failure_feedback(report)[:6] if current else [],
+        'failure_feedback':_failure_feedback(report) if current else [],
+        'report_ref':report_ref,
         'failure_instruction':FAILURE_INSTRUCTION,
     }
 
@@ -259,28 +283,45 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 candidate=str(current), fingerprint=fingerprint, status='MODEL_STARTED',
                 edit_purpose=edit_purpose,comparison_baseline_version=comparison_baseline))
             write_json(book_path, book)
-            outcome = await workflow._repair(runtime=runtime, repairer=repairer, workspace=workspace,
-                source_path=current, role=f'coder:assembly:{number}', stage=f'assembly_repair:{number}',
-                reserved_attempt_id=version_id, allow_no_change=True,
-                payload={'requirement':request.requirement, 'plan':plan.model_dump(),
-                    'fixed_assembly':request.fixed_assembly, 'feedback':feedback,
-                    'source_version':parent_id, 'source_sha256':file_hash(parent),
-                    'evidence_files':feedback.get('evidence_files', []),
-                    'assembly_context':_assembly_context(parent, working['reviews'].get('geometry'),
-                                                         version_role='repair_starting_version'),
-                    'current_repair_authorized':True,
-                    'edit_purpose':edit_purpose, 'primary_objective':feedback.get('primary_objective'),
-                    'partition_guidance':feedback.get('partition_guidance'), 'grouping_change':proposal.grouping_change.model_dump() if proposal.grouping_change else None,
-                    'remaining_repairs_after_this_attempt':book['max_rounds']-number,
-                    'assignment':('This repair is already budget-reserved and may proceed even when remaining_repairs_after_this_attempt is 0; that count excludes the current attempt. Read the assigned source. Never change frozen physical specifications, checker configuration or measurement reference. ' + EVIDENCE_PATH_INSTRUCTION +
-                        (' Primary objective: partition optimization, including repair of interfaces introduced by this same candidate. Preserve the entire original body and root frame; regroup add_part and every affected connect/frame, remove internal connectors and resolve split-child overlap. Never merge historical STL meshes. Pending HIGH surface issues remain unresolved requirements, deferred from this candidate; do not invent material APIs or modify the body to simulate gloss. Geometric visual defects and physical failures introduced by this candidate must be repaired before adoption. Keep the original comparison baseline.'
-                         if edit_purpose.endswith('_optimization') else
-                         ' Primary objective: necessary repair from current localized geometry/physical or reviewed appearance evidence. Regrouping may repair a real failure without requiring a score increase. Follow feedback.edit_restriction. Use only supported public APIs; if only an unsupported surface requirement remains, report NO_CHANGE. Visual changes come from feedback.resolved_visual_feedback. '+VISUAL_FEEDBACK_INSTRUCTION))})
+            try:
+                outcome = await workflow._repair(runtime=runtime, repairer=repairer, workspace=workspace,
+                    source_path=current, role=f'coder:assembly:{number}', stage=f'assembly_repair:{number}',
+                    reserved_attempt_id=version_id, allow_no_change=True,
+                    payload={'requirement':request.requirement, 'plan':plan.model_dump(),
+                        'fixed_assembly':request.fixed_assembly, 'feedback':feedback,
+                        'source_version':parent_id, 'source_sha256':file_hash(parent),
+                        'evidence_files':feedback.get('evidence_files', []),
+                        'assembly_context':_assembly_context(parent, working['reviews'].get('geometry'),
+                            version_role='repair_starting_version',
+                            report_ref=working['reviews'].get('geometry_report_ref')),
+                        'current_repair_authorized':True,
+                        'edit_purpose':edit_purpose, 'primary_objective':feedback.get('primary_objective'),
+                        'partition_guidance':feedback.get('partition_guidance'), 'grouping_change':proposal.grouping_change.model_dump() if proposal.grouping_change else None,
+                        'remaining_repairs_after_this_attempt':book['max_rounds']-number,
+                        'assignment':('This repair is already budget-reserved and may proceed even when remaining_repairs_after_this_attempt is 0; that count excludes the current attempt. Read the assigned source. Never change frozen physical specifications, checker configuration or measurement reference. ' + EVIDENCE_PATH_INSTRUCTION +
+                            (' Primary objective: partition optimization, including repair of interfaces introduced by this same candidate. Preserve the entire original body and root frame; regroup add_part and every affected connect/frame, remove internal connectors and resolve split-child overlap. Never merge historical STL meshes. Pending HIGH surface issues remain unresolved requirements, deferred from this candidate; do not invent material APIs or modify the body to simulate gloss. Geometric visual defects and physical failures introduced by this candidate must be repaired before adoption. Keep the original comparison baseline.'
+                             if edit_purpose.endswith('_optimization') else
+                             ' Primary objective: necessary repair from current localized geometry/physical or reviewed appearance evidence. Regrouping may repair a real failure without requiring a score increase. Follow feedback.edit_restriction. Use only supported public APIs; if only an unsupported surface requirement remains, report NO_CHANGE. Visual changes come from feedback.resolved_visual_feedback. '+VISUAL_FEEDBACK_INSTRUCTION))})
+            except Exception as error:
+                # Reservation was persisted before the call; never refund it.
+                classification = classify_model_request_error(error)
+                error_path = current.parent/'repair_request_error.json'
+                outcome = read_json(error_path) if error_path.is_file() else {
+                    'status':'TOOL_ERROR', 'reason':safe_request_reason(error),
+                    'request_error':classification, 'before_sha256':file_hash(parent),
+                    'after_sha256':file_hash(current)}
+                write_json(candidate_root/'edit_outcome.json', outcome)
+                book['versions'][version_id] = version_record(version_id, current, None,
+                    reviews={'edit_outcome':outcome, 'accepted':False})
+                book.update(feedback={**feedback, 'request_error':classification},
+                            stop_reason='agent_call_error', completed=False)
+                write_json(book_path, book)
+                raise
             write_json(candidate_root/'edit_outcome.json', outcome)
             if outcome['status'] != 'CHANGED':
                 book['versions'][version_id] = version_record(version_id, current, None,
                     reviews={'edit_outcome':outcome, 'accepted':False})
-                stop = outcome['status']
+                stop = terminal_stop_reason(outcome.get('request_error')) or outcome['status']
                 break
             if feedback.get('orientation_only_edit') and not orientation_only(parent.read_text(),current.read_text()):
                 book['versions'][version_id] = version_record(version_id,current,None,
@@ -289,6 +330,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 break
         else:
             candidate_root = root
+        terminal_request_error, propagate_error = None, None
         execution, reviews = None, {'appearance_approved':None}
         report = {'status':'ERROR', 'failures':[]}
         report_path = candidate_root/'asset'/'assembly'/'assembly_manifest.json'
@@ -311,6 +353,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 report = read_json(execution.output_root/'assembly'/'assembly_manifest.json')
                 if not isinstance(report, dict) or not isinstance(report.get('failures'), list):
                     raise ValueError('assembly manifest must contain a failures list')
+                report = _bound_manifest(report, execution.output_root/'assembly'/'assembly_manifest.json',
+                                         current, book['versions'])
             except (OSError, ValueError) as error:
                 report = {'status':'ERROR', 'export_status':'FAIL', 'source_sha256':file_hash(current),
                     'failures':[{'code':'EXPORTED_FILE_INVALID', 'failure_kind':'export',
@@ -324,7 +368,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     saved_report = read_json(report_path)
                     if not isinstance(saved_report, dict) or not isinstance(saved_report.get('failures'), list):
                         raise ValueError('assembly manifest must contain a failures list')
-                    report = saved_report
+                    report = _bound_manifest(saved_report, report_path, current, book['versions'])
                     diagnostic['assembly_report_path'] = str(report_path)
                 except (OSError, ValueError) as report_error:
                     diagnostic['assembly_report_error'] = str(report_error)[:240]
@@ -387,7 +431,21 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             except (ValueError, KeyError, OSError, RuntimeError) as error:
                 shape_comparison = {'status':'UNAVAILABLE','reason':str(error)[:240]}
         if reason != 'FLOW_ERROR':
-            assembly_context = _assembly_context(current, report, version_role='current_candidate')
+            # Critics precede evaluation_feedback/result.json. Bind to the
+            # already written manifest, not to a future report or error text.
+            geometry_path = (execution.output_root/'assembly'/'assembly_manifest.json'
+                             if execution else candidate_root/'asset'/'assembly'/'assembly_manifest.json')
+            if not geometry_path.is_file():
+                geometry_path = candidate_root/'geometry_report.json'
+                write_json(geometry_path, report)
+            geometry_report_ref = {'path':str(geometry_path),
+                'source_sha256':report.get('source_sha256'), 'source_version':version_id}
+            reviews['geometry_report_ref'] = geometry_report_ref
+            if report_path != geometry_path:
+                reviews['execution_error_ref'] = {'path':str(report_path),
+                    'source_sha256':file_hash(current), 'source_version':version_id}
+            assembly_context = _assembly_context(current, report, version_role='current_candidate',
+                                                  report_ref=geometry_report_ref)
             if partition is not None:
                 assembly_context.update(edit_purpose=edit_purpose,body_reference_comparison=shape_comparison,
                     partition_reference=reference_path,print_partition_editable=request.repair_policy.print_partition_editable)
@@ -408,7 +466,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     round_number=number, max_rounds=book['max_rounds'], round_root=candidate_root,
                     image_critic=image_critic, image_history=image_history,
                     code_critic_corrections=corrections, render_issue=render_issue,
-                    assembly_context=assembly_context)
+                    assembly_context=assembly_context, source_path=current, source_version=version_id)
                 approved = image_decision.approved if image_decision else None
                 code_decision = None
                 # Same order as ordinary aDSL: Code reviews a rejected Image
@@ -430,7 +488,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     'code_critic':code_decision.model_dump() if code_decision else None,
                     'image_review_status':'COMPLETED' if image_decision else 'SKIPPED',
                     'review_mode':'generation', 'render_issue':render_issue,
-                    'assembly_context':assembly_context}
+                    'assembly_context':assembly_context,
+                    'geometry_report_ref':geometry_report_ref,
+                    'execution_error_ref':reviews.get('execution_error_ref')}
                 gate_passed = (report.get('manufacturing_status', report.get('export_status')) == 'PASS'
                               and report['status']=='NOT_EVALUATED' and not report.get('failures') if visual_only else
                               report['status']=='PASS' and report.get('manufacturing_status','PASS')=='PASS')
@@ -439,7 +499,13 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     reason = 'visual_code_and_export_passed' if visual_only else 'interface_geometry_and_appearance_passed'
             except Exception as error:
                 report_path = candidate_root/'flow_error.json'
-                write_json(report_path, {'type':type(error).__name__, 'error':str(error)})
+                classification = classify_model_request_error(error)
+                write_json(report_path, {'type':type(error).__name__,
+                    'error':safe_request_reason(error), 'request_error':classification})
+                reviews['request_error'] = classification
+                terminal_request_error = classification if terminal_stop_reason(classification) else None
+                if propagate_request_error(error, classification):
+                    propagate_error = error
                 accepted, reason = False, 'FLOW_ERROR'
         topology_run = None
         runs = []
@@ -597,13 +663,15 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         elif partition is not None and not book['qualified'] and (
                 partition_adopted or (edit_purpose=='required_repair' and partition_ready)):
             book['retained'] = version_id
-        feedback = {'geometry_status':report['status'], 'failures':report.get('failures',[])[:6],
+        feedback = {'geometry_status':report['status'], 'failures':report.get('failures',[]),
             'manufacturing_status':report.get('manufacturing_status'),
-            'display_status':report.get('display_status'), 'display_failures':report.get('display_failures',[])[:6],
-            'failure_feedback':failure_feedback[:6], 'failure_instruction':FAILURE_INSTRUCTION,
+            'display_status':report.get('display_status'), 'display_failures':report.get('display_failures',[]),
+            'failure_feedback':failure_feedback, 'failure_instruction':FAILURE_INSTRUCTION,
             'validation_mode':'visual_only' if visual_only else 'geometry',
             'export_status':report.get('export_status'),
             'report_path':str(report_path),
+            'geometry_report_ref':reviews.get('geometry_report_ref'),
+            'execution_error_ref':reviews.get('execution_error_ref'),
             'source_version':version_id, 'source_sha256':file_hash(current),
             'appearance_approved':reviews.get('appearance_approved'),
             'render_issue':reviews.get('render_issue'),
@@ -679,7 +747,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     next_proposal=None
                     try:
                         next_proposal = await engineer(workflow,runtime,request,plan,current,execution,
-                            candidate_root,evidence_runs if len(evidence_runs)>1 or not topology_run else topology_run,_assembly_context(current,report,version_role='current_candidate'),
+                            candidate_root,evidence_runs if len(evidence_runs)>1 or not topology_run else topology_run,
+                            _assembly_context(current,report,version_role='current_candidate',
+                                report_ref=reviews.get('geometry_report_ref')),
                             feedback,remaining)
                         if next_proposal:
                             feedback['engineering_proposal']=next_proposal.model_dump()
@@ -689,15 +759,20 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                 'reason':'No structured advice; use trustworthy current feedback or NO_CHANGE.'}
                     except Exception as error:
                         write_json(candidate_root/'engineering_error.json',
-                            {'type':type(error).__name__,'reason':str(error)[:300]})
+                            {'type':type(error).__name__,'reason':safe_request_reason(error),
+                             'request_error':classify_model_request_error(error)})
+                        classification = classify_model_request_error(error)
+                        terminal_request_error = classification if terminal_stop_reason(classification) else None
+                        if propagate_request_error(error, classification):
+                            propagate_error = error
                         feedback['engineering']={'status':'UNAVAILABLE','reason':type(error).__name__,
                             'report_path':str((candidate_root/'engineering_error.json').resolve())}
-                    if partition is not None and feedback['next_edit_purpose'].endswith('_optimization') and not next_proposal:
+                    if not terminal_request_error and propagate_error is None and partition is not None and feedback['next_edit_purpose'].endswith('_optimization') and not next_proposal:
                         partition_restore=feedback['comparison_baseline_version']
                         unavailable=feedback['engineering']['status']!='NO_PROPOSAL'
                         partition_stop_reason='partition_engineering_unavailable' if unavailable else 'no_reasonable_partition_proposal'
                         partition_mark_stopped=not unavailable
-                    elif partition is None and accepted and optimize and not next_proposal:
+                    elif not terminal_request_error and propagate_error is None and partition is None and accepted and optimize and not next_proposal:
                         optimize=False;stop='no_reasonable_orientation_proposal';book['completed']=True
                 else:
                     stop='repair_budget_exhausted';book['completed']=True
@@ -719,7 +794,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 and not actionable and not image_pending
                 and not any(f.get('code') == 'EXECUTION_UNAVAILABLE' for f in failure_feedback)):
             stop='export_unassessed_no_geometry_repair';book['completed']=True
-        if partition_restore is not None:
+        if partition_restore is not None and not terminal_request_error and propagate_error is None:
             baseline=book['versions'][partition_restore]
             book['working']=partition_restore
             if not book['qualified'] or baseline['reviews'].get('accepted'):
@@ -740,6 +815,18 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             pending=feedback.get('resolved_visual_feedback',{}).get('required_changes')
             book['completed']=bool(baseline['reviews'].get('accepted') or not pending)
             stop=partition_stop_reason
+        if terminal_request_error or propagate_error is not None:
+            classification = terminal_request_error or classify_model_request_error(propagate_error)
+            feedback['request_error'] = classification
+            book.update(feedback=feedback, next_round=number+1,
+                terminal_request_error=classification,
+                stop_reason=terminal_stop_reason(classification) or 'agent_call_error',
+                completed=propagate_error is None)
+            write_json(book_path, book)
+            if propagate_error is not None:
+                raise propagate_error
+            stop = book['stop_reason']
+            break
         book.update(feedback=feedback, next_round=number+1)
         write_json(book_path, book)
         if accepted and not optimize or reason == 'FLOW_ERROR':

@@ -155,7 +155,8 @@ OVERHANG_OPTIMIZATION_INSTRUCTION = (
 
 def attempt_feedback(attempts):
     """Short existing-record feedback; never infer correspondence from region rank/ID."""
-    return [{
+    from .agent_feedback import _history
+    return _history([{
         "status": a.get("status"), "reason": str(a.get("reason") or "")[:600],
         "modification_summary": a.get("modification_summary", "Unavailable in this saved attempt."),
         "overhang_comparison": a.get("overhang_comparison"),
@@ -166,7 +167,7 @@ def attempt_feedback(attempts):
                       "region IDs/ranks and source AABB overlaps are not sufficient attribution."
         },
         "candidate_report": a.get("candidate"),
-    } for a in attempts]
+    } for a in attempts])
 
 
 def budget_remaining(workspace: Path, options: dict[str, Any]) -> int | str:
@@ -273,12 +274,15 @@ def version_assets(record):
 
 def edit_outcome(output, events, before_hash, after_hash, error=None):
     from .tools.context import patch_failure
+    from .utils.request_errors import classify_model_request_error, safe_request_reason
     evidence = {"tool_events": [asdict(e) for e in events], "before_sha256": before_hash,
                 "after_sha256": after_hash}
     if error is not None:
-        return {**evidence, "status": "TOOL_ERROR", "reason": str(error)[:300]}
+        return {**evidence, "status": "TOOL_ERROR", "reason": safe_request_reason(error),
+                "request_error": classify_model_request_error(error), "error_evidence_ref": None}
     if patch_failure(events):
-        return {**evidence, "status": "TOOL_ERROR", "reason": patch_failure(events)}
+        return {**evidence, "status": "TOOL_ERROR", "reason": patch_failure(events),
+                "request_error": None, "error_evidence_ref": None}
     if before_hash != after_hash:
         return {**evidence, "status": "CHANGED", "reason": "candidate source changed; evaluation required"}
     declaration = output if isinstance(output, dict) else None

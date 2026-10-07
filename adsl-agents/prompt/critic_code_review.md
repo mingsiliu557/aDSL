@@ -51,3 +51,10 @@ The public appearance controls are color/alpha, with default Principled shading;
 there is no public roughness/specular setter. Do not invent material methods.
 Report an unsupported explicit finish as a capability limitation.
 Recheck the Image aspect against the source and views. Determine whether the proposed change alters the solid; output your final corrected aspect in every issue.
+
+
+Evaluation diagnostics are summarized once in `evaluation_feedback`, linked by
+failure_id and original finding_id. Read assigned_source for source review, then
+use a specific evidence_ref JSON pointer only if needed. History's _history_meta
+identifies the original candidate; reassess it against the current source/views.
+Do not restate full per-face diagnostic arrays.

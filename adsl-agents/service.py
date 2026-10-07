@@ -17,6 +17,8 @@ from .checkers import (
     run_checkers,
 )
 from .feedback_schema import build_analysis_context, findings_payload, localized_mesh_feedback
+from .agent_feedback import finding_for_agent, payload_for_agent, feedback_observation
+from .utils.request_errors import classify_model_request_error, propagate_request_error
 from .localization import LocalizationReport, localize_findings
 from .models import (
     AnalysisContext,
@@ -113,6 +115,12 @@ def _actionable_findings(run: CheckerRun) -> list[CheckerFinding]:
             and finding.repairability in {"geometry", "design_variable"})]
 
 
+def _has_assigned_source_read(context: AgentToolContext) -> bool:
+    assigned = context.source_path.relative_to(context.workspace).as_posix()
+    return any(event.tool == 'read_file' and event.success and event.path == assigned
+               for event in context.events)
+
+
 def _checker_evidence(
     runs: list[CheckerRun], *, workspace: Path, finding_ids: set[str] | None = None,
 ) -> dict[str, Any]:
@@ -144,16 +152,9 @@ def _checker_evidence(
                 "geometry_repair_allowed": bool(_actionable_findings(run)),
             })
         for index, finding in selected:
-            row = finding.model_dump(exclude={"domain"}, exclude_none=True)
-            if finding.metric is None:
-                # Preserve scalar legacy measurements, not entire nested reports.
-                row["key_values"] = {
-                    key: value for key, value in finding.domain.items()
-                    if isinstance(value, (int, float, bool))
-                    or isinstance(value, str) and len(value) <= 200
-                }
-            row["result_ref"] = result_ref
-            row["result_pointer"] = f"/findings/{index}"
+            row = finding_for_agent(finding, result_ref=result_ref,
+                result_pointer=f"/findings/{index}",
+                source_sha256=run.result.assumptions.get('source_sha256'))
             findings[finding.finding_id] = row
     return {
         "checker_summary": summaries,
@@ -761,13 +762,14 @@ class ObjectWorkflow:
                 debug_result = await runtime.run(
                     agent=debugger,
                     input=json.dumps(
-                        {
+                        payload_for_agent({
                             "requirement": request.requirement,
                             "plan": plan.model_dump(),
                             "assigned_source": "source.py",
                             "round": round_number,
                             "execution_error": str(exc),
-                        },
+                        }, workspace=workspace, source_path=source_path,
+                           source_version=None, role="debugger"),
                         ensure_ascii=False,
                     ),
                     role=f"debugger:round:{round_number}",
@@ -1029,7 +1031,7 @@ class ObjectWorkflow:
                     agent=engineering_critic,
                     input=user_input(
                         json.dumps(
-                            {
+                            payload_for_agent({
                                 "requirement": request.requirement,
                                 "plan": plan.model_dump(),
                                 "assigned_source": "source.py",
@@ -1059,7 +1061,8 @@ class ObjectWorkflow:
                                 "overhang_measurements": ([{k: r.result.metrics.get(k) for k in (
                                     "overhang_area_mm2", "nominal_contact_area_mm2", "support_required")}
                                     for r in checker_runs] if optimize else None),
-                            },
+                            }, workspace=workspace, source_path=source_path,
+                               source_version=None, role="engineering"),
                             ensure_ascii=False,
                         ),
                         (*request.image_paths, *execution.render_paths),
@@ -1068,9 +1071,6 @@ class ObjectWorkflow:
                     stage=f"engineering_critic:{round_number}",
                     context=engineering_context,
                 )
-                self._require_tool_event(
-                    engineering_context, "read_file", "engineering critic"
-                )
                 engineering_decision = self._normalize_engineering_decision(
                     self._typed_output(
                         engineering_result.final_output,
@@ -1078,6 +1078,8 @@ class ObjectWorkflow:
                     ),
                     has_required_failures=bool(mandatory_failures),
                 )
+                if engineering_decision.repair_proposals and not _has_assigned_source_read(engineering_context):
+                    raise ValueError('engineering proposal requires reading assigned_source')
                 write_json(
                     round_root / "engineering_critique.json",
                     engineering_decision.model_dump(),
@@ -1539,7 +1541,7 @@ class ObjectWorkflow:
                         origin = "engineering"
                         context = AgentToolContext(workspace=workspace, source_path=current_source)
                         fallback = index is None or any(not reliable_location(f) for r in runs for f in r.result.findings)
-                        result = await runtime.run(agent=engineering_critic, input=user_input(json.dumps({
+                        result = await runtime.run(agent=engineering_critic, input=user_input(json.dumps(payload_for_agent({
                             "requirement": request.requirement, "plan": plan.model_dump(),
                             "assigned_source": current_source.relative_to(workspace).as_posix(),
                             "instruction": (("Joint planned checks: preserve appearance and protected geometry first; "
@@ -1558,14 +1560,15 @@ class ObjectWorkflow:
                                 ("overhang_area_mm2", "nominal_contact_area_mm2", "support_required")} for r in runs],
                             "protection_checklist": options.get("protection"),
                             "remaining_edit_candidates": budget_remaining(workspace, options),
-                            "previous_attempts": attempt_feedback(book["attempts"].values())}, ensure_ascii=False),
+                            "previous_attempts": attempt_feedback(book["attempts"].values())}, workspace=workspace, source_path=current_source,
+                               source_version=book['retained'], role="engineering"), ensure_ascii=False),
                                 execution.render_paths if fallback or planned else ()),
                             role=f"engineering-critic:round:{round_number}", stage=f"engineering_critic:{round_number}", context=context)
-                        if not planned:
-                            self._require_tool_event(context, "read_file", "engineering critic")
                         # Joint mode supplied the complete current source above;
                         # reading it again through a tool is not a correctness gate.
                         decision = self._typed_output(result.final_output, EngineeringCriticDecision)
+                        if decision.repair_proposals and not (planned or fallback or _has_assigned_source_read(context)):
+                            raise ValueError('engineering proposal requires reading assigned_source')
                         write_json(round_root / "engineering_critique.json", decision.model_dump())
                         if planned and not decision.repair_proposals:
                             category = getattr(decision, 'stop_category', None)
@@ -1578,17 +1581,20 @@ class ObjectWorkflow:
                             write_json(book_path, book)
                             if retry:
                                 context = AgentToolContext(workspace=workspace, source_path=current_source)
-                                result = await runtime.run(agent=engineering_critic, input=user_input(json.dumps({
+                                result = await runtime.run(agent=engineering_critic, input=user_input(json.dumps(payload_for_agent({
                                     'requirement':request.requirement, 'instruction':PLANNED_LOCATION_INSTRUCTION,
                                     'assignment':'One supplemental source read and replan only. Related assembly code and helpers are allowed; no class whitelist or bridge_parent prerequisite. May still stop.' + VISUAL_FEEDBACK_INSTRUCTION,
                                     'image_critic':reviews.get('image_critic'), 'code_critic':reviews.get('code_critic'),
                                     'resolved_visual_feedback':resolved_visual,
                                     'assigned_source':current_source.relative_to(workspace).as_posix(),
                                     'current_complete_source':current_source.read_text(),
+                                    'source_sha256':file_hash(current_source),
                                     'previous_decision':decision.model_dump(),
                                     'checker_evidence':_checker_evidence(runs,workspace=workspace),
                                     'protection_checklist':options.get('protection'),
-                                    'remaining_edit_candidates':budget_remaining(workspace,options)},ensure_ascii=False),execution.render_paths),
+                                    'remaining_edit_candidates':budget_remaining(workspace,options)},
+                                    workspace=workspace, source_path=current_source, source_version=book['retained'],
+                                    role='engineering'),ensure_ascii=False),execution.render_paths),
                                     role=f'engineering-critic:supplement:{round_number}',stage=f'engineering_supplement:{round_number}',context=context)
                                 # Full current source is also supplied inline here.
                                 decision=self._typed_output(result.final_output,EngineeringCriticDecision)
@@ -2137,7 +2143,7 @@ class ObjectWorkflow:
     async def _review_generation_image(self, *, runtime, request, plan, execution,
                                        round_number, max_rounds, round_root, image_critic,
                                        image_history, code_critic_corrections, render_issue=None,
-                                       assembly_context=None):
+                                       assembly_context=None, source_path=None, source_version=None):
         """Ordinary aDSL generation review; no baseline/preservation judgement."""
         renders = execution.render_paths if execution else ()
         if request.fixed_assembly and not renders:
@@ -2157,6 +2163,12 @@ class ObjectWorkflow:
             payload['assembly_context'] = assembly_context
         if render_issue:
             payload['render_issue'] = render_issue  # Negative availability evidence only.
+        payload = payload_for_agent(payload, workspace=request.workspace, source_path=source_path,
+            source_version=source_version, role='image_critic',
+            report_ref=(assembly_context or {}).get('report_ref'))
+        write_json(round_root/'image_agent_input.json', payload)
+        write_json(round_root/'image_input_metrics.json', {
+            **feedback_observation(payload), 'image_count': len(request.image_paths) + len(renders)})
         result = await runtime.run(agent=image_critic,
             input=user_input(json.dumps(payload, ensure_ascii=False), (*request.image_paths, *renders)),
             role=f'image-critic:round:{round_number}', stage=f'image_critic:{round_number}')
@@ -2165,7 +2177,9 @@ class ObjectWorkflow:
         if not request.articulation:
             decision = self._normalize_visual_decision(decision)
         write_json(round_root/'image_critique.json', decision.model_dump())
-        image_history.append(decision.model_dump())
+        image_history.append({**decision.model_dump(), '_history_meta': {
+            'round':round_number, 'source_sha256':file_hash(source_path) if source_path else None,
+            'source_version':source_version}})
         return decision
 
     async def _review_generation_code(self, *, runtime, request, plan, execution,
@@ -2191,16 +2205,22 @@ class ObjectWorkflow:
         payload['reference_image_count'] = len(request.image_paths)
         payload['render_image_count'] = len(renders)
         payload['render_views'] = self._review_view_labels(renders, start_index=len(request.image_paths) + 1)
+        source_version = (assembly_context or {}).get('report_ref', {}).get('source_version') if (assembly_context or {}).get('report_ref') else None
+        payload = payload_for_agent(payload, workspace=workspace, source_path=source_path,
+            source_version=source_version, role='code_critic',
+            report_ref=(assembly_context or {}).get('report_ref'))
+        write_json(round_root/'code_agent_input.json', payload)
+        write_json(round_root/'code_input_metrics.json', {
+            **feedback_observation(payload), 'image_count': len(request.image_paths) + len(renders)})
         result = await runtime.run(agent=code_critic,
             input=user_input(json.dumps(payload, ensure_ascii=False), (*request.image_paths, *renders)),
             role=f'code-critic:round:{round_number}', stage=f'code_critic:{round_number}', context=context)
         decision = self._normalize_code_critic_decision(
             self._typed_output(result.final_output, CodeCriticDecision if request.articulation else GradedCodeCriticDecision),
-            source_grounded=any(event.tool == 'read_file' and event.success
-                and event.path == context.source_path.relative_to(context.workspace).as_posix()
-                for event in context.events))
+            source_grounded=_has_assigned_source_read(context))
         write_json(round_root/'code_critique.json', decision.model_dump())
-        code_history.append(decision.model_dump())
+        code_history.append({**decision.model_dump(), '_history_meta': {
+            'round':round_number, 'source_sha256':file_hash(source_path), 'source_version':source_version}})
         return decision
 
     async def _review_candidate_appearance(self, *, runtime, request, workspace, round_number,
@@ -2340,6 +2360,13 @@ class ObjectWorkflow:
         if isolated:
             payload["no_change_contract"] = 'If no appropriate edit exists, return {"edit_action":"NO_CHANGE","reason":"..."}. Do not apply a dummy patch.'
         try:
+            payload = payload_for_agent(payload, workspace=workspace, source_path=source_path,
+                source_version=payload.get('source_version'), role='coder',
+                report_ref=(payload.get('feedback') or {}).get('geometry_report_ref'),
+                evidence_files=payload.get('evidence_files') or ())
+            write_json(source_path.parent/'coder_agent_input.json', payload)
+            write_json(source_path.parent/'coder_input_metrics.json', {
+                **feedback_observation(payload), 'image_count': 0})
             result = await runtime.run(
             agent=repairer,
             input=json.dumps(payload, ensure_ascii=False),
@@ -2350,9 +2377,15 @@ class ObjectWorkflow:
         except Exception as error:
             if not isolated:
                 raise
-            if options.get('mode') == 'planned_checks' and isinstance(error, (TypeError, AttributeError, KeyError, AssertionError)):
+            classification = classify_model_request_error(error)
+            outcome = edit_outcome(None, context.events, before, file_hash(source_path), error=error)
+            path = source_path.parent/'repair_request_error.json'
+            outcome['error_evidence_ref'] = {'path':path.relative_to(workspace).as_posix(),
+                'source_sha256':file_hash(source_path), 'source_version':payload.get('source_version')}
+            write_json(path, {'type':type(error).__name__, **outcome})
+            if propagate_request_error(error, classification):
                 raise
-            return edit_outcome(None, context.events, before, file_hash(source_path), error=error)
+            return outcome
         if isolated:
             return edit_outcome(result.final_output, context.events, before, file_hash(source_path))
         self._require_tool_event(context, "apply_patch", stage)
@@ -2495,7 +2528,9 @@ class ObjectWorkflow:
     @staticmethod
     def _typed_output(value: Any, expected: type[Any]) -> Any:
         if not isinstance(value, expected):
-            raise TypeError(f"Expected {expected.__name__}, got {type(value).__name__}")
+            # Invalid model output is a parse/contract rejection, not a Python
+            # programming TypeError that must escape the saved workflow.
+            raise ValueError(f"Expected {expected.__name__}, got {type(value).__name__}")
         return value
 
     @staticmethod

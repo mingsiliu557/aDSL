@@ -483,7 +483,8 @@ def workflow_stub(directory,source,manifest,monkeypatch,*,expect_approved,no_cha
     async def model(**kwargs):
         events.append('engineering_NO_PROPOSAL_stub')
         data=json.loads(kwargs['input'])
-        assert data['evaluation_failures'] and data['typed_findings']
+        assert data['evaluation_feedback']['failures'] and data['typed_findings']
+        assert data['evaluation_failure_ids']
         assert any(f['region']['part_names']==['B'] for f in data['typed_findings'])
         kwargs['context'].record('read_file',kwargs['context'].source_path)
         return SimpleNamespace(final_output=EngineeringCriticDecision(approved=False,

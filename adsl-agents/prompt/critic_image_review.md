@@ -40,3 +40,10 @@ an explicit unmet finish requirement merely to permit partition optimization.
 The public appearance controls are color/alpha, with default Principled shading;
 there is no public roughness/specular setter. Do not invent material methods.
 Report an unsupported explicit finish as a capability limitation.
+
+
+The canonical evaluation_feedback describes current evaluation/display availability,
+not a measured physical failure. Evaluate the supplied current views; historical
+opinions carry their original source version in _history_meta. Do not infer shape
+legality or manufacture from the summary. No source/evidence reading tool is added
+to this role.

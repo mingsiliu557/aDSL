@@ -28,6 +28,54 @@ API_PORT = 28317
 MAX_ROUNDS = 10
 SOURCE_REPAIR_LIMIT = 9
 HERE = Path(__file__).resolve()
+_REQUEST_ERRORS = None
+
+
+def request_error_helpers():
+    """Frozen harnesses use an adjacent stdlib-only helper, not ours' package."""
+    global _REQUEST_ERRORS
+    if _REQUEST_ERRORS is None:
+        path = HERE.with_name('request_errors.py')
+        if not path.is_file():
+            path = HERE.parents[2] / 'adsl-agents/utils/request_errors.py'
+        if not path.is_file():
+            raise ValueError('frozen request_errors.py snapshot missing')
+        spec = importlib.util.spec_from_file_location('six_request_errors', path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _REQUEST_ERRORS = module
+    return _REQUEST_ERRORS
+
+
+def input_observation(value):
+    texts, image_count = [], 0
+    if isinstance(value, str):
+        texts.append(value)
+    elif isinstance(value, list):
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+            content = item.get('content')
+            if isinstance(content, str):
+                texts.append(content)
+            elif isinstance(content, list):
+                for block in content:
+                    if isinstance(block, dict) and block.get('type') in {'input_text', 'text'}:
+                        texts.append(block.get('text', ''))
+                    elif isinstance(block, dict) and block.get('type') in {'input_image', 'image_url'}:
+                        image_count += 1
+    feedback_bytes, failures = 0, 0
+    for text in texts:
+        try:
+            payload = json.loads(text)
+        except (ValueError, TypeError):
+            continue
+        if isinstance(payload, dict) and isinstance(payload.get('evaluation_feedback'), dict):
+            feedback = payload['evaluation_feedback']
+            feedback_bytes += len(json.dumps(feedback, ensure_ascii=False, separators=(',', ':')).encode())
+            failures += feedback.get('unique_failure_count', 0)
+    return dict(text_chars=sum(map(len, texts)), text_utf8_bytes=sum(len(t.encode()) for t in texts),
+                image_count=image_count, evaluation_feedback_bytes=feedback_bytes, unique_failure_count=failures)
 PARTITION_OBJECTIVE = dict(method='dapper_fdm_2015', alpha=.3, r_vox=.1,
                            orientation_set='axis_aligned_24', layout='independent_bed')
 ASSEMBLY_REQUIREMENT = '''Use the native FixedAssembly / TabSlot manufacturing assembly API.
@@ -192,6 +240,7 @@ def frozen_fingerprint(root, cases, arms):
                 profiles={arm: sha256(e['profile']) for arm, e in arms.items()},
                 runner=sha256(HERE), evaluator=sha256(HERE.with_name('evaluate.py')),
                 review_builder=sha256(HERE.with_name('build_review.py')),
+                request_error_classifier=sha256(Path(request_error_helpers().__file__)),
                 budget={'initial_generation_limit': 1, 'source_repair_limit': SOURCE_REPAIR_LIMIT, 'max_rounds': MAX_ROUNDS})
 
 
@@ -341,6 +390,7 @@ def audited_runtime(runtime, *, root, case_id, arm, kind='generation'):
                    instructions=agent.instructions, input=kwargs['input'],
                    tools=[getattr(t, 'name', type(t).__name__) for t in agent.tools],
                    started_at=time.time(), status='RUNNING', budget=dict(counters))
+        row.update(input_observation(kwargs['input']))
         if kwargs['role'] == 'planner':
             row.update(transport='Runner.run_streamed', first_event_elapsed_seconds=None,
                        response_completed=False)
@@ -391,6 +441,10 @@ def error_evidence(error):
         value = getattr(error, key, None)
         if value is not None:
             evidence[key] = value if isinstance(value, int) else safe_reason(value)
+    classification = request_error_helpers().classify_model_request_error(error)
+    evidence['request_error'] = classification
+    if classification and classification.get('code') is not None:
+        evidence['code'] = classification['code']
     return evidence
 
 

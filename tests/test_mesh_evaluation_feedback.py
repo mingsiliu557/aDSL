@@ -103,7 +103,8 @@ def test_saved_evaluation_error_engineer_coder_reexport_without_physical_fail(
             assert feedback['checker_summary'][0]['checker']=='assembly_topology'
             assert feedback['checker_summary'][0]['status']=='INDETERMINATE'
         if kwargs['role'].startswith('engineering'):
-            assert data['evaluation_failures'][0]['geometry_repair_allowed']
+            assert data['evaluation_feedback']['failures'][0]['geometry_repair_allowed']
+            assert data['evaluation_failure_ids'] == [data['evaluation_feedback']['failures'][0]['failure_id']]
             return SimpleNamespace(final_output=EngineeringCriticDecision(approved=False,
                 observations=['Precision/evaluation cause is known; exact source design cause remains uncertain.'],
                 repair_proposals=[RepairProposal(proposal_id='local_evaluation_repair',

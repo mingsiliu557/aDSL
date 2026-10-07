@@ -32,6 +32,12 @@ _DATA_URL_RE = re.compile(r"data:image/[A-Za-z0-9.+-]+;base64,[A-Za-z0-9+/=\r\n]
 class CodexCliError(RuntimeError):
     """A clear, sanitized failure from the Codex CLI transport."""
 
+    def __init__(self, message, *, code=None, actual_chars=None, limit=None):
+        super().__init__(message)
+        self.code = code
+        self.actual_chars = actual_chars
+        self.limit = limit
+
 
 @dataclass(frozen=True)
 class ProcessResult:
@@ -314,7 +320,8 @@ class CodexCliModel(Model):
             if len(encoded.prompt) > self.max_prompt_chars:
                 raise CodexCliError(
                     f"Codex prompt has {len(encoded.prompt)} characters, exceeding the configured "
-                    f"limit of {self.max_prompt_chars}; refusing to truncate agent context."
+                    f"limit of {self.max_prompt_chars}; refusing to truncate agent context.",
+                    code='prompt_too_large', actual_chars=len(encoded.prompt), limit=self.max_prompt_chars,
                 )
             schema_path = temporary_directory / "response-schema.json"
             response_path = temporary_directory / "response.json"

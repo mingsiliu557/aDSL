@@ -15,6 +15,7 @@ import time
 
 from .checkers import run_checker, CheckerRun
 from .feedback_schema import sha256_file
+from .agent_feedback import evaluation_details, payload_for_agent, feedback_observation
 from .models import (CheckerSpec, CheckerResult, CheckerFinding, RegionEvidence,
                      SourceCandidate, EngineeringCriticDecision, RelationEvidence, RelationEndpoint, MetricEvidence)
 from .utils.execution import ExecutionResult
@@ -104,7 +105,7 @@ def evaluation_evidence_run(report, failures, source, output, source_index=None)
         names = [row['part_id']] if row.get('part_id') else []
         candidates = source_candidates(source, source_index, set(names) | {
             component for name in names for component in parts.get(name, {}).get('components', [])})
-        diagnostic = row.get('diagnostic') if isinstance(row.get('diagnostic'), dict) else {}
+        diagnostic = evaluation_details(row)
         # The declared print-part may be a generated Boolean container with no
         # direct source IDs. Follow only recorded operation paths inside that
         # part's current runtime subtree, never similarly named other parts.
@@ -149,10 +150,9 @@ def evaluation_evidence_run(report, failures, source, output, source_index=None)
             'source_locations':[nodes[sid].span.display for sid in candidate.source_ids if sid in nodes],
             'ambiguous':candidate.ambiguous or any(sid not in nodes for sid in candidate.source_ids),
         }) for candidate in candidates]
-        details = {key:diagnostic.get(key, row.get(key)) for key in (
-            'node_path', 'operation', 'input_count', 'metrics', 'attempted_actions', 'operation_nodes')}
-        details['metrics'] = diagnostic.get('metrics', diagnostic.get('internal_metrics', row.get('metrics')))
-        details['attempted_actions'] = diagnostic.get('attempted_actions', diagnostic.get('attempts', row.get('attempted_actions')))
+        details = {key: diagnostic[key] for key in (
+            'node_path', 'operation', 'input_count', 'metrics', 'operation_nodes')}
+        details['attempted_actions'] = diagnostic['attempts']
         details.update(stage=row['evaluation_stage'], code=row['evaluation_code'],
                        source_sha256=sha256_file(source), physical_verdict='NOT_EVALUATED',
                        output_role=row.get('output_role'), manufacturing_status=report.get('manufacturing_status'))
@@ -399,7 +399,7 @@ def prepare_evidence(feedback, *, workspace, source_sha256, evidence_files=()):
         if key in feedback: feedback[key] = deepcopy(feedback[key])
 
     def reference(path, purpose, metadata=None):
-        row = dict(metadata or {'source_sha256':source_sha256, 'version_role':'current_source'})
+        row = dict(metadata or {})
         row.update(path=None, purpose=purpose, availability='UNAVAILABLE')
         try:
             target = Path(path).expanduser()
@@ -413,7 +413,8 @@ def prepare_evidence(feedback, *, workspace, source_sha256, evidence_files=()):
                 if row['availability'] == 'UNAVAILABLE': row['reason'] = 'file_not_found'
         except (OSError, ValueError, TypeError) as error:
             row['reason'] = f'path_unavailable:{type(error).__name__}'
-        row['matches_current_source'] = row.get('source_sha256') == source_sha256
+        row['matches_current_source'] = (row['source_sha256'] == source_sha256
+                                        if row.get('source_sha256') else None)
         if row not in files: files.append(row)
         return row['path']
 
@@ -426,7 +427,9 @@ def prepare_evidence(feedback, *, workspace, source_sha256, evidence_files=()):
         for field in ('result_ref', 'report_path', 'boundary_report'):
             if row.get(field): row[field] = reference(row[field], field)
         if row.get('evidence_refs'):
-            row['evidence_refs'] = [reference(p, 'checker detail') for p in row['evidence_refs']]
+            row['evidence_refs'] = [
+                {**p, 'path':reference(p.get('path'), 'checker detail', p)} if isinstance(p, dict)
+                else reference(p, 'checker detail') for p in row['evidence_refs']]
         for field in ('report_path', 'boundary_report'):
             values = row.get('key_values', {})
             if values.get(field): values[field] = reference(values[field], field)
@@ -476,7 +479,7 @@ Engineering approval cannot override measured FAIL. Recheck assembly_topology.
 
 
 async def engineer(workflow,runtime,request,plan,source,execution,root,run,context,feedback,remaining):
-    from .service import _actionable_findings
+    from .service import _actionable_findings, _has_assigned_source_read
     from .prompts import object_prompt
     from .tools import READ_TOOLS, AgentToolContext
     from .utils.inputs import user_input
@@ -546,16 +549,23 @@ visual failures remain necessary repairs; a high score cannot excuse them.
         'pending_reviews':{k:feedback.get(k) for k in ('image_critic','code_critic','render_issue','repair_history')},
         'remaining_repairs':remaining,'maximum_repair_proposals':1,
         'assignment':instruction + EVIDENCE_PATH_INSTRUCTION}
+    payload = payload_for_agent(payload, workspace=request.workspace, source_path=source,
+        source_version=feedback.get('source_version'), role='engineering',
+        report_ref=feedback.get('geometry_report_ref'), evidence_files=feedback.get('evidence_files', ()))
     write_json(root/'engineering_input.json',payload)
+    write_json(root/'engineering_input_metrics.json', {
+        **feedback_observation(payload), 'image_count': len(request.image_paths) +
+        len(execution.render_paths if execution else ())})
     tool_context=AgentToolContext(workspace=request.workspace,source_path=source)
-    response=await runtime.run(agent=agent,input=user_input(json.dumps(payload),
+    response=await runtime.run(agent=agent,input=user_input(json.dumps(payload, ensure_ascii=False),
         (*request.image_paths,*(execution.render_paths if execution else ()))),
         role=f'engineering-critic:assembly:{root.name}',stage=f'assembly_engineering:{root.name}',context=tool_context)
-    workflow._require_tool_event(tool_context,'read_file','engineering critic')
     decision=workflow._typed_output(response.final_output,EngineeringCriticDecision)
     write_json(root/'engineering_critique.json',decision.model_dump())
     if len(decision.repair_proposals)>1: raise ValueError('expected at most one coordinated assembly proposal')
     proposal=next(iter(decision.repair_proposals),None)
+    if proposal and not _has_assigned_source_read(tool_context):
+        raise ValueError('engineering proposal requires reading assigned_source')
     feedback['engineering'] = {'status':'PROPOSAL' if proposal else 'NO_PROPOSAL',
         'observations':[s[:300] for s in decision.observations[:3]],
         'unresolved_findings':decision.unresolved_findings[:6],

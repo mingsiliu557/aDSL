@@ -128,3 +128,12 @@ alone does not establish a visible finish failure. Judge the rendered evidence;
 if an essential finish is visibly unmet and cannot be expressed, report that
 limitation honestly rather than claiming it was repaired or automatically approved.
 Optional wood grain must not become a mandatory feature.
+
+
+Agent inputs contain a bounded evaluation_feedback summary; complete evaluation
+records remain in version evidence files. Internal Mesh64 validity, display-precision
+failure and physical checker verdicts are separate facts. Use original finding IDs
+and exact evidence pointers for a bounded source proposal. NO_CHANGE means no
+appropriate edit; a context limit, request rejection or feedback-construction error
+is recorded as a request error and stops the model-call chain, not a geometric
+verdict or an extra repair opportunity.

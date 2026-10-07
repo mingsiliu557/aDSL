@@ -40,3 +40,11 @@ as named parameters. Use only operations documented by the public API.
 Match the overall silhouette, proportion, openings and changes in curvature
 before adding small details. Choose local sampling density to resolve visible
 curves. Shading smoothness does not correct a wrong geometric silhouette.
+
+
+For repair, top-level evaluation_feedback is a finite evidence summary. Match
+evaluation_failure_ids/failure_id to original finding IDs; inspect assigned_source
+first. If needed, read the provided evidence_ref path with its specific JSON pointer
+instead of loading complete logs or repeating per-face data. Source candidates are
+location hints, not proven defect ownership. feedback.resolved_visual_feedback and
+feedback.edit_restriction remain the visual and edit-scope contracts.

@@ -55,7 +55,7 @@ def test_two_feedback_sources_one_real_repair_with_path_recovery(tmp_path,monkey
         if kw['role'].startswith('engineering'):
             assert data['pending_reviews']['code_critic']['required_changes']==['repair']
             assert len(data['typed_findings'])==2
-            assert data['evidence_files'][0]['path']==str(boundary)
+            assert data['evidence_files'][0]['path']==boundary.relative_to(tmp_path).as_posix()
             await tool(read_file,ctx,'engineer_source',path=data['assigned_source'])
             if engineering_mode=='parse_error': return SimpleNamespace(final_output='{broken proposal')
             proposal=RepairProposal(proposal_id='advice',finding_ids=['piece:disconnected'],
