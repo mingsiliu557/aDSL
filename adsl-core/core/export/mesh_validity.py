@@ -234,9 +234,14 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
     center = rv.min(axis=0) + (rv.max(axis=0)-rv.min(axis=0))/2
     local_reference = reference.translate(-center)
     lv, lf, _ = _mesh_arrays(local_reference)
-    scale = max(1.0, float(np.abs(lv).max()))
+    local_scale_mm = float(np.abs(lv).max()) * mm_per_unit
+    # The existing numerical floor is one millimeter, not one scene unit.
+    # ULP candidates still reflect the coordinates actually stored in float32.
+    budget_scale_mm = max(1.0, local_scale_mm)
+    scale = budget_scale_mm / mm_per_unit
     quantum = float(np.spacing(np.float32(scale)))
-    bound = float(16*np.finfo(np.float32).eps*scale)
+    bound_mm = float(16*np.finfo(np.float32).eps*budget_scale_mm)
+    bound = bound_mm / mm_per_unit
     reference_area, reference_volume = float(reference.surface_area()), float(reference.volume())
     signed_components = reference.decompose()
     components = sum(float(piece.volume()) > 0 for piece in signed_components)
@@ -264,6 +269,8 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
             effective_tolerance = max(tolerance, float(simplified_input.get_tolerance())) if tolerance else 0.0
             local_repair = None
             try:
+                from .local_precision_repair import require_face_orientation
+                orientation = require_face_orientation(v, rounded, f, **context)
                 measured, metrics = validate_mesh(rounded, f, stage='target_precision',
                     expected_components=components, face_ids=face_ids, **context)
                 conversion_bound = cast_distance
@@ -271,6 +278,9 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
                 from .local_precision_repair import repair_float32_mesh
                 rounded, f, face_ids, local_repair = repair_float32_mesh(v, f, face_ids,
                     displacement_budget=max(0.0,bound-effective_tolerance), expected_components=components)
+                # The repair validates every final edited-source/target face,
+                # including faces outside the edited neighborhood, before return.
+                orientation = local_repair['face_orientation']
                 measured, metrics = validate_mesh(rounded, f, stage='target_precision',
                     expected_components=components, face_ids=face_ids, **context)
                 cast_distance = local_repair['maximum_vertex_cast_displacement']
@@ -285,12 +295,14 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
                 raise ValueError('precision conversion exceeds the fixed local geometric budget')
             row = dict(stage='target_precision', status='PASS', precision='float32',
                 local_origin=center.tolist(), local_scale_scene_units=scale,
+                local_scale_mm=local_scale_mm, budget_scale_mm=budget_scale_mm,
+                absolute_scale_floor_mm=1.0, face_orientation=orientation,
                 simplify_tolerance_scene_units=tolerance,
                 effective_simplify_tolerance_scene_units=effective_tolerance,
                 uniform_material_ancestry_reset=bool(tolerance and uniform_source is not None),
                 maximum_vertex_cast_displacement_mm=cast_distance*mm_per_unit,
                 surface_displacement_upper_bound_mm=geometry_bound*mm_per_unit,
-                displacement_budget_mm=bound*mm_per_unit,
+                displacement_budget_mm=bound_mm,
                 bounds_change_mm=bounds_change*mm_per_unit,
                 volume_change_mm3=volume_change*mm_per_unit**3,
                 volume_budget_mm3=volume_bound*mm_per_unit**3,
@@ -311,7 +323,8 @@ def target_mesh(solid_or_mesh, *, mm_per_unit=1.0, node_path='', **context):
     raise MeshEvaluationError('TARGET_PRECISION_UNREPRESENTABLE',
         'Mesh64 result is valid but no bounded float32 conversion passed validation',
         stage='target_precision', failure_kind='target_precision', attempts=attempts,
-        internal_metrics=mesh_metrics(rv, rf), displacement_budget_mm=bound*mm_per_unit, **context)
+        internal_metrics=mesh_metrics(rv, rf), displacement_budget_mm=bound_mm,
+        local_scale_mm=local_scale_mm, absolute_scale_floor_mm=1.0, **context)
 
 
 def normalize_blender_input(obj, *, mm_per_unit=1.0, node_path='', **context):
@@ -349,8 +362,8 @@ def normalize_blender_input(obj, *, mm_per_unit=1.0, node_path='', **context):
         linear = np.asarray(obj.matrix_world, dtype=np.float64)[:3,:3]
         center = vertices.min(axis=0)+(vertices.max(axis=0)-vertices.min(axis=0))/2 if len(vertices) else np.zeros(3)
         offsets = (vertices-center) @ linear.T
-        local_size = max(1.0, float(np.abs(offsets).max())) if len(offsets) else 1.0
-        displacement_budget_mm = float(16*np.finfo(np.float32).eps*local_size*mm_per_unit)
+        local_size_mm = float(np.abs(offsets).max()) * mm_per_unit if len(offsets) else 0.0
+        displacement_budget_mm = float(16*np.finfo(np.float32).eps*max(1.0, local_size_mm))
         if before.get('zero_area_triangles'):
             attempts.append(dict(method='restricted_zero_area_tessellation'))
             exporter._normalize_zero_area_tessellation(trial)

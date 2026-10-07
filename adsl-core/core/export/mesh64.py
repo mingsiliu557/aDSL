@@ -331,6 +331,15 @@ def evaluate_shape(shape, *, include_joint_children=True, path=None, mm_per_unit
                     bases, cutters = flat[:1], flat[1:]
                 pieces.extend(_operate([base, *cutters], operation, node_path, materials, records)
                               for base in bases)
+            elif operation == 'INTERSECT':
+                # Each declared operand represents its whole geometry. An
+                # Asset with several pieces is their union, rather than extra
+                # intersection operands; a genuinely empty Asset still counts.
+                groups = [operands[child_name][0] if len(operands[child_name]) == 1
+                    else _operate(operands[child_name], 'UNION', f'{node_path}/{child_name}',
+                                  materials, records)
+                    for child_name in child_names]
+                pieces.append(_operate(groups, operation, node_path, materials, records))
             else:
                 material = None
                 if operation == 'HULL':

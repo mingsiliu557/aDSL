@@ -89,6 +89,43 @@ def test_empty_intersection_is_not_skipped_by_outer_csg():
     assert union.pieces[0].solid.volume() == pytest.approx(1)
 
 
+@pytest.mark.parametrize('empty_first', [False, True])
+@pytest.mark.parametrize('empty_kind', ['asset', 'nested_intersection', 'nested_difference'])
+def test_intersection_preserves_empty_operand_in_both_orders(empty_first, empty_kind):
+    if empty_kind == 'asset':
+        empty = Asset('empty_operand')
+    elif empty_kind == 'nested_intersection':
+        empty = boolean_intersection(Cube(1), Cube(1, center=(5,0,0)))
+    else:
+        empty = boolean_difference(Asset('empty_base'), Cube(1))
+    operands = [empty, Cube(10)] if empty_first else [Cube(10), empty]
+    result = evaluate_shape(boolean_intersection(*operands))
+    assert len(result.pieces)==1 and result.pieces[0].solid.is_empty()
+    final = result.records[-1]
+    assert final['operation']=='INTERSECT' and final['input_count']==2 and final['empty']
+
+
+@pytest.mark.parametrize('contains_empty', [False, True])
+def test_intersection_unions_pieces_within_each_operand(contains_empty):
+    group = Asset('multi_piece_operand')
+    group.attach_part('left', Cube(2,center=(-2,0,0)))
+    group.attach_part('right', Cube(2,center=(2,0,0)))
+    if contains_empty:
+        group.attach_part('empty', boolean_intersection(Cube(1),Cube(1,center=(5,0,0))))
+    result = evaluate_shape(boolean_intersection(group,Cube((10,2,2))))
+    piece, = result.pieces
+    assert piece.solid.volume()==pytest.approx(16)
+    assert sum(component.volume()>0 for component in piece.solid.decompose())==2
+    assert result.records[-1]['operation']=='INTERSECT'
+    assert result.records[-1]['input_count']==2
+
+
+@pytest.mark.parametrize('operation', [boolean_union, boolean_difference, hull])
+def test_empty_operand_remains_neutral_for_union_cutters_and_hull(operation):
+    result = evaluate_shape(operation(Cube(2),Asset('empty_operand')))
+    assert len(result.pieces)==1 and result.pieces[0].solid.volume()==pytest.approx(8)
+
+
 def test_independent_parts_joint_nodes_and_scene_units_remain_distinct():
     scene = Asset(label='root')
     scene.attach_part('fixed_a', Cube(1, center=(0, 0, 0)))

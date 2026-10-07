@@ -15,6 +15,72 @@ def _crosses(vertices, faces):
     return np.cross(points[:,1]-points[:,0], points[:,2]-points[:,0])
 
 
+def _unit_face_normals(points):
+    # Scale both edges before the cross product, then the cross before its
+    # norm: a nonzero tiny face must not become zero by underflowing area^2.
+    with np.errstate(over='ignore', invalid='ignore', divide='ignore', under='ignore'):
+        edges = points[:,1:] - points[:,:1]
+        finite = np.isfinite(edges).all(axis=(1,2))
+        scale = np.max(np.abs(edges),axis=(1,2))
+        safe_scale = np.where(finite & (scale > 0),scale,1.)
+        scaled = edges/safe_scale[:,None,None]
+        normal = np.cross(scaled[:,0],scaled[:,1])
+        normal_scale = np.max(np.abs(normal),axis=1)
+        nonzero = finite & np.isfinite(normal).all(axis=1) & (normal_scale > 0)
+        normal /= np.where(nonzero,normal_scale,1.)[:,None]
+        normal /= np.where(nonzero,np.linalg.norm(normal,axis=1),1.)[:,None]
+    return normal,finite,nonzero
+
+
+def face_orientation_metrics(source_vertices, target_vertices, faces, *, source_faces=None):
+    """Compare every corresponding geometric face normal, without angle slack.
+
+    ``source_faces`` is used only when a local contraction changes indices;
+    otherwise both vertex arrays use the exact same face indices.
+    """
+    faces = np.asarray(faces,dtype=np.int64)
+    previous = faces if source_faces is None else np.asarray(source_faces,dtype=np.int64)
+    if faces.ndim != 2 or faces.shape[1] != 3 or previous.shape != faces.shape:
+        raise ValueError('corresponding triangle indices must have equal (n,3) shape')
+    source = np.asarray(source_vertices,dtype=np.float64)[previous]
+    target = np.asarray(target_vertices,dtype=np.float64)[faces]
+    if not len(faces):
+        return dict(valid=True,triangle_count=0,flipped_faces=0,orthogonal_faces=0,
+            source_zero_normals=0,target_zero_normals=0,nonfinite_source_normals=0,
+            nonfinite_target_normals=0,uncomparable_faces=0,minimum_normal_dot=None,
+            failing_face_indices=[])
+    source_normal,source_finite,source_nonzero = _unit_face_normals(source)
+    target_normal,target_finite,target_nonzero = _unit_face_normals(target)
+    comparable = source_nonzero & target_nonzero
+    with np.errstate(invalid='ignore'):
+        dot = np.einsum('ij,ij->i',source_normal,target_normal)
+    finite_dot = np.isfinite(dot)
+    comparable &= finite_dot
+    passing = comparable & (dot > 0)
+    return dict(valid=bool(passing.all()),triangle_count=len(faces),
+        flipped_faces=int((comparable & (dot < 0)).sum()),
+        orthogonal_faces=int((comparable & (dot == 0)).sum()),
+        source_zero_normals=int((source_finite & ~source_nonzero).sum()),
+        target_zero_normals=int((target_finite & ~target_nonzero).sum()),
+        nonfinite_source_normals=int((~source_finite).sum()),
+        nonfinite_target_normals=int((~target_finite).sum()),
+        uncomparable_faces=int((~comparable).sum()),
+        minimum_normal_dot=float(dot[comparable].min()) if comparable.any() else None,
+        failing_face_indices=np.flatnonzero(~passing)[:8].tolist())
+
+
+def require_face_orientation(source_vertices, target_vertices, faces, **context):
+    """Reject a cast unless all source/target face normals stay comparable."""
+    from .mesh_validity import MeshEvaluationError
+    metrics = face_orientation_metrics(source_vertices,target_vertices,faces)
+    if not metrics['valid']:
+        raise MeshEvaluationError('TARGET_PRECISION_FACE_ORIENTATION_INVALID',
+            'float32 conversion changed or collapsed a corresponding geometric face normal',
+            stage='target_precision',failure_kind='target_precision',
+            face_orientation=metrics,**context)
+    return metrics
+
+
 def _edges(faces):
     adjacency = defaultdict(list)
     for index, face in enumerate(faces):
@@ -50,6 +116,7 @@ def repair_float32_mesh(vertices, faces, face_ids, *, displacement_budget,
     rounded = original.astype(np.float32).astype(np.float64)
     before = mesh_metrics(rounded, current_faces)
     if before['valid']:
+        orientation = require_face_orientation(original,rounded,current_faces)
         cast_distance = float(np.linalg.norm(rounded-original,axis=1).max())
         if cast_distance > displacement_budget:
             raise MeshEvaluationError('LOCAL_PRECISION_REPAIR_REJECTED',
@@ -57,6 +124,7 @@ def repair_float32_mesh(vertices, faces, face_ids, *, displacement_budget,
                 stage='target_precision',failure_kind='target_precision')
         return rounded, current_faces, materials, dict(status='UNCHANGED', operations=[],
             metrics_before=before, metrics_after=before,
+            face_orientation=orientation,
             maximum_vertex_cast_displacement=cast_distance,
             surface_displacement_upper_bound=cast_distance)
     vertices = original.copy()
@@ -117,9 +185,9 @@ def repair_float32_mesh(vertices, faces, face_ids, *, displacement_budget,
                 if len(replacement)-len(new_faces) != 2:
                     rejected['unexpected_face_removal'] += 1
                     continue
-                new_normal = _crosses(proposed_vertices,new_faces)
-                old_normal = _crosses(vertices,current_faces[affected][survive])
-                if np.any(np.all(new_normal == 0,axis=1)) or np.any(np.einsum('ij,ij->i',new_normal,old_normal) <= 0):
+                source_orientation = face_orientation_metrics(vertices,proposed_vertices,new_faces,
+                    source_faces=current_faces[affected][survive])
+                if not source_orientation['valid']:
                     rejected['orientation_or_collapse'] += 1
                     continue
                 keys = {tuple(sorted(int(v) for v in face)) for face in new_faces}
@@ -133,7 +201,13 @@ def repair_float32_mesh(vertices, faces, face_ids, *, displacement_budget,
                 if new_bad >= old_bad:
                     rejected['no_precision_improvement'] += 1
                     continue
-                if np.any(np.einsum('ij,ij->i',new_cast,new_normal) < 0):
+                cast_orientation = face_orientation_metrics(proposed_vertices,proposed_rounded,new_faces)
+                # Remaining collapsed target faces can be handled by the next
+                # local step; an actual flipped/non-comparable normal cannot.
+                if (cast_orientation['flipped_faces'] or cast_orientation['orthogonal_faces']
+                        or cast_orientation['nonfinite_target_normals']
+                        or cast_orientation['nonfinite_source_normals']
+                        or cast_orientation['source_zero_normals']):
                     rejected['cast_orientation'] += 1
                     continue
                 current_faces = np.vstack((untouched,new_faces))
@@ -185,8 +259,8 @@ def repair_float32_mesh(vertices, faces, face_ids, *, displacement_budget,
                 rejected['flip_displacement_budget'] += 1
                 continue
             new_normal = _crosses(vertices,proposed)
-            new_cast = _crosses(rounded,proposed)
-            if np.any(new_normal @ normal <= 0) or np.any(new_cast @ normal <= 0):
+            cast_orientation = face_orientation_metrics(vertices,rounded,proposed)
+            if np.any(new_normal @ normal <= 0) or not cast_orientation['valid']:
                 rejected['flip_orientation_or_precision'] += 1
                 continue
             old_bad = int(np.all(crosses[adjacent] == 0,axis=1).sum())
@@ -240,9 +314,11 @@ def repair_float32_mesh(vertices, faces, face_ids, *, displacement_budget,
         diagonal_flip_surface_displacement_bound=flip_bound,
         maximum_vertex_cast_displacement=cast_distance,
         surface_displacement_upper_bound=error_bound,displacement_budget=displacement_budget)
+    report['face_orientation'] = face_orientation_metrics(vertices[used],final_vertices,final_faces)
     try:
         _,source_after = validate_mesh(vertices[used],final_faces,face_ids=materials,expected_components=expected_components)
         report['metrics_after_local_edit_float64'] = source_after
+        require_face_orientation(vertices[used],final_vertices,final_faces)
         validate_mesh(final_vertices,final_faces,face_ids=materials,expected_components=expected_components)
         if metrics.get('shell_components') != source_metrics.get('shell_components'):
             raise ValueError('local repair changed oriented shell connectivity')

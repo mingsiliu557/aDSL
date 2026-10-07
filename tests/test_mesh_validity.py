@@ -131,6 +131,47 @@ def test_conversion_uses_local_coordinates_and_translation_independent_budget(of
     assert np.max(np.abs(mesh.vertices)) == 3
 
 
+@pytest.mark.parametrize('dimensions_mm', [(0.4,0.6,0.8), (2.,4.,6.)])
+def test_precision_budget_has_same_millimeter_floor_for_different_scene_units(dimensions_mm):
+    records = []
+    for mm_per_unit in (0.001,1.,1000.):
+        dimensions = np.asarray(dimensions_mm)/mm_per_unit
+        source = mf.Manifold.cube(dimensions,center=True)
+        mesh,_,row = target_mesh(source,mm_per_unit=mm_per_unit)
+        radius_mm = max(dimensions_mm)/2
+        expected = 16*np.finfo(np.float32).eps*max(1.,radius_mm)
+        assert row['absolute_scale_floor_mm']==1.
+        assert row['local_scale_mm']==pytest.approx(radius_mm)
+        assert row['displacement_budget_mm']==pytest.approx(expected,rel=1e-14)
+        assert row['face_orientation']['valid']
+        assert row['face_orientation']['triangle_count']==len(mesh.faces)
+        np.testing.assert_allclose(mesh.extents*mm_per_unit,dimensions_mm,rtol=2e-7)
+        records.append(row)
+    assert records[0]['displacement_budget_mm']==pytest.approx(records[-1]['displacement_budget_mm'],rel=1e-14)
+    assert records[0]['volume_budget_mm3']==pytest.approx(records[-1]['volume_budget_mm3'],rel=1e-14)
+
+
+def test_target_conversion_rejects_direct_cast_geometric_flip_before_bounded_retry():
+    ulp = float(np.spacing(np.float32(1.)))
+    vertices = np.array([(0,0,2),(1+.49*ulp,1+.51*ulp,2),
+        (2,2+.98*ulp,2),(0,3,2),(1,1,3)],dtype=np.float64)
+    faces = np.array([(0,2,1),(0,3,2),(0,1,4),(1,2,4),(2,3,4),(3,0,4)],dtype=np.uint64)
+    # Two separate mirrored pieces keep the aggregate bbox center at zero,
+    # so the real target_mesh local cast retains this rounding counterexample.
+    vertices = np.vstack((vertices,-vertices))
+    faces = np.vstack((faces,faces[:,::-1]+5))
+    solid,source = validate_mesh(vertices,faces,face_ids=np.arange(len(faces),dtype=np.uint64))
+    _,cast = validate_mesh(vertices.astype(np.float32).astype(np.float64),faces)
+    assert source['valid'] and cast['valid']
+    mesh,_,row = target_mesh(solid)
+    rejected = row['attempts'][0]['diagnostic']
+    assert rejected['code']=='TARGET_PRECISION_FACE_ORIENTATION_INVALID'
+    assert rejected['face_orientation']['flipped_faces']==2
+    assert row['simplify_tolerance_scene_units']>0
+    assert row['face_orientation']['valid']
+    assert row['face_orientation']['triangle_count']==len(mesh.faces)
+
+
 def test_real_narrow_gap_does_not_get_welded_or_component_selected():
     a = mf.Manifold.cube((1,1,1))
     b = mf.Manifold.cube((1,1,1)).translate((1.0002,0,0))
@@ -248,6 +289,24 @@ def test_native_restricted_input_repairs_use_shared_validator_and_rollback(kind)
         else:
             assert row['metrics_before']['boundary_edges'] == 3
         assert len(bpy.data.meshes) == mesh_count
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+
+
+@pytest.mark.skipif(__import__('os').environ.get('ADSL_TEST_FIXED_REAL') != '1', reason='explicit native Blender input repair validation')
+@pytest.mark.parametrize('mm_per_unit', [0.001,1.,1000.])
+def test_native_input_repair_budget_floor_is_millimeters(mm_per_unit):
+    import importlib
+    bpy = pytest.importorskip('bpy')
+    from adsl.core.export.mesh_validity import normalize_blender_input
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    obj = importlib.import_module('test_zero_area_tessellation').pyramid()
+    matrix = np.eye(4)
+    matrix[:3,:3] *= 0.2/mm_per_unit
+    matrix[:3,3] = (1e6,-2e6,3e6)
+    obj.matrix_world = matrix.tolist()
+    row = normalize_blender_input(obj,mm_per_unit=mm_per_unit)
+    assert row['status']=='APPLIED' and row['metrics_after']['valid']
+    assert row['displacement_budget_mm']==pytest.approx(16*np.finfo(np.float32).eps,rel=1e-14)
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
 

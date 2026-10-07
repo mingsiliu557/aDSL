@@ -1,0 +1,237 @@
+{
+  "original_arm": {
+    "elapsed_seconds": 23.96428624726832,
+    "manufacturing_geometry_valid": true,
+    "display_status": "FAIL",
+    "canonical_volume_mm3": 58.25702841476198,
+    "stl_readback_status": "PASS",
+    "stl_metrics": {
+      "vertex_count": 41280,
+      "triangle_count": 13760,
+      "self_intersection": "NOT_EVALUATED",
+      "self_intersection_reason": "No reliable complete triangle self-intersection detector is installed",
+      "nonfinite_coordinates": 0,
+      "invalid_indices": 0,
+      "exact_coordinate_duplicates": 34398,
+      "duplicate_faces": 0,
+      "zero_area_triangles": 0,
+      "nonfinite_face_geometry": 0,
+      "nonfinite_geometry_measurements": 0,
+      "surface_area": 170.36224558887483,
+      "signed_volume": 58.25702841476203,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "nonmanifold_vertices": 0,
+      "shell_components": 1,
+      "empty": false,
+      "valid": true,
+      "solid_construction_frame": "bbox_center_local_float64",
+      "solid_construction_origin": [
+        0.0,
+        -13.73648001882666,
+        144.4
+      ],
+      "solid_status": "Error.NoError",
+      "material_components": 1
+    },
+    "display_file_exists": false,
+    "stl_sha256": "0214f45002cd9a31535642021be409cf70acd33b38219c33e02138faab0a6281",
+    "conversion_attempts": [
+      {
+        "simplify_tolerance_scene_units": 0.0,
+        "code": "LOCAL_PRECISION_REPAIR_REJECTED",
+        "face_orientation": {
+          "valid": false,
+          "triangle_count": 13618,
+          "flipped_faces": 20,
+          "orthogonal_faces": 0,
+          "source_zero_normals": 0,
+          "target_zero_normals": 1,
+          "nonfinite_source_normals": 0,
+          "nonfinite_target_normals": 0,
+          "uncomparable_faces": 1,
+          "minimum_normal_dot": -1.0,
+          "failing_face_indices": [
+            161,
+            1053,
+            1269,
+            1476,
+            1548,
+            1551,
+            1559,
+            4003
+          ]
+        },
+        "cast_metrics": {
+          "vertex_count": 6811,
+          "triangle_count": 13618,
+          "self_intersection": "NOT_EVALUATED",
+          "self_intersection_reason": "No reliable complete triangle self-intersection detector is installed",
+          "nonfinite_coordinates": 0,
+          "invalid_indices": 0,
+          "exact_coordinate_duplicates": 1,
+          "duplicate_faces": 2,
+          "zero_area_triangles": 1,
+          "nonfinite_face_geometry": 0,
+          "nonfinite_geometry_measurements": 0,
+          "surface_area": 170.36224474618598,
+          "signed_volume": 58.25702662955913,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 3,
+          "inconsistent_edges": 0,
+          "nonmanifold_vertices": 4,
+          "shell_components": 1,
+          "empty": false,
+          "valid": false
+        }
+      },
+      {
+        "simplify_tolerance_scene_units": 9.5367431640625e-07,
+        "code": "LOCAL_PRECISION_REPAIR_REJECTED",
+        "face_orientation": {
+          "valid": false,
+          "triangle_count": 10374,
+          "flipped_faces": 3,
+          "orthogonal_faces": 0,
+          "source_zero_normals": 0,
+          "target_zero_normals": 0,
+          "nonfinite_source_normals": 0,
+          "nonfinite_target_normals": 0,
+          "uncomparable_faces": 0,
+          "minimum_normal_dot": -1.0,
+          "failing_face_indices": [
+            99,
+            122,
+            5292
+          ]
+        },
+        "cast_metrics": {
+          "vertex_count": 5189,
+          "triangle_count": 10374,
+          "self_intersection": "NOT_EVALUATED",
+          "self_intersection_reason": "No reliable complete triangle self-intersection detector is installed",
+          "nonfinite_coordinates": 0,
+          "invalid_indices": 0,
+          "exact_coordinate_duplicates": 0,
+          "duplicate_faces": 0,
+          "zero_area_triangles": 0,
+          "nonfinite_face_geometry": 0,
+          "nonfinite_geometry_measurements": 0,
+          "surface_area": 170.36222814826047,
+          "signed_volume": 58.25701746842865,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "inconsistent_edges": 0,
+          "nonmanifold_vertices": 0,
+          "shell_components": 1,
+          "empty": false,
+          "valid": true
+        }
+      },
+      {
+        "simplify_tolerance_scene_units": 1.9073486328125e-06,
+        "code": "LOCAL_PRECISION_REPAIR_REJECTED",
+        "face_orientation": {
+          "valid": false,
+          "triangle_count": 10374,
+          "flipped_faces": 3,
+          "orthogonal_faces": 0,
+          "source_zero_normals": 0,
+          "target_zero_normals": 0,
+          "nonfinite_source_normals": 0,
+          "nonfinite_target_normals": 0,
+          "uncomparable_faces": 0,
+          "minimum_normal_dot": -1.0,
+          "failing_face_indices": [
+            99,
+            122,
+            5294
+          ]
+        },
+        "cast_metrics": {
+          "vertex_count": 5189,
+          "triangle_count": 10374,
+          "self_intersection": "NOT_EVALUATED",
+          "self_intersection_reason": "No reliable complete triangle self-intersection detector is installed",
+          "nonfinite_coordinates": 0,
+          "invalid_indices": 0,
+          "exact_coordinate_duplicates": 0,
+          "duplicate_faces": 0,
+          "zero_area_triangles": 0,
+          "nonfinite_face_geometry": 0,
+          "nonfinite_geometry_measurements": 0,
+          "surface_area": 170.36222828960385,
+          "signed_volume": 58.25701749535133,
+          "boundary_edges": 0,
+          "nonmanifold_edges": 0,
+          "inconsistent_edges": 0,
+          "nonmanifold_vertices": 0,
+          "shell_components": 1,
+          "empty": false,
+          "valid": true
+        }
+      }
+    ]
+  },
+  "original_trunk": {
+    "elapsed_seconds": 8.279617862775922,
+    "manufacturing_geometry_valid": true,
+    "display_status": "PASS",
+    "canonical_volume_mm3": 0.4002794861268741,
+    "stl_readback_status": "PASS",
+    "stl_metrics": {
+      "vertex_count": 23454,
+      "triangle_count": 7818,
+      "self_intersection": "NOT_EVALUATED",
+      "self_intersection_reason": "No reliable complete triangle self-intersection detector is installed",
+      "nonfinite_coordinates": 0,
+      "invalid_indices": 0,
+      "exact_coordinate_duplicates": 19543,
+      "duplicate_faces": 0,
+      "zero_area_triangles": 0,
+      "nonfinite_face_geometry": 0,
+      "nonfinite_geometry_measurements": 0,
+      "surface_area": 3.8550591849873137,
+      "signed_volume": 0.4002794861268741,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "inconsistent_edges": 0,
+      "nonmanifold_vertices": 0,
+      "shell_components": 1,
+      "empty": false,
+      "valid": true,
+      "solid_construction_frame": "bbox_center_local_float64",
+      "solid_construction_origin": [
+        -1.5799999906122686,
+        -0.009999999850988428,
+        1.745
+      ],
+      "solid_status": "Error.NoError",
+      "material_components": 1
+    },
+    "display_file_exists": true,
+    "stl_sha256": "6aed9e1a96cb9c0a9ff8904ffd417daeffcc420cdddeeb03ee95db19e5f98658",
+    "conversion_attempts": [],
+    "accepted_conversions": {
+      "CurvedTrunk": {
+        "local_scale_mm": 1.0500000000000003,
+        "absolute_scale_floor_mm": 1.0,
+        "displacement_budget_mm": 2.002715973503655e-06,
+        "face_orientation": {
+          "valid": true,
+          "triangle_count": 6188,
+          "flipped_faces": 0,
+          "orthogonal_faces": 0,
+          "source_zero_normals": 0,
+          "target_zero_normals": 0,
+          "nonfinite_source_normals": 0,
+          "nonfinite_target_normals": 0,
+          "uncomparable_faces": 0,
+          "minimum_normal_dot": 0.09754988541244493,
+          "failing_face_indices": []
+        }
+      }
+    }
+  }
+}

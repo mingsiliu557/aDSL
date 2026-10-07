@@ -10,7 +10,9 @@ import pytest
 from adsl.core.export.mesh_validity import (
     MeshEvaluationError, mesh_metrics, target_mesh, validate_mesh,
 )
-from adsl.core.export.local_precision_repair import repair_float32_mesh
+from adsl.core.export.local_precision_repair import (
+    face_orientation_metrics, repair_float32_mesh, require_face_orientation,
+)
 
 
 def uniform_solid(solid, material=0):
@@ -166,3 +168,72 @@ def test_display_repair_budget_is_unchanged_by_rigid_global_translation():
     assert record['displacement_budget_mm']==pytest.approx(other['displacement_budget_mm'])
     assert first.extents==pytest.approx(moved.extents,abs=1e-6)
     assert record['metrics']['valid'] and other['metrics']['valid']
+
+
+def rounding_flip_pyramid():
+    ulp = float(np.spacing(np.float32(1.)))
+    vertices = np.array([(0,0,0),(1+.49*ulp,1+.51*ulp,0),
+        (2,2+.98*ulp,0),(0,3,0),(1,1,1)],dtype=np.float64)
+    faces = np.array([(0,2,1),(0,3,2),(0,1,4),(1,2,4),(2,3,4),(3,0,4)],dtype=np.uint64)
+    return vertices,faces
+
+
+def test_actual_closed_positive_volume_cast_can_flip_one_geometric_face():
+    vertices,faces = rounding_flip_pyramid()
+    rounded = vertices.astype(np.float32).astype(np.float64)
+    for mesh_vertices in (vertices,rounded):
+        _,metrics = validate_mesh(mesh_vertices,faces)
+        assert metrics['boundary_edges']==metrics['inconsistent_edges']==0
+        assert metrics['zero_area_triangles']==0 and metrics['signed_volume']>0
+    orientation = face_orientation_metrics(vertices,rounded,faces)
+    assert not orientation['valid'] and orientation['flipped_faces']==1
+    assert orientation['failing_face_indices']==[0]
+    assert orientation['minimum_normal_dot']==pytest.approx(-1.)
+    with pytest.raises(MeshEvaluationError,match='TARGET_PRECISION_FACE_ORIENTATION_INVALID'):
+        require_face_orientation(vertices,rounded,faces)
+    with pytest.raises(MeshEvaluationError,match='TARGET_PRECISION_FACE_ORIENTATION_INVALID'):
+        repair_float32_mesh(vertices,faces,np.zeros(len(faces),dtype=np.uint64),
+            displacement_budget=2e-6)
+
+
+def test_final_repair_checks_untouched_faces_outside_degenerate_neighborhood():
+    raw = sliver_cube().to_mesh64()
+    pyramid,pyramid_faces = rounding_flip_pyramid()
+    pyramid += (10,0,0)
+    vertices = np.vstack((raw.vert_properties[:,:3],pyramid))
+    faces = np.vstack((raw.tri_verts,pyramid_faces+len(raw.vert_properties)))
+    original = vertices.copy(),faces.copy()
+    _,source = validate_mesh(vertices,faces)
+    assert source['valid'] and source['material_components']==2
+    with pytest.raises(MeshEvaluationError,match='LOCAL_PRECISION_REPAIR_REJECTED') as error:
+        repair_float32_mesh(vertices,faces,np.zeros(len(faces),dtype=np.uint64),
+            displacement_budget=2e-6,expected_components=2)
+    row = error.value.diagnostic['repair']
+    assert row['operations'] and row['metrics_after']['zero_area_triangles']==0
+    assert row['metrics_after_local_edit_float64']['valid']
+    assert row['face_orientation']['triangle_count']==row['metrics_after']['triangle_count']
+    assert row['face_orientation']['flipped_faces']==1
+    assert not row['face_orientation']['valid']
+    np.testing.assert_array_equal(vertices,original[0])
+    np.testing.assert_array_equal(faces,original[1])
+
+
+def test_orientation_normalization_avoids_area_squared_underflow():
+    vertices = np.array([(0,0,0),(1e-170,0,0),(0,1e-170,0)],dtype=np.float64)
+    faces = np.array([(0,1,2)])
+    metrics = face_orientation_metrics(vertices,vertices,faces)
+    assert metrics['valid'] and metrics['minimum_normal_dot']==1.
+    assert metrics['source_zero_normals']==metrics['target_zero_normals']==0
+
+
+def test_orientation_reports_collapse_and_nonfinite_as_uncomparable():
+    vertices = np.array([(0,0,0),(1,0,0),(0,1,0)],dtype=np.float64)
+    faces = np.array([(0,1,2)])
+    target = vertices.copy();target[2]=target[1]
+    collapsed = face_orientation_metrics(vertices,target,faces)
+    assert collapsed['target_zero_normals']==collapsed['uncomparable_faces']==1
+    assert not collapsed['valid']
+    target[2,0]=np.nan
+    nonfinite = face_orientation_metrics(vertices,target,faces)
+    assert nonfinite['nonfinite_target_normals']==nonfinite['uncomparable_faces']==1
+    assert not nonfinite['valid']
