@@ -68,6 +68,79 @@ def test_engineering_request_rejection_stops_before_coder(tmp_path, monkeypatch,
     assert len(calls) == 1
 
 
+@pytest.mark.parametrize('shared', [False, True])
+def test_critic_rejection_blocks_requests_despite_checker_regression(tmp_path, monkeypatch, shared):
+    from types import SimpleNamespace
+    from test_assembly_topology import setup_flow
+    from test_fixed_assembly import run_flow
+    from adsl.agents.models import GradedImageCriticDecision, EngineeringCriticDecision
+    state = setup_flow(tmp_path, monkeypatch, ['PASS', 'FAIL'])
+    workflow, _, runtime, _, repair_calls = state
+    original_review = workflow._review_generation_code
+    error = RequestFailure(429, 'insufficient_quota') if shared else RequestFailure(400, 'context_too_large')
+    followups = []
+
+    async def image(**kwargs):
+        return GradedImageCriticDecision(approved=False, observations=[], issues=[{
+            'severity':'HIGH', 'target':None, 'problem':'Visible discrepancy', 'suggested_fix':'repair silhouette'}])
+
+    async def code(**kwargs):
+        if kwargs['round_number'] == 1:
+            return await original_review(**kwargs)
+        raise error
+
+    async def engineering(**kwargs):
+        followups.append(kwargs['role'])
+        return SimpleNamespace(final_output=EngineeringCriticDecision(
+            approved=False, observations=[], repair_proposals=[]))
+
+    monkeypatch.setattr(workflow, '_review_generation_image', image)
+    monkeypatch.setattr(workflow, '_review_generation_code', code)
+    runtime.run = engineering
+    if shared:
+        with pytest.raises(RequestFailure) as caught:
+            run_flow(state)
+        assert caught.value is error
+        book = json.loads((tmp_path/'assembly_versions.json').read_text())
+        assert not book['completed']
+    else:
+        _, book = run_flow(state)
+        assert book['completed'] and book['stop_reason'] == 'agent_input_too_large'
+    assert followups == [] and len(repair_calls) == 1
+    assert 'attempt_0001' in book['versions'] and book['next_round'] == 3
+    assert book['versions']['attempt_0001']['reviews']['reason'] == 'previously_valid_check_regressed'
+    assert book['terminal_request_error']['kind'] == ('shared_fault' if shared else 'context_limit')
+    assert len((tmp_path/'repair_history.jsonl').read_text().splitlines()) == 1
+
+
+def test_executor_program_error_saved_then_propagated_without_roles(tmp_path, monkeypatch):
+    from test_fixed_assembly import mock_flow, run_flow
+    from adsl.agents import fixed_assembly as flow
+    state = mock_flow(tmp_path, monkeypatch, [('PASS', True)])
+    error = TypeError('deterministic executor defect')
+    calls = []
+
+    def execute(*args, **kwargs):
+        raise error
+
+    async def forbidden(**kwargs):
+        calls.append(kwargs['role'])
+        pytest.fail('Program error cannot trigger model requests')
+
+    monkeypatch.setattr(flow, 'execute_asset_source', execute)
+    state[2].run = forbidden
+    with pytest.raises(TypeError) as caught:
+        run_flow(state)
+    assert caught.value is error
+    book = json.loads((tmp_path/'assembly_versions.json').read_text())
+    assert 'original' in book['versions'] and book['next_round'] == 2
+    assert not book['completed'] and book['stop_reason'] == 'agent_call_error'
+    error_file = tmp_path/'rounds/round_01/flow_error.json'
+    assert json.loads(error_file.read_text())['type'] == 'TypeError'
+    assert calls == [] and state[-1] == []
+    assert not (tmp_path/'repair_history.jsonl').exists()
+
+
 @pytest.mark.parametrize('error', [RequestFailure(429, 'insufficient_quota'), TypeError('internal defect')])
 def test_engineering_shared_or_program_error_saved_then_propagated(tmp_path, monkeypatch, error):
     from test_mesh_evaluation_feedback import setup_evaluation_flow, failure
@@ -152,6 +225,96 @@ def test_normalized_old_finding_unavailable_domain_not_guessed(tmp_path):
     out = project(tmp_path, source, ref, payload)
     assert out['typed_findings'][0]['association_status'] == 'UNRESOLVED'
     assert 'failure_id' not in out['typed_findings'][0]
+
+
+@pytest.mark.parametrize('complete', [False, True])
+@pytest.mark.parametrize('missing_path', [False, True])
+def test_missing_report_retains_only_real_raw_finding_evidence(tmp_path, complete, missing_path):
+    from adsl.agents.agent_feedback import _at
+    source, rows, ref, _ = inputs(tmp_path, 2)
+    row = {'finding_id':'assembly_mesh_evaluation:missing:body:err',
+        'rule_id':'TARGET_PRECISION_UNREPRESENTABLE', 'result_ref':None if missing_path else 'missing.json',
+        'result_pointer':'/findings/2', 'source_sha256':ref['source_sha256']}
+    if complete:
+        row['domain'] = deepcopy(rows[0])
+        row['domain'].pop('geometry_repair_allowed')
+        row['region'] = {'kind':'aabb', 'details':{'face_vertices':[[1,2,3]]*20}}
+    original = deepcopy(row)
+    raw = {'typed_findings':[row]}
+    out = project(tmp_path, source, None, raw)
+    finding = out['typed_findings'][0]
+    assert finding['result_ref'] == row['result_ref']
+    snapshots = list(source.parent.glob('diagnostics/agent_feedback/finding_snapshot_*.json'))
+    if complete:
+        assert finding['association_status'] == 'RESOLVED' and len(snapshots) == 1
+        refs = finding['evidence_refs']
+        assert any(r['path']==row['result_ref'] and r['availability']=='UNAVAILABLE' for r in refs)
+        detail = finding['detail_ref']
+        assert detail['availability'] == 'AVAILABLE'
+        document = json.loads((tmp_path/detail['path']).read_text())
+        assert _at(document, detail['json_pointer']) == original['domain']
+        assert document['finding'] == original
+        assert len(_at(document, finding['region']['detail_ref']['json_pointer'])['face_vertices']) == 20
+        assert 'geometry_repair_allowed' not in out['evaluation_feedback']['failures'][0]
+    else:
+        assert finding['association_status'] == 'UNRESOLVED' and not snapshots
+        assert finding['detail_ref']['availability'] == 'UNAVAILABLE'
+        assert 'evaluation_feedback' not in out
+    assert row == original
+    assert project(tmp_path, source, None, out) == out
+
+
+def test_budget_reduction_preserves_complete_refs_and_idempotence(tmp_path):
+    from adsl.agents.agent_feedback import _at, FEEDBACK_LIMIT_BYTES
+    source, rows, ref, _ = inputs(tmp_path, 1)
+    row = deepcopy(rows[0])
+    row['diagnostic']['attempts'] = [deepcopy(row['diagnostic']['attempts'][0]) for _ in range(10)]
+    findings = []
+    for i in range(6):
+        findings.append({'finding_id':f'assembly_mesh_evaluation:{i}:body:err',
+            'rule_id':'TARGET_PRECISION_UNREPRESENTABLE', 'required':False,
+            'domain':row, 'source_candidates':[
+                {'feature_id':f'{i}:{j}:'+'feature_'*18, 'method':'source_index', 'ambiguous':True,
+                 'source_ids':[f'id_{k}_'+'x'*120 for k in range(3)],
+                 'source_locations':[f'source:{k}:'+'y'*120 for k in range(3)],
+                 'evidence':[{'complete':'source evidence'}]} for j in range(6)]})
+    result = tmp_path/'result.json'
+    result.write_text(json.dumps({'assumptions':{'source_sha256':ref['source_sha256']}, 'findings':findings}))
+    typed = [finding_for_agent(f, result_ref=str(result), result_pointer=f'/findings/{i}',
+        source_sha256=ref['source_sha256']) for i,f in enumerate(findings)]
+    raw = {'typed_findings':typed}
+    original = deepcopy(raw)
+    assert len(json.dumps(raw).encode()) > FEEDBACK_LIMIT_BYTES
+    out = project(tmp_path, source, ref, raw)
+    assert len(out['typed_findings'][0]['source_candidates']) < 6
+    count = 0
+
+    def check_refs(owner):
+        nonlocal count
+        if isinstance(owner, dict):
+            for field, info in owner.get('preview_info', {}).items():
+                if info.get('omitted_count', 0):
+                    full = info['full_ref']
+                    assert full and full['path']
+                    document = json.loads((tmp_path/full['path']).read_text())
+                    assert len(_at(document, full['json_pointer'])) == info['total']
+                    count += 1
+            for value in owner.values():
+                check_refs(value)
+        elif isinstance(owner, list):
+            for value in owner:
+                check_refs(value)
+
+    check_refs(out)
+    group, = out['evaluation_feedback']['failures']
+    assert group['preview_info']['attempts_summary']['total'] == 10
+    assert count >= 7
+    again = project(tmp_path, source, ref, out)
+    (tmp_path/'projected.json').write_text(json.dumps(out, allow_nan=False))
+    (tmp_path/'reprojected.json').write_text(json.dumps(again, allow_nan=False))
+    assert again == out
+    assert raw == original
+    json.dumps(out, allow_nan=False)
 
 
 def test_four_actual_role_boundaries_share_bounded_evidence(tmp_path, monkeypatch):
@@ -246,6 +409,49 @@ def test_four_actual_role_boundaries_share_bounded_evidence(tmp_path, monkeypatc
         'roles':{role:{'text_utf8_bytes':len(json.dumps(value, ensure_ascii=False).encode()),
             'unique_failure_count':value['evaluation_feedback']['unique_failure_count']}
             for role,value in captures.items()}, 'pointer_reads':pointer_reads}, allow_nan=False))
+
+
+@pytest.mark.parametrize('classified_first', [False, True])
+@pytest.mark.parametrize('permission', [False, True])
+def test_controller_classification_wins_independent_of_order_and_role(tmp_path, classified_first, permission):
+    from adsl.agents.fixed_assembly import _failure_feedback
+    source, rows, ref, _ = inputs(tmp_path, 1)
+    for row in rows:
+        row.pop('failure_kind')
+        row.pop('geometry_repair_allowed')
+    report = {'source_sha256':ref['source_sha256'], 'display_failures':rows}
+    Path(ref['path']).write_text(json.dumps(report))
+    classified = _failure_feedback(report, source_sha256=ref['source_sha256'])
+    assert all(row['failure_kind'] == 'candidate_evaluation' for row in classified)
+    for row in classified:
+        row['geometry_repair_allowed'] = permission
+    raw = {'display_failures':rows}
+    controller = {'failure_feedback':classified}
+    combined = ({**controller, 'feedback':raw} if classified_first else
+                {**raw, 'feedback':controller})
+    coder = project(tmp_path, source, ref, combined, role='coder')
+    engineer = project(tmp_path, source, ref, {'evaluation_failures':classified})
+    c, = coder['evaluation_feedback']['failures']
+    e, = engineer['evaluation_feedback']['failures']
+    assert c['failure_id'] == e['failure_id']
+    assert c['failure_kind'] == e['failure_kind'] == 'candidate_evaluation'
+    assert c['geometry_repair_allowed'] is e['geometry_repair_allowed'] is permission
+    assert project(tmp_path, source, ref, coder, role='coder') == coder
+    # The unclassified original does not receive inferred permission.
+    unclassified = project(tmp_path, source, ref, raw)['evaluation_feedback']['failures'][0]
+    assert 'geometry_repair_allowed' not in unclassified
+
+
+@pytest.mark.parametrize('field,value', [('geometry_repair_allowed', False), ('failure_kind', 'export')])
+def test_equal_authority_classification_conflict_is_rejected(tmp_path, field, value):
+    source, rows, ref, _ = inputs(tmp_path, 1)
+    conflict = deepcopy(rows)
+    conflict[0][field] = value
+    with pytest.raises(AgentFeedbackError) as caught:
+        project(tmp_path, source, ref, {'evaluation_failures':rows,
+            'feedback':{'failure_feedback':conflict}})
+    assert caught.value.code == 'AGENT_FEEDBACK_INVALID'
+    assert caught.value.details['reason'] == 'conflicting_failure_classification'
 
 
 def test_original_stale_binding_not_relabelled_by_current_report(tmp_path):

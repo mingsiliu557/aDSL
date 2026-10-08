@@ -134,7 +134,7 @@ def _preview(owner, field, full, limit, full_ref=None):
     total = max(len(full), old.get('total', 0))
     if total > len(owner[field]):
         info[field] = {'total': total, 'omitted_count': total - len(owner[field]),
-                       'full_ref': full_ref or old.get('full_ref')}
+                       'full_ref': old.get('full_ref') or full_ref}
     elif field in info:
         del info[field]
     if not info:
@@ -309,6 +309,7 @@ class _Projection:
         self.diagnostic_hashes = {}
         self.container_origins = {}
         self.groups = {}
+        self.classifications = {}
         self.seen_rows = set()
         self.failure_count = 0
 
@@ -427,7 +428,7 @@ class _Projection:
         self.container_origins[(reference['path'], reference['json_pointer'])] = origin
         return reference
 
-    def add(self, raw, ref, *, finding_id=None):
+    def add(self, raw, ref, *, finding_id=None, classification_origin='diagnostic'):
         details = evaluation_details(raw)
         diagnostic_hash = self.diagnostic_hash(raw)
         file = _first(raw.get('file'), raw.get('glb'), raw.get('path'))
@@ -452,6 +453,22 @@ class _Projection:
                 'attempts_summary': [_attempt(a) for a in attempts] if attempts is not None else [],
                 'finding_ids': [], 'occurrences': [], 'evidence_refs': []}
             self.groups[failure_id] = group
+        # Classification is controller evidence, not a consequence of seeing a
+        # diagnostic first. Never OR permissions or infer them from error codes.
+        priority = 1 if classification_origin == 'controller' else 0
+        classified = self.classifications.setdefault(failure_id, {})
+        for field in ('failure_kind', 'geometry_repair_allowed'):
+            value = raw.get(field)
+            if value is None:
+                continue
+            previous = classified.get(field)
+            if previous is not None and previous[0] == priority and previous[1] != value:
+                raise AgentFeedbackError('AGENT_FEEDBACK_INVALID', {
+                    'reason':'conflicting_failure_classification', 'failure_id':failure_id,
+                    'field':field, 'classification_origin':classification_origin})
+            if previous is None or priority > previous[0]:
+                classified[field] = (priority, value)
+                group[field] = value
         if finding_id and finding_id not in group['finding_ids']:
             group['finding_ids'].append(finding_id)
         occurrence = _fields(raw, ('output_role', 'file', 'glb', 'path', 'status', 'cached_conversion',
@@ -498,6 +515,18 @@ class _Projection:
                     'source_version': _first(ref.get('source_version'), document.get('source_version'),
                         (self.report_ref or {}).get('source_version') if binding_hash and
                         binding_hash == (self.report_ref or {}).get('source_sha256') else None)})
+            original_ref = ref
+            if not isinstance(original, Mapping) and isinstance(raw.get('domain'), Mapping) and raw['domain']:
+                # This in-memory finding may be the only complete evidence left
+                # after recovery. Save it before projection; retain the missing
+                # original reference separately rather than claiming it exists.
+                snapshot = self.snapshot({'finding':raw}, 'finding_snapshot')
+                ref = self.ref({**snapshot, 'source_sha256':original_ref.get('source_sha256'),
+                    'source_version':original_ref.get('source_version')}, pointer='/finding')
+                row = finding_for_agent(raw, result_ref=ref['path'], result_pointer='/finding',
+                    source_sha256=ref.get('source_sha256'))
+                row.update(result_ref=original_ref.get('path'), result_pointer=original_ref.get('json_pointer'))
+                row['evidence_refs'] = [*row.get('evidence_refs', []), original_ref, ref]
             domain = original.get('domain') if isinstance(original, Mapping) else raw.get('domain')
             evaluation = (row.get('finding_id', '').startswith('assembly_mesh_evaluation:') or
                           isinstance(domain, Mapping) and domain.get('failure_kind') == 'candidate_evaluation')
@@ -506,7 +535,8 @@ class _Projection:
                     row['association_status'] = 'RESOLVED'
                 elif isinstance(domain, Mapping) and domain:
                     row['failure_id'] = self.add(domain, self.ref(ref,
-                        pointer=_pointer(ref.get('json_pointer'), 'domain')), finding_id=row.get('finding_id'))
+                        pointer=_pointer(ref.get('json_pointer'), 'domain')), finding_id=row.get('finding_id'),
+                        classification_origin='controller')
                     row['association_status'] = 'RESOLVED'
                 else:
                     row['association_status'] = 'UNRESOLVED'
@@ -578,6 +608,7 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
     try:
         view = _Projection(workspace, source_path, source_version, report_ref, evidence_files)
         out = deepcopy(dict(payload))
+        full_histories = {}
         existing = out.get('evaluation_feedback')
         if isinstance(existing, Mapping):
             for group in existing.get('failures') or []:
@@ -608,7 +639,8 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                         if not isinstance(row, Mapping):
                             continue
                         ref = view.source_ref(row, container, field, ordinal, container_identity)
-                        identity = view.add(row, ref)
+                        identity = view.add(row, ref, classification_origin=(
+                            'controller' if field in {'failure_feedback', 'evaluation_failures'} else 'diagnostic'))
                         if identity not in failure_ids:
                             failure_ids.append(identity)
                 container.pop(field, None)
@@ -620,6 +652,7 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
             for key in _HISTORY_FIELDS:
                 if isinstance(container.get(key), list):
                     original = container[key]
+                    full_histories[(id(container), key)] = original
                     projected = _history(original)
                     ref = container.get(key + '_ref')
                     nested_lists = ('issues', 'errors', 'regressions', 'target_improvements',
@@ -674,6 +707,9 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
         process(out)
         if view.groups or existing:
             groups = list(view.groups.values())
+            # Keep the pre-preview mapping for any later budget reduction. A
+            # snapshot of an already shortened list cannot become its full_ref.
+            full_groups = deepcopy(groups)
             feedback = {'schema_version': 1, 'source_sha256': view.current_hash,
                 'source_version': source_version, 'failure_count': view.failure_count,
                 'unique_failure_count': max(len(groups), (existing or {}).get('unique_failure_count', 0)),
@@ -682,7 +718,7 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
             # original array. It contains summaries/refs, never per-face arrays.
             needs_index = len(groups) > 6 or any(len(g.get(k) or []) > limit for g in groups
                 for k, limit in (('finding_ids', 6), ('occurrences', 6), ('attempts_summary', 3), ('evidence_refs', 6)))
-            index_ref = view.snapshot({'failures': groups}, 'canonical_feedback') if needs_index else None
+            index_ref = view.snapshot({'failures': full_groups}, 'canonical_feedback') if needs_index else None
             for index, group in enumerate(groups):
                 for key, limit in (('finding_ids', 6), ('occurrences', 6), ('attempts_summary', 3), ('evidence_refs', 6)):
                     _preview(group, key, list(group.get(key) or []), limit,
@@ -718,10 +754,43 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                     if isinstance(container.get(key), list) and len(container[key]) > history_limit:
                         info = container.setdefault('preview_info', {}).setdefault(key, {
                             'total': len(container[key]), 'full_ref': container.get(key + '_ref')})
+                        if not info.get('full_ref'):
+                            snap = view.snapshot({'history':full_histories[(id(container), key)]}, 'history_snapshot')
+                            info['full_ref'] = {**snap, 'json_pointer':'/history'}
                         container[key] = container[key][-history_limit:] if history_limit else []
                         info['omitted_count'] = info['total'] - len(container[key])
                 for f in container.get('typed_findings') or []:
-                    _preview(f, 'source_candidates', f.get('source_candidates', []), candidate_limit)
+                    candidates = f.get('source_candidates', [])
+                    ref = None
+                    if len(candidates) > candidate_limit and not f.get('preview_info', {}).get('source_candidates', {}).get('full_ref'):
+                        binding = f.get('detail_ref') or {}
+                        ref = view.ref({'path':f.get('result_ref'),
+                            'json_pointer':_pointer(f.get('result_pointer'), 'source_candidates'),
+                            'source_sha256':_first(f.get('source_sha256'), binding.get('source_sha256')),
+                            'source_version':binding.get('source_version')})
+                        document = view.document(ref)
+                        try:
+                            full = _at(document, ref['json_pointer'])
+                        except (KeyError, IndexError, TypeError, ValueError):
+                            full = None
+                        if not isinstance(full, list) and str(binding.get('json_pointer', '')).endswith('/domain'):
+                            # A recovery snapshot retains the original finding,
+                            # while result_ref still names the missing report.
+                            saved = view.ref(binding, pointer=_pointer(
+                                binding['json_pointer'][:-len('/domain')], 'source_candidates'))
+                            try:
+                                full = _at(view.document(saved), saved['json_pointer'])
+                            except (KeyError, IndexError, TypeError, ValueError):
+                                full = None
+                            if isinstance(full, list):
+                                ref = saved
+                        if not isinstance(full, list) or len(full) != len(candidates):
+                            # No report exists; these candidates have not yet
+                            # been shortened and can be preserved completely.
+                            snap = view.snapshot({'source_candidates':candidates}, 'candidates_snapshot')
+                            ref = view.ref({**snap, 'source_sha256':ref.get('source_sha256'),
+                                'source_version':ref.get('source_version')}, pointer='/source_candidates')
+                    _preview(f, 'source_candidates', candidates, candidate_limit, ref)
                 for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback'):
                     if isinstance(container.get(key), dict):
                         reduce(container[key])
@@ -730,7 +799,7 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
             if feedback:
                 # Retain full canonical mapping before any budget-driven reduction.
                 if not feedback.get('preview_info', {}).get('failures', {}).get('full_ref'):
-                    ref = view.snapshot({'failures': feedback['failures']}, 'canonical_feedback')
+                    ref = index_ref or view.snapshot({'failures': full_groups}, 'canonical_feedback')
                     feedback.setdefault('preview_info', {})['failures'] = {
                         'total': feedback['unique_failure_count'], 'omitted_count': 0,
                         'full_ref': {**ref, 'json_pointer': '/failures'}}

@@ -463,6 +463,9 @@ def error_evidence(error):
 
 
 def shared_fault(error):
+    classification = request_error_helpers().classify_model_request_error(error)
+    if classification and classification['kind'] == 'shared_fault':
+        return True
     names = {cls.__name__ for cls in type(error).__mro__}
     if names & {'AuthenticationError', 'PermissionDeniedError', 'AssetInfrastructureError',
                 'ImportError', 'ModuleNotFoundError'} or getattr(error, 'status_code', None) in {401, 403}:

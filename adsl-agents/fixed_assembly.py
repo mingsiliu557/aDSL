@@ -417,6 +417,10 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                    'cached initial assembly file changed')
             write_json(report_path, {'type':type(error).__name__, 'error':str(error),
                 'code':'CURRENT_REPORT_SOURCE_MISMATCH' if shared else 'UNKNOWN_EXECUTION_ERROR'})
+            classification = classify_model_request_error(error)
+            terminal_request_error = classification if terminal_stop_reason(classification) else None
+            if propagate_request_error(error, classification):
+                propagate_error = error
             accepted, reason = False, 'FLOW_ERROR'
         reference_path = book.get('partition_reference') if partition is not None else None
         shape_comparison = None
@@ -738,7 +742,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     book.setdefault('partition_baseline_feedback',{})[version_id]=json.loads(json.dumps(feedback))
             feedback['actionable_finding_ids']=[f.finding_id for f in actionable]
             remaining = book['max_rounds']-number
-            if (not accepted or optimize) and not optimization_finished and reason != 'FLOW_ERROR' and actionable and remaining > 0:
+            if ((not accepted or optimize) and not optimization_finished
+                    and terminal_request_error is None and propagate_error is None
+                    and reason != 'FLOW_ERROR' and actionable and remaining > 0):
                 budget = RepairController(workspace=workspace,round_root=root,baseline_source=current,
                     source_index=None,findings=[],checker_specs_sha256=config_hash,
                     policy=request.repair_policy.model_copy(update={'max_total_candidates':book['max_rounds']-1}))

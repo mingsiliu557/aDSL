@@ -15,6 +15,24 @@ from pydantic import BaseModel
 from experiments.benchmark_six import run
 
 
+@pytest.mark.parametrize('status,code,message,expected', [
+    (429, None, 'You exceeded your current quota, please check your plan and billing details', True),
+    (429, 'insufficient_quota', 'request rejected', True),
+    (429, 'rate_limit_exceeded', 'Too many requests', False),
+    (400, 'context_too_large', 'input too large', False),
+])
+def test_batch_shared_fault_uses_request_classification(status, code, message, expected):
+    class Error(Exception):
+        status_code = status
+        body = {'error': {'code':code, 'message':message}}
+    error = Error(message)
+    assert run.shared_fault(error) is expected
+    assert (run.request_error_helpers().classify_model_request_error(error)['kind'] == 'shared_fault') is expected
+    assert not run.shared_fault(TypeError('program defect'))
+    assert not run.shared_fault(KeyError('program defect'))
+    assert run.shared_fault(OSError('no space left on device'))
+
+
 def case(tmp_path, cid='Toys4K_robot_050'):
     image = tmp_path / 'reference.png'
     image.write_bytes(b'exact-reference-bytes')

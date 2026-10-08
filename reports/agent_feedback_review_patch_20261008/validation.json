@@ -1,0 +1,236 @@
+{
+  "base_commit": "73abfebccf558d98f85af25cb58a1a35ac0e26a9",
+  "branch": "codex/agent-feedback-input-v1",
+  "real_model_calls": 0,
+  "benchmark_started": false,
+  "real_mesh_or_physics_experiments": 0,
+  "files_sha256": {
+    "adsl-agents/agent_feedback.py": "f15b6235abaf505b9438cb5a6da574822b0f2ac4e7fda3e32104f4152c7bfcb8",
+    "adsl-agents/fixed_assembly.py": "7f941a3b54cee063b33ed10dc4da30d7058f11fd129516e676c6c140d49c796f",
+    "experiments/benchmark_six/run.py": "01c334bd4bd52197952b65ae6946c5c45b4a6c6e4af4ed960aef41c4d3a391b1",
+    "tests/test_agent_feedback.py": "a2b0a0ad742dddc7c19cf8d7037f462e5b1e1537c4ec668fea85f44781c35aa2",
+    "tests/test_benchmark_six_runner.py": "ed68393fc88656b2f5d51fadb99c26e79d7a40cf459e51daad0009f4e548054e"
+  },
+  "budget_smoke": {
+    "workspace": "/tmp/pytest-of-root/pytest-468/test_budget_reduction_preserve0",
+    "limit_bytes": 32768,
+    "projected_compact_utf8_bytes": 21431,
+    "idempotent": true,
+    "actually_read_full_refs": [
+      {
+        "field": "/typed_findings/0/source_candidates",
+        "total": 6,
+        "preview_length": 1,
+        "actual_full_length": 6,
+        "full_ref": {
+          "path": "result.json",
+          "json_pointer": "/findings/0/source_candidates",
+          "source_sha256": "53987f778b5cc847e8e5808b1ecc74e889613c3b54b534272ff22e4f078d382d",
+          "source_version": "original",
+          "file_sha256": "b4df155e0fa7e57a6de4b81ae0674d42d9cb64e65e3638afb56343a03d13dbd2",
+          "availability": "AVAILABLE",
+          "source_binding": "CURRENT",
+          "matches_current_source": true,
+          "reason": null
+        }
+      },
+      {
+        "field": "/typed_findings/1/source_candidates",
+        "total": 6,
+        "preview_length": 1,
+        "actual_full_length": 6,
+        "full_ref": {
+          "path": "result.json",
+          "json_pointer": "/findings/1/source_candidates",
+          "source_sha256": "53987f778b5cc847e8e5808b1ecc74e889613c3b54b534272ff22e4f078d382d",
+          "source_version": "original",
+          "file_sha256": "b4df155e0fa7e57a6de4b81ae0674d42d9cb64e65e3638afb56343a03d13dbd2",
+          "availability": "AVAILABLE",
+          "source_binding": "CURRENT",
+          "matches_current_source": true,
+          "reason": null
+        }
+      },
+      {
+        "field": "/typed_findings/2/source_candidates",
+        "total": 6,
+        "preview_length": 1,
+        "actual_full_length": 6,
+        "full_ref": {
+          "path": "result.json",
+          "json_pointer": "/findings/2/source_candidates",
+          "source_sha256": "53987f778b5cc847e8e5808b1ecc74e889613c3b54b534272ff22e4f078d382d",
+          "source_version": "original",
+          "file_sha256": "b4df155e0fa7e57a6de4b81ae0674d42d9cb64e65e3638afb56343a03d13dbd2",
+          "availability": "AVAILABLE",
+          "source_binding": "CURRENT",
+          "matches_current_source": true,
+          "reason": null
+        }
+      },
+      {
+        "field": "/typed_findings/3/source_candidates",
+        "total": 6,
+        "preview_length": 1,
+        "actual_full_length": 6,
+        "full_ref": {
+          "path": "result.json",
+          "json_pointer": "/findings/3/source_candidates",
+          "source_sha256": "53987f778b5cc847e8e5808b1ecc74e889613c3b54b534272ff22e4f078d382d",
+          "source_version": "original",
+          "file_sha256": "b4df155e0fa7e57a6de4b81ae0674d42d9cb64e65e3638afb56343a03d13dbd2",
+          "availability": "AVAILABLE",
+          "source_binding": "CURRENT",
+          "matches_current_source": true,
+          "reason": null
+        }
+      },
+      {
+        "field": "/typed_findings/4/source_candidates",
+        "total": 6,
+        "preview_length": 1,
+        "actual_full_length": 6,
+        "full_ref": {
+          "path": "result.json",
+          "json_pointer": "/findings/4/source_candidates",
+          "source_sha256": "53987f778b5cc847e8e5808b1ecc74e889613c3b54b534272ff22e4f078d382d",
+          "source_version": "original",
+          "file_sha256": "b4df155e0fa7e57a6de4b81ae0674d42d9cb64e65e3638afb56343a03d13dbd2",
+          "availability": "AVAILABLE",
+          "source_binding": "CURRENT",
+          "matches_current_source": true,
+          "reason": null
+        }
+      },
+      {
+        "field": "/typed_findings/5/source_candidates",
+        "total": 6,
+        "preview_length": 1,
+        "actual_full_length": 6,
+        "full_ref": {
+          "path": "result.json",
+          "json_pointer": "/findings/5/source_candidates",
+          "source_sha256": "53987f778b5cc847e8e5808b1ecc74e889613c3b54b534272ff22e4f078d382d",
+          "source_version": "original",
+          "file_sha256": "b4df155e0fa7e57a6de4b81ae0674d42d9cb64e65e3638afb56343a03d13dbd2",
+          "availability": "AVAILABLE",
+          "source_binding": "CURRENT",
+          "matches_current_source": true,
+          "reason": null
+        }
+      },
+      {
+        "field": "/evaluation_feedback/failures/0/attempts_summary",
+        "total": 10,
+        "preview_length": 3,
+        "actual_full_length": 10,
+        "full_ref": {
+          "path": "candidate/diagnostics/agent_feedback/canonical_feedback_2a90217eb1cbf8c39bfee57953d41e2d1e2ba2c259ad120bd9a9edfc2c8612e5.json",
+          "json_pointer": "/failures/0/attempts_summary",
+          "source_sha256": null,
+          "source_version": null,
+          "file_sha256": "2a90217eb1cbf8c39bfee57953d41e2d1e2ba2c259ad120bd9a9edfc2c8612e5",
+          "availability": "AVAILABLE",
+          "source_binding": "UNKNOWN",
+          "matches_current_source": null,
+          "reason": "source_binding_unknown"
+        }
+      }
+    ]
+  },
+  "stop_tests": {
+    "critic_context_limit": {
+      "workspace": "/tmp/pytest-of-root/pytest-468/test_critic_rejection_blocks_r0",
+      "book": {
+        "completed": true,
+        "stop_reason": "agent_input_too_large",
+        "next_round": 3,
+        "working": "attempt_0001",
+        "retained": "original",
+        "qualified": null,
+        "terminal_request_error": {
+          "kind": "context_limit",
+          "code": "context_too_large",
+          "status_code": 400,
+          "request_id": null,
+          "reason": "request rejected",
+          "retryable_same_input": false
+        }
+      },
+      "versions": [
+        "original",
+        "attempt_0001"
+      ],
+      "repair_history_entries": 1,
+      "verified_by_tests": "no additional Engineering/Coder calls; propagated exception identity checked for quota/TypeError",
+      "version_source_sha256": {
+        "original": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+        "attempt_0001": "e75c44736ae122cf1ec886b703515008e1be7dd934cdf94239d7edb202eb52df"
+      }
+    },
+    "critic_quota": {
+      "workspace": "/tmp/pytest-of-root/pytest-468/test_critic_rejection_blocks_r1",
+      "book": {
+        "completed": false,
+        "stop_reason": "agent_call_error",
+        "next_round": 3,
+        "working": "attempt_0001",
+        "retained": "original",
+        "qualified": null,
+        "terminal_request_error": {
+          "kind": "shared_fault",
+          "code": "insufficient_quota",
+          "status_code": 429,
+          "request_id": null,
+          "reason": "request rejected",
+          "retryable_same_input": false
+        }
+      },
+      "versions": [
+        "original",
+        "attempt_0001"
+      ],
+      "repair_history_entries": 1,
+      "verified_by_tests": "no additional Engineering/Coder calls; propagated exception identity checked for quota/TypeError",
+      "version_source_sha256": {
+        "original": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+        "attempt_0001": "e75c44736ae122cf1ec886b703515008e1be7dd934cdf94239d7edb202eb52df"
+      }
+    },
+    "executor_typeerror": {
+      "workspace": "/tmp/pytest-of-root/pytest-468/test_executor_program_error_sa0",
+      "book": {
+        "completed": false,
+        "stop_reason": "agent_call_error",
+        "next_round": 2,
+        "working": "original",
+        "retained": "original",
+        "qualified": null,
+        "terminal_request_error": null
+      },
+      "versions": [
+        "original"
+      ],
+      "repair_history_entries": 0,
+      "verified_by_tests": "no additional Engineering/Coder calls; propagated exception identity checked for quota/TypeError",
+      "version_source_sha256": {
+        "original": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5"
+      }
+    }
+  },
+  "runs": [
+    {
+      "scope": "final relevant offline regressions",
+      "result": "176 passed, 1 deselected",
+      "seconds": 31.5,
+      "log": "pytest_final.log"
+    },
+    {
+      "scope": "original four review probes",
+      "result": "4 passed",
+      "seconds": 2.82,
+      "log": "review_probes.log"
+    }
+  ],
+  "deselected": "test_interference_real_geometry_drives_engineering_coder_recheck"
+}
