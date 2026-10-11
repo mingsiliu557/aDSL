@@ -1,0 +1,135 @@
+{
+  "code_commit": "810f713d00058eeec58ff2f226ad48d12aaa2505",
+  "case_ids": [
+    "ABO_B07MBFD87N",
+    "Toys4K_deer_moose_057"
+  ],
+  "case_count": 2,
+  "purpose": "Planning review of two actual generation failures; not successful benchmark cases",
+  "verification": {
+    "source_and_input_hashes": "PASS",
+    "offline_ast_syntax": "PASS",
+    "json_and_zip_readback": "PASS",
+    "archive_member_hashes": "PASS",
+    "private_path_and_credential_pattern_scan": "PASS",
+    "real_model_calls": 0,
+    "new_geometry_or_physics_runs": 0
+  },
+  "files": [
+    {
+      "path": "ABO_B07MBFD87N/archive_manifest.json",
+      "bytes": 13185,
+      "sha256": "1287b9b2c66592563e4867f9992fefa12b4d4fc15bbd0927c7d0715a9e536cee"
+    },
+    {
+      "path": "ABO_B07MBFD87N/case.json",
+      "bytes": 1255,
+      "sha256": "3afc742f7e1decc99134522d11bde1d15f43ec4a53c6e0be6e81add2102e16eb"
+    },
+    {
+      "path": "ABO_B07MBFD87N/evidence.zip",
+      "bytes": 2231633,
+      "sha256": "1a570f8362bd9f6e3908df07bef6079608e1f4ceabfc4210b30b845e472f1acb"
+    },
+    {
+      "path": "ABO_B07MBFD87N/input.png",
+      "bytes": 180844,
+      "sha256": "2b61990a5caff9aed0090f8024a68fb32a5084f0f508014eb07343542a55437a"
+    },
+    {
+      "path": "ABO_B07MBFD87N/plan.json",
+      "bytes": 6837,
+      "sha256": "eff8664ddf9f96ceb590815ba1a2f21f043ce5c920a8a457a1b768134ff3b40f"
+    },
+    {
+      "path": "ABO_B07MBFD87N/version_summary.json",
+      "bytes": 9867,
+      "sha256": "ef70cac04b0f4df36459eb273c6a005b0616b65bc1fe4bd7171846f289803ff6"
+    },
+    {
+      "path": "ABO_B07MBFD87N/versions/attempt_0001/source.py",
+      "bytes": 6625,
+      "sha256": "c8c829c42e9b31e382272a1c926ea1b37fb6b6ae3207c6f212c84b80de1c25d8"
+    },
+    {
+      "path": "ABO_B07MBFD87N/versions/attempt_0002/source.py",
+      "bytes": 6995,
+      "sha256": "003f7382a00e21279f2cd3fa29de0f67b55b18b94e0a48442e1a6ca76a5bb2c6"
+    },
+    {
+      "path": "ABO_B07MBFD87N/versions/attempt_0003/source.py",
+      "bytes": 6622,
+      "sha256": "297f37e00d97dcf2546fe2fbcce755f7b4b9b70f891432e68602fbd5433b8d7e"
+    },
+    {
+      "path": "ABO_B07MBFD87N/versions/attempt_0004/source.py",
+      "bytes": 8010,
+      "sha256": "2f9adfc59ae03cc38a3b0c1a3b072c242c6c293f6d6bfc1747027148b5dd9d6b"
+    },
+    {
+      "path": "ABO_B07MBFD87N/versions/original/source.py",
+      "bytes": 6622,
+      "sha256": "297f37e00d97dcf2546fe2fbcce755f7b4b9b70f891432e68602fbd5433b8d7e"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5390,
+      "sha256": "6dba8b604be6c4dba956b0a55993b887b1ccb106a3bfb693b6fc2d2a14d3f2da"
+    },
+    {
+      "path": "Toys4K_deer_moose_057/archive_manifest.json",
+      "bytes": 10873,
+      "sha256": "afa8f41a5f98d22bbc5a89c295cd90a78e0aafc9b3d240b3159184b6d70dcbc5"
+    },
+    {
+      "path": "Toys4K_deer_moose_057/case.json",
+      "bytes": 1329,
+      "sha256": "400673c740766aeb0857efedc20a571b021af033235e1904cf22b1a6010920ad"
+    },
+    {
+      "path": "Toys4K_deer_moose_057/evidence.zip",
+      "bytes": 448277,
+      "sha256": "df1e155cb74a504bbeb203fae8b50d6e7cc52abff0cae808eb8e1db2ff9cbb84"
+    },
+    {
+      "path": "Toys4K_deer_moose_057/input.png",
+      "bytes": 171142,
+      "sha256": "e3d3ce3cc593cbb5de14527701d0407d02bd8f6702a8456210bf3df0c7cfe417"
+    },
+    {
+      "path": "Toys4K_deer_moose_057/plan.json",
+      "bytes": 8317,
+      "sha256": "9572f02478db56c45dc90f706240045df79610f13a27954092db7a80c23ef36f"
+    },
+    {
+      "path": "Toys4K_deer_moose_057/version_summary.json",
+      "bytes": 6631,
+      "sha256": "07be974590c9277fbbca63d1e6dc2c56f3349dea5f8f0f8a0efede6733024a0e"
+    },
+    {
+      "path": "Toys4K_deer_moose_057/versions/attempt_0001/source.py",
+      "bytes": 8475,
+      "sha256": "78bf9fd73024a54a15dfc430c2edd55bd92b4d8ee587852b8a69902719ed9741"
+    },
+    {
+      "path": "Toys4K_deer_moose_057/versions/attempt_0002/source.py",
+      "bytes": 8892,
+      "sha256": "f57b3b7601a9f58fcfe0a81fdb43bd4a34e60329c18a25f1621cb1cef163580e"
+    },
+    {
+      "path": "Toys4K_deer_moose_057/versions/attempt_0003/source.py",
+      "bytes": 9046,
+      "sha256": "2aedb710c41b4cef9157713bbb7fd617f161d441a1ac9f9f5eda830096c5776c"
+    },
+    {
+      "path": "Toys4K_deer_moose_057/versions/attempt_0004/source.py",
+      "bytes": 9704,
+      "sha256": "bb32145b3e01041dd790b6f285872e2cea53a8f83287f3305dde02943ebb6f05"
+    },
+    {
+      "path": "Toys4K_deer_moose_057/versions/original/source.py",
+      "bytes": 8000,
+      "sha256": "f7fc2f86b847223f439aab9e0b1e0291bd75298d473ffa2a798ac4357c9151fb"
+    }
+  ]
+}

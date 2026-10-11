@@ -1,0 +1,315 @@
+{
+  "archive": "evidence.zip",
+  "archive_sha256": "df1e155cb74a504bbeb203fae8b50d6e7cc52abff0cae808eb8e1db2ff9cbb84",
+  "archive_bytes": 448277,
+  "members": [
+    {
+      "path": "original_evidence_provenance.json",
+      "bytes": 10043,
+      "sha256": "a2fd59da58efddf4f2362dd49d91dfbdab76c10b81b4ea0d325ea30feb97b155"
+    },
+    {
+      "path": "role_call_summary.json",
+      "bytes": 1654,
+      "sha256": "795520b33bf5e7e0417028696b6d9d81ed6ba6b57ba665e0d15293d48526773c"
+    },
+    {
+      "path": "role_calls/001_plan.json",
+      "bytes": 44726,
+      "sha256": "c11e9f106731f55aa468aa3c9e979f25ebd021c1308d61ce714eb008453e06cf"
+    },
+    {
+      "path": "role_calls/002_initial_code.json",
+      "bytes": 70951,
+      "sha256": "84e59c588aba4099627df73cb332dbb07c1ee975761459cfecb8e6bc370dc5ff"
+    },
+    {
+      "path": "role_calls/003_code_critic_1.json",
+      "bytes": 110186,
+      "sha256": "e585631f0bf77f77746d45e167c0b47ba5bda1a3afc0764144300612af6b712d"
+    },
+    {
+      "path": "role_calls/004_assembly_repair_2.json",
+      "bytes": 100194,
+      "sha256": "a6bdd7780a04826bacc56ef5cf81ca911e7bbf95ccb8535b8e7d6d74fd3e25dc"
+    },
+    {
+      "path": "role_calls/005_code_critic_2.json",
+      "bytes": 72966,
+      "sha256": "41811cc2148191428f5528b0c599623351ad4a607a2afb719560bb21b1a85076"
+    },
+    {
+      "path": "role_calls/006_assembly_repair_3.json",
+      "bytes": 101676,
+      "sha256": "9d3a2b2ccb1d380c05e37d35e9192b985fb4c42b58de4c92f6f99569c10c4d4f"
+    },
+    {
+      "path": "role_calls/007_code_critic_3.json",
+      "bytes": 98496,
+      "sha256": "40d0c6189a589fe70dfc9aa8c51a28c669c25aca0355a188624c0fa0c6b6581c"
+    },
+    {
+      "path": "role_calls/008_assembly_repair_4.json",
+      "bytes": 96615,
+      "sha256": "1cc0b561fa651c8d95811c7b6404ad4faa14d96173fe457630e6cff159ecf7f5"
+    },
+    {
+      "path": "role_calls/009_code_critic_4.json",
+      "bytes": 104717,
+      "sha256": "8faf210d3b94daa6c5c97049599445431493ec4a57b3f2182bdb106fd23c7d2c"
+    },
+    {
+      "path": "role_calls/010_assembly_repair_5.json",
+      "bytes": 96905,
+      "sha256": "2321530227b0cffc6806866bc35c8daa81553d4cfe6756c3dae8d08c3d16f35e"
+    },
+    {
+      "path": "role_calls/011_code_critic_5.json",
+      "bytes": 100108,
+      "sha256": "256270efb1cc2e29a5bd2af92bb42efdb378481daa047b0a90d11d57001c5f9c"
+    },
+    {
+      "path": "versions/attempt_0001/assembly_overhang.json",
+      "bytes": 2253,
+      "sha256": "c721cec45d42b4f67c857a8bef885effcd96a836ed757ccb28ef8ad71d913560"
+    },
+    {
+      "path": "versions/attempt_0001/assembly_standing.json",
+      "bytes": 2254,
+      "sha256": "9c682b4b06c5d5f74c0db10d86d052b6d0544b52745f1fcdd2d3c8b7197981a3"
+    },
+    {
+      "path": "versions/attempt_0001/assembly_topology.json",
+      "bytes": 2008,
+      "sha256": "2b2f70c2d4b25c743a8bf3f7088cdb8dddf2c4c6e80847c08c30e5c5a7e55937"
+    },
+    {
+      "path": "versions/attempt_0001/code_critique.json",
+      "bytes": 3271,
+      "sha256": "16d7d14e47f3c54d97f7405ba3ae0b054d8d5ba69e88c17b3f9761bac1aee90a"
+    },
+    {
+      "path": "versions/attempt_0001/decision.json",
+      "bytes": 617,
+      "sha256": "5cc8f3f83b413b2ebd2c2ec8613b82278340d7b424377e097955b633be692e3e"
+    },
+    {
+      "path": "versions/attempt_0001/edit_outcome.json",
+      "bytes": 986,
+      "sha256": "2b1129ba658c88848f810356d7307b01f2cdd9ded5bbdfdc2e962911e20506cc"
+    },
+    {
+      "path": "versions/attempt_0001/execution_error.json",
+      "bytes": 1699,
+      "sha256": "108138bf9b6914836e698ca3226bf25b61c3ef7379d95a59bf0d204069f4be12"
+    },
+    {
+      "path": "versions/attempt_0001/geometry_report.json",
+      "bytes": 252,
+      "sha256": "f4931d72ab3b9b331becf142f3198451c271fd057a87f3e6de1eac6b55bccc7d"
+    },
+    {
+      "path": "versions/attempt_0001/proposal.json",
+      "bytes": 439,
+      "sha256": "837dbbea6d755420e8ea0fdea958a51e3abee22a3fabbeb0c206f27ce87353e6"
+    },
+    {
+      "path": "versions/attempt_0001/review_decisions.json",
+      "bytes": 4172,
+      "sha256": "8cddad84c610f453d2e02863889886528ca064951f97d99525a60803a62b4e07"
+    },
+    {
+      "path": "versions/attempt_0002/assembly_overhang.json",
+      "bytes": 2253,
+      "sha256": "28713fd0e49e7d36bd0807ea8cd301a11363172f616a356aaa3709f280a84772"
+    },
+    {
+      "path": "versions/attempt_0002/assembly_standing.json",
+      "bytes": 2254,
+      "sha256": "288017a728b8fc4129e0d7a90e18093fb1f619228066940e2319d1acfd9dc111"
+    },
+    {
+      "path": "versions/attempt_0002/assembly_topology.json",
+      "bytes": 2008,
+      "sha256": "dd506443989184656e543b9acdba0236023cd2457dc334a5c0f7731f603fec94"
+    },
+    {
+      "path": "versions/attempt_0002/code_critique.json",
+      "bytes": 5420,
+      "sha256": "36a55402dec7f55a7c4edc713b6fed1058bcbf0945151e107584ec3d4c577bf4"
+    },
+    {
+      "path": "versions/attempt_0002/decision.json",
+      "bytes": 621,
+      "sha256": "128d21a5db69eb8cd630f50cb55a0377144b09c34c3d21dac18545ebbd1d34bd"
+    },
+    {
+      "path": "versions/attempt_0002/edit_outcome.json",
+      "bytes": 823,
+      "sha256": "f32ea52cac9018735dc6880854a20c6073c1f6f574665dff37f13adb16742243"
+    },
+    {
+      "path": "versions/attempt_0002/execution_error.json",
+      "bytes": 1242,
+      "sha256": "ff16e526a56089409276a4d42eed818588ead91e1231dea54022b4eb96bc3d76"
+    },
+    {
+      "path": "versions/attempt_0002/geometry_report.json",
+      "bytes": 271,
+      "sha256": "cd88ad5b3fdfa39209fdf2b4744f097685e8eff014e640114147a9f91fb18896"
+    },
+    {
+      "path": "versions/attempt_0002/proposal.json",
+      "bytes": 439,
+      "sha256": "837dbbea6d755420e8ea0fdea958a51e3abee22a3fabbeb0c206f27ce87353e6"
+    },
+    {
+      "path": "versions/attempt_0002/review_decisions.json",
+      "bytes": 6404,
+      "sha256": "b255764c2385f593456bd4ceecea2be6708a54851e15222170c796ef5b9df43b"
+    },
+    {
+      "path": "versions/attempt_0003/assembly_overhang.json",
+      "bytes": 2253,
+      "sha256": "6016fac34500cde99e613598156d9fd8906e5aa7e22d502fac448ccb823f6447"
+    },
+    {
+      "path": "versions/attempt_0003/assembly_standing.json",
+      "bytes": 2254,
+      "sha256": "d02c30b4d69c84a67bfb865a94a2ef900971817cc0ac7282c7f9de9abae8d295"
+    },
+    {
+      "path": "versions/attempt_0003/assembly_topology.json",
+      "bytes": 2008,
+      "sha256": "dbc96a968d4f101a827679c223ebc653b858c69a1ae1404e11bf18ad52ab4450"
+    },
+    {
+      "path": "versions/attempt_0003/code_critique.json",
+      "bytes": 6551,
+      "sha256": "b2802a378ccbc1d544bf6ec77500745b1769c0c90c455830d2d50dfadf2a3c44"
+    },
+    {
+      "path": "versions/attempt_0003/decision.json",
+      "bytes": 621,
+      "sha256": "b7c3aebc57a07ac88ac8f4c10af8db4cf038f1f19e418225c5d4f3d668bce1db"
+    },
+    {
+      "path": "versions/attempt_0003/edit_outcome.json",
+      "bytes": 542,
+      "sha256": "20f88aecc301cd4c696aa33338069047d3647349a50b74f7d30343f9785064de"
+    },
+    {
+      "path": "versions/attempt_0003/execution_error.json",
+      "bytes": 1242,
+      "sha256": "8d0daaf56e79088ea7b34e2191cfb487d7fa54015f71b5d9b124a2d88ceea1a4"
+    },
+    {
+      "path": "versions/attempt_0003/geometry_report.json",
+      "bytes": 271,
+      "sha256": "104399cbfa33eb6150bffce70b4a714e006d6cb145f4502a63fe4d2cce9c9d7c"
+    },
+    {
+      "path": "versions/attempt_0003/proposal.json",
+      "bytes": 439,
+      "sha256": "837dbbea6d755420e8ea0fdea958a51e3abee22a3fabbeb0c206f27ce87353e6"
+    },
+    {
+      "path": "versions/attempt_0003/review_decisions.json",
+      "bytes": 7549,
+      "sha256": "e942410db95e9e7e7071867c6a205f1c95bc42724b51149a4e3180b3d3d034d5"
+    },
+    {
+      "path": "versions/attempt_0004/assembly_overhang.json",
+      "bytes": 2253,
+      "sha256": "096527fbc21a563a2ef13393f695405407948cc13f98c01f7dacd47e2adc25ec"
+    },
+    {
+      "path": "versions/attempt_0004/assembly_standing.json",
+      "bytes": 2254,
+      "sha256": "ef3bb8ef13ddad0e0c9235a2ab5d12807720950c3951889c40ca748cb62b1808"
+    },
+    {
+      "path": "versions/attempt_0004/assembly_topology.json",
+      "bytes": 2008,
+      "sha256": "0396015e8c774d2a15b890cf7754a13cab489b32d8a453bafa4f8c18e3381bc5"
+    },
+    {
+      "path": "versions/attempt_0004/code_critique.json",
+      "bytes": 6790,
+      "sha256": "492146287b7beaac70289d93f69d5d8a5540c4a4e412c24d754ec04ac2595918"
+    },
+    {
+      "path": "versions/attempt_0004/decision.json",
+      "bytes": 621,
+      "sha256": "c68d0c83c8657378847bc0c08d8d2698b5e059394755a177d13d061a33a640b3"
+    },
+    {
+      "path": "versions/attempt_0004/edit_outcome.json",
+      "bytes": 542,
+      "sha256": "488a56c4df8faed5b90531caf994ec8d639f086aa42acde21b9b0bc0d390f042"
+    },
+    {
+      "path": "versions/attempt_0004/execution_error.json",
+      "bytes": 1242,
+      "sha256": "a92af0d3034d85ed458c291af1f9d84d85904ff9fcf4fe0308ff91a6651d1649"
+    },
+    {
+      "path": "versions/attempt_0004/geometry_report.json",
+      "bytes": 271,
+      "sha256": "9bb0deadce2496482298f7b80e3662bc0ec2ccdb646593cfec5f3bf783f401c9"
+    },
+    {
+      "path": "versions/attempt_0004/proposal.json",
+      "bytes": 439,
+      "sha256": "837dbbea6d755420e8ea0fdea958a51e3abee22a3fabbeb0c206f27ce87353e6"
+    },
+    {
+      "path": "versions/attempt_0004/review_decisions.json",
+      "bytes": 7802,
+      "sha256": "b2808fd4c685e18eb5b5448616ee5916272853d048230dc846308b05ea1c0813"
+    },
+    {
+      "path": "versions/original/assembly_overhang.json",
+      "bytes": 2129,
+      "sha256": "603387357755430c85c13d6cb61f9dc01ce798c99927b033fda12b7443b1bcb0"
+    },
+    {
+      "path": "versions/original/assembly_standing.json",
+      "bytes": 2128,
+      "sha256": "9a086934cd4b608162ecbef6456fc9f4ef11631d9132ce5bef66567a8f188780"
+    },
+    {
+      "path": "versions/original/assembly_topology.json",
+      "bytes": 1934,
+      "sha256": "089eb772dab35bae53b58809340a6b6655707147f1fb787d90199bf414a542a1"
+    },
+    {
+      "path": "versions/original/code_critique.json",
+      "bytes": 4733,
+      "sha256": "83d89e0380c6d91576685eb3a4e0520d9b27e1bac94d170e6c9bb652b9e8f191"
+    },
+    {
+      "path": "versions/original/decision.json",
+      "bytes": 600,
+      "sha256": "2dc9875ba00290885692b03fce46e0dab66c39944be11735eb50ad13f1137e9a"
+    },
+    {
+      "path": "versions/original/execution_error.json",
+      "bytes": 1523,
+      "sha256": "e260bb88f8d4b3a6c37f65b531e3119862d9fa059e2ba9a234bcec947bf3a16b"
+    },
+    {
+      "path": "versions/original/geometry_report.json",
+      "bytes": 215,
+      "sha256": "0395334710743fe1c009e0406fa953524b92f58d7a8f4c7016d0abba0f201ca1"
+    },
+    {
+      "path": "versions/original/review_decisions.json",
+      "bytes": 5603,
+      "sha256": "908d31774719b80c641a04c178c80b3ab2d9cbd67195a67d76b0a31ffb2f3763"
+    }
+  ],
+  "path_metadata_redacted": true,
+  "inline_images_omitted": true,
+  "numeric_diagnostic_arrays_truncated": false
+}

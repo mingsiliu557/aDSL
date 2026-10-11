@@ -1,0 +1,94 @@
+{
+  "object_name": "Faceted Elk",
+  "components": [
+    {
+      "name": "torso",
+      "description": "Large faceted torso/body, the dominant horizontally elongated mass centered above the leg set; broad barrel-like cross-section with a deeper chest at the front and a slightly narrowing rump toward the rear. Use a low-resolution loft or hull from several polygonal sections to preserve the angular faceted appearance. No through-openings; the spaces beneath the belly and between legs remain open negative space."
+    },
+    {
+      "name": "neck",
+      "description": "Distinct upright neck rising from the front shoulder and blending into the head; substantially narrower than the torso, with a forward-leaning upper profile and faceted tapered cross-sections. Use a short loft or overlapping hull segments rather than a cylindrical neck."
+    },
+    {
+      "name": "head",
+      "description": "Elk head projecting forward from the neck, with a tapered wedge-like skull, angular brow and cheek planes, and a narrower muzzle. Keep the head visibly separate in silhouette from the torso and neck while maintaining a continuous animal form. No facial through-openings are required."
+    },
+    {
+      "name": "muzzle",
+      "description": "Short forward muzzle/nose extension with a blunt, slightly widened terminal profile and a subtly downturned underside; smaller than the cranium and clearly visible in side silhouette. Preserve the open negative space below the muzzle and above the front-leg region."
+    },
+    {
+      "name": "ears",
+      "description": "Two small angular ears mounted high on either side of the head behind the antler bases; each is a thin tapered wedge with a pointed or chamfered tip, splayed slightly outward. The gap between the ears and the antler branches is an intentional visible opening."
+    },
+    {
+      "name": "antlers",
+      "description": "Paired broad branching antlers growing from the top of the skull, extending upward and outward above the 150 mm height envelope. Each antler has a thick faceted base, a main rising beam that curves outward, and multiple separated tine branches with tapered pointed ends. Mirror the overall layout across the central sagittal plane with small silhouette variation if needed; retain clear openings between branches and do not fuse neighboring tines into a solid plate. Use segmented lofts or hulls between sampled beam sections, with tapered terminal sections."
+    },
+    {
+      "name": "front_legs",
+      "description": "Front leg pair descending from the forward underside of the torso, long and relatively slender with faceted tapering joints; each terminates in a distinct compact hoof angled slightly forward. Keep the two front legs separated by a visible gap and grounded at the same stance plane."
+    },
+    {
+      "name": "rear_legs",
+      "description": "Rear leg pair descending from the rump and rear underside, with a characteristic angular or lightly bent hock profile rather than straight cylinders; each narrows toward the ankle and ends in a distinct hoof. Preserve the visible gap between rear legs and the open space between the rear legs and belly."
+    },
+    {
+      "name": "hooves",
+      "description": "Four compact faceted hooves, one at the end of each leg, flattened and slightly wedge-shaped with broad ground-contact bottoms. Hooves must remain visibly distinct from the leg shafts and all four lowest contact regions must share the ground plane without adding a support or stand."
+    },
+    {
+      "name": "tail",
+      "description": "Short tail at the rear of the torso, projecting rearward and slightly upward as a tapered faceted appendage with a small terminal tuft or blunt point. It is much shorter than the torso and must not be mistaken for an additional leg or antler tine."
+    }
+  ],
+  "relations": [
+    "The torso is the root structural mass; the neck attaches at its forward upper shoulder, the head and muzzle extend forward from the neck, and the ears and antler bases mount on the upper head/skull.",
+    "The elk faces toward -x, with the rear and short tail toward +x; +z is vertical and the two antler/leg sides are arranged across the y axis.",
+    "The four legs attach beneath the torso in two separated front/rear pairs. Front legs occupy the forward shoulder region, rear legs occupy the rump region, and all hooves terminate on one common z=0 ground plane.",
+    "The antlers are a paired mirrored functional feature centered on the skull and spread primarily in the y direction while rising in +z; branch gaps are intentional negative space, not missing geometry.",
+    "The ears sit between the head and antler bases, the muzzle projects ahead of the face, and the tail projects from the rear upper torso with a slight upward angle.",
+    "All semantic components are grouped into the single print part elk_body because multiple print parts are not required; the grouping preserves the continuous animal appearance and avoids artificial seams or connectors.",
+    "The single-part plan uses ordinary native modeling operations such as low-resolution lofts, hulls, tapered extrusions, and transforms within one Asset hierarchy. No assembly connector is needed because there are no between-part interfaces."
+  ],
+  "critic_checklist": [
+    "The final object is a complete static faceted elk with torso, distinct neck, head, muzzle, ears, paired branching antlers, four legs, four hooves, and a short tail all present.",
+    "The object uses one scene unit per millimetre, a right-handed Z-up coordinate system, and its final intended-pose dimensions are exactly [141.91845400702914, 141.12070655927337, 150.0] mm within the workflow's measurement tolerance; the longest dimension is 150 mm.",
+    "All four hooves contact the same ground plane, the animal remains upright in its natural four-legged stance, and no stand, pedestal, support, unrelated prop, or altered pose is present.",
+    "The torso is the dominant mass, the neck is visibly narrower and distinct, and the head and muzzle project forward with recognizable elk proportions rather than forming a generic quadruped blob.",
+    "There are exactly four visually identifiable legs and four visually identifiable hooves; front and rear leg pairs remain separated by open negative space under the belly and between adjacent legs.",
+    "The rear legs retain an angular hock-like bend, while the front legs descend from the chest with a mostly straight tapered profile; no leg merges into a neighboring leg or hoof.",
+    "The antlers extend above the head and are broad, asymmetric-looking in silhouette only where appropriate, with two substantial main beams and multiple clearly separated branching tines on each side.",
+    "Antler branches remain connected to the skull through substantial bases, but adjacent tines do not collapse into a solid sheet; visible openings between the main beam and branches are preserved.",
+    "The ears, tail, muzzle, and hooves remain visible in the primary reference view and are not swallowed by the torso, neck, antler bases, or ground plane.",
+    "The silhouette remains faceted and low-poly: broad planar transitions and angular section changes are intentional, with no unrelated smooth decorative geometry or excessive subdivision that destroys the reference appearance.",
+    "The tail is short, rearward-directed, and clearly distinct from the rear legs; it does not extend beyond the intended overall length envelope.",
+    "The single planned print part contains every semantic component, so no connector or assembly interface is required; the native FixedAssembly API is used with the torso-rooted print part and no manual second-part placement.",
+    "The assembled scene contains no extra geometry after assembly, and the visible result is the complete use-pose object rather than an exploded or supported presentation."
+  ],
+  "print_parts": [
+    {
+      "id": "elk_body",
+      "components": [
+        "torso",
+        "neck",
+        "head",
+        "muzzle",
+        "ears",
+        "antlers",
+        "front_legs",
+        "rear_legs",
+        "hooves",
+        "tail"
+      ]
+    }
+  ],
+  "connections": [],
+  "root_part": "elk_body",
+  "mm_per_unit": 1.0,
+  "final_size_mm": [
+    141.91845400702914,
+    141.12070655927337,
+    150.0
+  ]
+}

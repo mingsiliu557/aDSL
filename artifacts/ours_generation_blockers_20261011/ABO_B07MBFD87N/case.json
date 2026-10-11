@@ -1,0 +1,23 @@
+{
+  "id": "ABO_B07MBFD87N",
+  "case_id": "ABO_B07MBFD87N",
+  "source": "ABO",
+  "source_id": "B07MBFD87N",
+  "requirement": "Create the complete static object shown in the reference image. A table lamp with a cylindrical shade, a narrow neck and a turned pedestal base with several rounded changes in diameter. Keep the lamp upright on its original pedestal base. Preserve all visible major components, proportions, and openings. Target overall dimensions in the intended use pose are approximately 68.5989 x 68.5989 x 150.0000 mm, with the longest dimension 150 mm. Use a right-handed Z-up coordinate system, with one scene unit equal to one millimetre. Build the reference object without adding unrelated stands, supports, or changing its use pose.",
+  "input_image": "input.png",
+  "input_sha256": "2b61990a5caff9aed0090f8024a68fb32a5084f0f508014eb07343542a55437a",
+  "final_size_mm": [
+    68.59887936937257,
+    68.5988891875806,
+    150.0
+  ],
+  "voxel_pitch_mm": 6.859887936937257,
+  "standing_applicable": true,
+  "evaluation_scale": "longest_extent_150_mm",
+  "ordinary_control": false,
+  "code_commit": "810f713d00058eeec58ff2f226ad48d12aaa2505",
+  "model": "gpt-5.6-sol",
+  "max_rounds": 5,
+  "source_repair_limit": 4,
+  "fea_enabled": false
+}

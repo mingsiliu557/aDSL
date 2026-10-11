@@ -1,0 +1,190 @@
+{
+  "case_id": "Toys4K_deer_moose_057",
+  "code_commit": "810f713d00058eeec58ff2f226ad48d12aaa2505",
+  "model": "gpt-5.6-sol",
+  "generation": {
+    "status": "generation_failed",
+    "max_rounds": 5,
+    "initial_generation_limit": 1,
+    "source_repair_limit": 4,
+    "started_at": 1791709328.1365037,
+    "initial_generation_reserved": true,
+    "reason": "native workflow returned no usable selected source/GLB",
+    "actual_initial_calls": 1,
+    "actual_source_repairs": 4,
+    "unknown_usage_role_calls": 0,
+    "finished_at": 1791712778.5652797,
+    "elapsed_seconds": 3450.4287765026093
+  },
+  "selected_glb_available": false,
+  "stop_reason": "round_budget_exhausted",
+  "retained_version": "original",
+  "working_version": "attempt_0004",
+  "max_rounds": 5,
+  "next_round": 6,
+  "usage": {
+    "requests": 31,
+    "input_tokens": 531771,
+    "output_tokens": 21630,
+    "reasoning_tokens": 8677,
+    "cached_tokens": 204159,
+    "cache_write_tokens": 0,
+    "total_tokens": 553401,
+    "cost": null
+  },
+  "versions": [
+    {
+      "version_id": "original",
+      "source": "versions/original/source.py",
+      "source_sha256": "f7fc2f86b847223f439aab9e0b1e0291bd75298d473ffa2a798ac4357c9151fb",
+      "edit_purpose": "required_repair",
+      "accepted": false,
+      "reason": "assembly_required_checks_not_passed",
+      "manufacturing_status": null,
+      "display_status": null,
+      "checker_statuses": {
+        "assembly_topology": "INDETERMINATE",
+        "assembly_overhang": "INDETERMINATE",
+        "assembly_standing": "INDETERMINATE"
+      },
+      "failures": [
+        {
+          "code": "EXECUTION_UNAVAILABLE",
+          "stage": null,
+          "part_id": null,
+          "node_path": null,
+          "reason": "ValueError: loft: positions must be finite and strictly increasing",
+          "message": null,
+          "output_role": null,
+          "file": null
+        }
+      ],
+      "display_failures": [],
+      "evidence_directory": "versions/original/",
+      "original_record_hash": "be78b70feb650b107dfc46376ce5657ee2b9ce3bf7d9dbf02531d5dd4da51739"
+    },
+    {
+      "version_id": "attempt_0001",
+      "source": "versions/attempt_0001/source.py",
+      "source_sha256": "78bf9fd73024a54a15dfc430c2edd55bd92b4d8ee587852b8a69902719ed9741",
+      "edit_purpose": "required_repair",
+      "accepted": false,
+      "reason": "assembly_required_checks_not_passed",
+      "manufacturing_status": null,
+      "display_status": null,
+      "checker_statuses": {
+        "assembly_topology": "INDETERMINATE",
+        "assembly_overhang": "INDETERMINATE",
+        "assembly_standing": "INDETERMINATE"
+      },
+      "failures": [
+        {
+          "code": "EXECUTION_UNAVAILABLE",
+          "stage": null,
+          "part_id": null,
+          "node_path": null,
+          "reason": "ValueError: loft: positions must be finite and strictly increasing",
+          "message": null,
+          "output_role": null,
+          "file": null
+        }
+      ],
+      "display_failures": [],
+      "evidence_directory": "versions/attempt_0001/",
+      "original_record_hash": "09f74bdb90ca9a9fb469719f707806c57f7f3fb4866f0a43feb534ecf8c7bffe"
+    },
+    {
+      "version_id": "attempt_0002",
+      "source": "versions/attempt_0002/source.py",
+      "source_sha256": "f57b3b7601a9f58fcfe0a81fdb43bd4a34e60329c18a25f1621cb1cef163580e",
+      "edit_purpose": "required_repair",
+      "accepted": false,
+      "reason": "assembly_required_checks_not_passed",
+      "manufacturing_status": null,
+      "display_status": null,
+      "checker_statuses": {
+        "assembly_topology": "INDETERMINATE",
+        "assembly_overhang": "INDETERMINATE",
+        "assembly_standing": "INDETERMINATE"
+      },
+      "failures": [
+        {
+          "code": "EXECUTION_UNAVAILABLE",
+          "stage": null,
+          "part_id": null,
+          "node_path": null,
+          "reason": "AttributeError: 'Legs' object has no attribute 'children'. Did you mean: '_children'?",
+          "message": null,
+          "output_role": null,
+          "file": null
+        }
+      ],
+      "display_failures": [],
+      "evidence_directory": "versions/attempt_0002/",
+      "original_record_hash": "ce2b5ddd2998a9c8ebc03b00becba78e396d6ae73cd04e21db6dde92c9aa019b"
+    },
+    {
+      "version_id": "attempt_0003",
+      "source": "versions/attempt_0003/source.py",
+      "source_sha256": "2aedb710c41b4cef9157713bbb7fd617f161d441a1ac9f9f5eda830096c5776c",
+      "edit_purpose": "required_repair",
+      "accepted": false,
+      "reason": "assembly_required_checks_not_passed",
+      "manufacturing_status": null,
+      "display_status": null,
+      "checker_statuses": {
+        "assembly_topology": "INDETERMINATE",
+        "assembly_overhang": "INDETERMINATE",
+        "assembly_standing": "INDETERMINATE"
+      },
+      "failures": [
+        {
+          "code": "EXECUTION_UNAVAILABLE",
+          "stage": null,
+          "part_id": null,
+          "node_path": null,
+          "reason": "AttributeError: 'Legs' object has no attribute 'children'. Did you mean: '_children'?",
+          "message": null,
+          "output_role": null,
+          "file": null
+        }
+      ],
+      "display_failures": [],
+      "evidence_directory": "versions/attempt_0003/",
+      "original_record_hash": "848dd2f72050fc03abc42b9e8b3f2fe315d21c430b2c883eff383dea5c5b0341"
+    },
+    {
+      "version_id": "attempt_0004",
+      "source": "versions/attempt_0004/source.py",
+      "source_sha256": "bb32145b3e01041dd790b6f285872e2cea53a8f83287f3305dde02943ebb6f05",
+      "edit_purpose": "required_repair",
+      "accepted": false,
+      "reason": "assembly_required_checks_not_passed",
+      "manufacturing_status": null,
+      "display_status": null,
+      "checker_statuses": {
+        "assembly_topology": "INDETERMINATE",
+        "assembly_overhang": "INDETERMINATE",
+        "assembly_standing": "INDETERMINATE"
+      },
+      "failures": [
+        {
+          "code": "EXECUTION_UNAVAILABLE",
+          "stage": null,
+          "part_id": null,
+          "node_path": null,
+          "reason": "AttributeError: 'Legs' object has no attribute 'children'. Did you mean: '_children'?",
+          "message": null,
+          "output_role": null,
+          "file": null
+        }
+      ],
+      "display_failures": [],
+      "evidence_directory": "versions/attempt_0004/",
+      "original_record_hash": "2d7dd14dc2e34611e17bcab5ee90111d3090e3db81cd116644a4f2bbb6357ffa"
+    }
+  ],
+  "new_model_calls_for_packaging": 0,
+  "original_ledger_sha256": "9a986910a01f2b1afe0ccd3ca04b6ef6dc2b62d83a0c81bb9c130b5acde49faa",
+  "not_a_resume_ledger": true
+}

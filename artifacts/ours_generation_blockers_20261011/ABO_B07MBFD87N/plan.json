@@ -1,0 +1,62 @@
+{
+  "object_name": "static_turned_pedestal_table_lamp",
+  "components": [
+    {
+      "name": "cylindrical_shade",
+      "description": "Cylindrical lamp shade occupying approximately z=92 to z=150 mm. Dominant outline is a straight-sided circular drum with a constant outside diameter of 68.5988891875806 mm, centered on the Z axis. The side wall is substantially taller than its radial thickness and has nearly vertical generatrices, with subtly softened or rounded upper and lower rim transitions rather than a faceted polygonal outline. Preserve the cylindrical cavity and visible opening(s): model it as a hollow shade with an unobstructed lower opening around the neck and a corresponding upper opening or recessed interior, while keeping the exterior visually opaque and continuous. Use a revolved annular profile or equivalent rotate_extrude profile with sampled rounded rim sections; do not add a bulb, wire, stand, or unrelated ornament."
+    },
+    {
+      "name": "narrow_neck_and_collar",
+      "description": "Narrow centered neck and shade-transition collar from approximately z=82 to z=96 mm. The neck is rotationally symmetric and considerably narrower than the shade, with a short flared shoulder immediately beneath the shade, a small collar or cap at the shade interface, and a slender central stem descending into the pedestal. The cross-section changes through several small convex and concave radius transitions: a shallow disk-like upper collar, a narrow waist, and a smoothly blended connection into the turned base. Construct as a sampled axisymmetric profile using rotate_extrude, with no lateral tilt or off-axis displacement."
+    },
+    {
+      "name": "turned_pedestal_base",
+      "description": "Turned pedestal base and stem from z=0 to approximately z=92 mm, centered at x=y=0. Dominant outline is a vertically stacked, rotationally symmetric profile with multiple rounded diameter changes. The lower foot is a broad, gently domed and stepped circular plinth that provides the ground contact; above it are a narrower inward waist, a rounded bead or torus-like bulge, another constricted section, and progressively smaller rounded transitions leading to the neck. Include the visible concave valleys between beads and the convex bulges, retaining smooth silhouette continuity and a stable flat underside at z=0. The base diameter remains below the shade diameter, with the shade defining the approximately 68.5989 mm maximum x/y extent. Build from one ordered (radius,z) profile and use rotate_extrude with sufficient radial and profile sampling to avoid faceting."
+    },
+    {
+      "name": "central_mounting_core",
+      "description": "Continuous internal mounting and transition material joining the neck, shade collar, and pedestal axis. This is not a separate decorative component: reserve sufficient centered material beneath the shade opening and through the neck so the complete static lamp remains one coherent modeled object. Keep all internal material rotationally centered and concealed from the exterior except where the shade opening naturally reveals the neck."
+    }
+  ],
+  "relations": [
+    "The cylindrical shade is centered over and structurally joined to the narrow neck and collar; its axis is coincident with the pedestal axis.",
+    "The narrow neck transitions downward into the turned pedestal base through continuous centered mounting material, with no articulated joints or moving parts.",
+    "The turned pedestal base is the lowest component and supplies the sole ground contact; its broad lower foot supports the narrower upper stem and shade.",
+    "The shade opening surrounds the upper collar/neck while leaving the intended central opening visible; the neck must not protrude laterally beyond the shade.",
+    "All components are rotationally symmetric about the world Z axis and remain in the original upright use pose.",
+    "All semantic components are grouped into one print part because the object is a static continuous lamp and no required physical interface separates its visible regions. The lower pedestal face is the preferred bed face; this avoids unsupported cantilevers and preserves the continuous turned silhouette."
+  ],
+  "critic_checklist": [
+    "The final asset is upright in a right-handed Z-up system with its rotational axis on x=0, y=0 and its lowest pedestal contact at z=0.",
+    "The complete intended-use bounding size is exactly or within modeling tolerance of 68.59887936937257 mm in X, 68.5988891875806 mm in Y, and 150.0 mm in Z; the longest dimension is Z=150 mm.",
+    "The cylindrical shade is the maximum-diameter component, has a centered circular outline, and does not become conical, tilted, oval, or faceted in the rendered silhouette.",
+    "The shade preserves a real hollow cavity and visible lower opening around the neck; no cap, solid fill, bulb, wire, or unrelated support blocks the intended opening.",
+    "The shade has a tall straight drum profile with softened rim transitions and occupies the upper portion of the lamp, while the pedestal and neck together occupy the lower portion in the reference proportions.",
+    "The neck remains narrow relative to the shade and is centered directly above the turned pedestal without lateral offset or visible discontinuity.",
+    "The pedestal has a broad flat or nearly flat bottom contact, multiple visible convex rounded beads and concave diameter valleys, and a stable wider lower foot; it is not replaced by a plain cylinder or cone.",
+    "All major parts are rotationally symmetric around Z, with smooth sampled profile transitions and no accidental seams, self-intersections, spikes, or disconnected visible pieces.",
+    "The lamp remains a single static continuous print part named lamp_body; no connector, extra stand, external brace, unrelated support, or changed use pose is introduced.",
+    "The final scene contains the shade, neck/collar, turned pedestal, and required concealed mounting material, with no missing major component relative to the reference image.",
+    "The modeled appearance is judged in the upright use pose and preserves the reference's overall shade-to-base proportions, with the shade broad and cylindrical and the base visibly narrower but vertically detailed.",
+    "Use one scene unit per millimetre and retain the frozen single-sided fit allowance of 0.2 mm in the assembly configuration even though this single print part has no tab-slot interfaces."
+  ],
+  "print_parts": [
+    {
+      "id": "lamp_body",
+      "components": [
+        "cylindrical_shade",
+        "narrow_neck_and_collar",
+        "turned_pedestal_base",
+        "central_mounting_core"
+      ]
+    }
+  ],
+  "connections": [],
+  "root_part": "lamp_body",
+  "mm_per_unit": 1.0,
+  "final_size_mm": [
+    68.59887936937257,
+    68.5988891875806,
+    150.0
+  ]
+}

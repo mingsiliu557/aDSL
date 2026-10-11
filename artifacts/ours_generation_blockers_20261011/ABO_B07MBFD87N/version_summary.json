@@ -1,0 +1,270 @@
+{
+  "case_id": "ABO_B07MBFD87N",
+  "code_commit": "810f713d00058eeec58ff2f226ad48d12aaa2505",
+  "model": "gpt-5.6-sol",
+  "generation": {
+    "status": "generation_failed",
+    "max_rounds": 5,
+    "initial_generation_limit": 1,
+    "source_repair_limit": 4,
+    "started_at": 1791705212.786163,
+    "initial_generation_reserved": true,
+    "reason": "native workflow returned no usable selected source/GLB",
+    "actual_initial_calls": 1,
+    "actual_source_repairs": 4,
+    "unknown_usage_role_calls": 0,
+    "finished_at": 1791709304.6333723,
+    "elapsed_seconds": 4091.84720993042
+  },
+  "selected_glb_available": false,
+  "stop_reason": "round_budget_exhausted",
+  "retained_version": "original",
+  "working_version": "attempt_0004",
+  "max_rounds": 5,
+  "next_round": 6,
+  "usage": {
+    "requests": 42,
+    "input_tokens": 982044,
+    "output_tokens": 32052,
+    "reasoning_tokens": 12852,
+    "cached_tokens": 281088,
+    "cache_write_tokens": 0,
+    "total_tokens": 1014096,
+    "cost": null
+  },
+  "versions": [
+    {
+      "version_id": "original",
+      "source": "versions/original/source.py",
+      "source_sha256": "297f37e00d97dcf2546fe2fbcce755f7b4b9b70f891432e68602fbd5433b8d7e",
+      "edit_purpose": "required_repair",
+      "accepted": false,
+      "reason": "interface_or_appearance_rejected",
+      "manufacturing_status": "PASS",
+      "display_status": "FAIL",
+      "checker_statuses": {
+        "assembly_topology": "PASS",
+        "assembly_overhang": "PASS",
+        "assembly_standing": "PASS"
+      },
+      "failures": [],
+      "display_failures": [
+        {
+          "code": "TARGET_PRECISION_UNREPRESENTABLE",
+          "stage": "target_precision",
+          "part_id": "lamp_body",
+          "node_path": "lamp_body",
+          "reason": null,
+          "message": "Mesh64 result is valid but no bounded float32 conversion passed validation",
+          "output_role": "display",
+          "file": "lamp_body.glb"
+        },
+        {
+          "code": "TARGET_PRECISION_UNREPRESENTABLE",
+          "stage": "target_precision",
+          "part_id": "lamp_body",
+          "node_path": "lamp_body",
+          "reason": null,
+          "message": "Mesh64 result is valid but no bounded float32 conversion passed validation",
+          "output_role": "display",
+          "file": "scene.glb"
+        },
+        {
+          "code": "TARGET_PRECISION_UNREPRESENTABLE",
+          "stage": "target_precision",
+          "part_id": "lamp_body",
+          "node_path": "lamp_body",
+          "reason": null,
+          "message": "Mesh64 result is valid but no bounded float32 conversion passed validation",
+          "output_role": "display",
+          "file": "exploded.glb"
+        }
+      ],
+      "evidence_directory": "versions/original/",
+      "original_record_hash": "0eba9683e708198e1991ec3f1d069415c35ba391315714f57ffef52b6c10efe7"
+    },
+    {
+      "version_id": "attempt_0001",
+      "source": "versions/attempt_0001/source.py",
+      "source_sha256": "c8c829c42e9b31e382272a1c926ea1b37fb6b6ae3207c6f212c84b80de1c25d8",
+      "edit_purpose": "required_repair",
+      "accepted": false,
+      "reason": "previously_valid_check_regressed",
+      "manufacturing_status": "FAIL",
+      "display_status": "FAIL",
+      "checker_statuses": {
+        "assembly_topology": "INDETERMINATE",
+        "assembly_overhang": "INDETERMINATE",
+        "assembly_standing": "INDETERMINATE"
+      },
+      "failures": [
+        {
+          "code": "INPUT_GEOMETRY_INVALID",
+          "stage": "input_geometry",
+          "part_id": "lamp_body",
+          "node_path": "lamp_body/turned_pedestal_base/multi_bead_pedestal_turning",
+          "reason": "INPUT_GEOMETRY_INVALID: mesh is not closed, manifold and consistently oriented",
+          "message": "mesh is not closed, manifold and consistently oriented",
+          "output_role": null,
+          "file": null
+        }
+      ],
+      "display_failures": [],
+      "evidence_directory": "versions/attempt_0001/",
+      "original_record_hash": "5babfb3bbfa97d1813aac36cea97aa59f35a2fab3915322407445427cf7999dd"
+    },
+    {
+      "version_id": "attempt_0002",
+      "source": "versions/attempt_0002/source.py",
+      "source_sha256": "003f7382a00e21279f2cd3fa29de0f67b55b18b94e0a48442e1a6ca76a5bb2c6",
+      "edit_purpose": "required_repair",
+      "accepted": false,
+      "reason": "interface_or_appearance_rejected",
+      "manufacturing_status": "PASS",
+      "display_status": "FAIL",
+      "checker_statuses": {
+        "assembly_topology": "PASS",
+        "assembly_overhang": "PASS",
+        "assembly_standing": "PASS"
+      },
+      "failures": [],
+      "display_failures": [
+        {
+          "code": "TARGET_PRECISION_UNREPRESENTABLE",
+          "stage": "target_precision",
+          "part_id": "lamp_body",
+          "node_path": "lamp_body",
+          "reason": null,
+          "message": "Mesh64 result is valid but no bounded float32 conversion passed validation",
+          "output_role": "display",
+          "file": "lamp_body.glb"
+        },
+        {
+          "code": "TARGET_PRECISION_UNREPRESENTABLE",
+          "stage": "target_precision",
+          "part_id": "lamp_body",
+          "node_path": "lamp_body",
+          "reason": null,
+          "message": "Mesh64 result is valid but no bounded float32 conversion passed validation",
+          "output_role": "display",
+          "file": "scene.glb"
+        },
+        {
+          "code": "TARGET_PRECISION_UNREPRESENTABLE",
+          "stage": "target_precision",
+          "part_id": "lamp_body",
+          "node_path": "lamp_body",
+          "reason": null,
+          "message": "Mesh64 result is valid but no bounded float32 conversion passed validation",
+          "output_role": "display",
+          "file": "exploded.glb"
+        }
+      ],
+      "evidence_directory": "versions/attempt_0002/",
+      "original_record_hash": "79764fd2e7e023b665cd6b0577909248b420fd6ae836f18f9924c6e20186e9d2"
+    },
+    {
+      "version_id": "attempt_0003",
+      "source": "versions/attempt_0003/source.py",
+      "source_sha256": "297f37e00d97dcf2546fe2fbcce755f7b4b9b70f891432e68602fbd5433b8d7e",
+      "edit_purpose": "required_repair",
+      "accepted": false,
+      "reason": "interface_or_appearance_rejected",
+      "manufacturing_status": "PASS",
+      "display_status": "FAIL",
+      "checker_statuses": {
+        "assembly_topology": "PASS",
+        "assembly_overhang": "PASS",
+        "assembly_standing": "PASS"
+      },
+      "failures": [],
+      "display_failures": [
+        {
+          "code": "TARGET_PRECISION_UNREPRESENTABLE",
+          "stage": "target_precision",
+          "part_id": "lamp_body",
+          "node_path": "lamp_body",
+          "reason": null,
+          "message": "Mesh64 result is valid but no bounded float32 conversion passed validation",
+          "output_role": "display",
+          "file": "lamp_body.glb"
+        },
+        {
+          "code": "TARGET_PRECISION_UNREPRESENTABLE",
+          "stage": "target_precision",
+          "part_id": "lamp_body",
+          "node_path": "lamp_body",
+          "reason": null,
+          "message": "Mesh64 result is valid but no bounded float32 conversion passed validation",
+          "output_role": "display",
+          "file": "scene.glb"
+        },
+        {
+          "code": "TARGET_PRECISION_UNREPRESENTABLE",
+          "stage": "target_precision",
+          "part_id": "lamp_body",
+          "node_path": "lamp_body",
+          "reason": null,
+          "message": "Mesh64 result is valid but no bounded float32 conversion passed validation",
+          "output_role": "display",
+          "file": "exploded.glb"
+        }
+      ],
+      "evidence_directory": "versions/attempt_0003/",
+      "original_record_hash": "3514dc8ca1bbaffb266831d84c5877fc2d0136ed58e402acdac8c0d769cb0ce7"
+    },
+    {
+      "version_id": "attempt_0004",
+      "source": "versions/attempt_0004/source.py",
+      "source_sha256": "2f9adfc59ae03cc38a3b0c1a3b072c242c6c293f6d6bfc1747027148b5dd9d6b",
+      "edit_purpose": "required_repair",
+      "accepted": false,
+      "reason": "interface_or_appearance_rejected",
+      "manufacturing_status": "PASS",
+      "display_status": "FAIL",
+      "checker_statuses": {
+        "assembly_topology": "PASS",
+        "assembly_overhang": "PASS",
+        "assembly_standing": "PASS"
+      },
+      "failures": [],
+      "display_failures": [
+        {
+          "code": "TARGET_PRECISION_UNREPRESENTABLE",
+          "stage": "target_precision",
+          "part_id": "lamp_body",
+          "node_path": "lamp_body",
+          "reason": null,
+          "message": "Mesh64 result is valid but no bounded float32 conversion passed validation",
+          "output_role": "display",
+          "file": "lamp_body.glb"
+        },
+        {
+          "code": "TARGET_PRECISION_UNREPRESENTABLE",
+          "stage": "target_precision",
+          "part_id": "lamp_body",
+          "node_path": "lamp_body",
+          "reason": null,
+          "message": "Mesh64 result is valid but no bounded float32 conversion passed validation",
+          "output_role": "display",
+          "file": "scene.glb"
+        },
+        {
+          "code": "TARGET_PRECISION_UNREPRESENTABLE",
+          "stage": "target_precision",
+          "part_id": "lamp_body",
+          "node_path": "lamp_body",
+          "reason": null,
+          "message": "Mesh64 result is valid but no bounded float32 conversion passed validation",
+          "output_role": "display",
+          "file": "exploded.glb"
+        }
+      ],
+      "evidence_directory": "versions/attempt_0004/",
+      "original_record_hash": "23109064a100ca70d63fc8890636ebe7e275a1f45405ee3afc8f225e61426aab"
+    }
+  ],
+  "new_model_calls_for_packaging": 0,
+  "original_ledger_sha256": "1f1939c2824bc09b055f353091211d6d455ca45d772d158504751cd67dd2b881",
+  "not_a_resume_ledger": true
+}

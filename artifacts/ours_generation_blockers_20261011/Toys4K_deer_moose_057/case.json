@@ -1,0 +1,23 @@
+{
+  "id": "Toys4K_deer_moose_057",
+  "case_id": "Toys4K_deer_moose_057",
+  "source": "Toys4K",
+  "source_id": "deer_moose_057",
+  "requirement": "Create the complete static object shown in the reference image. A faceted elk with broad branching antlers, a large torso, four legs with hooves, a distinct neck and head, and a short tail. Keep the original ground stance on the four hooved legs, with antlers extending above the head. Preserve all visible major components, proportions, and openings. Target overall dimensions in the intended use pose are approximately 141.9185 x 141.1207 x 150.0000 mm, with the longest dimension 150 mm. Use a right-handed Z-up coordinate system, with one scene unit equal to one millimetre. Build the reference object without adding unrelated stands, supports, or changing its use pose.",
+  "input_image": "input.png",
+  "input_sha256": "e3d3ce3cc593cbb5de14527701d0407d02bd8f6702a8456210bf3df0c7cfe417",
+  "final_size_mm": [
+    141.91845400702914,
+    141.12070655927337,
+    150.0
+  ],
+  "voxel_pitch_mm": 14.112070655927338,
+  "standing_applicable": true,
+  "evaluation_scale": "longest_extent_150_mm",
+  "ordinary_control": false,
+  "code_commit": "810f713d00058eeec58ff2f226ad48d12aaa2505",
+  "model": "gpt-5.6-sol",
+  "max_rounds": 5,
+  "source_repair_limit": 4,
+  "fea_enabled": false
+}
