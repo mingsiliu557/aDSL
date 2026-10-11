@@ -77,8 +77,7 @@ def input_observation(value):
             failures += feedback.get('unique_failure_count', 0)
     return dict(text_chars=sum(map(len, texts)), text_utf8_bytes=sum(len(t.encode()) for t in texts),
                 image_count=image_count, evaluation_feedback_bytes=feedback_bytes, unique_failure_count=failures)
-PARTITION_OBJECTIVE = dict(method='dapper_fdm_2015', alpha=.3, r_vox=.1,
-                           orientation_set='axis_aligned_24', layout='independent_bed')
+from adsl.agents.partition_score import OBJECTIVE as PARTITION_OBJECTIVE
 ASSEMBLY_REQUIREMENT = '''Use the native FixedAssembly / TabSlot manufacturing assembly API.
 Preserve the requested appearance and function. Use the Planner's component and
 initial connection plan; existing authorized Engineering feedback may regroup semantic
@@ -210,8 +209,10 @@ def request_fields(case, arm, physics):
     if arm == 'ours':
         frozen = json.loads(json.dumps(physics))
         frozen.pop('fea', None)
-        frozen.setdefault('overhang', {}).update(partition_objective=PARTITION_OBJECTIVE,
-                                                partition_editable=True)
+        from adsl.agents.partition_score import objective_config
+        overhang = frozen.setdefault('overhang', {})
+        overhang['partition_objective'] = objective_config(overhang.get('partition_objective',PARTITION_OBJECTIVE))
+        overhang['partition_editable'] = True
         fields.update(requirement=fields['requirement'] + '\n\n' + ASSEMBLY_REQUIREMENT,
                       fixed_assembly=dict(mm_per_unit=1., fit_offset_mm=.2,
                                           final_size_mm=case['final_size_mm'],

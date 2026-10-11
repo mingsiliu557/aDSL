@@ -103,7 +103,8 @@ remain unsupported.
 
 ## Optional partition objective
 
-`physics.overhang.partition_objective` enables `dapper_fdm_2015` with alpha=0.3,
+`physics.overhang.partition_objective` enables the Dapper-form `dapper_fdm_2015` objective with new-run alpha=0.2 (a project choice),
+while explicitly frozen alpha=0.3 remains supported. Configuration hashes distinguish them. Other settings remain
 r_vox=0.1, orientation_set=axis_aligned_24 and layout=independent_bed. Each final
 print solid, including connectors, is evaluated against one immutable body reference.
 Score `(reference_voxels - gap_voxels) / print_part_count**0.3` is maximized; negative

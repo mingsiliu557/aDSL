@@ -34,7 +34,7 @@ Ours directly instantiates the existing workflow's
 FixedAssembly branch with `visual_only`, `mm_per_unit=1`, `fit_offset_mm=0.2`,
 the case dimensions, topology/overhang, and standing except for the flying
 dragon. Partition repair is enabled with the existing Dapper objective
-`alpha=0.3`, `r_vox=0.1`, 24 axis-aligned rotations, and independent beds. FEA is
+new-run `alpha=0.2` (Dapper-form with a project-selected exponent), `r_vox=0.1`, 24 axis-aligned rotations, and independent beds. FEA is
 disabled. The native `RepairPolicy` time budget stays at its existing default.
 
 Both generation renderers use CPU software Eevee, eight original native camera
@@ -128,3 +128,5 @@ from the configured ours code root if the adjacent helper is missing and no
 checkpoint exists. Its SHA is part of the new frozen fingerprint. It has only
 standard-library imports and works in the official baseline environment without
 installing ours. Existing completed snapshots/fingerprints must not be rewritten.
+
+Frozen alpha=0.3 requests keep their original exponent and reference/configuration hashes on resume. Scores across the two configurations are not comparable.

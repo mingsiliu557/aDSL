@@ -151,3 +151,8 @@ Keep loft profiles and strictly increasing positions paired when changing order.
 Asset.attach_part establishes the chosen named attribute; retain attached objects
 or use that named attribute. There is no documented .children collection; do not
 replace it with private _children. Mesh internals and checker settings stay fixed.
+
+Partition scoring uses the Dapper-form (V_ref-G)/N**alpha. New runs default to
+alpha=0.2 (a project choice); frozen alpha=0.3 runs keep their original configuration.
+Use the actual measured alpha and strictly exclusive gap bounds. Do not change the
+run configuration or compare scores with different reference/config hashes.

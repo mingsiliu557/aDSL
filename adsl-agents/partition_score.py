@@ -1,4 +1,6 @@
-"""Dapper (2015) FDM objective with independent beds, not a packing algorithm.
+"""Dapper-form FDM objective: default exponent .2, frozen legacy .3 supported.
+
+Independent beds, not a packing algorithm or exact paper parameter reproduction.
 
 All occupancy uses positive material/cell intersection. Face-only contact does
 not thicken grid-aligned surfaces. No face-size or support-volume threshold.
@@ -12,7 +14,7 @@ from pathlib import Path
 
 import numpy as np
 
-OBJECTIVE = dict(method='dapper_fdm_2015', alpha=.3, r_vox=.1,
+OBJECTIVE = dict(method='dapper_fdm_2015', alpha=.2, r_vox=.1,
                  orientation_set='axis_aligned_24', layout='independent_bed')
 SCHEMA = 1
 
@@ -22,9 +24,11 @@ def digest(value):
 
 
 def objective_config(config):
-    if config != OBJECTIVE:
-        raise ValueError('partition_objective requires dapper_fdm_2015, alpha=0.3, r_vox=0.1, axis_aligned_24, independent_bed')
-    return dict(OBJECTIVE)
+    if (not isinstance(config, dict) or set(config) != set(OBJECTIVE)
+            or config.get('alpha') not in (.2,.3)
+            or any(config.get(k) != v for k,v in OBJECTIVE.items() if k != 'alpha')):
+        raise ValueError('partition_objective requires dapper_fdm_2015, alpha=0.2 or frozen 0.3, r_vox=0.1, axis_aligned_24, independent_bed')
+    return dict(config)
 
 
 def evaluation_hash(config):
@@ -129,10 +133,13 @@ def partition_score_guidance(objective):
             v < 0 or g < 0 or n < 1 or n != int(n) or alpha <= 0):
         return dict(status='UNAVAILABLE',reason='invalid partition measurement')
     upper=v/(n+1)**alpha
+    split_gap_bound=v-score*(n+1)**alpha
     result=dict(status='AVAILABLE',current=dict(N=n,G=g,score=score),
         numerator_nonpositive=objective.get('numerator_nonpositive',v-g <= 0),
         split_one_more=dict(target_part_count=n+1,zero_gap_score_upper_bound=upper,
-                            improvement_possible=bool(upper > score)))
+                            improvement_possible=bool(upper > score),
+                            gap_voxels_exclusive_upper_bound=split_gap_bound,
+                            required_gap_reduction_exclusive=g-split_gap_bound))
     if n > 1:
         gap_bound=v-score*(n-1)**alpha
         result['merge_one_fewer']=dict(target_part_count=n-1,
@@ -189,9 +196,9 @@ def body_union(manifest_path):
 
 
 def create_reference(manifest_path, directory, config=OBJECTIVE):
-    objective_config(config)
+    config = objective_config(config)
     mesh, manifest = body_union(manifest_path)
-    h = float(OBJECTIVE['r_vox']*np.min(mesh.extents))
+    h = float(config['r_vox']*np.min(mesh.extents))
     cells = occupied_voxels(mesh, h, mesh.bounds[0])
     if not len(cells):
         raise ValueError('reference has no occupied voxels')
@@ -230,11 +237,11 @@ def load_reference(path, config=OBJECTIVE):
     return data
 
 
-def reference_shape_comparison(manifest_path, reference_path):
+def reference_shape_comparison(manifest_path, reference_path, *, config=OBJECTIVE):
     import trimesh
     from adsl.core.assembly_topology import checked, mesh_solid, length_bound
     current, _ = body_union(manifest_path)
-    reference = load_reference(reference_path)
+    reference = load_reference(reference_path,config)
     with np.load(Path(reference_path).parent/'body.npz', allow_pickle=False) as data:
         previous = trimesh.Trimesh(data['vertices'], data['faces'], process=False)
     a,b = mesh_solid(previous),mesh_solid(current)

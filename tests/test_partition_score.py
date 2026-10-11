@@ -43,14 +43,14 @@ def test_crossing_without_cell_center_and_bed_pose():
     assert row==best_print_pose(mesh,dict(voxel_pitch_mm=1))
 
 
-def score(v,g,n):
+def score(v,g,n,alpha=None):
     reference=dict(reference_sha256='same',reference_voxels=v,voxel_pitch_mm=1)
     rows=[dict(status='PASS',gap_voxels=g if i==0 else 0) for i in range(n)]
-    return dict(status='PASS', metrics={'partition_objective':score_partition(rows,reference,part_count=n)})
+    return dict(status='PASS', metrics={'partition_objective':score_partition(rows,reference,part_count=n,config={**OBJECTIVE,'alpha':OBJECTIVE['alpha'] if alpha is None else alpha})})
 
 
 def test_formula_and_negative_numerator():
-    assert score(1000,200,3)['metrics']['partition_objective']['score']==pytest.approx(800/3**.3)
+    assert score(1000,200,3)['metrics']['partition_objective']['score']==pytest.approx(800/3**.2)
     assert compare_partition_scores(score(100,0,3),score(100,0,2))['conclusion']=='IMPROVED'
     assert compare_partition_scores(score(100,150,2),score(100,150,4))['conclusion']=='IMPROVED'
     assert score(100,150,2)['metrics']['partition_objective']['numerator_nonpositive']
@@ -104,15 +104,15 @@ def test_reference_units_immutability_and_regrouped_shape(tmp_path):
 
 def test_partition_guidance_bounds_and_original_negative_formula():
     from adsl.agents.partition_score import partition_score_guidance
-    def guide(v,g,n):return partition_score_guidance(score(v,g,n)['metrics']['partition_objective'])
+    def guide(v,g,n):return partition_score_guidance(score(v,g,n,.3)['metrics']['partition_objective'])
     a=guide(216,6,2)
     assert a['split_one_more']['zero_gap_score_upper_bound']==pytest.approx(155.35218815817)
     assert not a['split_one_more']['improvement_possible']
     b=guide(616,0,5)['merge_one_fewer']
     assert b['gap_voxels_exclusive_upper_bound']==pytest.approx(39.886956141265)
     assert b['allowed_gap_increase_exclusive']==b['gap_voxels_exclusive_upper_bound']
-    assert compare_partition_scores(score(616,0,5),score(616,39,4))['conclusion']=='IMPROVED'
-    assert compare_partition_scores(score(616,0,5),score(616,40,4))['conclusion']=='WORSE'
+    assert compare_partition_scores(score(616,0,5,.3),score(616,39,4,.3))['conclusion']=='IMPROVED'
+    assert compare_partition_scores(score(616,0,5,.3),score(616,40,4,.3))['conclusion']=='WORSE'
     assert 'merge_one_fewer' not in guide(100,0,1)
     assert partition_score_guidance({})['status']=='UNAVAILABLE'
     missing=score(100,0,2)['metrics']['partition_objective'];missing['gap_voxels']=None
@@ -120,3 +120,43 @@ def test_partition_guidance_bounds_and_original_negative_formula():
     neg=guide(100,150,2)
     assert neg['numerator_nonpositive'] and neg['current']['score'] < 0
     assert neg['merge_one_fewer']['gap_voxels_exclusive_upper_bound'] > 100
+
+
+@pytest.mark.parametrize('alpha',[.2,.3])
+def test_supported_alpha_and_strict_split_threshold(alpha):
+    from adsl.agents.partition_score import partition_score_guidance
+    current=score(2056,476,1,alpha)
+    objective=current['metrics']['partition_objective']
+    guidance=partition_score_guidance(objective)['split_one_more']
+    bound=2056-1580*2**alpha
+    assert guidance['gap_voxels_exclusive_upper_bound']==pytest.approx(bound)
+    assert guidance['required_gap_reduction_exclusive']==pytest.approx(476-bound)
+    assert compare_partition_scores(current,score(2056,int(np.floor(bound)),2,alpha))['conclusion']=='IMPROVED'
+    assert compare_partition_scores(current,score(2056,int(np.ceil(bound)),2,alpha))['conclusion']=='WORSE'
+    assert objective_config({**OBJECTIVE,'alpha':alpha})['alpha']==alpha
+    assert compare_partition_scores(current,score(2056,0,2,.3 if alpha==.2 else .2))['conclusion']=='NOT_COMPARABLE'
+
+
+def test_new_default_and_legacy_reference_files(tmp_path,monkeypatch):
+    from types import SimpleNamespace
+    from adsl.agents import partition_score as module
+    assert OBJECTIVE['alpha']==.2
+    mesh=SimpleNamespace(vertices=np.array([[0.,0,0],[10,20,30]]),faces=np.array([[0,1,1]]),
+                         bounds=np.array([[0.,0,0],[10,20,30]]),extents=np.array([10,20,30]))
+    manifest=dict(source_sha256='source',partition_reference_inputs=[],root_id='body',
+                  part_declarations=[dict(id='body',assembly_transform=np.eye(4).tolist())])
+    pitches=[]
+    monkeypatch.setattr(module,'body_union',lambda *a:(mesh,manifest))
+    def occupied(mesh,h,origin):pitches.append(h);return np.array([[0,0,0]])
+    monkeypatch.setattr(module,'occupied_voxels',occupied)
+    legacy={**OBJECTIVE,'alpha':.3}
+    path=module.create_reference('unused',tmp_path,legacy)
+    assert pitches==[1.]
+    assert module.load_reference(path,legacy)['reference_voxels']==1
+    with pytest.raises(ValueError,match='configuration changed'):module.load_reference(path)
+    def checked_config(path,config):
+        assert config==legacy
+        raise RuntimeError('validated frozen config passed')
+    monkeypatch.setattr(module,'load_reference',checked_config)
+    with pytest.raises(RuntimeError,match='frozen config passed'):
+        module.reference_shape_comparison('unused',path,config=legacy)

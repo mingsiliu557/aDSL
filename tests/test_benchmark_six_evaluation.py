@@ -262,3 +262,27 @@ def test_partial_print_measurement_keeps_unknown_totals_and_declared_n(tmp_path,
     result = evaluation.print_measurements("unused", "unused", tmp_path, .4)
     assert result["status"] == "INDETERMINATE" and result["N"] == 1
     assert result["G"] is result["gap_volume_mm3"] is result["min_overhang_area_mm2"] is None
+
+
+@pytest.mark.parametrize('missing',[False,True])
+def test_area_and_gap_optima_are_independent_with_stub_parts(tmp_path,monkeypatch,missing):
+    from adsl.agents import assembly_physics,assembly_overhang,partition_score
+    report={'parts':[{'id':'a'},{'id':'b'}]}
+    rows=[{'part_id':p['id'],'status':'PASS'} for p in report['parts']]
+    class Mesh:
+        vertices=np.array([[0.,0,0],[1,2,3]])
+        volume=3.
+    meshes={'a':Mesh(),'b':Mesh()} if not missing else {'a':Mesh()}
+    monkeypatch.setattr(assembly_physics,'load_parts',lambda *a:(report,rows,meshes))
+    calls=[]
+    def area(mesh,t,config):
+        i=len(calls)%24;calls.append(i)
+        return {'area_mm2':2 if i==4 else 10,'uncertainty':{'bound_mm2':0}},None
+    monkeypatch.setattr(assembly_overhang,'measure_part',area)
+    monkeypatch.setattr(partition_score,'best_print_pose',lambda *a:dict(gap_voxels=7,selected_rotation_id=9))
+    out=evaluation.print_measurements('unused','unused',tmp_path,1.)
+    assert out['N']==2 and len(calls)==(24 if missing else 48)
+    assert out['parts'][0]['area_best_pose']['rotation_id']==4
+    assert out['parts'][0]['gap_best_pose']['selected_rotation_id']==9
+    assert out['min_overhang_area_mm2']==(None if missing else 4)
+    assert out['G']==(None if missing else 14)

@@ -775,3 +775,59 @@ def test_repair_history_survives_nested_budget_reduction(tmp_path,monkeypatch):
     assert history[0]['execution_error']['exception_type']=='AttributeError'
     assert raw==old
     assert payload_for_agent(result,workspace=tmp_path,source_path=source,source_version='original',role='coder')==result
+
+
+def test_outside_workspace_evidence_reason_is_idempotent(tmp_path):
+    raw={'evidence_files':[{'path':'/unavailable/external/report.json','source_sha256':None}]}
+    a=payload_for_agent(raw,workspace=tmp_path,source_path=None,source_version=None,role='coder')
+    assert a['evidence_files'][0]['reason']=='outside_workspace'
+    assert payload_for_agent(a,workspace=tmp_path,source_path=None,source_version=None,role='coder')==a
+
+
+def test_reprojection_rehydrates_omitted_groups_before_typed_association(tmp_path):
+    source=tmp_path/'source.py';source.write_text('source')
+    digest=hashlib.sha256(source.read_bytes()).hexdigest()
+    rows=[dict(code='TARGET_PRECISION_UNREPRESENTABLE',stage='target_precision',part_id=f'p{i}',
+        source_sha256=digest,source_version='original',file=f'p{i}.glb',output_role='display',
+        failure_kind='candidate_evaluation',geometry_repair_allowed=True) for i in range(7)]
+    finding=dict(finding_id='assembly_mesh_evaluation:6',rule_id='TARGET_PRECISION_UNREPRESENTABLE',
+        category='evidence_insufficient',required=False,repairability='geometry',domain=rows[-1],
+        result_ref='result.json',result_pointer='/findings/0',source_sha256=digest)
+    document=dict(source_sha256=digest,source_version='original',failures=rows,findings=[finding])
+    (tmp_path/'result.json').write_text(json.dumps(document))
+    ref=dict(path='result.json',source_sha256=digest,source_version='original')
+    raw=dict(failures=rows,typed_findings=[finding],geometry_report_ref=ref)
+    out=payload_for_agent(raw,workspace=tmp_path,source_path=source,source_version='original',role='coder',report_ref=ref)
+    assert len(out['evaluation_feedback']['failures'])<out['evaluation_feedback']['unique_failure_count']
+    assert payload_for_agent(out,workspace=tmp_path,source_path=source,source_version='original',role='coder',report_ref=ref)==out
+
+
+def test_default_budget_crops_evidence_directory_with_complete_pointer(tmp_path):
+    source = tmp_path/'source.py'; source.write_text('source')
+    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    directory = tmp_path/('evidence_' + 'x'*160); directory.mkdir()
+    refs = []
+    for i in range(100):
+        path = directory/f'result_{i}.json'; path.write_text('{}')
+        refs.append(dict(path=str(path),source_sha256=digest,source_version='original'))
+    error = dict(code='GENERATED_SOURCE_EXECUTION_FAILED',stage='source_execution',
+        exception_type='AttributeError',message='missing children',source_locations=[],
+        source_sha256=digest,source_version='original',repair_target='generated_source')
+    raw = dict(feedback=dict(evidence_files=refs,execution_failure=error,repair_history=[dict(
+        source_version='original',source_sha256=digest,action='reshape',reason='source execution failed',
+        execution_error=dict(exception_type='AttributeError',message='missing children'))]))
+    original = deepcopy(raw)
+    out = payload_for_agent(raw,workspace=tmp_path,source_path=source,source_version='original',role='coder')
+    assert len(json.dumps(out,ensure_ascii=False,separators=(',',':')).encode()) <= 32768
+    info = out['feedback']['preview_info']['evidence_files']
+    assert info['total']==100 and info['omitted_count']==97
+    assert len(out['feedback']['evidence_files'])==3
+    full_ref = info['full_ref']
+    document = json.loads((tmp_path/full_ref['path']).read_text())
+    assert len(document['evidence_files'])==info['total']
+    assert full_ref['json_pointer']=='/evidence_files'
+    assert all(r['availability']=='AVAILABLE' and r['source_binding']=='CURRENT' for r in document['evidence_files'])
+    assert out['evaluation_feedback']['failures'][0]['message']=='missing children'
+    assert out['feedback']['repair_history'][0]['execution_error']['message']=='missing children'
+    assert raw==original
+    assert payload_for_agent(out,workspace=tmp_path,source_path=source,source_version='original',role='coder')==out

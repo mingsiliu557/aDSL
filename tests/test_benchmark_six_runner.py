@@ -769,3 +769,12 @@ def test_checkpoint_builds_startup_table_and_separate_request_usage(tmp_path):
     # A missing config on a PAUSED error path still preserves the checkpoint.
     run.checkpoint(tmp_path / 'partial', 'PAUSED', reason={'message': 'preflight failed'})
     assert run.read_json(tmp_path / 'partial/checkpoint.json')['status'] == 'PAUSED'
+
+
+def test_new_request_default_and_explicit_old_partition_config(tmp_path):
+    row=case(tmp_path)
+    new=run.request_fields(row,'ours',{})
+    assert new['fixed_assembly']['physics']['overhang']['partition_objective']['alpha']==.2
+    legacy={**run.PARTITION_OBJECTIVE,'alpha':.3}
+    old=run.request_fields(row,'ours',{'overhang':{'partition_objective':legacy}})
+    assert old['fixed_assembly']['physics']['overhang']['partition_objective']==legacy

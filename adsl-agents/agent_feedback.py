@@ -111,7 +111,7 @@ def _preview_metadata(raw):
         return {}
     allowed = {'relations', 'part_names', 'face_ids', 'feature_ids', 'source_candidates',
                'source_ids', 'source_locations', 'finding_ids', 'occurrences',
-               'attempts_summary', 'evidence_refs', 'failures', 'issues', 'errors',
+               'attempts_summary', 'evidence_refs', 'evidence_files', 'failures', 'issues', 'errors',
                'regressions', 'target_improvements', 'unavailable_checks', 'observations',
                'required_changes', 'addressed_image_issues', 'actual_changed_symbols', *_HISTORY_FIELDS}
     return {key: {**_fields(info, ('total', 'omitted_count')),
@@ -583,7 +583,8 @@ def _history(rows):
             out['source_version'] = row['version']
         if isinstance(row.get('tool_statuses'), Mapping):
             out['tool_statuses'] = {k:v for k,v in row['tool_statuses'].items() if isinstance(v,str) or v is None}
-        out['failure_codes'] = [v for v in row.get('failure_codes',[])[:6] if isinstance(v,str)]
+        if 'failure_codes' in row:
+            out['failure_codes'] = [v for v in row.get('failure_codes',[])[:6] if isinstance(v,str)]
         if isinstance(row.get('execution_error'), Mapping):
             out['execution_error'] = _fields(row['execution_error'], ('exception_type','message'))
         if isinstance(row.get('_history_meta'), Mapping):
@@ -627,8 +628,19 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
         out = deepcopy(dict(payload))
         full_histories = {}
         existing = out.get('evaluation_feedback')
+        existing_index_ref = None
         if isinstance(existing, Mapping):
-            for group in existing.get('failures') or []:
+            existing_groups = existing.get('failures') or []
+            full_ref = existing.get('preview_info',{}).get('failures',{}).get('full_ref')
+            if isinstance(full_ref, Mapping):
+                existing_index_ref = view.ref(full_ref)
+                try:
+                    full = _at(view.document(existing_index_ref), existing_index_ref.get('json_pointer'))
+                except (KeyError,IndexError,TypeError,ValueError):
+                    full = None
+                if isinstance(full,list):
+                    existing_groups = full
+            for group in existing_groups:
                 if _ID.fullmatch(str(group.get('failure_id', ''))):
                     # A projected input has no raw rows to re-fingerprint.
                     clean = _fields(group, ('failure_id', 'diagnostic_sha256', 'part_id', 'failure_kind',
@@ -713,6 +725,10 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                 raw = container['duplicate_source']
                 container['duplicate_source'] = _fields(raw, ('status','duplicate_of_version','source_sha256','executed'))
                 container['duplicate_source']['previous_result_ref'] = view.ref(raw.get('previous_result_ref'))
+                if isinstance(raw.get('previous_failure_summary'),Mapping):
+                    container['duplicate_source']['previous_failure_summary'] = _fields(raw['previous_failure_summary'],(
+                        'code','stage','exception_type','evaluation_code','evaluation_stage','node_path',
+                        'source_sha256','source_version','message'))
             for key in ('render_issue', 'execution_error', 'error'):
                 if isinstance(container.get(key), Mapping):
                     raw = container[key]
@@ -749,7 +765,7 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
             # original array. It contains summaries/refs, never per-face arrays.
             needs_index = len(groups) > 6 or any(len(g.get(k) or []) > limit for g in groups
                 for k, limit in (('finding_ids', 6), ('occurrences', 6), ('attempts_summary', 3), ('evidence_refs', 6)))
-            index_ref = view.snapshot({'failures': full_groups}, 'canonical_feedback') if needs_index else None
+            index_ref = existing_index_ref or (view.snapshot({'failures': full_groups}, 'canonical_feedback') if needs_index else None)
             for index, group in enumerate(groups):
                 for key, limit in (('finding_ids', 6), ('occurrences', 6), ('attempts_summary', 3), ('evidence_refs', 6)):
                     _preview(group, key, list(group.get(key) or []), limit,
@@ -791,6 +807,16 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                             info['full_ref'] = {**snap, 'json_pointer':'/history'}
                         container[key] = container[key][-limit:] if limit else []
                         info['omitted_count'] = info['total'] - len(container[key])
+                # Evidence directory entries can be numerous and carry long
+                # paths/hashes. Keep the full directory addressable, while the
+                # current findings retain their own exact detail references.
+                refs = container.get('evidence_files')
+                if candidate_limit == 1 and isinstance(refs, list) and len(refs) > 3:
+                    ref = container.get('preview_info', {}).get('evidence_files', {}).get('full_ref')
+                    if not ref:
+                        snap = view.snapshot({'evidence_files': refs}, 'evidence_directory')
+                        ref = {**snap, 'json_pointer': '/evidence_files'}
+                    _preview(container, 'evidence_files', refs, 3, ref)
                 for f in container.get('typed_findings') or []:
                     candidates = f.get('source_candidates', [])
                     ref = None

@@ -1,0 +1,273 @@
+{
+  "assigned_source": "rounds/round_02/candidates/01_assembly_or_appearance/source.py",
+  "requirement": "T bracket",
+  "plan": {
+    "object_name": "T bracket",
+    "components": [
+      {
+        "name": "crossbar",
+        "description": "crossbar"
+      },
+      {
+        "name": "stem",
+        "description": "stem"
+      }
+    ],
+    "relations": [
+      "stem inserts into crossbar"
+    ],
+    "critic_checklist": [
+      "T silhouette"
+    ],
+    "print_parts": [
+      {
+        "id": "crossbar",
+        "components": [
+          "crossbar"
+        ]
+      },
+      {
+        "id": "stem",
+        "components": [
+          "stem"
+        ]
+      }
+    ],
+    "connections": [
+      {
+        "id": "joint",
+        "tab_part": "stem",
+        "slot_part": "crossbar",
+        "tab_port": "tab",
+        "slot_port": "slot",
+        "parameter_name": "joint",
+        "interface_type": "tab_slot",
+        "insertion_direction": "+Z",
+        "fit_intent": "demonstration clearance"
+      }
+    ],
+    "root_part": "crossbar",
+    "mm_per_unit": 1.0,
+    "final_size_mm": [
+      60.0,
+      20.0,
+      62.0
+    ]
+  },
+  "fixed_assembly": {
+    "mm_per_unit": 1.0,
+    "fit_offset_mm": 0.2,
+    "final_size_mm": [
+      60.0,
+      20.0,
+      62.0
+    ]
+  },
+  "feedback": {
+    "geometry_status": "ERROR",
+    "manufacturing_status": null,
+    "display_status": null,
+    "failure_instruction": "Candidate geometry evidence (empty/missing generated parts or disconnected components) may guide local source repair. Explicit input/Boolean/target-precision failures may guide a bounded local source evaluation repair using the recorded operation, node path and attempted actions. They are not measured physical failures or proof of a particular design cause. Preserve required parts and visible features; do not change mesh processing, tolerances or checker settings. File save/read and exporter errors are unassessed, not physical failures: do not change object shape to fix them. Unknown means cause unknown, not a confirmed shared bug. Use actual part IDs, stages and evidence; independently justified appearance/topology repairs remain allowed.",
+    "validation_mode": "geometry",
+    "export_status": null,
+    "report_path": "/tmp/pytest-of-root/pytest-491/test_source_error_reaches_real0/rounds/round_01/execution_error.json",
+    "geometry_report_ref": {
+      "path": "/tmp/pytest-of-root/pytest-491/test_source_error_reaches_real0/rounds/round_01/geometry_report.json",
+      "source_sha256": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+      "source_version": "original"
+    },
+    "execution_error_ref": {
+      "path": "/tmp/pytest-of-root/pytest-491/test_source_error_reaches_real0/rounds/round_01/execution_error.json",
+      "source_sha256": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+      "source_version": "original"
+    },
+    "source_version": "original",
+    "source_sha256": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+    "appearance_approved": null,
+    "render_issue": {
+      "stage": "render",
+      "reason": "Current display unavailable or partial; full appearance cannot be approved.",
+      "report_path": "/tmp/pytest-of-root/pytest-491/test_source_error_reaches_real0/rounds/round_01/execution_error.json"
+    },
+    "image_critic": null,
+    "code_critic": null,
+    "resolved_visual_feedback": {
+      "reviewed_by": null,
+      "required_changes": [],
+      "issues": []
+    },
+    "repair_history": [
+      {
+        "reason": "execution_failed",
+        "parent_version": null,
+        "action": null,
+        "hypothesis": "",
+        "edit_purpose": "required_repair",
+        "source_sha256": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+        "source_version": "original",
+        "tool_statuses": {},
+        "failure_codes": [
+          "GENERATED_SOURCE_EXECUTION_FAILED"
+        ],
+        "execution_error": {
+          "exception_type": "AttributeError",
+          "message": "no attribute 'children'"
+        },
+        "candidate_report": {
+          "path": "/tmp/pytest-of-root/pytest-491/test_source_error_reaches_real0/rounds/round_01/geometry_report.json",
+          "source_sha256": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+          "source_version": "original"
+        }
+      }
+    ],
+    "primary_objective": "Fix the bound generated-source API/runtime error first. No appearance task without current render. Preserve the current edit purpose and comparison baseline; do not modify mesh backends.",
+    "next_edit_purpose": "required_repair",
+    "evidence_files": [
+      {
+        "path": "rounds/round_01/execution_error.json",
+        "json_pointer": null,
+        "source_sha256": null,
+        "source_version": null,
+        "file_sha256": "6cf01730316b5f05de2f7a71c7f9a0df114a426714305dfd47d146be77ff7260",
+        "availability": "AVAILABLE",
+        "source_binding": "UNKNOWN",
+        "matches_current_source": null,
+        "reason": "source_binding_unknown"
+      }
+    ],
+    "evidence_path_instruction": "Read the given evidence_files/result_ref paths directly; do not add a candidate directory prefix. Relative tool paths are workspace-relative. Only assigned_source may be modified. Initial-source-only evidence is a historical clue, not a measurement of modified geometry. Use inline facts first; reading every detailed report is not required.",
+    "engineering": {
+      "status": "NOT_REQUESTED"
+    },
+    "evaluation_failure_ids": [
+      "eval:eac25317535faacf48066b9f25a091cd32d744b3c9e9b3eaa566573a33d4d5e1"
+    ],
+    "render_issue_evidence_ref": {
+      "path": "rounds/round_02/candidates/01_assembly_or_appearance/diagnostics/agent_feedback/error_snapshot_dcc273bed8cdecc1a91d9de01fae062134509aed28ae078ee3e10032a83af8b4.json",
+      "json_pointer": "/render_issue",
+      "source_sha256": null,
+      "source_version": null,
+      "file_sha256": "dcc273bed8cdecc1a91d9de01fae062134509aed28ae078ee3e10032a83af8b4",
+      "availability": "AVAILABLE",
+      "source_binding": "UNKNOWN",
+      "matches_current_source": null,
+      "reason": "source_binding_unknown"
+    }
+  },
+  "source_version": "original",
+  "source_sha256": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+  "evidence_files": [
+    {
+      "path": "rounds/round_01/execution_error.json",
+      "json_pointer": null,
+      "source_sha256": null,
+      "source_version": null,
+      "file_sha256": "6cf01730316b5f05de2f7a71c7f9a0df114a426714305dfd47d146be77ff7260",
+      "availability": "AVAILABLE",
+      "source_binding": "UNKNOWN",
+      "matches_current_source": null,
+      "reason": "source_binding_unknown"
+    }
+  ],
+  "assembly_context": {
+    "initial_plan_role": "reference_proposal_not_immutable_implementation",
+    "instruction": "The initial print-part/connection lists, including checklist items that merely repeat them, are a reference proposal, not an immutable implementation. Original task requirements remain binding. Default to the existing grouping. When feedback or source evidence shows a problem, minimally revise print-part boundaries, add_part/connect, frames and related construction; explain the changed locations and why. Semantic containers need not be print pieces; independent repeated pieces need their own instances and connections. Judge the original task, appearance and actual assembly, not exact equality to the initial list. Do not remove required components or connection requirements, change the root, frozen units, fit allowance, dimensions, budget or checker/configuration, or bypass existing legality checks. Declarations are source metadata, not proof of shape completeness or manufacture.",
+    "version_role": "repair_starting_version",
+    "source_sha256": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+    "manifest_status": "CURRENT_SOURCE",
+    "current_assembly": {
+      "root_id": null,
+      "parts": [],
+      "connections": null
+    },
+    "plan_changes": null,
+    "task_constraints": null,
+    "report_ref": {
+      "path": "/tmp/pytest-of-root/pytest-491/test_source_error_reaches_real0/rounds/round_01/geometry_report.json",
+      "source_sha256": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+      "source_version": "original"
+    },
+    "failure_instruction": "Candidate geometry evidence (empty/missing generated parts or disconnected components) may guide local source repair. Explicit input/Boolean/target-precision failures may guide a bounded local source evaluation repair using the recorded operation, node path and attempted actions. They are not measured physical failures or proof of a particular design cause. Preserve required parts and visible features; do not change mesh processing, tolerances or checker settings. File save/read and exporter errors are unassessed, not physical failures: do not change object shape to fix them. Unknown means cause unknown, not a confirmed shared bug. Use actual part IDs, stages and evidence; independently justified appearance/topology repairs remain allowed.",
+    "evaluation_failure_ids": [
+      "eval:eac25317535faacf48066b9f25a091cd32d744b3c9e9b3eaa566573a33d4d5e1"
+    ]
+  },
+  "current_repair_authorized": true,
+  "edit_purpose": "required_repair",
+  "primary_objective": "Fix the bound generated-source API/runtime error first. No appearance task without current render. Preserve the current edit purpose and comparison baseline; do not modify mesh backends.",
+  "partition_guidance": null,
+  "grouping_change": null,
+  "remaining_repairs_after_this_attempt": 0,
+  "assignment": "This repair is already budget-reserved and may proceed even when remaining_repairs_after_this_attempt is 0; that count excludes the current attempt. Read the assigned source. Never change frozen physical specifications, checker configuration or measurement reference. Read the given evidence_files/result_ref paths directly; do not add a candidate directory prefix. Relative tool paths are workspace-relative. Only assigned_source may be modified. Initial-source-only evidence is a historical clue, not a measurement of modified geometry. Use inline facts first; reading every detailed report is not required. Primary objective: necessary repair from current localized geometry/physical or reviewed appearance evidence. Regrouping may repair a real failure without requiring a score increase. Follow feedback.edit_restriction. Use only supported public APIs; if only an unsupported surface requirement remains, report NO_CHANGE. Visual changes come from feedback.resolved_visual_feedback.  Coordinate resolved_visual_feedback.required_changes with actionable tool findings in one repair. Raw Image/Code reports are context; dismissed or downgraded Image issues are not mandatory edits. MED/LOW issues are advisory. Engineering advice does not change measured checker outcomes. ",
+  "no_change_contract": "If no appropriate edit exists, return {\"edit_action\":\"NO_CHANGE\",\"reason\":\"...\"}. Do not apply a dummy patch.",
+  "evaluation_feedback": {
+    "schema_version": 1,
+    "source_sha256": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+    "source_version": "original",
+    "failure_count": 2,
+    "unique_failure_count": 1,
+    "failures": [
+      {
+        "failure_id": "eval:eac25317535faacf48066b9f25a091cd32d744b3c9e9b3eaa566573a33d4d5e1",
+        "diagnostic_sha256": "c3bd9704e51164f3cedda52b57104f5d9be841a5a39d604d809cda1aa034c27c",
+        "code": "GENERATED_SOURCE_EXECUTION_FAILED",
+        "stage": "source_execution",
+        "node_path": null,
+        "operation": null,
+        "input_count": null,
+        "displacement_budget_mm": null,
+        "local_scale_mm": null,
+        "absolute_scale_floor_mm": null,
+        "target_representation": null,
+        "physical_verdict": "NOT_EVALUATED",
+        "internal_metrics": null,
+        "attempt_count": null,
+        "attempts_summary": [],
+        "finding_ids": [],
+        "occurrences": [
+          {},
+          {
+            "output_role": "manufacturing"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "path": "rounds/round_01/execution_error.json",
+            "json_pointer": "/execution_failure",
+            "source_sha256": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+            "source_version": "original",
+            "file_sha256": "6cf01730316b5f05de2f7a71c7f9a0df114a426714305dfd47d146be77ff7260",
+            "availability": "AVAILABLE",
+            "source_binding": "CURRENT",
+            "matches_current_source": true,
+            "reason": null
+          },
+          {
+            "path": "rounds/round_01/geometry_report.json",
+            "json_pointer": "/failures/0",
+            "source_sha256": "0682c5f2076f099c34cfdd15a9e063849ed437a49677e6fcc5b4198c76575be5",
+            "source_version": "original",
+            "file_sha256": "5fd513f30e355a541a30be143d5993f35b465c1d3d7b93f530936110718bc1e1",
+            "availability": "AVAILABLE",
+            "source_binding": "CURRENT",
+            "matches_current_source": true,
+            "reason": null
+          }
+        ],
+        "exception_type": "AttributeError",
+        "message": "no attribute 'children'",
+        "repair_target": "generated_source",
+        "source_locations": [
+          {
+            "line": 1,
+            "function": "<module>",
+            "path": "original/source.py"
+          }
+        ],
+        "occurrence_count": 2,
+        "failure_kind": "candidate_source",
+        "geometry_repair_allowed": false
+      }
+    ]
+  }
+}

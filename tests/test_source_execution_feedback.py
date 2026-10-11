@@ -128,3 +128,81 @@ def test_repeat_guard_requires_deterministic_failure_and_identical_bindings(tmp_
     assert _previous_failed_source(physical,binding)['id']=='original'
     assert _previous_failed_source(physical,{**binding,'execution_config_sha256':'other'}) is None
     assert _previous_failed_source(physical,{**binding,'relevant_input_hashes':{'image':'2'}}) is None
+
+
+def test_wrong_hash_and_library_frames_never_bind_source_failure(tmp_path):
+    source=tmp_path/'source.py';source.write_text('source')
+    raw=dict(code='GENERATED_SOURCE_EXECUTION_FAILED',stage='source_execution',
+        exception_type='ValueError',message='failed',source_sha256='old',source_locations=[])
+    assert execution_failure_summary(raw,source_path=source) is None
+    raw['source_sha256']=sha256_file(source)
+    raw['source_locations']=[dict(path='/library/loft.py',line=8,function='loft')]
+    assert execution_failure_summary(raw,source_path=source) is None
+    raw['source_locations']=[];raw['stage']='export'
+    assert execution_failure_summary(raw,source_path=source) is None
+
+
+def test_source_failure_does_not_start_configured_physical_checks(tmp_path,monkeypatch):
+    from test_fixed_assembly import mock_flow,run_flow
+    from adsl.agents import fixed_assembly as flow,assembly_physics,assembly_topology
+    state=mock_flow(tmp_path,monkeypatch,[])
+    specs=(assembly_topology.checker_spec(),assembly_physics.checker_spec('assembly_overhang'),
+           assembly_physics.checker_spec('assembly_standing'))
+    state=(state[0],replace(state[1],checker_specs=specs,max_rounds=1),*state[2:])
+    def execute(source,out,**kw):
+        raise AssetExecutionError('bad source',diagnostic=dict(code='GENERATED_SOURCE_EXECUTION_FAILED',
+            stage='source_execution',exception_type='ValueError',message='bad source',
+            source_sha256=sha256_file(source),source_locations=[]))
+    monkeypatch.setattr(flow,'execute_asset_source',execute)
+    monkeypatch.setattr(assembly_physics,'run_assembly_checks',lambda *a,**k:pytest.fail('Physical process cannot run'))
+    result,book=run_flow(state)
+    assert not result.approved and state[-1]==[]
+    reviews=book['versions']['original']['reviews']
+    for spec in specs:
+        assert reviews[spec.name]['status']=='INDETERMINATE'
+        assert reviews[spec.name]['assumptions']['reason']=='SOURCE_EXECUTION_FAILED'
+        assert reviews[spec.name]['metrics']=={}
+
+
+def test_source_error_reaches_real_coder_adapter_and_file_tools(tmp_path,monkeypatch):
+    from types import SimpleNamespace
+    from test_fixed_assembly import mock_flow,run_flow
+    from test_assembly_feedback_recovery import payload,tool
+    from adsl.agents import fixed_assembly as flow
+    from adsl.agents.service import ObjectWorkflow
+    from adsl.agents.tools.files import read_file,apply_patch
+    state=mock_flow(tmp_path,monkeypatch,[('PASS',True)])
+    state=(state[0],replace(state[1],checker_specs=(),max_rounds=2),*state[2:])
+    monkeypatch.setattr(state[0],'_repair',ObjectWorkflow._repair.__get__(state[0]))
+    original_execute=flow.execute_asset_source
+    executions=[];captured=[]
+    def execute(source,out,**kw):
+        executions.append(source.read_text())
+        if len(executions)==1:
+            raise AssetExecutionError('full stderr',diagnostic=dict(code='GENERATED_SOURCE_EXECUTION_FAILED',
+                stage='source_execution',exception_type='AttributeError',message="no attribute 'children'",
+                source_sha256=sha256_file(source),source_locations=[dict(path=str(source),line=1,function='<module>')]))
+        return original_execute(source,out,**kw)
+    monkeypatch.setattr(flow,'execute_asset_source',execute)
+    async def runtime(**kw):
+        data=payload(kw);captured.append(data)
+        assert kw['role'].startswith('coder:assembly:')
+        group,=data['evaluation_feedback']['failures']
+        assert group['exception_type']=='AttributeError' and group['repair_target']=='generated_source'
+        assert group['message']=="no attribute 'children'"
+        assert group['physical_verdict']=='NOT_EVALUATED' and not group.get('geometry_repair_allowed')
+        evidence=next(r for r in group['evidence_refs'] if r['availability']=='AVAILABLE')
+        detail=json.loads(await tool(read_file,kw['context'],'error_detail',path=evidence['path'],json_pointer=evidence['json_pointer']))
+        assert detail['exception_type']=='AttributeError' and detail['source_sha256']==sha256_file(kw['context'].source_path)
+        text=await tool(read_file,kw['context'],'source',path=data['assigned_source'])
+        await tool(apply_patch,kw['context'],'patch',path=data['assigned_source'],old_text=text,new_text='repaired')
+        return SimpleNamespace(final_output='Fixed generated-source API usage; recheck required.')
+    state[2].run=runtime
+    result,book=run_flow(state)
+    assert result.approved and len(captured)==1 and executions==['original','repaired']
+    assert book['retained']=='attempt_0001'
+    assert book['versions']['original']['reviews']['code_review_status']=='SKIPPED_SOURCE_EXECUTION_FAILED'
+    write_path=tmp_path/'captured_source_error_coder.json'
+    write_path.write_text(json.dumps(captured[0],allow_nan=False,indent=2))
+    run_flow(state)
+    assert len(captured)==1 and executions==['original','repaired']

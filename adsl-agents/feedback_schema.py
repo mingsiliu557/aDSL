@@ -196,10 +196,13 @@ def execution_failure_summary(raw, *, source_path, source_version=None):
     if not isinstance(raw.get('exception_type'), str) or not isinstance(raw.get('message'), str):
         return None
     locations = []
-    for frame in raw.get('source_locations', []):
+    frames = raw.get('source_locations', [])
+    if not isinstance(frames,list):
+        return None
+    for frame in frames:
         if (not isinstance(frame, dict) or not isinstance(frame.get('path'), str)
                 or Path(frame['path']).resolve() != source
-                or not isinstance(frame.get('line'), int) or frame['line'] < 1):
+                or not isinstance(frame.get('line'), int) or isinstance(frame['line'],bool) or frame['line'] < 1):
             return None
         locations.append({k:frame.get(k) for k in ('path', 'line', 'function')})
     return dict(code=SOURCE_FAILURE_CODE, stage=raw['stage'],

@@ -179,7 +179,7 @@ def _repair_history(book, specs):
         proposal = reviews.get('repair_proposal') or {}
         geometry = reviews.get('geometry') or {}
         failure = reviews.get('execution_failure') or {}
-        rows.append(dict(source_version=version['id'], source_sha256=file_hash(Path(version['source'])),
+        rows.append(dict(source_version=version['id'], source_sha256=version['files'].get(version['source']),
             parent_version=reviews.get('parent_version'), edit_purpose=reviews.get('edit_purpose'),
             action=proposal.get('action'), hypothesis=(proposal.get('hypothesis') or '')[:240],
             reason=(reviews.get('reason') or '')[:240],
@@ -386,7 +386,15 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                        relevant_input_hashes=relevant_inputs)
         duplicate = _previous_failed_source(book, binding) if number > 1 else None
         if duplicate:
+            prior_failure = duplicate['reviews'].get('execution_failure') or next((
+                f for f in _failure_feedback(duplicate['reviews'].get('geometry') or {})
+                if f.get('geometry_repair_allowed')), {})
+            previous_summary = {k:prior_failure[k] for k in ('code','stage','exception_type',
+                'evaluation_code','evaluation_stage','node_path') if k in prior_failure}
+            previous_summary.update(source_sha256=file_hash(current),source_version=duplicate['id'],
+                message=str(prior_failure.get('message') or prior_failure.get('reason') or '')[:240])
             duplicate_info = dict(status='DUPLICATE_PREVIOUS_FAILED_SOURCE',
+                previous_failure_summary=previous_summary,
                 duplicate_of_version=duplicate['id'], source_sha256=file_hash(current), executed=False,
                 previous_result_ref=duplicate['reviews'].get('geometry_report_ref') or
                     duplicate['reviews'].get('execution_error_ref'))
@@ -513,7 +521,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     reference_path = str(create_reference(manifest_path,workspace/'partition_references',partition))
                     book['partition_reference'] = reference_path
                     write_json(book_path,book)
-                shape_comparison = reference_shape_comparison(manifest_path,reference_path)
+                shape_comparison = reference_shape_comparison(manifest_path,reference_path,config=partition)
             except (ValueError, KeyError, OSError, RuntimeError) as error:
                 shape_comparison = {'status':'UNAVAILABLE','reason':str(error)[:240]}
         if reason != 'FLOW_ERROR':
@@ -704,7 +712,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     reference_path = new_reference
                     book['partition_reference'] = new_reference
                     reviews['previous_body_reference_comparison']=shape_comparison
-                    shape_comparison=reference_shape_comparison(candidate_root/'asset/assembly/assembly_manifest.json',new_reference)
+                    shape_comparison=reference_shape_comparison(candidate_root/'asset/assembly/assembly_manifest.json',new_reference,config=partition)
                     reviews.update(reference_shape_changed=True,partition_reference=new_reference,
                                    body_reference_comparison=shape_comparison)
                     overhang=refreshed

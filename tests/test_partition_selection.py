@@ -17,12 +17,13 @@ from test_fixed_assembly import mock_flow, run_flow
 from test_partition_score import reference_fixture
 
 
-def setup(tmp_path,monkeypatch,mode):
+def setup(tmp_path,monkeypatch,mode,alpha=None):
+    frozen_objective={**scoring.OBJECTIVE,'alpha':scoring.OBJECTIVE['alpha'] if alpha is None else alpha}
     state=mock_flow(tmp_path,monkeypatch,[('PASS',mode not in ('required_repair','reference_repair')),('PASS',True)])
     w,req,runtime,source,calls=state
     specs=(topology.checker_spec(),physics.checker_spec('assembly_overhang'),physics.checker_spec('assembly_standing'))
     req=replace(req,max_rounds=2,checker_specs=specs,repair_policy=RepairPolicy(print_partition_editable=True),
-        fixed_assembly={**req.fixed_assembly,'physics':{'overhang':{'partition_objective':scoring.OBJECTIVE}}})
+        fixed_assembly={**req.fixed_assembly,'physics':{'overhang':{'partition_objective':frozen_objective}}})
     original_execute=flow.execute_asset_source
     def execute(source,out,**kwargs):
         execution=original_execute(source,out,**kwargs)
@@ -34,14 +35,14 @@ def setup(tmp_path,monkeypatch,mode):
     monkeypatch.setattr(flow,'execute_asset_source',execute)
     reference_dir=tmp_path/'reference_input';reference_dir.mkdir()
     manifest=reference_fixture(reference_dir)
-    reference=scoring.create_reference(manifest,tmp_path/'references')
+    reference=scoring.create_reference(manifest,tmp_path/'references',frozen_objective)
     ref2=reference
     if mode=='reference_repair':
         raw=json.loads(manifest.read_text());raw['source_sha256']='new_source'
         for row in raw['partition_reference_inputs']:row['source_sha256']='new_source'
-        write_json(manifest,raw);ref2=scoring.create_reference(manifest,tmp_path/'references')
+        write_json(manifest,raw);ref2=scoring.create_reference(manifest,tmp_path/'references',frozen_objective)
     monkeypatch.setattr(scoring,'create_reference',lambda *a,**kw:ref2 if calls else reference)
-    def shape(*a):
+    def shape(*a,**kwargs):
         return {'status':'CHANGED' if len(calls)>0 and (mode=='changed_shape' or (mode=='reference_repair' and str(a[1])==str(reference))) else 'MATCH'}
     monkeypatch.setattr(scoring,'reference_shape_comparison',shape)
     async def code(**kw):
@@ -56,8 +57,8 @@ def setup(tmp_path,monkeypatch,mode):
             status='PASS';metrics={};artifacts={};findings=[]
             if spec.name=='assembly_overhang':
                 n=2 if not round_number else 1 if mode in ('improved','topology_fail','standing_unknown','changed_shape') else 3 if mode in ('worse','required_repair') else 2
-                ref=scoring.load_reference(kw.get('partition_reference') or reference)
-                objective=scoring.score_partition([dict(status='PASS',gap_voxels=0) for _ in range(n)],ref,part_count=n)
+                ref=scoring.load_reference(kw.get('partition_reference') or reference,frozen_objective)
+                objective=scoring.score_partition([dict(status='PASS',gap_voxels=0) for _ in range(n)],ref,part_count=n,config=frozen_objective)
                 if mode=='unknown' and round_number: objective['score']=None;status='INDETERMINATE'
                 metrics={'partition_objective':objective,'partition_guidance':scoring.partition_score_guidance(objective),'items':[]}
                 stls=[]
@@ -395,3 +396,34 @@ def test_same_reference_not_reopened_after_surface_repair(tmp_path,monkeypatch):
     assert len(advice)==1 and len(checks)==2 and len(calls)==2
     assert book['versions']['attempt_0001']['reviews']['partition_ready']
     assert not result.approved
+
+
+def test_frozen_legacy_alpha_resumes_without_replacing_config(tmp_path,monkeypatch):
+    state,checks=setup(tmp_path,monkeypatch,'improved',alpha=.3)
+    result,book=run_flow(state)
+    assert result.approved
+    for v in book['versions'].values():
+        assert v['reviews']['assembly_overhang']['metrics']['partition_objective']['alpha']==.3
+    run_flow(state)
+    assert len(checks)==2
+
+
+def test_initial_wrong_action_never_reserves_coder(tmp_path,monkeypatch):
+    state,checks=setup(tmp_path,monkeypatch,'improved')
+    async def invalid(*a,**kw):
+        return RepairProposal(proposal_id='wrong',finding_ids=['f'],hypothesis='shape tweak',
+            target=RepairTarget(),action='reshape')
+    monkeypatch.setattr(topology,'engineer',invalid)
+    result,book=run_flow(state)
+    assert result.approved and len(state[-1])==0 and len(checks)==1
+    assert book['stop_reason']=='partition_engineering_unavailable'
+    assert book['feedback']['engineering']['code']=='INVALID_PROPOSAL'
+    assert not (tmp_path/'repair_history.jsonl').exists()
+    # Simulate a legacy restored proposal at the baseline, before budget reservation.
+    book.update(completed=False,next_round=2)
+    book['feedback'].update(next_edit_purpose='partition_optimization',comparison_baseline_version='original',
+        engineering_proposal=RepairProposal(proposal_id='old',finding_ids=['f'],
+            hypothesis='legacy reshape',target=RepairTarget(),action='reshape').model_dump())
+    write_json(tmp_path/'assembly_versions.json',book)
+    run_flow(state)
+    assert len(state[-1])==0 and len(checks)==1 and not (tmp_path/'repair_history.jsonl').exists()
