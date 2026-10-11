@@ -172,6 +172,39 @@ def _geometry_visual_ready(reviews, display_available):
     return bool(high and all(issue.get('aspect','geometry')=='surface' for issue in high))
 
 
+def _repair_history(book, specs):
+    rows = []
+    for version in list(book['versions'].values())[-3:]:
+        reviews = version['reviews']
+        proposal = reviews.get('repair_proposal') or {}
+        geometry = reviews.get('geometry') or {}
+        failure = reviews.get('execution_failure') or {}
+        rows.append(dict(source_version=version['id'], source_sha256=file_hash(Path(version['source'])),
+            parent_version=reviews.get('parent_version'), edit_purpose=reviews.get('edit_purpose'),
+            action=proposal.get('action'), hypothesis=(proposal.get('hypothesis') or '')[:240],
+            reason=(reviews.get('reason') or '')[:240],
+            tool_statuses={s.name:reviews.get(s.name,{}).get('status') for s in specs},
+            failure_codes=list(dict.fromkeys(f.get('code') for f in
+                [*geometry.get('failures',[]),*geometry.get('display_failures',[])] if f.get('code'))),
+            execution_error={k:failure.get(k) for k in ('exception_type','message')} if failure else None,
+            candidate_report=reviews.get('geometry_report_ref') or reviews.get('execution_error_ref')))
+    return rows
+
+
+def _previous_failed_source(book, binding):
+    for version in book['versions'].values():
+        reviews = version['reviews']
+        if reviews.get('execution_binding') != binding or reviews.get('accepted'):
+            continue
+        geometry = reviews.get('geometry') or {}
+        if reviews.get('execution_failure') or any(
+                f.get('geometry_repair_allowed') for f in _failure_feedback(geometry,
+                    source_sha256=binding['source_sha256'])):
+            assert_version(version)
+            return version
+    return None
+
+
 async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, source_path, plan,
                                  initial_execution=None, initial_topology_run=None, evidence_files=()):
     from .service import _asset_executor_timeout_seconds, _actionable_findings, VISUAL_FEEDBACK_INSTRUCTION
@@ -210,6 +243,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
     if partition is not None:
         frozen = {**frozen,'print_partition_editable':request.repair_policy.print_partition_editable}
     config_hash = hashlib.sha256(json.dumps(frozen, sort_keys=True).encode()).hexdigest()
+    relevant_inputs = dict(requirement_sha256=hashlib.sha256(request.requirement.encode()).hexdigest(),
+        image_sha256=[file_hash(Path(path)) if Path(path).is_file() else None for path in request.image_paths])
     if topology_spec:
         verification_scope = 'visual_code_export_and_assembly_topology'
     if any(s.name != NAME for s in specs):
@@ -259,6 +294,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         root.mkdir(parents=True, exist_ok=True)
         version_id = 'original' if number == 1 else f'attempt_{number-1:04d}'
         current = parent
+        proposal = None
         edit_purpose = feedback.get('next_edit_purpose','required_repair') if number > 1 else 'required_repair'
         comparison_baseline = feedback.get('comparison_baseline_version') if number > 1 else None
         if edit_purpose.endswith('_optimization') and not comparison_baseline:
@@ -334,6 +370,27 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 break
         else:
             candidate_root = root
+        binding = dict(source_sha256=file_hash(current), execution_config_sha256=config_hash,
+                       relevant_input_hashes=relevant_inputs)
+        duplicate = _previous_failed_source(book, binding) if number > 1 else None
+        if duplicate:
+            duplicate_info = dict(status='DUPLICATE_PREVIOUS_FAILED_SOURCE',
+                duplicate_of_version=duplicate['id'], source_sha256=file_hash(current), executed=False,
+                previous_result_ref=duplicate['reviews'].get('geometry_report_ref') or
+                    duplicate['reviews'].get('execution_error_ref'))
+            duplicate_reviews = dict(accepted=False, reason='DUPLICATE_PREVIOUS_FAILED_SOURCE',
+                duplicate_source=duplicate_info, parent_version=parent_id, edit_purpose=edit_purpose,
+                repair_proposal=proposal.model_dump() if proposal else None)
+            write_json(candidate_root/'decision.json', duplicate_reviews)
+            book['versions'][version_id] = version_record(version_id,current,None,reviews=duplicate_reviews,
+                extra_files=[candidate_root/'decision.json',candidate_root/'edit_outcome.json'])
+            feedback = json.loads(json.dumps(feedback))
+            feedback.update(duplicate_source=duplicate_info, repair_history=_repair_history(book,specs))
+            # The next assigned source remains working, not this rejected repeat.
+            book.update(feedback=feedback,candidate=None,next_round=number+1)
+            write_json(book_path,book)
+            stop = 'round_budget_exhausted'
+            continue
         terminal_request_error, propagate_error = None, None
         execution, reviews = None, {'appearance_approved':None}
         source_failure = None
@@ -667,7 +724,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 and compare_partition_scores(measured,measured)['conclusion']=='UNCHANGED')
             reviews.update(partition_ready=partition_ready,partition_adopted=partition_adopted,
                            feasible_without_surface=feasible_without_surface)
-        reviews.update(geometry=report, accepted=accepted, reason=reason)
+        reviews.update(geometry=report, accepted=accepted, reason=reason,
+            execution_binding=binding, parent_version=parent_id if number > 1 else None,
+            edit_purpose=edit_purpose, repair_proposal=proposal.model_dump() if proposal else None)
         failure_feedback = _failure_feedback(report, source_sha256=file_hash(current))
         evaluation_run = evaluation_evidence_run(report, failure_feedback, current,
             candidate_root/'evaluation_feedback', execution.source_index_path if execution else None)
@@ -724,13 +783,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 for field in ('boundary_report','report_path'):
                     value=findings[row['finding_id']].domain.get(field)
                     if value: row[field]=value
-            feedback['repair_history'] = [
-                {'version':v['id'], 'source_sha256':file_hash(Path(v['source'])),
-                 'reason':v['reviews'].get('reason'),
-                 'topology_status':v['reviews'].get('assembly_topology',{}).get('status'),
-                 'tool_statuses':{s.name:v['reviews'].get(s.name,{}).get('status') for s in specs},
-                 'overhang_change':v['reviews'].get('overhang_change_vs_retained')}
-                for v in list(book['versions'].values())[-3:]]
+        feedback['repair_history'] = _repair_history(book,specs)
         if partition is not None:
             feedback['partition_change_vs_baseline']=reviews.get('partition_change_vs_baseline')
             feedback['body_reference_comparison']=shape_comparison
@@ -825,6 +878,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                   and not (not visual_only and report['status']=='FAIL')):
                 stop=('topology_unverified_no_executable_feedback' if len(specs)==1 and topology_spec
                       else 'assembly_checks_unverified_no_executable_feedback');book['completed']=True
+        if source_failure:
+            feedback['primary_objective'] = 'Fix the bound generated-source API/runtime error first. No appearance task without current render. Preserve the current edit purpose and comparison baseline; do not modify mesh backends.'
         # Export unavailability alone is not a reason to change shape. Keep
         # independent visual/topology defects repairable, in the same loop.
         image_pending = bool(reviews.get('appearance_approved') is False

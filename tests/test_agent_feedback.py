@@ -756,3 +756,22 @@ def test_required_facts_over_budget_fail_without_raw_fallback(tmp_path):
     with pytest.raises(AgentFeedbackError) as caught:
         payload_for_agent(payload, workspace=tmp_path, source_path=None, source_version=None, role='engineering')
     assert caught.value.code == 'AGENT_FEEDBACK_TOO_LARGE'
+
+
+def test_repair_history_survives_nested_budget_reduction(tmp_path,monkeypatch):
+    from adsl.agents import agent_feedback as module
+    source=tmp_path/'source.py';source.write_text('A')
+    raw={'feedback':{'checker_evidence':{'repair_history':[
+        dict(version=f'attempt_{i}',source_sha256='a'*64,parent_version='original',
+            action='reshape',hypothesis='h'*240,reason='r'*240,tool_statuses={'assembly_topology':'PASS'},
+            execution_error={'exception_type':'AttributeError','message':'missing children'},failure_codes=['GENERATED_SOURCE_EXECUTION_FAILED'])
+        for i in range(10)]}}}
+    old=deepcopy(raw)
+    monkeypatch.setattr(module,'FEEDBACK_LIMIT_BYTES',2200)
+    result=payload_for_agent(raw,workspace=tmp_path,source_path=source,source_version='original',role='coder')
+    history=result['feedback']['checker_evidence']['repair_history']
+    assert len(history)==1 and history[0]['source_version']=='attempt_9'
+    assert history[0]['action']=='reshape' and history[0]['tool_statuses']['assembly_topology']=='PASS'
+    assert history[0]['execution_error']['exception_type']=='AttributeError'
+    assert raw==old
+    assert payload_for_agent(result,workspace=tmp_path,source_path=source,source_version='original',role='coder')==result

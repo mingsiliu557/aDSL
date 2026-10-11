@@ -79,3 +79,52 @@ def test_source_error_skips_critics_and_reaches_existing_coder_loop(tmp_path, mo
     assert feedback['execution_failure']['source_version'] == 'original'
     assert 'API/runtime error first' in feedback['primary_objective']
     assert not first['geometry']['failures'][0].get('geometry_repair_allowed',False)
+
+
+def test_exact_failed_source_repeat_consumes_edit_but_not_execution(tmp_path,monkeypatch):
+    from test_fixed_assembly import mock_flow,run_flow
+    from adsl.agents import fixed_assembly as flow
+    state=mock_flow(tmp_path,monkeypatch,[('PASS',True)])
+    state=(state[0],replace(state[1],checker_specs=(),max_rounds=4),*state[2:])
+    original_execute=flow.execute_asset_source
+    executed=[]
+    def execute(source,out,**kwargs):
+        executed.append(source.read_text())
+        if source.read_text() in {'original','B'}:
+            raise AssetExecutionError('bad api',diagnostic=dict(code='GENERATED_SOURCE_EXECUTION_FAILED',
+                stage='source_execution',exception_type='ValueError',message='bad api',
+                source_sha256=sha256_file(source),source_locations=[]))
+        return original_execute(source,out,**kwargs)
+    monkeypatch.setattr(flow,'execute_asset_source',execute)
+    edits=[]
+    async def repair(**kwargs):
+        edits.append(kwargs)
+        kwargs['source_path'].write_text(['B','original','C'][len(edits)-1])
+        return {'status':'CHANGED'}
+    monkeypatch.setattr(state[0],'_repair',repair)
+    result,book=run_flow(state)
+    assert result.approved and executed==['original','B','C'] and len(edits)==3
+    repeated=book['versions']['attempt_0002']['reviews']['duplicate_source']
+    assert repeated['duplicate_of_version']=='original' and repeated['executed'] is False
+    assert Path(edits[-1]['payload']['assembly_context']['report_ref']['path']).is_file()
+    assert edits[-1]['payload']['source_version']=='attempt_0001'
+    assert edits[-1]['payload']['feedback']['duplicate_source']==repeated
+    assert len((tmp_path/'repair_history.jsonl').read_text().splitlines())==3
+    run_flow(state)
+    assert len(edits)==3 and executed==['original','B','C']
+
+
+def test_repeat_guard_requires_deterministic_failure_and_identical_bindings(tmp_path):
+    from adsl.agents.fixed_assembly import _previous_failed_source
+    from adsl.agents.overhang_edit import version_record
+    source=tmp_path/'source.py';source.write_text('A')
+    binding=dict(source_sha256=sha256_file(source),execution_config_sha256='config',relevant_input_hashes={'image':'1'})
+    def book(failure):
+        return {'versions':{'original':version_record('original',source,None,reviews=dict(
+            execution_binding=binding,geometry={'source_sha256':sha256_file(source),'failures':[failure]}))}}
+    transient=book({'code':'EXECUTION_UNAVAILABLE','stage':'external_executor'})
+    assert _previous_failed_source(transient,binding) is None
+    physical=book({'code':'DISCONNECTED_PRINT_PART'})
+    assert _previous_failed_source(physical,binding)['id']=='original'
+    assert _previous_failed_source(physical,{**binding,'execution_config_sha256':'other'}) is None
+    assert _previous_failed_source(physical,{**binding,'relevant_input_hashes':{'image':'2'}}) is None

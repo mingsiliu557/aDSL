@@ -18,7 +18,7 @@ FEEDBACK_LIMIT_BYTES = 32 * 1024
 _TEXT_LIMIT = 240
 _EXPLANATIONS = {'message', 'reason', 'rejection_reason', 'summary', 'problem',
                  'suggested_fix', 'modification_summary', 'applicability_basis',
-                 'malformed_arrays', 'self_intersection_reason'}
+                 'malformed_arrays', 'self_intersection_reason', 'hypothesis'}
 _FAILURE_FIELDS = ('failures', 'display_failures', 'failure_feedback', 'evaluation_failures')
 _HISTORY_FIELDS = ('repair_history', 'attempt_history', 'previous_image_decisions',
                    'previous_code_decisions', 'code_critic_corrections', 'previous_attempts')
@@ -577,7 +577,15 @@ def _history(rows):
             continue
         out = _fields(row, ('round', 'proposal_id', 'candidate', 'accepted', 'status', 'reason',
             'approved', 'severity', 'modification_summary', 'image_critic_corrections',
+            'parent_version', 'action', 'hypothesis',
             'addressed_image_issues', 'edit_purpose', 'partition_adopted', 'source_sha256', 'source_version'))
+        if 'source_version' not in out and isinstance(row.get('version'), str):
+            out['source_version'] = row['version']
+        if isinstance(row.get('tool_statuses'), Mapping):
+            out['tool_statuses'] = {k:v for k,v in row['tool_statuses'].items() if isinstance(v,str) or v is None}
+        out['failure_codes'] = [v for v in row.get('failure_codes',[])[:6] if isinstance(v,str)]
+        if isinstance(row.get('execution_error'), Mapping):
+            out['execution_error'] = _fields(row['execution_error'], ('exception_type','message'))
         if isinstance(row.get('_history_meta'), Mapping):
             out['_history_meta'] = _fields(row['_history_meta'], ('round', 'source_sha256', 'source_version'))
         if row.get('preview_info'):
@@ -701,6 +709,10 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                     if total > len(container[key]):
                         container['preview_info'][key] = {'total': total,
                             'omitted_count': total - len(container[key]), 'full_ref': ref or container['preview_info'][key].get('full_ref')}
+            if isinstance(container.get('duplicate_source'), Mapping):
+                raw = container['duplicate_source']
+                container['duplicate_source'] = _fields(raw, ('status','duplicate_of_version','source_sha256','executed'))
+                container['duplicate_source']['previous_result_ref'] = view.ref(raw.get('previous_result_ref'))
             for key in ('render_issue', 'execution_error', 'error'):
                 if isinstance(container.get(key), Mapping):
                     raw = container[key]
@@ -751,7 +763,7 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                 return {}
             names = ('evaluation_feedback', 'evaluation_failure_ids', 'typed_findings', 'checker_evidence',
                 'checker_summary', 'preview_info', 'evidence_files', 'render_issue', 'execution_error',
-                'error', 'error_evidence_ref', 'execution_error_evidence_ref', 'render_issue_evidence_ref', *_HISTORY_FIELDS)
+                'error', 'duplicate_source', 'error_evidence_ref', 'execution_error_evidence_ref', 'render_issue_evidence_ref', *_HISTORY_FIELDS)
             selected = {k: container[k] for k in names if k in container}
             for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback'):
                 if key in container:
@@ -770,13 +782,14 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                 break
             def reduce(container):
                 for key in _HISTORY_FIELDS:
-                    if isinstance(container.get(key), list) and len(container[key]) > history_limit:
+                    limit = max(1,history_limit) if key == 'repair_history' else history_limit
+                    if isinstance(container.get(key), list) and len(container[key]) > limit:
                         info = container.setdefault('preview_info', {}).setdefault(key, {
                             'total': len(container[key]), 'full_ref': container.get(key + '_ref')})
                         if not info.get('full_ref'):
                             snap = view.snapshot({'history':full_histories[(id(container), key)]}, 'history_snapshot')
                             info['full_ref'] = {**snap, 'json_pointer':'/history'}
-                        container[key] = container[key][-history_limit:] if history_limit else []
+                        container[key] = container[key][-limit:] if limit else []
                         info['omitted_count'] = info['total'] - len(container[key])
                 for f in container.get('typed_findings') or []:
                     candidates = f.get('source_candidates', [])
@@ -813,6 +826,8 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                 for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback'):
                     if isinstance(container.get(key), dict):
                         reduce(container[key])
+                if isinstance(container.get('checker_evidence'), dict):
+                    reduce(container['checker_evidence'])
             reduce(out)
             feedback = out.get('evaluation_feedback')
             if feedback:
@@ -828,6 +843,23 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                         _preview(group, key, group.get(key, []), limit,
                             {**ref, 'json_pointer': _pointer('/failures', index, key)})
                 _preview(feedback, 'failures', feedback['failures'], group_limit, ref)
+        if measure() > FEEDBACK_LIMIT_BYTES:
+            def minimal_history(container):
+                if not isinstance(container,dict):
+                    return
+                rows = container.get('repair_history')
+                if rows:
+                    row = rows[-1]
+                    container['repair_history'] = [{k:row[k] for k in (
+                        'source_sha256','source_version','action','reason','failure_codes','execution_error') if k in row}]
+                    info = container.setdefault('preview_info',{}).setdefault('repair_history',{})
+                    if not info.get('full_ref'):
+                        snap = view.snapshot({'history':full_histories[(id(container),'repair_history')]},'history_snapshot')
+                        info['full_ref'] = {**snap,'json_pointer':'/history'}
+                    info.update(total=info.get('total',len(rows)),omitted_count=info.get('total',len(rows))-1)
+                for key in ('feedback','assembly_context','pending_reviews','engineering_feedback','checker_evidence'):
+                    minimal_history(container.get(key))
+            minimal_history(out)
         actual = measure()
         if actual > FEEDBACK_LIMIT_BYTES:
             raise AgentFeedbackError('AGENT_FEEDBACK_TOO_LARGE', {'actual_bytes': actual,
