@@ -1,4 +1,4 @@
-"""Dapper-form FDM objective: default exponent .2, frozen legacy .3 supported.
+"""Dapper-form FDM objective: default .2; explicit .1 and frozen .3 supported.
 
 Independent beds, not a packing algorithm or exact paper parameter reproduction.
 
@@ -25,9 +25,9 @@ def digest(value):
 
 def objective_config(config):
     if (not isinstance(config, dict) or set(config) != set(OBJECTIVE)
-            or config.get('alpha') not in (.2,.3)
+            or config.get('alpha') not in (.1,.2,.3)
             or any(config.get(k) != v for k,v in OBJECTIVE.items() if k != 'alpha')):
-        raise ValueError('partition_objective requires dapper_fdm_2015, alpha=0.2 or frozen 0.3, r_vox=0.1, axis_aligned_24, independent_bed')
+        raise ValueError('partition_objective requires dapper_fdm_2015, alpha=0.1, 0.2 or frozen 0.3, r_vox=0.1, axis_aligned_24, independent_bed')
     return dict(config)
 
 

@@ -122,7 +122,7 @@ def test_partition_guidance_bounds_and_original_negative_formula():
     assert neg['merge_one_fewer']['gap_voxels_exclusive_upper_bound'] > 100
 
 
-@pytest.mark.parametrize('alpha',[.2,.3])
+@pytest.mark.parametrize('alpha',[.1,.2,.3])
 def test_supported_alpha_and_strict_split_threshold(alpha):
     from adsl.agents.partition_score import partition_score_guidance
     current=score(2056,476,1,alpha)
@@ -137,7 +137,8 @@ def test_supported_alpha_and_strict_split_threshold(alpha):
     assert compare_partition_scores(current,score(2056,0,2,.3 if alpha==.2 else .2))['conclusion']=='NOT_COMPARABLE'
 
 
-def test_new_default_and_legacy_reference_files(tmp_path,monkeypatch):
+@pytest.mark.parametrize('alpha',[.1,.3])
+def test_new_default_and_legacy_reference_files(tmp_path,monkeypatch,alpha):
     from types import SimpleNamespace
     from adsl.agents import partition_score as module
     assert OBJECTIVE['alpha']==.2
@@ -149,7 +150,7 @@ def test_new_default_and_legacy_reference_files(tmp_path,monkeypatch):
     monkeypatch.setattr(module,'body_union',lambda *a:(mesh,manifest))
     def occupied(mesh,h,origin):pitches.append(h);return np.array([[0,0,0]])
     monkeypatch.setattr(module,'occupied_voxels',occupied)
-    legacy={**OBJECTIVE,'alpha':.3}
+    legacy={**OBJECTIVE,'alpha':alpha}
     path=module.create_reference('unused',tmp_path,legacy)
     assert pitches==[1.]
     assert module.load_reference(path,legacy)['reference_voxels']==1
