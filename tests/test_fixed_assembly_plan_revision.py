@@ -3,6 +3,7 @@ import asyncio
 from dataclasses import replace
 import importlib
 import json
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -47,12 +48,18 @@ def fake_export(monkeypatch):
     # Exercise real declaration/contract handling; mesh evaluation/serialization
     # have separate export regressions and are not geometry evidence in this test.
     def evaluated(*args, **kwargs):
-        return trimesh.creation.box(), None, {'display_complete':True, 'omitted_mesh_nodes':[]}
+        return trimesh.creation.box(), None, {'display_complete':True, 'omitted_mesh_nodes':[],
+            'display_export':{'file':Path(args[1]).name,'status':'PASS'},'display_failures':[]}
     monkeypatch.setattr(exporter, 'evaluated', evaluated)
-    monkeypatch.setattr(exporter, '_diagnostic_view', lambda a,o,m,r:r.update(
-        diagnostic={'display_available':True}))
+    monkeypatch.setattr(exporter, '_diagnostic_view', lambda *a, **k:{'display_available':True})
     monkeypatch.setattr(exporter, '_write_final_meshes', lambda *a, **k:None)
-    monkeypatch.setattr(exporter, '_verify_written_exports', lambda *a, **k:None)
+    def verified(output, manifest, *args, **kwargs):
+        manifest.update(manufacturing_status='PASS',display_status='PASS',scene_glb=str(output/'scene.glb'),
+            display_exports={'scene_glb':{'file_validation':'PASS'},'exploded_glb':{'file_validation':'PASS'}})
+        for p in manifest['parts']:
+            p.update(display_status='PASS',display_complete=True,file_validation={'status':'PASS'})
+    monkeypatch.setattr(exporter, '_verify_written_exports', verified)
+    monkeypatch.setattr(exporter, '_project_display_results', lambda *a:None)
     return {'validation_mode':'visual_only', 'mm_per_unit':1, 'fit_offset_mm':.2,
             'assembly_plan':initial_plan()}
 

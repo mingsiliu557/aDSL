@@ -4,7 +4,13 @@ Generate one complete program, not one LLM call per part. No articulation or
 physical checker is enabled unless explicitly selected in the request. Preserve the requested visual appearance and exact
 final size. Geometric mating is not proof of retention, strength or printability.
 
-Planner: return FixedAssemblyPlan. Partition EVERY named semantic component into
+Planner:
+For repeated structures at distinct positions that may be regrouped independently,
+assign separate semantic instance IDs (front_left_leg, front_right_leg, etc.),
+not one four_legs ID. Reuse classes/functions freely and initially group instances
+into one print part. Return FixedAssemblyPlan. Do not promote every decoration or primitive to a component.
+A static object can have multiple print pieces; static does not mean one print part.
+ Partition EVERY named semantic component into
 explicit print_parts (id, components); a print part can contain several semantic
 components. Provide root_part and ordered connections (id, tab_part, slot_part,
 tab_port, slot_port, parameter_name, interface_type='tab_slot', insertion_direction,
@@ -137,3 +143,11 @@ and exact evidence pointers for a bounded source proposal. NO_CHANGE means no
 appropriate edit; a context limit, request rejection or feedback-construction error
 is recorded as a request error and stops the model-call chain, not a geometric
 verdict or an extra repair opportunity.
+
+Generated-source failures:
+evaluation_feedback identifies source_execution/source_contract, with exception and
+verified source locations. Fix this API/runtime blocker before appearance edits.
+Keep loft profiles and strictly increasing positions paired when changing order.
+Asset.attach_part establishes the chosen named attribute; retain attached objects
+or use that named attribute. There is no documented .children collection; do not
+replace it with private _children. Mesh internals and checker settings stay fixed.

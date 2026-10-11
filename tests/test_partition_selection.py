@@ -23,6 +23,15 @@ def setup(tmp_path,monkeypatch,mode):
     specs=(topology.checker_spec(),physics.checker_spec('assembly_overhang'),physics.checker_spec('assembly_standing'))
     req=replace(req,max_rounds=2,checker_specs=specs,repair_policy=RepairPolicy(print_partition_editable=True),
         fixed_assembly={**req.fixed_assembly,'physics':{'overhang':{'partition_objective':scoring.OBJECTIVE}}})
+    original_execute=flow.execute_asset_source
+    def execute(source,out,**kwargs):
+        execution=original_execute(source,out,**kwargs)
+        path=out/'assembly/assembly_manifest.json';manifest=json.loads(path.read_text())
+        manifest.update(root_id='crossbar',part_declarations=[{'id':n,'components':[n]} for n in ('crossbar','stem')],
+            connections=[{'tab_part':'stem','slot_part':'crossbar'}])
+        write_json(path,manifest)
+        return execution
+    monkeypatch.setattr(flow,'execute_asset_source',execute)
     reference_dir=tmp_path/'reference_input';reference_dir.mkdir()
     manifest=reference_fixture(reference_dir)
     reference=scoring.create_reference(manifest,tmp_path/'references')

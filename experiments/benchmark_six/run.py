@@ -81,7 +81,8 @@ PARTITION_OBJECTIVE = dict(method='dapper_fdm_2015', alpha=.3, r_vox=.1,
                            orientation_set='axis_aligned_24', layout='independent_bed')
 ASSEMBLY_REQUIREMENT = '''Use the native FixedAssembly / TabSlot manufacturing assembly API.
 Preserve the requested appearance and function. Use the Planner's component and
-connection plan; do not add a separate print-part decision stage. A single planned
+initial connection plan; existing authorized Engineering feedback may regroup semantic
+instances and update interfaces. Do not add a separate print-part decision stage. A single planned
 print part needs no connector. Within each print part retain ordinary modeling;
 between print parts use assembly.connect for both mating sides and placement.
 Connections start from root_part, with at least one endpoint already placed.

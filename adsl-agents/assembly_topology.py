@@ -478,6 +478,21 @@ Engineering approval cannot override measured FAIL. Recheck assembly_topology.
 '''
 
 
+class InvalidPartitionProposal(ValueError):
+    pass
+
+
+def validate_partition_proposal(proposal, *, purpose, continuing=False, assembly=None, editable=False):
+    if purpose != 'partition_optimization' or continuing:
+        return
+    if not editable or proposal.action != 'regroup_print_parts' or proposal.grouping_change is None:
+        raise InvalidPartitionProposal('INVALID_PROPOSAL: first partition optimization requires authorized regroup_print_parts and grouping_change')
+    try:
+        proposal.grouping_change.validate_current_assembly(assembly or {})
+    except ValueError as error:
+        raise InvalidPartitionProposal(str(error)) from error
+
+
 async def engineer(workflow,runtime,request,plan,source,execution,root,run,context,feedback,remaining):
     from .service import _actionable_findings, _has_assigned_source_read
     from .prompts import object_prompt
@@ -512,6 +527,13 @@ body structure, per-part G and N to explain the expected gap/count tradeoff and 
 risks; do not invent the candidate score. Measurement after the edit determines
 adoption. Decline when no reasonable local change follows from this evidence,
 not solely because no alternative has been measured yet.
+Use separately named semantic instances for local regrouping; an old four_legs ID
+cannot be split into invented IDs. With NO_PROPOSAL, explain in observations or
+unresolved_findings a specific rejected local hypothesis or verifiable bound,
+semantic-granularity or interface-space limitation after reading source.
+Recommended-pose regions are printed millimetres under part_local_to_print_mm;
+use its inverse for source-local placement. largest_regions retains the input
+print pose. Surface region area is not its contribution to gap voxels G.
 Use action regroup_print_parts with grouping_change
 (operation, source_part_ids, target_print_parts, connection_changes). Preserve all
 pre-connector body material, appearance, root ID/frame and required features.
@@ -523,7 +545,7 @@ body details. All selected checks must run again. Standing/required physical or
 visual failures remain necessary repairs; a high score cannot excuse them.
 '''
     agent=runtime.agent(name='object-engineering-critic',tools=READ_TOOLS,
-        instructions=object_prompt('engineering_critic',articulation=False)+ '\n'+instruction,
+        instructions=object_prompt('engineering_critic',articulation=False,fixed_assembly=True)+ '\n'+instruction,
         output_type=EngineeringCriticDecision,strict_json_schema=False)
     payload={'requirement':request.requirement,'plan':plan.model_dump(),
         'assigned_source':str(source.relative_to(request.workspace)), 'assembly_context':context,
@@ -538,12 +560,13 @@ visual failures remain necessary repairs; a high score cannot excuse them.
         'partition_measurement':[{**{k:v for k,v in r.result.metrics.items() if k in ('partition_objective','partition_guidance')},
             'items':[{k:v for k,v in item.items() if k in ('part_id','status','gap_voxels',
                 'selected_rotation_id','recommended_print_transform_mm','largest_regions','input_pose_area_mm2',
-                'recommended_pose_area_mm2')} for item in r.result.metrics.get('items',[])]}
+                'recommended_pose_area_mm2','recommended_pose_regions')} for item in r.result.metrics.get('items',[])]}
             for r in runs if r.spec.name=='assembly_overhang'],
         'partition_change_vs_baseline':feedback.get('partition_change_vs_baseline'),
         'next_edit_purpose':feedback.get('next_edit_purpose'),
         'primary_objective':feedback.get('primary_objective'),
         'comparison_baseline_version':feedback.get('comparison_baseline_version'),
+        'partition_candidate_in_progress':feedback.get('partition_candidate_in_progress',False),
         'partition_guidance':feedback.get('partition_guidance'),
         'resolved_visual_feedback':feedback.get('resolved_visual_feedback'),
         'pending_reviews':{k:feedback.get(k) for k in ('image_critic','code_critic','render_issue','repair_history')},
@@ -571,6 +594,14 @@ visual failures remain necessary repairs; a high score cannot excuse them.
         'unresolved_findings':decision.unresolved_findings[:6],
         'report_path':str((root/'engineering_critique.json').resolve())}
     if proposal:
+        try:
+            validate_partition_proposal(proposal,purpose=feedback.get('next_edit_purpose'),
+                continuing=feedback.get('partition_candidate_in_progress',False),
+                assembly=context.get('current_assembly'), editable=request.repair_policy.print_partition_editable)
+        except ValueError as error:
+            feedback['engineering'] = {'status':'UNAVAILABLE','code':'INVALID_PROPOSAL','reason':str(error)}
+            write_json(root/'proposal_rejected.json',feedback['engineering'])
+            return None
         ids={f.finding_id for result in runs for f in _actionable_findings(result)}
         current_parts={p['id'] for p in (context.get('current_assembly') or {}).get('parts',[])}
         orientation_valid = (request.repair_policy.print_orientation_editable and

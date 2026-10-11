@@ -145,7 +145,13 @@ def partition_measurement(args, physics, report, meshes, result, area_available)
                 row['recommended_pose_area_mm2'] = area['area_mm2']
                 row['recommended_pose_display_overlay'] = _display_overlay(
                     colored, args.output/f'{name}.recommended_pose.overhang.glb')
-                write_json(args.output/f'{name}.recommended_pose.regions.json', area)
+                regions_path = args.output/f'{name}.recommended_pose.regions.json'
+                write_json(regions_path, area)
+                row['recommended_pose_regions'] = dict(frame=f'recommended_print:{name}', length_unit='mm',
+                    part_local_to_print_mm=measured['recommended_print_transform_mm'],
+                    regions=[{k:r[k] for k in ('area_mm2','bounds_mm','centroid_mm') if k in r}
+                             for r in area['regions'][:3]],
+                    evidence_ref={'path':str(regions_path.resolve()),'json_pointer':'/regions'})
             layouts.append(dict(part_id=name, stl=str(path.resolve()), stl_sha256=sha256_file(path),
                 mesh_sha256=sha256_file(args.output/f'{name}.solid.npz'),
                 file_validation=print_validation,

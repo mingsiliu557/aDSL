@@ -339,7 +339,7 @@ class _Projection:
                 else:
                     out['reason'] = 'file_not_found'
         else:
-            out['reason'] = 'file_not_found'
+            out['reason'] = 'outside_workspace' if supplied.get('reason') == 'outside_workspace' else 'file_not_found'
         if out['source_sha256'] and self.current_hash:
             current = out['source_sha256'] == self.current_hash
             out.update(source_binding='CURRENT' if current else 'STALE', matches_current_source=current)

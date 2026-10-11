@@ -52,3 +52,9 @@ ownership. After inspecting assigned_source, read only needed evidence with the
 provided workspace-relative path and exact json_pointer. Do not load every report
 or repeat per-face geometry in your response. History carries its original source
 version; it is not a current measurement.
+
+For an initial partition_optimization proposal, use regroup_print_parts and a valid
+grouping_change. Continue a previously started candidate's interface repairs with
+existing actions while retaining its comparison baseline. NO_PROPOSAL must state a
+concrete source/semantic/interface limitation or score bound; unmeasured candidate
+scores alone are not a reason to decline. Never invent a measured improvement.

@@ -29,7 +29,7 @@ def object_prompt(role: str, *, articulation: bool, fixed_assembly: bool = False
         PROMPT_ROOT / filename,
         articulation=articulation,
     )
-    if fixed_assembly and role in {'code_critic', 'code_critic_review'}:
+    if fixed_assembly and role in {'code_critic', 'code_critic_review', 'engineering_critic'}:
         # API reference, not Planner/Coder assignments or manufacturing approval.
         prompt += '\n' + files('adsl.core').joinpath('docs/fixed_assembly.md').read_text(encoding='utf-8')
     elif fixed_assembly and role not in {'image_critic', 'image_critic_review'}:

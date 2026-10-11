@@ -209,7 +209,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                  initial_execution=None, initial_topology_run=None, evidence_files=()):
     from .service import _asset_executor_timeout_seconds, _actionable_findings, VISUAL_FEEDBACK_INSTRUCTION
     from .assembly_topology import (NAME, TOPOLOGY_SCOPE_VERSION, run_assembly_topology, engineer,
-        prepare_evidence, evaluation_evidence_run, EVIDENCE_PATH_INSTRUCTION)
+        prepare_evidence, evaluation_evidence_run, EVIDENCE_PATH_INSTRUCTION, validate_partition_proposal, InvalidPartitionProposal)
     from .assembly_physics import NAMES, run_assembly_checks, orientation_only, area_comparison
     specs = [s for s in request.checker_specs if s.name in NAMES]
     if len({s.name for s in specs}) != len(specs):
@@ -308,6 +308,18 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 target=RepairTarget(), action='reshape')
             if feedback.get('engineering_proposal'):
                 proposal = RepairProposal.model_validate(feedback['engineering_proposal'])
+            try:
+                validate_partition_proposal(proposal,purpose=edit_purpose,
+                    continuing=bool(comparison_baseline and comparison_baseline != parent_id and
+                        working['reviews'].get('edit_purpose') == 'partition_optimization'),
+                    assembly=_assembly_context(parent,working['reviews'].get('geometry'),
+                        version_role='repair_starting_version')['current_assembly'],
+                    editable=request.repair_policy.print_partition_editable)
+            except ValueError as error:
+                book.update(feedback={**feedback,'engineering':{'status':'UNAVAILABLE',
+                    'code':'INVALID_PROPOSAL','reason':str(error)}},stop_reason='partition_engineering_unavailable')
+                stop='partition_engineering_unavailable'
+                break
             policy = request.repair_policy.model_copy(update={'max_total_candidates':book['max_rounds']-1})
             controller = RepairController(workspace=workspace, round_root=root, baseline_source=parent,
                 source_index=None, findings=[], checker_specs_sha256=config_hash, policy=policy)
@@ -811,6 +823,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 feedback['edit_restriction']='Only literal set_print_orientation(part_id, rotation_deg=(x,y,z)) calls; keep all geometry and assembly unchanged.'
             if partition is not None:
                 continuing_optimization=edit_purpose.endswith('_optimization') and not partition_adopted
+                feedback['partition_candidate_in_progress'] = continuing_optimization
                 if continuing_optimization:
                     feedback.update(next_edit_purpose=edit_purpose,comparison_baseline_version=comparison_baseline)
                 elif partition_ready and optimize:
@@ -846,11 +859,19 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                 report_ref=reviews.get('geometry_report_ref')),
                             feedback,remaining)
                         if next_proposal:
+                            validate_partition_proposal(next_proposal,purpose=feedback.get('next_edit_purpose'),
+                                continuing=feedback.get('partition_candidate_in_progress',False),
+                                assembly=_assembly_context(current,report,version_role='current_candidate')['current_assembly'],
+                                editable=request.repair_policy.print_partition_editable)
                             feedback['engineering_proposal']=next_proposal.model_dump()
                             feedback['engineering']['status']='PROPOSAL'
                         elif feedback['engineering']['status']=='NOT_REQUESTED':
                             feedback['engineering']={'status':'NO_PROPOSAL',
                                 'reason':'No structured advice; use trustworthy current feedback or NO_CHANGE.'}
+                    except InvalidPartitionProposal as error:
+                        next_proposal = None
+                        feedback['engineering']={'status':'UNAVAILABLE','code':'INVALID_PROPOSAL','reason':str(error)}
+                        write_json(candidate_root/'proposal_rejected.json',feedback['engineering'])
                     except Exception as error:
                         write_json(candidate_root/'engineering_error.json',
                             {'type':type(error).__name__,'reason':safe_request_reason(error),
