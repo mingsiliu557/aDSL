@@ -204,7 +204,8 @@ scene = assembly.scene()
         assert diagnostic['type'] == 'AssetExecutionError'
         assert 'MATE_FRAME_MISMATCH: interface=second tab=stem slot=crossbar' in diagnostic['error']
         assert 'translation_error_mm=1 rotation_error_deg=0' in diagnostic['error']
-        assert 'MATE_FRAME_MISMATCH' in feedback['failures'][-1]['reason']
+        assert 'MATE_FRAME_MISMATCH' in feedback['execution_failure']['message']
+        assert feedback['execution_failure']['stage'] == 'source_execution'
         assert not list((tmp_path/'original').rglob('assembly_manifest.json'))
         return await repair(**kwargs)
     monkeypatch.setattr(state[0], '_repair', inspect_evidence)

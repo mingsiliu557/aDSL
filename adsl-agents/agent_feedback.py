@@ -430,6 +430,7 @@ class _Projection:
 
     def add(self, raw, ref, *, finding_id=None, classification_origin='diagnostic'):
         details = evaluation_details(raw)
+        is_source = raw.get('code') == 'GENERATED_SOURCE_EXECUTION_FAILED'
         diagnostic_hash = self.diagnostic_hash(raw)
         file = _first(raw.get('file'), raw.get('glb'), raw.get('path'))
         representation = _first(raw.get('target_representation'), raw.get('representation'),
@@ -439,6 +440,9 @@ class _Projection:
                representation, diagnostic_hash]
         if not ref.get('source_sha256'):
             key.append(self.container_origins.get((ref.get('path'), ref.get('json_pointer')), ref.get('path')))
+        if is_source:
+            key = [ref.get('source_sha256'), details['stage'], raw.get('exception_type'),
+                   raw.get('message'), raw.get('source_locations', [])]
         failure_id = 'eval:' + _hash(key)
         group = self.groups.get(failure_id)
         if group is None:
@@ -453,6 +457,11 @@ class _Projection:
                 'attempts_summary': [_attempt(a) for a in attempts] if attempts is not None else [],
                 'finding_ids': [], 'occurrences': [], 'evidence_refs': []}
             self.groups[failure_id] = group
+        if is_source:
+            group.update(exception_type=raw.get('exception_type'), message=str(raw.get('message',''))[:512],
+                repair_target=raw.get('repair_target'), source_locations=[{
+                    **_fields(f, ('line','function')), 'path':self.ref({'path':f.get('path')})['path']}
+                    for f in raw.get('source_locations', [])[:3]])
         # Classification is controller evidence, not a consequence of seeing a
         # diagnostic first. Never OR permissions or infer them from error codes.
         priority = 1 if classification_origin == 'controller' else 0
@@ -617,7 +626,11 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                     clean = _fields(group, ('failure_id', 'diagnostic_sha256', 'part_id', 'failure_kind',
                         'geometry_repair_allowed', 'code', 'stage', 'node_path', 'operation', 'input_count',
                         'displacement_budget_mm', 'local_scale_mm', 'absolute_scale_floor_mm',
-                        'target_representation', 'physical_verdict', 'attempt_count', 'occurrence_count'))
+                        'target_representation', 'physical_verdict', 'attempt_count', 'occurrence_count',
+                        'exception_type', 'repair_target'))
+                    if group.get('exception_type'):
+                        clean.update(message=str(group.get('message',''))[:512],
+                            source_locations=[_fields(f, ('path','line','function')) for f in group.get('source_locations',[])[:3]])
                     clean.update(internal_metrics=_metrics(group.get('internal_metrics')),
                         attempts_summary=[_attempt(a) for a in group.get('attempts_summary') or []],
                         finding_ids=[v for v in group.get('finding_ids') or [] if isinstance(v, str)],
@@ -632,6 +645,12 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
             if not isinstance(container, dict):
                 return
             failure_ids = list(container.get('evaluation_failure_ids') or [])
+            execution_failure = container.pop('execution_failure', None)
+            if isinstance(execution_failure, Mapping):
+                ref = view.ref(execution_failure.get('evidence_ref') or container.get('execution_error_ref'))
+                identity = view.add(execution_failure, ref)
+                if identity not in failure_ids:
+                    failure_ids.append(identity)
             for field in _FAILURE_FIELDS:
                 rows = container.get(field)
                 if isinstance(rows, list):

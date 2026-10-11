@@ -58,6 +58,42 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _execute_generated_source(source, output, *, fixed_assembly=False):
+    """Only source execution/contracts; export, render and infrastructure stay outside."""
+    stage = 'source_execution'
+    try:
+        namespace = runpy.run_path(str(source), run_name="__adsl_generated__")
+        stage = 'source_contract'
+        if not isinstance(namespace.get('scene'), Asset):
+            raise TypeError("Generated source must assign an adsl Asset to `scene`")
+        if fixed_assembly:
+            from adsl.core import FixedAssembly
+            from adsl.core.serialize import asset_to_dict
+            assembly = namespace.get('assembly')
+            if not isinstance(assembly, FixedAssembly):
+                raise TypeError('Fixed assembly source must define global `assembly: FixedAssembly`')
+            signature = lambda value: json.dumps(asset_to_dict(value), sort_keys=True, default=lambda v:v.tolist())
+            if signature(namespace['scene']) != signature(assembly.scene()):
+                raise ValueError('scene must equal assembly.scene(); unselected material or post-assembly transform is not permitted')
+        return namespace
+    except Exception as error:
+        frames = [f for f in traceback.extract_tb(error.__traceback__)
+                  if Path(f.filename).resolve() == source]
+        # Import/file/service errors are not authorization to edit geometry.
+        if (stage == 'source_contract' or frames or isinstance(error, SyntaxError)) and not isinstance(
+                error, (ImportError, OSError, TimeoutError)):
+            locations = [dict(path=str(source), line=f.lineno, function=f.name) for f in reversed(frames[-3:])]
+            if isinstance(error, SyntaxError) and error.filename and Path(error.filename).resolve() == source:
+                locations = [dict(path=str(source), line=error.lineno, function='<module>')]
+            diagnostic = dict(code='GENERATED_SOURCE_EXECUTION_FAILED', stage=stage,
+                exception_type=type(error).__name__, message=str(error)[:512],
+                source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
+                source_locations=locations, traceback=traceback.format_exc())
+            output.mkdir(parents=True, exist_ok=True)
+            (output/'source_execution_error.json').write_text(json.dumps(diagnostic, indent=2))
+        raise
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     source = args.source.expanduser().resolve()
@@ -97,10 +133,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     draw.text((4,4+16*i), line, fill='darkred')
                 marked.save(path)
         return 0
-    namespace = runpy.run_path(str(source), run_name="__adsl_generated__")
-    scene = namespace.get("scene")
-    if not isinstance(scene, Asset):
-        raise TypeError("Generated source must assign an adsl Asset to `scene`")
+    namespace = _execute_generated_source(source, output, fixed_assembly=bool(args.fixed_assembly_config))
+    scene = namespace['scene']
     diagnostic = {}
     assembly_report = None
     if args.fixed_assembly_config:
@@ -108,12 +142,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         from adsl.core.serialize import asset_to_dict
         from adsl.core.export.export_assembly import export_assembly
         assembly = namespace.get('assembly')
-        if not isinstance(assembly, FixedAssembly):
-            raise TypeError('Fixed assembly source must define global `assembly: FixedAssembly`')
-        def scene_signature(value):
-            return json.dumps(asset_to_dict(value), sort_keys=True, default=lambda v:v.tolist())
-        if scene_signature(scene) != scene_signature(assembly.scene()):
-            raise ValueError('scene must equal assembly.scene(); unselected material or post-assembly transform is not permitted')
         try:
             report = export_assembly(assembly, output/'assembly',
                 source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),

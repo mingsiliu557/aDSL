@@ -22,7 +22,10 @@ class ExecutionResult:
 
 
 class AssetExecutionError(RuntimeError):
-    pass
+    def __init__(self, message, *, diagnostic=None):
+        super().__init__(message)
+        self.diagnostic = diagnostic
+
 
 
 class AssetInfrastructureError(AssetExecutionError):
@@ -161,9 +164,21 @@ def execute_asset_source(
             )
             else AssetExecutionError
         )
+        diagnostic = None
+        diagnostic_path = output/'source_execution_error.json'
+        if diagnostic_path.is_file() and error_type is AssetExecutionError:
+            from adsl.agents.feedback_schema import execution_failure_summary
+            try:
+                raw = json.loads(diagnostic_path.read_text())
+                diagnostic = execution_failure_summary(raw, source_path=source)
+                if diagnostic is not None:
+                    diagnostic['evidence_ref'] = dict(path=str(diagnostic_path), json_pointer='',
+                        source_sha256=diagnostic['source_sha256'])
+            except (ValueError, OSError, TypeError):
+                pass  # Unverified evidence does not change the original classification.
         raise error_type(
             f"Generated source exited with code {completed.returncode}.\n"
-            f"STDOUT:\n{completed.stdout}\nSTDERR:\n{completed.stderr}"
+            f"STDOUT:\n{completed.stdout}\nSTDERR:\n{completed.stderr}", diagnostic=diagnostic
         )
     manifest_path = output / "execution.json"
     if not manifest_path.is_file():

@@ -21,6 +21,7 @@ from .models import GradedImageCriticDecision, GradedCodeCriticDecision
 from .utils.execution import execute_asset_source, AssetExecutionError, AssetInfrastructureError, ExecutionResult
 from .utils.io import read_json, write_json
 from .agent_feedback import evaluation_details
+from .feedback_schema import execution_failure_summary, SOURCE_FAILURE_CODE
 from .utils.request_errors import (classify_model_request_error, terminal_stop_reason,
                                    propagate_request_error, safe_request_reason)
 
@@ -53,6 +54,9 @@ def _failure_feedback(report, *, source_sha256=None):
             kind = 'candidate_evaluation'
             row.update(evaluation_code=evaluation_code if explicit_evaluation else 'BOOLEAN_EVALUATION_FAILED',
                        evaluation_stage=evaluation_stage if explicit_evaluation else 'solid_evaluation')
+        if code == SOURCE_FAILURE_CODE and row.get('stage') in {'source_execution','source_contract'}:
+            kind = 'candidate_source'
+            row['repair_target'] = 'generated_source'
         if kind is None:
             if code in ('DISPLAY_INCOMPLETE', 'DISCONNECTED_PRINT_PART', 'INTERNAL_PART_DISCONNECTED'):
                 kind = 'candidate_geometry'
@@ -332,7 +336,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             candidate_root = root
         terminal_request_error, propagate_error = None, None
         execution, reviews = None, {'appearance_approved':None}
-        report = {'status':'ERROR', 'failures':[]}
+        source_failure = None
+        report = {'status':'ERROR', 'source_sha256':file_hash(current), 'failures':[]}
         report_path = candidate_root/'asset'/'assembly'/'assembly_manifest.json'
         accepted, reason = False, 'interface_or_appearance_rejected'
         gate_passed = display_available = False
@@ -363,7 +368,15 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 write_json(report_path, report)
         except (AssetExecutionError, subprocess.TimeoutExpired) as error:
             diagnostic = {'type':type(error).__name__, 'error':str(error)}
-            if report_path.exists():
+            source_failure = execution_failure_summary(getattr(error,'diagnostic',None),
+                source_path=current, source_version=version_id)
+            if source_failure is not None:
+                diagnostic['execution_failure'] = source_failure
+                source_failure['evidence_ref'] = dict(path=str(candidate_root/'execution_error.json'),
+                    json_pointer='/execution_failure', source_sha256=file_hash(current), source_version=version_id)
+                report = {'status':'ERROR', 'source_sha256':file_hash(current), 'failures':[source_failure]}
+                reviews['execution_failure'] = source_failure
+            if source_failure is None and report_path.exists():
                 try:
                     saved_report = read_json(report_path)
                     if not isinstance(saved_report, dict) or not isinstance(saved_report.get('failures'), list):
@@ -465,7 +478,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 'omitted_mesh_nodes':display.get('omitted_mesh_nodes', []),
             }
             try:
-                image_decision = await workflow._review_generation_image(
+                image_decision = None if source_failure else await workflow._review_generation_image(
                     runtime=runtime, request=request, plan=plan, execution=execution,
                     round_number=number, max_rounds=book['max_rounds'], round_root=candidate_root,
                     image_critic=image_critic, image_history=image_history,
@@ -475,7 +488,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 code_decision = None
                 # Same order as ordinary aDSL: Code reviews a rejected Image
                 # judgement, not a NOT_EVALUATED manufacturing status.
-                if partition is not None or image_decision is None or not image_decision.approved:
+                if source_failure is None and (partition is not None or image_decision is None or not image_decision.approved):
                     code_decision = await workflow._review_generation_code(
                         runtime=runtime, request=request, plan=plan, execution=execution,
                         workspace=workspace, source_path=current, round_number=number,
@@ -494,7 +507,11 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     'review_mode':'generation', 'render_issue':render_issue,
                     'assembly_context':assembly_context,
                     'geometry_report_ref':geometry_report_ref,
-                    'execution_error_ref':reviews.get('execution_error_ref')}
+                    'execution_error_ref':reviews.get('execution_error_ref'),
+                    'execution_failure':source_failure}
+                if source_failure:
+                    reviews.update(image_review_status='SKIPPED_SOURCE_EXECUTION_FAILED',
+                                   code_review_status='SKIPPED_SOURCE_EXECUTION_FAILED')
                 gate_passed = (report.get('manufacturing_status', report.get('export_status')) == 'PASS'
                               and report['status']=='NOT_EVALUATED' and not report.get('failures') if visual_only else
                               report['status']=='PASS' and report.get('manufacturing_status','PASS')=='PASS')
@@ -527,7 +544,19 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     raise ValueError('cached topology result/source/config mismatch')
                 if topology_run.result.assumptions.get('topology_scope_version') != TOPOLOGY_SCOPE_VERSION:
                     topology_run=None
-            runs = run_assembly_checks(specs,execution=topology_execution,source=current,
+            if source_failure:
+                from .checkers import CheckerRun
+                from .models import CheckerResult
+                runs = []
+                for spec in specs:
+                    result = CheckerResult(checker=spec.name, status='INDETERMINATE',
+                        summary='NOT_EVALUATED: generated source execution failed',
+                        assumptions={'reason':'SOURCE_EXECUTION_FAILED','source_sha256':file_hash(current)})
+                    folder = candidate_root/'checkers'/spec.name
+                    write_json(folder/'result.json',result.model_dump())
+                    runs.append(CheckerRun(spec,result,folder,()))
+            else:
+                runs = run_assembly_checks(specs,execution=topology_execution,source=current,
                 root=candidate_root,physics=physics,initial_topology_run=topology_run,
                 **({'partition_reference':reference_path} if partition is not None else {}))
             topology_run = next((r for r in runs if r.spec.name==NAME),None)
@@ -645,7 +674,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         evidence_runs = [*runs, *([evaluation_run] if evaluation_run else [])]
         if evaluation_run:
             reviews['evaluation_failure_feedback'] = evaluation_run.result.model_dump()
-        extra = sorted((candidate_root/'asset'/'assembly').rglob('*'))
+        extra = [candidate_root/name for name in ('geometry_report.json','execution_error.json', 'asset/source_execution_error.json')
+                 if (candidate_root/name).is_file()]
+        extra += sorted((candidate_root/'asset'/'assembly').rglob('*'))
         extra += sorted((candidate_root/'evaluation_feedback').rglob('*'))
         if specs:
             extra += sorted((candidate_root/'checkers').rglob('*'))
@@ -676,6 +707,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             'report_path':str(report_path),
             'geometry_report_ref':reviews.get('geometry_report_ref'),
             'execution_error_ref':reviews.get('execution_error_ref'),
+            'execution_failure':source_failure,
             'source_version':version_id, 'source_sha256':file_hash(current),
             'appearance_approved':reviews.get('appearance_approved'),
             'render_issue':reviews.get('render_issue'),
@@ -703,6 +735,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             feedback['partition_change_vs_baseline']=reviews.get('partition_change_vs_baseline')
             feedback['body_reference_comparison']=shape_comparison
             feedback['partition_guidance']=reviews.get('assembly_overhang',{}).get('metrics',{}).get('partition_guidance')
+        if source_failure:
+            feedback.update(primary_objective='Fix the bound generated-source API/runtime error first. Do not propose appearance changes without a current render. Keep mesh backends and checker settings unchanged.',
+                            next_edit_purpose='required_repair')
         prepare_evidence(feedback,workspace=workspace,source_sha256=file_hash(current),
                          evidence_files=book['evidence_files'])
         feedback['engineering']={'status':'NOT_REQUESTED'}
@@ -744,7 +779,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             remaining = book['max_rounds']-number
             if ((not accepted or optimize) and not optimization_finished
                     and terminal_request_error is None and propagate_error is None
-                    and reason != 'FLOW_ERROR' and actionable and remaining > 0):
+                    and source_failure is None and reason != 'FLOW_ERROR' and actionable and remaining > 0):
                 budget = RepairController(workspace=workspace,round_root=root,baseline_source=current,
                     source_index=None,findings=[],checker_specs_sha256=config_hash,
                     policy=request.repair_policy.model_copy(update={'max_total_candidates':book['max_rounds']-1}))
@@ -798,7 +833,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         if (not accepted and reason != 'FLOW_ERROR' and failure_feedback
                 and not any(f['geometry_repair_allowed'] for f in failure_feedback)
                 and not actionable and not image_pending
-                and not any(f.get('code') == 'EXECUTION_UNAVAILABLE' for f in failure_feedback)):
+                and not any(f.get('code') in {'EXECUTION_UNAVAILABLE', SOURCE_FAILURE_CODE} for f in failure_feedback)):
             stop='export_unassessed_no_geometry_repair';book['completed']=True
         if partition_restore is not None and not terminal_request_error and propagate_error is None:
             baseline=book['versions'][partition_restore]

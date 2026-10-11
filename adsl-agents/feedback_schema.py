@@ -180,3 +180,29 @@ __all__ = [
     "sha256_file",
     "stable_hash",
 ]
+
+
+SOURCE_FAILURE_CODE = "GENERATED_SOURCE_EXECUTION_FAILED"
+
+
+def execution_failure_summary(raw, *, source_path, source_version=None):
+    """Accept only diagnostics bound to this exact source and execution boundary."""
+    if not isinstance(raw, dict) or raw.get('code') != SOURCE_FAILURE_CODE:
+        return None
+    source = Path(source_path).resolve()
+    if raw.get('source_sha256') != sha256_file(source) or raw.get('stage') not in {
+            'source_execution', 'source_contract'}:
+        return None
+    if not isinstance(raw.get('exception_type'), str) or not isinstance(raw.get('message'), str):
+        return None
+    locations = []
+    for frame in raw.get('source_locations', []):
+        if (not isinstance(frame, dict) or not isinstance(frame.get('path'), str)
+                or Path(frame['path']).resolve() != source
+                or not isinstance(frame.get('line'), int) or frame['line'] < 1):
+            return None
+        locations.append({k:frame.get(k) for k in ('path', 'line', 'function')})
+    return dict(code=SOURCE_FAILURE_CODE, stage=raw['stage'],
+        exception_type=raw['exception_type'], message=raw['message'][:512],
+        source_sha256=raw['source_sha256'], source_version=source_version,
+        source_locations=locations[:3], repair_target='generated_source')
