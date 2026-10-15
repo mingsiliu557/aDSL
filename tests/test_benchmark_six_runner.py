@@ -215,7 +215,7 @@ def test_actual_role_call_adapter_allows_one_initial_and_nine_source_repairs(tmp
     records = list((tmp_path / 'jobs/fixture/official/generation/role_calls').glob('*.json'))
     assert len(records) == 10
     assert run.read_json(records[0])['instructions'] == 'unchanged native prompt'
-    assert runtime.sessions.workspace.is_relative_to('/tmp')
+    assert runtime.sessions.workspace == run.local_session_directory(tmp_path, 'fixture', 'official')
 
 
 class OfflinePlannerOutput(BaseModel):
@@ -778,3 +778,12 @@ def test_new_request_default_and_explicit_old_partition_config(tmp_path):
     legacy={**run.PARTITION_OBJECTIVE,'alpha':.3}
     old=run.request_fields(row,'ours',{'overhang':{'partition_objective':legacy}})
     assert old['fixed_assembly']['physics']['overhang']['partition_objective']==legacy
+
+
+def test_session_storage_default_and_override(tmp_path, monkeypatch):
+    monkeypatch.delenv('ADSL_SESSION_ROOT', raising=False)
+    directory = run.local_session_directory(tmp_path, 'fixture', 'ours')
+    assert directory.is_relative_to('/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/agent_sessions')
+    monkeypatch.setenv('ADSL_SESSION_ROOT', str(tmp_path / 'sessions'))
+    assert run.local_session_directory(tmp_path, 'fixture', 'ours').is_relative_to(tmp_path / 'sessions')
+    assert run.local_session_directory(tmp_path / 'other', 'fixture', 'ours') != run.local_session_directory(tmp_path, 'fixture', 'ours')

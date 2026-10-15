@@ -322,7 +322,8 @@ def probe(root, arm, arms):
 
 def local_session_directory(root, case_id, arm, kind='generation'):
     key = digest(str(root.resolve()))[:16]
-    return Path('/tmp') / f'adsl-six-sessions-{key}' / case_id / arm / kind
+    base = Path(os.environ.get('ADSL_SESSION_ROOT', '/vepfs_default/chanxueyan/lhp/lms/aDSL/temp/agent_sessions')).expanduser()
+    return base / f'adsl-six-sessions-{key}' / case_id / arm / kind
 
 
 class PlannerStreamInterrupted(RuntimeError):

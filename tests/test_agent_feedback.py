@@ -831,3 +831,19 @@ def test_default_budget_crops_evidence_directory_with_complete_pointer(tmp_path)
     assert out['feedback']['repair_history'][0]['execution_error']['message']=='missing children'
     assert raw==original
     assert payload_for_agent(out,workspace=tmp_path,source_path=source,source_version='original',role='coder')==out
+
+
+def test_partition_intent_is_short_read_only_input(tmp_path):
+    import copy
+    source=tmp_path/'source.py';source.write_text('working')
+    intent={'schema_version':1,'proposal_id':'split','comparison_baseline_version':'original',
+        'comparison_baseline_source_sha256':'a'*64,'grouping_change':{'operation':'split',
+        'source_part_ids':['body'],'target_print_parts':[{'id':'body','components':['body']},
+        {'id':'hat','components':['hat']}],'connection_changes':['hidden interface']}}
+    payload={'partition_intent':intent,'grouping_change':intent['grouping_change'],
+        'grouping_realization':{'status':'MISMATCH','missing_part_ids':['hat']},
+        'comparison_baseline_version':'original','edit_purpose':'partition_optimization'}
+    before=copy.deepcopy(payload)
+    projected=payload_for_agent(payload,workspace=tmp_path,source_path=source,source_version='attempt_0001',role='coder')
+    assert projected['partition_intent']==intent and payload==before
+    assert payload_for_agent(projected,workspace=tmp_path,source_path=source,source_version='attempt_0001',role='coder')==projected

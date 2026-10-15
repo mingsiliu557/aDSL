@@ -161,6 +161,7 @@ class FixedAssembly:
         self.transforms = {self.root_id: (root_frame or InterfaceFrame()).matrix()}
         self.print_rotations = {}
         self._selected_nodes = set()
+        self._node_owners = {}
         self._input_bodies = []  # Keep identity references alive for overlap detection.
 
     def add_part(self, part_id: str, body: Asset, *, components: tuple[str, ...]):
@@ -177,11 +178,17 @@ class FixedAssembly:
             return {id(asset)} | set().union(*(nodes(c) for c in asset._children.values()))
         selected = nodes(body)
         if selected & self._selected_nodes:
-            raise ValueError("overlapping ancestor/descendant or repeated material selection")
+            conflicts = sorted({self._node_owners[node] for node in selected & self._selected_nodes})
+            raise ValueError(f"PRINT_PART_ASSET_ALIAS: attempted_part_id={part_id!r}, "
+                f"conflicting_part_ids={conflicts!r}; overlapping ancestor/descendant or repeated material selection; "
+                "construction-node alias conflict, not measured material overlap. "
+                "components is ownership metadata, not a geometry selector; construct independent bodies.")
+        body_copy, part_copy = body.copy(), body.copy()
         self._selected_nodes.update(selected)
+        self._node_owners.update({node:part_id for node in selected})
         self._input_bodies.append(body)
-        self.bodies[part_id] = body.copy()
-        self.parts[part_id] = body.copy()
+        self.bodies[part_id] = body_copy
+        self.parts[part_id] = part_copy
         self.components[part_id] = tuple(components)
 
     def set_print_orientation(self, part_id: str, *, rotation_deg=(0, 0, 0)):

@@ -339,3 +339,40 @@ def test_real_boolean_export(tmp_path,variant):
     assert all((result.output_root/'assembly'/part['stl']).is_file() for part in report['parts'])
     assert all((result.output_root/'assembly'/part['stl']).read_bytes().startswith(b'solid ')
                for part in report['parts'])
+
+
+@pytest.mark.parametrize('kind', ['whole', 'descendant', 'shared_cutter'])
+def test_alias_names_conflicting_parts_without_mutating_registry(kind):
+    from adsl.core import boolean_difference
+    first = Cube((4,4,4))
+    second = first
+    if kind == 'descendant':
+        child=Cube((1,1,1));first.attach_part('child',child);second=child
+    elif kind == 'shared_cutter':
+        cutter=Cube((1,1,1))
+        first=boolean_difference(Cube((4,4,4)),cutter)
+        second=first.op_0  # Actual shared subtraction node, not an automatic attach copy.
+    assembly=FixedAssembly(root_id='first',mm_per_unit=1)
+    assembly.add_part('first',first,components=('one',))
+    before=(set(assembly._selected_nodes),dict(assembly._node_owners),list(assembly.parts))
+    with pytest.raises(ValueError,match='PRINT_PART_ASSET_ALIAS') as caught:
+        assembly.add_part('second',second,components=('two',))
+    assert "attempted_part_id='second'" in str(caught.value)
+    assert "conflicting_part_ids=['first']" in str(caught.value)
+    assert 'not a geometry selector' in str(caught.value)
+    assert before==(assembly._selected_nodes,assembly._node_owners,list(assembly.parts))
+    assembly.add_part('second',Cube((2,2,2)),components=('two',))
+
+
+def test_add_part_copy_failure_is_transactional(monkeypatch):
+    a=FixedAssembly(root_id='body',mm_per_unit=1)
+    body=Cube((1,1,1));count=0;copy=body.copy
+    def broken_copy():
+        nonlocal count
+        count+=1
+        if count==2:raise RuntimeError('copy failure')
+        return copy()
+    monkeypatch.setattr(body,'copy',broken_copy)
+    with pytest.raises(RuntimeError,match='copy failure'):a.add_part('body',body,components=('body',))
+    assert not a._selected_nodes and not a._node_owners and not a._input_bodies
+    assert not a.parts and not a.bodies and not a.components

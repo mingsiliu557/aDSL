@@ -444,3 +444,11 @@ def test_unreadable_export_manifest_still_saves_case_result(tmp_path,monkeypatch
     assert read_json(tmp_path/'SF07/input_audit.json')['artifact_errors']
     assert (tmp_path/'SF07/generate/source.py').read_text()=='preserved source'
     assert read_json(tmp_path/'SF07/result.json')==result
+
+
+def test_partition_implementation_contract_in_actual_coder_prompt():
+    from adsl.agents.prompts import object_prompt
+    prompt=object_prompt('coder',articulation=False,fixed_assembly=True)
+    for text in ('components declares semantic ownership only','partition_intent',
+                 'grouping_realization=MISMATCH','PRINT_PART_ASSET_ALIAS'):
+        assert text in prompt

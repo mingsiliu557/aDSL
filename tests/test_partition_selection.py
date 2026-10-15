@@ -12,7 +12,7 @@ from adsl.agents import partition_score as scoring
 from adsl.agents.checkers import CheckerRun
 from adsl.agents.models import (RepairPolicy, RepairProposal, RepairTarget, PrintGroupingChange,
     CheckerResult, GradedCodeCriticDecision)
-from adsl.agents.utils.io import write_json
+from adsl.agents.utils.io import write_json, read_json
 from test_fixed_assembly import mock_flow, run_flow
 from test_partition_score import reference_fixture
 
@@ -30,6 +30,9 @@ def setup(tmp_path,monkeypatch,mode,alpha=None):
         path=out/'assembly/assembly_manifest.json';manifest=json.loads(path.read_text())
         manifest.update(root_id='crossbar',part_declarations=[{'id':n,'components':[n]} for n in ('crossbar','stem')],
             connections=[{'tab_part':'stem','slot_part':'crossbar'}])
+        if calls:
+            manifest['part_declarations']=[{'id':'crossbar','components':['crossbar','stem']}]
+            manifest['connections']=[]
         write_json(path,manifest)
         return execution
     monkeypatch.setattr(flow,'execute_asset_source',execute)
@@ -210,7 +213,8 @@ def test_repairing_optimization_candidate_keeps_original_score_baseline(tmp_path
             # Reuse the same mock export shape for the third checked source.
             from adsl.agents.utils.execution import ExecutionResult
             folder=out/'assembly';folder.mkdir(parents=True)
-            write_json(folder/'assembly_manifest.json',{'status':'PASS','failures':[],'source_sha256':flow.file_hash(source)})
+            write_json(folder/'assembly_manifest.json',{'status':'PASS','failures':[],'source_sha256':flow.file_hash(source),
+                'root_id':'crossbar','part_declarations':[{'id':'crossbar','components':['crossbar','stem']}], 'connections':[]})
             render=out/'render';render.mkdir();glb=render/'scene.glb';glb.write_text(source.read_text())
             png=render/'view.png';png.write_text(source.read_text())
             return ExecutionResult(out,glb,None,(png,),'','')
@@ -427,3 +431,166 @@ def test_initial_wrong_action_never_reserves_coder(tmp_path,monkeypatch):
     write_json(tmp_path/'assembly_versions.json',book)
     run_flow(state)
     assert len(state[-1])==0 and len(checks)==1 and not (tmp_path/'repair_history.jsonl').exists()
+
+
+@pytest.mark.parametrize('case', ['match','missing','components','unaffected','unavailable'])
+def test_grouping_realization_contract(case):
+    baseline={'root_id':'body','parts':[{'id':'body','components':['body','hat']},
+        {'id':'other','components':['other']}], 'connections':[]}
+    intent={'proposal_id':'split','grouping_change':{'operation':'split','source_part_ids':['body'],
+        'target_print_parts':[{'id':'body','components':['body']},{'id':'hat','components':['hat']}],
+        'connection_changes':[]}}
+    current={'parts':[{'id':'body','components':['body']},{'id':'hat','components':['hat']},
+        {'id':'other','components':['other']}]}
+    if case=='missing':current['parts'].pop(1)
+    if case=='components':current['parts'][1]['components']=['wrong']
+    if case=='unaffected':current['parts'][2]['components']=['wrong']
+    if case=='unavailable':current=None
+    result=flow._grouping_realization(intent,baseline,current,source_sha256='current')
+    assert result['status']==('MATCH' if case=='match' else 'UNAVAILABLE' if case=='unavailable' else 'MISMATCH')
+    assert result['source_sha256']=='current'
+    assert flow._grouping_realization(None,baseline,current,source_sha256='current') is None
+
+
+def test_grouping_realization_stale_manifest_is_unavailable(tmp_path):
+    source=tmp_path/'source.py'
+    source.write_text('# current source\n')
+    assembly={'root_id':'body','parts':[{'id':'body','components':['body','hat']}], 'connections':[]}
+    intent={'proposal_id':'split','grouping_change':{'operation':'split','source_part_ids':['body'],
+        'target_print_parts':[{'id':'body','components':['body']},{'id':'hat','components':['hat']}],
+        'connection_changes':[]}}
+    stale={**assembly,'source_sha256':'old source hash'}
+    context=flow._assembly_context(source,stale,version_role='current_candidate')
+    assert context['current_assembly'] is None
+    result=flow._grouping_realization(intent,assembly,context['current_assembly'],
+        source_sha256=flow.file_hash(source))
+    assert result['status']=='UNAVAILABLE'
+    assert result['source_sha256']==flow.file_hash(source)
+
+
+@pytest.mark.parametrize('failure', ['source','declarations'])
+def test_partition_implementation_repair_keeps_intent_through_real_payload(tmp_path,monkeypatch,failure):
+    from adsl.agents.service import ObjectWorkflow
+    from adsl.agents.utils.execution import execute_asset_source as child_execute
+    from types import SimpleNamespace
+    state,checks=setup(tmp_path,monkeypatch,'improved')
+    w,req,rt,source,calls=state
+    execute=flow.execute_asset_source
+    captured=[]
+    invalid="from adsl.core import *\na=FixedAssembly(root_id='first',mm_per_unit=1)\nb=Cube((1,1,1))\na.add_part('first',b,components=('a',))\na.add_part('second',b,components=('b',))\n"
+    async def runtime_run(**kw):
+        payload=json.loads(kw['input']);captured.append(payload)
+        ctx=kw['context'];ctx.source_path.write_text(invalid if len(captured)==1 else 'repaired independent bodies')
+        ctx.record('apply_patch',ctx.source_path)
+        return SimpleNamespace(final_output='changed')
+    rt.run=runtime_run
+    async def repair(**kw):
+        calls.append(kw)
+        return await ObjectWorkflow._repair(w,**kw)
+    monkeypatch.setattr(w,'_repair',repair)
+    def exporting(src,out,**kw):
+        if len(captured)==1 and failure=='source':
+            return child_execute(src,out,render=False,export_urdf=False)
+        if len(captured)==1:
+            # Save a current-source but unchanged declaration. No geometry claim.
+            ex=execute(src,out,**kw)
+            report=read_json(out/'assembly/assembly_manifest.json')
+            report['part_declarations']=[{'id':n,'components':[n]} for n in ('crossbar','stem')]
+            write_json(out/'assembly/assembly_manifest.json',report)
+            return ex
+        if len(captured)==2 and failure=='declarations':
+            # Existing stub exporter has two outcomes; reuse its ordinary final format.
+            from adsl.agents.utils.execution import ExecutionResult
+            folder=out/'assembly';folder.mkdir(parents=True)
+            write_json(folder/'assembly_manifest.json',dict(status='PASS',failures=[],source_sha256=flow.file_hash(src),
+                root_id='crossbar',part_declarations=[dict(id='crossbar',components=['crossbar','stem'])],connections=[]))
+            render=out/'render';render.mkdir();glb=render/'scene.glb';glb.write_text(src.read_text())
+            png=render/'view.png';png.write_text('stub')
+            return ExecutionResult(out,glb,None,(png,),'','')
+        return execute(src,out,**kw)
+    monkeypatch.setattr(flow,'execute_asset_source',exporting)
+    result,book=run_flow((w,replace(req,max_rounds=3),rt,source,calls))
+    assert len(captured)==2 and result.approved
+    first,last=[book['versions'][v]['reviews'] for v in ['attempt_0001','attempt_0002']]
+    assert first['grouping_realization']['status']==('UNAVAILABLE' if failure=='source' else 'MISMATCH')
+    assert not first['partition_adopted']
+    assert last['grouping_realization']['status']=='MATCH' and last['partition_adopted']
+    assert book['retained']=='attempt_0002' and book['active_partition_intent'] is None
+    assert captured[0]['partition_intent']==captured[1]['partition_intent']
+    assert captured[1]['grouping_change']==captured[0]['grouping_change']
+    assert captured[1]['comparison_baseline_version']=='original'
+    assert captured[1]['source_version']=='attempt_0001'
+    assert captured[1]['source_sha256']==flow.file_hash(Path(book['versions']['attempt_0001']['source']))
+    assert captured[1]['partition_intent']['comparison_baseline_source_sha256']==flow.file_hash(Path(book['versions']['original']['source']))
+    assert captured[1]['remaining_repairs_after_this_attempt']==0
+    if failure=='source':
+        assert first['image_review_status']=='SKIPPED_SOURCE_EXECUTION_FAILED'
+        assert 'PRINT_PART_ASSET_ALIAS' in json.dumps(captured[1]['evaluation_feedback'])
+        assert len(checks)==2
+    # Completed resume neither edits nor evaluates again.
+    run_flow((w,replace(req,max_rounds=3),rt,source,calls));assert len(captured)==2
+
+
+@pytest.mark.parametrize('mode', ['budget','no_change','duplicate','resume','legacy_resume','conflict'])
+def test_partition_intent_terminal_duplicate_and_resume_contracts(tmp_path,monkeypatch,mode):
+    from adsl.agents.utils.execution import AssetExecutionError,ExecutionResult
+    state,checks=setup(tmp_path,monkeypatch,'improved')
+    w,req,rt,source,calls=state
+    rounds=2 if mode=='budget' else 3 if mode in ('no_change','conflict') else 4
+    req=replace(req,max_rounds=rounds)
+    def execute(src,out,**kw):
+        if src.read_text()=='bad split':
+            raise AssetExecutionError('source error',diagnostic=dict(code='GENERATED_SOURCE_EXECUTION_FAILED',
+                stage='source_execution',exception_type='ValueError',message='PRINT_PART_ASSET_ALIAS',
+                source_sha256=flow.file_hash(src),source_locations=[]))
+        folder=out/'assembly';folder.mkdir(parents=True)
+        parts=([dict(id='crossbar',components=['crossbar','stem'])] if calls else
+               [dict(id=n,components=[n]) for n in ('crossbar','stem')])
+        write_json(folder/'assembly_manifest.json',dict(status='PASS',failures=[],source_sha256=flow.file_hash(src),
+            root_id='crossbar',part_declarations=parts,connections=[dict(tab_part='stem',slot_part='crossbar')]))
+        render=out/'render';render.mkdir();glb=render/'scene.glb';glb.write_text(src.read_text());png=render/'view.png';png.write_text('stub')
+        return ExecutionResult(out,glb,None,(png,),'','')
+    monkeypatch.setattr(flow,'execute_asset_source',execute)
+    async def repair(**kw):
+        calls.append(kw)
+        if len(calls)==2 and mode in ('resume','legacy_resume'):
+            raise RuntimeError('simulated interruption after persisted reservation')
+        if len(calls)==2 and mode=='no_change':return {'status':'NO_CHANGE','reason':'no edit'}
+        kw['source_path'].write_text('bad split' if len(calls)==1 or mode=='duplicate' and len(calls)==2 else 'independent pieces')
+        return {'status':'CHANGED'}
+    monkeypatch.setattr(w,'_repair',repair)
+    if mode in ('resume','legacy_resume'):
+        with pytest.raises(RuntimeError,match='simulated interruption'):
+            run_flow((w,req,rt,source,calls))
+        saved=read_json(tmp_path/'assembly_versions.json')
+        assert saved['next_round']==4 and not saved['completed']
+        assert saved['active_partition_intent']['comparison_baseline_version']=='original'
+        if mode=='legacy_resume':
+            saved.pop('active_partition_intent')
+            write_json(tmp_path/'assembly_versions.json',saved)
+    if mode=='conflict':
+        # Interrupt before another model call, then insert an old conflicting proposal.
+        original_repair=repair
+        async def interrupted(**kw):
+            if calls:raise RuntimeError('pause before conflicting proposal')
+            return await original_repair(**kw)
+        monkeypatch.setattr(w,'_repair',interrupted)
+        with pytest.raises(RuntimeError):run_flow((w,req,rt,source,calls))
+        saved=read_json(tmp_path/'assembly_versions.json');saved['next_round']=3
+        proposal=json.loads(json.dumps(saved['versions']['attempt_0001']['reviews']['repair_proposal']))
+        proposal['grouping_change']['target_print_parts'][0]['id']='different'
+        saved['feedback']['engineering_proposal']=proposal
+        write_json(tmp_path/'assembly_versions.json',saved)
+    result,book=run_flow((w,req,rt,source,calls))
+    assert book['active_partition_intent'] is None
+    if mode in ('budget','no_change','conflict'):
+        assert book['retained']==book['working']=='original'
+        assert book['partition_implementation_result']['status']=='NOT_COMPLETED'
+        assert len(calls)==(2 if mode=='no_change' else 1)
+    else:
+        assert book['retained']=='attempt_0003' and len(calls)==3
+        assert calls[-1]['payload']['partition_intent']==calls[0]['payload']['partition_intent']
+        assert calls[-1]['payload']['grouping_change']==calls[0]['payload']['grouping_change']
+    if mode=='duplicate':
+        assert book['versions']['attempt_0002']['reviews']['duplicate_source']['executed'] is False
+        assert len(checks)==2

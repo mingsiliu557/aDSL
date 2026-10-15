@@ -143,6 +143,88 @@ def _assembly_context(source, report, *, version_role, report_ref=None):
     }
 
 
+
+def _partition_intent(book, working_id):
+    """Restore only a recorded proposal on the current, hash-checked parent chain."""
+    intent = book.get('active_partition_intent')
+    if intent:
+        baseline = book['versions'].get(intent['comparison_baseline_version'])
+        if baseline is None:
+            raise ValueError('partition intent baseline unavailable')
+        assert_version(baseline)
+        if file_hash(Path(baseline['source'])) != intent['comparison_baseline_source_sha256']:
+            raise ValueError('partition intent baseline source changed')
+        return intent
+    seen = set()
+    version_id = working_id
+    while version_id and version_id not in seen:
+        seen.add(version_id)
+        version = book['versions'].get(version_id)
+        if not version or version['reviews'].get('edit_purpose') != 'partition_optimization':
+            break
+        assert_version(version)
+        review = version['reviews']
+        if review.get('partition_adopted'):
+            break
+        proposal = review.get('repair_proposal') or {}
+        baseline_id = review.get('comparison_baseline_version')
+        baseline = book['versions'].get(baseline_id)
+        if proposal.get('action') == 'regroup_print_parts' and proposal.get('grouping_change') and baseline:
+            assert_version(baseline)
+            from .models import PrintGroupingChange
+            grouping = PrintGroupingChange.model_validate(proposal['grouping_change'])
+            assembly = _assembly_context(Path(baseline['source']), baseline['reviews'].get('geometry'),
+                                         version_role='comparison_baseline')['current_assembly']
+            grouping.validate_current_assembly(assembly or {})
+            return dict(schema_version=1, proposal_id=proposal['proposal_id'],
+                comparison_baseline_version=baseline_id,
+                comparison_baseline_source_sha256=file_hash(Path(baseline['source'])),
+                grouping_change=grouping.model_dump())
+        version_id = review.get('parent_version')
+    return None
+
+
+def _grouping_realization(intent, baseline_assembly, current_assembly, *, source_sha256):
+    """Compare bound declarations only; MATCH is not a geometric verdict."""
+    if intent is None:
+        return None
+    result = dict(schema_version=1, status='UNAVAILABLE', proposal_id=intent['proposal_id'],
+        source_sha256=source_sha256, missing_part_ids=[], unexpected_part_ids=[],
+        component_mismatches=[], unaffected_part_mismatches=[],
+        reason='Bound baseline or current declarations unavailable')
+    if not baseline_assembly or not current_assembly:
+        return result
+    change = intent['grouping_change']
+    from .models import PrintGroupingChange
+    try:
+        PrintGroupingChange.model_validate(change).validate_current_assembly(baseline_assembly)
+        def mapping(assembly):
+            parts = assembly['parts']
+            if not parts or len({p['id'] for p in parts}) != len(parts):
+                raise ValueError('missing or duplicate part declarations')
+            return {p['id']:set(p['components']) for p in parts}
+        original, actual = mapping(baseline_assembly), mapping(current_assembly)
+        expected = {k:v for k,v in original.items() if k not in change['source_part_ids']}
+        unaffected = set(expected)
+        expected.update({p['id']:set(p['components']) for p in change['target_print_parts']})
+    except (KeyError, TypeError, ValueError):
+        return result
+    result['missing_part_ids'] = sorted(expected.keys() - actual.keys())
+    result['unexpected_part_ids'] = sorted(actual.keys() - expected.keys())
+    for name in sorted(expected.keys() & actual.keys()):
+        if expected[name] != actual[name]:
+            result['component_mismatches'].append(dict(part_id=name,
+                expected=sorted(expected[name]), actual=sorted(actual[name])))
+    result['unaffected_part_mismatches'] = sorted(name for name in unaffected
+        if name not in actual or actual[name] != expected[name])
+    mismatch = any(result[k] for k in ('missing_part_ids','unexpected_part_ids',
+                                      'component_mismatches','unaffected_part_mismatches'))
+    result.update(status='MISMATCH' if mismatch else 'MATCH', reason=(
+        'The declared target print groups have not been implemented' if mismatch else
+        'Declared groups match; material separation and interfaces require geometric checks'))
+    return result
+
+
 def _use_pose_display_valid(report):
     """A failed saved assembly display cannot be approved by a visual critic."""
     scene_checks = [row for row in report.get('export_consistency', [])
@@ -299,6 +381,19 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         comparison_baseline = feedback.get('comparison_baseline_version') if number > 1 else None
         if edit_purpose.endswith('_optimization') and not comparison_baseline:
             comparison_baseline = book['retained'] if retained['reviews'].get('partition_ready') else book['qualified']
+        intent = None
+        if edit_purpose == 'partition_optimization':
+            try:
+                intent = _partition_intent(book, parent_id)
+            except ValueError:
+                stop = 'partition_intent_unavailable'
+                break
+            if intent:
+                comparison_baseline = intent['comparison_baseline_version']
+                book['active_partition_intent'] = intent
+            elif working['reviews'].get('edit_purpose') == 'partition_optimization':
+                stop = 'partition_intent_unavailable'
+                break
         if number > 1:
             # Select afresh from this version's feedback. Engineering is advice,
             # not a second candidate controller or permission to repair.
@@ -309,6 +404,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             if feedback.get('engineering_proposal'):
                 proposal = RepairProposal.model_validate(feedback['engineering_proposal'])
             try:
+                if intent and proposal.grouping_change and proposal.grouping_change.model_dump() != intent['grouping_change']:
+                    raise ValueError('INVALID_PROPOSAL: active partition target cannot be replaced')
                 validate_partition_proposal(proposal,purpose=edit_purpose,
                     continuing=bool(comparison_baseline and comparison_baseline != parent_id and
                         working['reviews'].get('edit_purpose') == 'partition_optimization'),
@@ -330,6 +427,15 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             # Before the call: persist reservation and advance next round. An
             # interrupted edit is not called again with a fresh budget on resume.
             candidate_root, current, fingerprint = controller.prepare_candidate(proposal, number-1)
+            if edit_purpose == 'partition_optimization' and intent is None:
+                baseline = book['versions'][comparison_baseline]
+                assert_version(baseline)
+                intent = dict(schema_version=1, proposal_id=proposal.proposal_id,
+                    comparison_baseline_version=comparison_baseline,
+                    comparison_baseline_source_sha256=file_hash(Path(baseline['source'])),
+                    grouping_change=proposal.grouping_change.model_dump())
+            if intent:
+                book['active_partition_intent'] = intent
             book.update(candidate=version_id, next_round=number+1)
             controller.record(dict(attempt_id=version_id, parent=parent_id,
                 candidate=str(current), fingerprint=fingerprint, status='MODEL_STARTED',
@@ -348,7 +454,12 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                             report_ref=working['reviews'].get('geometry_report_ref')),
                         'current_repair_authorized':True,
                         'edit_purpose':edit_purpose, 'primary_objective':feedback.get('primary_objective'),
-                        'partition_guidance':feedback.get('partition_guidance'), 'grouping_change':proposal.grouping_change.model_dump() if proposal.grouping_change else None,
+                        'partition_guidance':feedback.get('partition_guidance'),
+                        'comparison_baseline_version':comparison_baseline, 'partition_intent':intent,
+                        'grouping_realization':working['reviews'].get('grouping_realization') or (
+                            dict(schema_version=1,status='UNAVAILABLE',proposal_id=intent['proposal_id'],
+                                source_sha256=file_hash(parent),reason='No evaluated implementation of this intent yet') if intent else None),
+                        'grouping_change':intent['grouping_change'] if intent else proposal.grouping_change.model_dump() if proposal.grouping_change else None,
                         'remaining_repairs_after_this_attempt':book['max_rounds']-number,
                         'assignment':('This repair is already budget-reserved and may proceed even when remaining_repairs_after_this_attempt is 0; that count excludes the current attempt. Read the assigned source. Never change frozen physical specifications, checker configuration or measurement reference. ' + EVIDENCE_PATH_INSTRUCTION +
                             (' Primary objective: partition optimization, including repair of interfaces introduced by this same candidate. Preserve the entire original body and root frame; regroup add_part and every affected connect/frame, remove internal connectors and resolve split-child overlap. Never merge historical STL meshes. Pending HIGH surface issues remain unresolved requirements, deferred from this candidate; do not invent material APIs or modify the body to simulate gloss. Geometric visual defects and physical failures introduced by this candidate must be repaired before adoption. Keep the original comparison baseline.'
@@ -364,7 +475,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     'after_sha256':file_hash(current)}
                 write_json(candidate_root/'edit_outcome.json', outcome)
                 book['versions'][version_id] = version_record(version_id, current, None,
-                    reviews={'edit_outcome':outcome, 'accepted':False})
+                    reviews={'edit_outcome':outcome, 'accepted':False, 'partition_intent':intent,
+                             'parent_version':parent_id,'edit_purpose':edit_purpose,
+                             'comparison_baseline_version':comparison_baseline})
                 book.update(feedback={**feedback, 'request_error':classification},
                             stop_reason='agent_call_error', completed=False)
                 write_json(book_path, book)
@@ -372,7 +485,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             write_json(candidate_root/'edit_outcome.json', outcome)
             if outcome['status'] != 'CHANGED':
                 book['versions'][version_id] = version_record(version_id, current, None,
-                    reviews={'edit_outcome':outcome, 'accepted':False})
+                    reviews={'edit_outcome':outcome, 'accepted':False, 'partition_intent':intent,
+                             'parent_version':parent_id,'edit_purpose':edit_purpose,
+                             'comparison_baseline_version':comparison_baseline})
                 stop = terminal_stop_reason(outcome.get('request_error')) or outcome['status']
                 break
             if feedback.get('orientation_only_edit') and not orientation_only(parent.read_text(),current.read_text()):
@@ -400,6 +515,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     duplicate['reviews'].get('execution_error_ref'))
             duplicate_reviews = dict(accepted=False, reason='DUPLICATE_PREVIOUS_FAILED_SOURCE',
                 duplicate_source=duplicate_info, parent_version=parent_id, edit_purpose=edit_purpose,
+                partition_intent=intent, comparison_baseline_version=comparison_baseline,
                 repair_proposal=proposal.model_dump() if proposal else None)
             write_json(candidate_root/'decision.json', duplicate_reviews)
             book['versions'][version_id] = version_record(version_id,current,None,reviews=duplicate_reviews,
@@ -659,6 +775,19 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 reviews['edit_kind']='print_orientation_only' if pure else 'structural'
                 if pure and comparison['conclusion']!='IMPROVED':
                     accepted=False;reason='print_orientation_not_reliably_improved'
+        baseline_assembly = None
+        if intent:
+            baseline_record = book['versions'][intent['comparison_baseline_version']]
+            baseline_assembly = _assembly_context(Path(baseline_record['source']),
+                baseline_record['reviews'].get('geometry'),version_role='comparison_baseline')['current_assembly']
+        realization = _grouping_realization(intent, baseline_assembly,
+            _assembly_context(current,report,version_role='current_candidate')['current_assembly'],
+            source_sha256=file_hash(current))
+        repairable_implementation_issue = bool(source_failure or realization and realization['status']=='MISMATCH')
+        implementation_complete = intent is None or realization['status']=='MATCH'
+        if not implementation_complete:
+            accepted = False
+        reviews.update(partition_intent=intent, grouping_realization=realization)
         optimization_finished = False
         partition_restore = None
         partition_stop_reason = None
@@ -680,7 +809,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                                       overhang.result.model_dump() if overhang else {})
                 reviews['partition_change_vs_baseline'] = comparison
                 shape_matches=bool(shape_comparison and shape_comparison['status']=='MATCH')
-                partition_adopted = bool(feasible_without_surface and shape_matches and comparison['conclusion']=='IMPROVED')
+                partition_adopted = bool(implementation_complete and feasible_without_surface and shape_matches and comparison['conclusion']=='IMPROVED')
                 accepted = bool(accepted and partition_adopted)
                 if not shape_matches:
                     reason='partition_reference_shape_changed_or_unavailable'
@@ -690,9 +819,11 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     reason='partition_improved_surface_unresolved'
                 # A known shape violation or completed losing comparison needs no
                 # speculative candidate repair. Preserve an existing full approval.
-                optimization_finished = bool((feasible_without_surface and not partition_adopted) or
+                optimization_finished = bool(implementation_complete and ((feasible_without_surface and not partition_adopted) or
                     (shape_comparison and shape_comparison['status']=='CHANGED') or
-                    (partition_adopted and book['qualified'] and not accepted))
+                    (partition_adopted and book['qualified'] and not accepted)))
+                if not implementation_complete:
+                    reason = 'partition_implementation_incomplete'
                 if optimization_finished:
                     partition_restore=comparison_baseline
                     partition_stop_reason=reason
@@ -740,7 +871,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     if overhang.spec.required:
                         accepted=False; feasible_without_surface=False; reason='assembly_required_checks_not_passed'
             measured=overhang.result.model_dump() if overhang else {}
-            partition_ready=bool(feasible_without_surface and shape_comparison and shape_comparison['status']=='MATCH'
+            partition_ready=bool(implementation_complete and feasible_without_surface and shape_comparison and shape_comparison['status']=='MATCH'
                 and compare_partition_scores(measured,measured)['conclusion']=='UNCHANGED')
             reviews.update(partition_ready=partition_ready,partition_adopted=partition_adopted,
                            feasible_without_surface=feasible_without_surface)
@@ -770,14 +901,16 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             'source_sha256':file_hash(current), 'accepted':accepted, 'reason':reason,
             'geometry_status':report['status'], 'appearance_approved':reviews.get('appearance_approved'),
             **({k:reviews.get(k) for k in ('edit_purpose','comparison_baseline_version','partition_reference',
-                'body_reference_comparison','partition_change_vs_baseline','partition_ready','partition_adopted')} if partition is not None else {})})
+                'body_reference_comparison','partition_change_vs_baseline','partition_ready','partition_adopted','partition_intent','grouping_realization')} if partition is not None else {})})
         if accepted:
             book['retained'] = version_id
             book['qualified'] = version_id
         elif partition is not None and not book['qualified'] and (
                 partition_adopted or (edit_purpose=='required_repair' and partition_ready)):
             book['retained'] = version_id
-        feedback = {'geometry_status':report['status'], 'failures':report.get('failures',[]),
+        if partition_adopted:
+            book['active_partition_intent'] = None
+        feedback = {'partition_intent':intent, 'grouping_realization':realization, 'geometry_status':report['status'], 'failures':report.get('failures',[]),
             'manufacturing_status':report.get('manufacturing_status'),
             'display_status':report.get('display_status'), 'display_failures':report.get('display_failures',[]),
             'failure_feedback':failure_feedback, 'failure_instruction':FAILURE_INSTRUCTION,
@@ -853,7 +986,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             remaining = book['max_rounds']-number
             if ((not accepted or optimize) and not optimization_finished
                     and terminal_request_error is None and propagate_error is None
-                    and source_failure is None and reason != 'FLOW_ERROR' and actionable and remaining > 0):
+                    and not repairable_implementation_issue and reason != 'FLOW_ERROR' and actionable and remaining > 0):
                 budget = RepairController(workspace=workspace,round_root=root,baseline_source=current,
                     source_index=None,findings=[],checker_specs_sha256=config_hash,
                     policy=request.repair_policy.model_copy(update={'max_total_candidates':book['max_rounds']-1}))
@@ -899,27 +1032,31 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                         optimize=False;stop='no_reasonable_orientation_proposal';book['completed']=True
                 else:
                     stop='repair_budget_exhausted';book['completed']=True
-            elif partition is not None and continuing_optimization and not optimization_finished and not actionable:
+            elif partition is not None and continuing_optimization and not optimization_finished and not actionable and not repairable_implementation_issue:
                 partition_restore=comparison_baseline
                 partition_stop_reason='partition_candidate_unverified_no_executable_feedback'
-            elif (not accepted and reviews.get('appearance_approved') and not actionable
+            elif (not accepted and not repairable_implementation_issue and reviews.get('appearance_approved') and not actionable
                   and not report.get('failures') and report.get('export_status') != 'FAIL'
                   and not (not visual_only and report['status']=='FAIL')):
                 stop=('topology_unverified_no_executable_feedback' if len(specs)==1 and topology_spec
                       else 'assembly_checks_unverified_no_executable_feedback');book['completed']=True
-        if source_failure:
-            feedback['primary_objective'] = 'Fix the bound generated-source API/runtime error first. No appearance task without current render. Preserve the current edit purpose and comparison baseline; do not modify mesh backends.'
+        if repairable_implementation_issue:
+            feedback.pop('engineering_proposal', None)
+            feedback.update(next_edit_purpose=edit_purpose, comparison_baseline_version=comparison_baseline,
+                partition_candidate_in_progress=bool(intent), partition_intent=intent, grouping_realization=realization)
+            feedback['primary_objective'] = ('Fix the bound generated-source API/runtime error first. No appearance task without current render. ' if source_failure else 'Implement the authorized print-group declarations before proposing further physical changes. ') + 'Preserve partition_intent, independent bodies, edit purpose and comparison baseline; do not modify mesh backends.'
         # Export unavailability alone is not a reason to change shape. Keep
         # independent visual/topology defects repairable, in the same loop.
         image_pending = bool(reviews.get('appearance_approved') is False
             and feedback['resolved_visual_feedback']['required_changes']
             and not reviews.get('render_issue'))
-        if (not accepted and reason != 'FLOW_ERROR' and failure_feedback
+        if (not accepted and not repairable_implementation_issue and reason != 'FLOW_ERROR' and failure_feedback
                 and not any(f['geometry_repair_allowed'] for f in failure_feedback)
                 and not actionable and not image_pending
                 and not any(f.get('code') in {'EXECUTION_UNAVAILABLE', SOURCE_FAILURE_CODE} for f in failure_feedback)):
             stop='export_unassessed_no_geometry_repair';book['completed']=True
         if partition_restore is not None and not terminal_request_error and propagate_error is None:
+            book['active_partition_intent'] = None
             baseline=book['versions'][partition_restore]
             book['working']=partition_restore
             if not book['qualified'] or baseline['reviews'].get('accepted'):
@@ -958,6 +1095,21 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             if not book['completed'] or reason == 'FLOW_ERROR':
                 stop = reason
             break
+    # An unfinished optional implementation never replaces its retained baseline.
+    if book.get('active_partition_intent'):
+        pending_intent = book['active_partition_intent']
+        baseline_id = pending_intent['comparison_baseline_version']
+        baseline = book['versions'][baseline_id]
+        book['working'] = baseline_id
+        if not book['qualified'] or baseline['reviews'].get('accepted'):
+            book['retained'] = baseline_id
+        book['partition_implementation_result'] = dict(status='NOT_COMPLETED',
+            reason=stop, partition_intent=pending_intent)
+        book['active_partition_intent'] = None
+        book['feedback'] = {**book.get('partition_baseline_feedback',{}).get(baseline_id,{}),
+            'source_version':baseline_id, 'source_sha256':file_hash(Path(baseline['source'])),
+            'next_edit_purpose':'required_repair', 'comparison_baseline_version':None,
+            'partition_stop_reason':stop}
     book.update(completed=True, stop_reason=stop)
     write_json(book_path, book)
     write_json(workspace/'working_candidate.json', {'version_id':book['working'],

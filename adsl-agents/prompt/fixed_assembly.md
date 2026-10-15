@@ -39,8 +39,11 @@ This is a task requirement, not an extra geometric check or a general single-par
 Coder API (all imported by `from adsl.core import *`):
 
 - `FixedAssembly(root_id=..., mm_per_unit=...)`
-- `assembly.add_part(id, body_asset, components=(...))`: selects exactly that local
-  body and semantic subtree, copies it, and never automatically selects leaves.
+- `assembly.add_part(id, body_asset, components=(...))`: registers and copies the independently constructed local body.
+  components declares semantic ownership only: it does not select a subtree or cut geometry.
+  Build a separate body variable/function for each print part and assign overlapping
+  material to exactly one body before connect(). Copying the entire parent twice
+  does not split it. Copy Boolean cutters into each independent construction.
 - `InterfaceFrame(origin=(x,y,z), x_axis=(1,0,0), insert_axis=(0,0,1))`:
   local stop-plane centre; coordinates in scene units; orthonormal unit axes.
   +X is tab width, +Y thickness, +Z points FROM the tab body INTO the receiver.
@@ -157,3 +160,12 @@ alpha=0.2 (a project choice); explicitly configured alpha=0.1 and frozen alpha=0
 runs keep their own configuration.
 Use the actual measured alpha and strictly exclusive gap bounds. Do not change the
 run configuration or compare scores with different reference/config hashes.
+
+
+When partition_intent is present, keep its authorized grouping and fixed comparison
+baseline across source/API and interface repairs. grouping_realization=MISMATCH
+means implement the missing/wrong add_part declarations; MATCH only confirms the
+metadata, not material separation or physical validity. Never replace an active
+grouping target or interpret absent checker output as a successful split.
+PRINT_PART_ASSET_ALIAS names construction nodes shared by the attempted/existing
+print parts. Construct independent bodies; components is not a geometry selector.

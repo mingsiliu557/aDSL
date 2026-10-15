@@ -4,8 +4,10 @@ Public entrypoints: `FixedAssembly`, `InterfaceFrame`, `TabSlot` from `adsl.core
 This supplements, and does not change, `Asset.attach_part()` or `Asset.fixed()`.
 
 `FixedAssembly(root_id, mm_per_unit)` uses keyword arguments and selects explicit
-print parts via `add_part(part_id, body, components=(...))`. Semantic children stay
-inside their selected print piece. Root placement can use `root_frame`.
+print parts via `add_part(part_id, body, components=(...))`. `body` is the already
+constructed, pre-connector solid in part-local coordinates. `components` only
+declares semantic ownership; it does not select children or cut geometry.
+Root placement can use `root_frame`.
 
 `connect(interface_id, tab_part=..., slot_part=..., tab_frame=..., slot_frame=...,
 parameters=TabSlot(...), parameter_name=..., tab_port=..., slot_port=...)` creates
@@ -203,3 +205,48 @@ and attempted actions. Current-source diagnostics may enter the existing
 Engineering/Coder repair budget. A target-precision failure does not establish
 physical instability. File/environment errors and unavailable physical
 measurements do not authorize speculative design changes.
+
+
+### Implementing a regroup proposal
+
+`add_part` returns no extracted geometry. Each print part needs its own body;
+copying a complete parent into two parts still duplicates material. A
+`ValueError` with `PRINT_PART_ASSET_ALIAS`, `attempted_part_id` and
+`conflicting_part_ids` reports shared construction nodes, not measured overlap.
+Registration is transactional. Separate copies with overlapping material remain
+subject to the existing geometric interference check.
+
+```python
+from adsl.core import *
+
+semantic_body = Cube((10, 10, 20), center=(0, 0, 10))
+semantic_hat = Cube((16, 16, 4), center=(0, 0, 21))
+whole_snowman = boolean_union(semantic_body.copy(), semantic_hat.copy())
+body_piece = boolean_difference(semantic_body.copy(), semantic_hat.copy())
+hat_piece = semantic_hat.copy()
+assembly = FixedAssembly(root_id='snowman', mm_per_unit=1)
+assembly.add_part('snowman', body_piece, components=('body',))
+assembly.add_part('hat', hat_piece, components=('hat',))
+fit = TabSlot(width_mm=4, thickness_mm=2, insertion_mm=1.5,
+              slot_depth_mm=2, fit_offset_mm=0.15)
+assembly.connect('body_hat', tab_part='snowman', slot_part='hat',
+                 tab_frame=InterfaceFrame(origin=(0, 0, 19)),
+                 slot_frame=InterfaceFrame(origin=(0, 0, 19)),
+                 parameters=fit, parameter_name='body_hat_fit')
+scene = assembly.scene()
+```
+
+The pre-connector body union is 2924 mm³, equal to `whole_snowman`. Interface
+clearance removes material intentionally; compare the body union before
+connectors, then validate the actual interfaces and printed geometry separately.
+This example does not promise a higher partition score.
+
+The controller persists `active_partition_intent` in assembly_versions.json and
+passes `partition_intent` to Coder together with the current source identity and
+the fixed comparison baseline. Version reviews retain snapshots. The intent is
+read-only workflow evidence, not a public modeling API. Source implementation
+errors and declaration MISMATCH use the remaining repair budget; no extra rounds
+are granted. `grouping_realization` MATCH means declarations only; UNAVAILABLE
+means the current/baseline evidence could not be bound. Adoption still requires
+the existing checks and an improved score under the frozen reference. Failed or
+unfinished optional candidates fall back to the retained baseline.
