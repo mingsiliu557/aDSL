@@ -20,6 +20,8 @@ from .tools import PATCH_TOOLS, READ_TOOLS
 from .models import GradedImageCriticDecision, GradedCodeCriticDecision
 from .utils.execution import execute_asset_source, AssetExecutionError, AssetInfrastructureError, ExecutionResult
 from .utils.io import read_json, write_json
+from .actions import (review_image, review_code, review_physics, edit,
+                      regroup_precheck, reorient_postcheck, regroup_realization)
 from .agent_feedback import evaluation_details
 from .feedback_schema import execution_failure_summary, SOURCE_FAILURE_CODE
 from .utils.request_errors import (classify_model_request_error, terminal_stop_reason,
@@ -184,45 +186,8 @@ def _partition_intent(book, working_id):
     return None
 
 
-def _grouping_realization(intent, baseline_assembly, current_assembly, *, source_sha256):
-    """Compare bound declarations only; MATCH is not a geometric verdict."""
-    if intent is None:
-        return None
-    result = dict(schema_version=1, status='UNAVAILABLE', proposal_id=intent['proposal_id'],
-        source_sha256=source_sha256, missing_part_ids=[], unexpected_part_ids=[],
-        component_mismatches=[], unaffected_part_mismatches=[],
-        reason='Bound baseline or current declarations unavailable')
-    if not baseline_assembly or not current_assembly:
-        return result
-    change = intent['grouping_change']
-    from .models import PrintGroupingChange
-    try:
-        PrintGroupingChange.model_validate(change).validate_current_assembly(baseline_assembly)
-        def mapping(assembly):
-            parts = assembly['parts']
-            if not parts or len({p['id'] for p in parts}) != len(parts):
-                raise ValueError('missing or duplicate part declarations')
-            return {p['id']:set(p['components']) for p in parts}
-        original, actual = mapping(baseline_assembly), mapping(current_assembly)
-        expected = {k:v for k,v in original.items() if k not in change['source_part_ids']}
-        unaffected = set(expected)
-        expected.update({p['id']:set(p['components']) for p in change['target_print_parts']})
-    except (KeyError, TypeError, ValueError):
-        return result
-    result['missing_part_ids'] = sorted(expected.keys() - actual.keys())
-    result['unexpected_part_ids'] = sorted(actual.keys() - expected.keys())
-    for name in sorted(expected.keys() & actual.keys()):
-        if expected[name] != actual[name]:
-            result['component_mismatches'].append(dict(part_id=name,
-                expected=sorted(expected[name]), actual=sorted(actual[name])))
-    result['unaffected_part_mismatches'] = sorted(name for name in unaffected
-        if name not in actual or actual[name] != expected[name])
-    mismatch = any(result[k] for k in ('missing_part_ids','unexpected_part_ids',
-                                      'component_mismatches','unaffected_part_mismatches'))
-    result.update(status='MISMATCH' if mismatch else 'MATCH', reason=(
-        'The declared target print groups have not been implemented' if mismatch else
-        'Declared groups match; material separation and interfaces require geometric checks'))
-    return result
+# Compatibility for existing internal imports.
+_grouping_realization = regroup_realization
 
 
 def _use_pose_display_valid(report):
@@ -291,8 +256,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                  initial_execution=None, initial_topology_run=None, evidence_files=()):
     from .service import _asset_executor_timeout_seconds, _actionable_findings, VISUAL_FEEDBACK_INSTRUCTION
     from .assembly_topology import (NAME, TOPOLOGY_SCOPE_VERSION, run_assembly_topology, engineer,
-        prepare_evidence, evaluation_evidence_run, EVIDENCE_PATH_INSTRUCTION, validate_partition_proposal, InvalidPartitionProposal)
-    from .assembly_physics import NAMES, run_assembly_checks, orientation_only, area_comparison
+        prepare_evidence, evaluation_evidence_run, EVIDENCE_PATH_INSTRUCTION, InvalidPartitionProposal)
+    from .assembly_physics import NAMES, orientation_only, area_comparison
     specs = [s for s in request.checker_specs if s.name in NAMES]
     if len({s.name for s in specs}) != len(specs):
         raise ValueError('duplicate assembly checker specification')
@@ -406,7 +371,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             try:
                 if intent and proposal.grouping_change and proposal.grouping_change.model_dump() != intent['grouping_change']:
                     raise ValueError('INVALID_PROPOSAL: active partition target cannot be replaced')
-                validate_partition_proposal(proposal,purpose=edit_purpose,
+                regroup_precheck(proposal,purpose=edit_purpose,
                     continuing=bool(comparison_baseline and comparison_baseline != parent_id and
                         working['reviews'].get('edit_purpose') == 'partition_optimization'),
                     assembly=_assembly_context(parent,working['reviews'].get('geometry'),
@@ -442,7 +407,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 edit_purpose=edit_purpose,comparison_baseline_version=comparison_baseline))
             write_json(book_path, book)
             try:
-                outcome = await workflow._repair(runtime=runtime, repairer=repairer, workspace=workspace,
+                outcome = await edit(workflow, runtime=runtime, repairer=repairer, workspace=workspace,
                     source_path=current, role=f'coder:assembly:{number}', stage=f'assembly_repair:{number}',
                     reserved_attempt_id=version_id, allow_no_change=True,
                     payload={'requirement':request.requirement, 'plan':plan.model_dump(),
@@ -490,7 +455,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                              'comparison_baseline_version':comparison_baseline})
                 stop = terminal_stop_reason(outcome.get('request_error')) or outcome['status']
                 break
-            if feedback.get('orientation_only_edit') and not orientation_only(parent.read_text(),current.read_text()):
+            if feedback.get('orientation_only_edit') and not reorient_postcheck(parent.read_text(),current.read_text()):
                 book['versions'][version_id] = version_record(version_id,current,None,
                     reviews={'edit_outcome':outcome,'accepted':False,'reason':'overhang_only_shape_edit_rejected'})
                 stop = 'overhang_only_shape_edit_rejected'
@@ -671,7 +636,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 'omitted_mesh_nodes':display.get('omitted_mesh_nodes', []),
             }
             try:
-                image_decision = None if source_failure else await workflow._review_generation_image(
+                image_decision = None if source_failure else await review_image(workflow,
                     runtime=runtime, request=request, plan=plan, execution=execution,
                     round_number=number, max_rounds=book['max_rounds'], round_root=candidate_root,
                     image_critic=image_critic, image_history=image_history,
@@ -682,7 +647,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 # Same order as ordinary aDSL: Code reviews a rejected Image
                 # judgement, not a NOT_EVALUATED manufacturing status.
                 if source_failure is None and (partition is not None or image_decision is None or not image_decision.approved):
-                    code_decision = await workflow._review_generation_code(
+                    code_decision = await review_code(workflow,
                         runtime=runtime, request=request, plan=plan, execution=execution,
                         workspace=workspace, source_path=current, round_number=number,
                         max_rounds=book['max_rounds'], round_root=candidate_root,
@@ -749,7 +714,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     write_json(folder/'result.json',result.model_dump())
                     runs.append(CheckerRun(spec,result,folder,()))
             else:
-                runs = run_assembly_checks(specs,execution=topology_execution,source=current,
+                runs = review_physics(specs,domains=None,execution=topology_execution,source=current,
                 root=candidate_root,physics=physics,initial_topology_run=topology_run,
                 **({'partition_reference':reference_path} if partition is not None else {}))
             topology_run = next((r for r in runs if r.spec.name==NAME),None)
@@ -780,7 +745,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             baseline_record = book['versions'][intent['comparison_baseline_version']]
             baseline_assembly = _assembly_context(Path(baseline_record['source']),
                 baseline_record['reviews'].get('geometry'),version_role='comparison_baseline')['current_assembly']
-        realization = _grouping_realization(intent, baseline_assembly,
+        realization = regroup_realization(intent, baseline_assembly,
             _assembly_context(current,report,version_role='current_candidate')['current_assembly'],
             source_sha256=file_hash(current))
         repairable_implementation_issue = bool(source_failure or realization and realization['status']=='MISMATCH')
@@ -836,7 +801,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 try:
                     new_reference = str(create_reference(candidate_root/'asset/assembly/assembly_manifest.json',
                         workspace/'partition_references',partition))
-                    refreshed = run_assembly_checks([overhang.spec], execution=topology_execution,source=current,
+                    refreshed = review_physics([overhang.spec], domains=('overhang',), execution=topology_execution,source=current,
                         root=refresh_root,physics=physics,partition_reference=new_reference)[0]
                     runs = [refreshed if r.spec.name=='assembly_overhang' else r for r in runs]
                     reviews['assembly_overhang'] = refreshed.result.model_dump()
@@ -1000,7 +965,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                 report_ref=reviews.get('geometry_report_ref')),
                             feedback,remaining)
                         if next_proposal:
-                            validate_partition_proposal(next_proposal,purpose=feedback.get('next_edit_purpose'),
+                            regroup_precheck(next_proposal,purpose=feedback.get('next_edit_purpose'),
                                 continuing=feedback.get('partition_candidate_in_progress',False),
                                 assembly=_assembly_context(current,report,version_role='current_candidate')['current_assembly'],
                                 editable=request.repair_policy.print_partition_editable)

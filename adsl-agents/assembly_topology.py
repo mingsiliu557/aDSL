@@ -478,19 +478,10 @@ Engineering approval cannot override measured FAIL. Recheck assembly_topology.
 '''
 
 
-class InvalidPartitionProposal(ValueError):
-    pass
+# Compatibility aliases retain the original function and exception imports.
+from .actions import InvalidPartitionProposal, regroup_precheck
 
-
-def validate_partition_proposal(proposal, *, purpose, continuing=False, assembly=None, editable=False):
-    if purpose != 'partition_optimization' or continuing:
-        return
-    if not editable or proposal.action != 'regroup_print_parts' or proposal.grouping_change is None:
-        raise InvalidPartitionProposal('INVALID_PROPOSAL: first partition optimization requires authorized regroup_print_parts and grouping_change')
-    try:
-        proposal.grouping_change.validate_current_assembly(assembly or {})
-    except ValueError as error:
-        raise InvalidPartitionProposal(str(error)) from error
+validate_partition_proposal = regroup_precheck
 
 
 async def engineer(workflow,runtime,request,plan,source,execution,root,run,context,feedback,remaining):
