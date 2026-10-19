@@ -33,7 +33,7 @@ def support_fixture(tmp_path,monkeypatch,values,*,patch_status='CHANGED',appeara
     def run_source(src,out,**kw):
         execution=execute(src,out,**kw)
         path=out/'assembly/assembly_manifest.json';manifest=json.loads(path.read_text())
-        manifest.update(root_id='body',connections=[],part_declarations=[
+        manifest.update(root_id='body',connections=[],assembled_size_mm=list(config['final_size_mm']),part_declarations=[
             dict(id='body',components=['crossbar','stem'],assembly_transform=np.eye(4).tolist())],
             parts=[dict(id='body',print_transform_mm=np.eye(4).tolist())])
         write_json(path,manifest)
@@ -130,7 +130,7 @@ def test_nsv_prompt_keeps_api_and_removes_conflicting_objective(role):
     assert legacy==object_prompt(role,articulation=False,fixed_assembly=True,support_metric='area',shape_editable=False)
     prompt=object_prompt(role,articulation=False,fixed_assembly=True,support_metric='nsv',shape_editable=True)
     assert 'Dapper' not in prompt and 'N**alpha' not in prompt
-    assert 'add_part' in prompt and 'TabSlot' in prompt and 'delta_S < -tau' in prompt
+    assert 'add_part' in prompt and 'TabSlot' in prompt and 'delta_S_hat < -tau_hat' in prompt
     assert 'Authorized optional shape actions' in prompt
     disabled=object_prompt(role,articulation=False,fixed_assembly=True,support_metric='nsv',shape_editable=False)
     assert 'Optional shape changes for support reduction are disabled' in disabled
@@ -492,3 +492,107 @@ def test_initial_and_resumed_coder_receive_nsv_policy(tmp_path,monkeypatch):
         prompt=capture['agent']['instructions']
         assert 'Support optimization uses' in prompt and 'Dapper' not in prompt
     assert config==request.fixed_assembly
+
+
+def normalized_evidence(s, *, n=1, size=(3.,4.,12.)):
+    return {**measurement(s,n), 'assembled_size_mm':list(size),
+        'measurement_config_sha256':'same-ray-contract','tolerance_mm3':1.2}
+
+
+def test_uniform_scaling_cannot_earn_support_gain():
+    baseline=normalized_evidence(12)
+    candidate=normalized_evidence(12*.9**3,size=[x*.9 for x in baseline['assembled_size_mm']])
+    candidate['support']['total_volume_mm3'] *= .9**3
+    original=(deepcopy(baseline),deepcopy(candidate))
+    result=flow._compare_support(baseline,candidate)
+    assert result['conclusion']=='REJECT' and result['rule']=='no_support_gain'
+    assert result['delta_normalized_support']==pytest.approx(0,abs=1e-16)
+    assert result['delta_support_mm3']==pytest.approx(12*(.9**3-1))
+    assert result['normalized_tolerance']==pytest.approx(1.2/13**3)
+    assert (baseline,candidate)==original
+
+
+def test_added_material_inside_same_bounds_cannot_dilute_support_objective():
+    baseline=normalized_evidence(12)
+    candidate=deepcopy(baseline)
+    candidate['support']['total_volume_mm3'] *= 2
+    candidate['support']['nsv_total'] /= 2
+    result=flow._compare_support(baseline,candidate)
+    assert result['conclusion']=='REJECT' and result['rule']=='no_support_gain'
+    assert result['delta_normalized_support']==0
+    assert result['delta_support_mm3']==0
+
+
+@pytest.mark.parametrize('side',['baseline','candidate'])
+@pytest.mark.parametrize('size',[None,[],[0,0,0],[1,2],[1,-2,3],[1,float('inf'),3],[True,2,3]])
+def test_unavailable_scale_does_not_fall_back_to_raw_support(size,side):
+    baseline=normalized_evidence(12)
+    candidate=normalized_evidence(1)
+    (baseline if side=='baseline' else candidate)['assembled_size_mm']=size
+    result=flow._compare_support(baseline,candidate)
+    assert result['conclusion']=='REJECT' and result['rule']=='support_unavailable'
+    assert result['delta_normalized_support'] is None
+
+
+@pytest.mark.parametrize('n,s,expected',[(2,8,'split_support_gain'),(2,10,'split_without_support_gain'),
+    (1,8,'support_gain'),(1,10,'no_support_gain'),(1,14,'merge_acceptable_support'),
+    (1,14.1,'merge_worsens_support')])
+def test_normalized_comparison_preserves_count_rules_and_units(n,s,expected):
+    # Integer multiples of D³ give exactly representable normalized boundaries.
+    # This tests the inequalities without asserting decimal rounding as geometry.
+    cube=13**3
+    baseline=normalized_evidence(12*cube,n=2 if expected.startswith('merge') else 1)
+    baseline['tolerance_mm3']=2*cube
+    result=flow._compare_support(baseline,normalized_evidence(s*cube,n=n))
+    assert result['rule']==expected
+    assert result['delta_support_mm3']==pytest.approx((s-12)*cube)
+    assert result['tolerance_mm3']==2*cube
+    assert result['normalized_tolerance']==2
+
+
+@pytest.mark.parametrize('partition',[False,True])
+def test_shrunken_shape_candidate_restores_baseline_in_a_and_d(tmp_path,monkeypatch,partition):
+    if partition:
+        f,checks,inputs,refs,published=d_fixture(tmp_path,monkeypatch,[12,12*.9**3])
+    else:
+        f,checks,inputs=support_fixture(tmp_path,monkeypatch,[12,12*.9**3])
+    execute=flow.execute_asset_source
+    def shrink(source,out,**kw):
+        execution=execute(source,out,**kw)
+        if f[-1]:
+            path=out/'assembly/assembly_manifest.json';report=json.loads(path.read_text())
+            report['assembled_size_mm']=[x*.9 for x in report['assembled_size_mm']]
+            write_json(path,report)
+        return execution
+    monkeypatch.setattr(flow,'execute_asset_source',shrink)
+    result,book=run_flow(f)
+    decision=book['versions']['attempt_0001']['reviews']['support_postcheck']
+    assert decision['rule']=='no_support_gain'
+    assert decision['delta_normalized_support']==pytest.approx(0,abs=1e-16)
+    assert book['working']==book['qualified']==book['retained']=='original'
+
+
+def test_visual_only_uses_existing_canonical_assembled_size_evidence():
+    digest='same-source'
+    geometry=dict(source_sha256=digest,parts=[{'id':'body'}],part_declarations=[{'id':'body'}],
+        canonical_scene_consistency=dict(status='PASS',assembled_size_mm=[3.,4.,12.]))
+    reviews=dict(geometry=geometry,checker_source_sha256=digest,assembly_overhang=dict(status='PASS',
+        assumptions={'source_sha256':digest},metrics={'support':measurement(12)['support'],
+            'support_measurement_config_sha256':'same-ray-contract'}))
+    result=flow._support_evidence(reviews,source_version='original',source_sha256=digest,layer_height_mm=.2)
+    assert result['assembled_size_mm']==[3.,4.,12.]
+    geometry['canonical_scene_consistency']['status']='FAIL'
+    result=flow._support_evidence(reviews,source_version='original',source_sha256=digest,layer_height_mm=.2)
+    assert result['assembled_size_mm'] is None
+
+
+@pytest.mark.parametrize('role',['coder','engineering_critic','code_critic_review'])
+def test_nsv_prompt_keeps_regroup_implementation_guidance(role):
+    prompt=object_prompt(role,articulation=False,fixed_assembly=True,support_metric='nsv',shape_editable=True)
+    for text in ('source_part_ids, target_print_parts, connection_changes',
+                 'four_legs ID','cannot be split into invented IDs','original pre-connector bodies/children',
+                 'On merge, remove internal connectors','local Boolean cuts',
+                 'exactly one piece','Keep mounting shoulders','connect()',
+                 'ONE coordinated proposal','All selected checks must'):
+        assert text in prompt
+    assert 'Dapper' not in prompt and 'preserve all bodies' not in prompt

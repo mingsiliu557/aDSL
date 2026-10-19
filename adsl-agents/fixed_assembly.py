@@ -315,10 +315,15 @@ def _support_evidence(reviews, *, source_version, source_sha256, layer_height_mm
     area = support.get('total_risky_projected_area_mm2')
     tolerance = layer_height_mm * area if _nonnegative(area) else None
     connections = report.get('connections')
+    assembled_size = report.get('assembled_size_mm')
+    if assembled_size is None:
+        canonical = report.get('canonical_scene_consistency') or {}
+        if canonical.get('status') == 'PASS':
+            assembled_size = canonical.get('assembled_size_mm')
     return dict(source_version=source_version, source_sha256=source_sha256,
         measurement_config_sha256=metrics.get('support_measurement_config_sha256'),
         support=support, part_count=count, tolerance_mm3=tolerance,
-        length_unit='mm', assembled_size_mm=report.get('assembled_size_mm'),
+        length_unit='mm', assembled_size_mm=assembled_size,
         items=[dict(part_id=r['part_id'],support=deepcopy(r.get('support')),
                     bounds_mm=next((p.get('bounds_mm') for p in parts if p.get('id')==r['part_id']),None),
                     print_transform_mm=r.get('support_print_transform_mm'),
@@ -327,17 +332,63 @@ def _support_evidence(reviews, *, source_version, source_sha256, layer_height_mm
         interface_count=len(connections) if isinstance(connections,list) else None,
         topology_status=reviews.get('assembly_topology',{}).get('status','NOT_EXECUTED'),
         standing_status=reviews.get('assembly_standing',{}).get('status','NOT_EXECUTED'),
-        acceptance_rule='split/same-count: delta_S < -tau; merge: delta_S <= tau',
-        scale_note='Fixed task nominal dimensions and manifest mm; no normalization or automatic size proof')
+        acceptance_rule='S_hat=S/D^3; tau_hat=tau/D_baseline^3; split/same-count: delta_S_hat < -tau_hat; merge: delta_S_hat <= tau_hat',
+        scale_note='Assembled bounding-box diagonal normalization for comparison only; fixed task dimensions still required; geometry and STL are not rescaled')
 
 
 def _compare_support(baseline, candidate):
+    """Compare S/D³; preserve raw-mm³ diagnostics and the pure Action interface."""
+    import math
+    from .support_volume import _nonnegative
+
     tau = baseline.get('tolerance_mm3')
+    result = dict(conclusion='REJECT',rule='support_unavailable',delta_support_mm3=None,
+        delta_part_count=None,tolerance_mm3=tau,
+        comparison_metric='support_per_assembled_diagonal_cubed_v1',
+        baseline_diagonal_mm=None,candidate_diagonal_mm=None,
+        baseline_normalized_support=None,candidate_normalized_support=None,
+        delta_normalized_support=None,normalized_tolerance=None)
     if (tau is None or not baseline.get('measurement_config_sha256') or
             baseline['measurement_config_sha256'] != candidate.get('measurement_config_sha256')):
-        return dict(conclusion='REJECT',rule='support_unavailable',delta_support_mm3=None,
-                    delta_part_count=None,tolerance_mm3=tau)
-    return support_postcheck(baseline,candidate,tolerance_mm3=tau)
+        return dict(result,reason='measurement_contract_unavailable_or_mismatched')
+    raw = support_postcheck(baseline,candidate,tolerance_mm3=tau)
+    result.update(delta_support_mm3=raw['delta_support_mm3'],delta_part_count=raw['delta_part_count'])
+    if raw['rule']=='support_unavailable':
+        return result
+    diagonals, cubes = [], []
+    for evidence in (baseline,candidate):
+        size = evidence.get('assembled_size_mm')
+        if (not isinstance(size,(list,tuple)) or len(size)!=3 or
+                not all(_nonnegative(v) for v in size)):
+            return dict(result,reason='assembled_size_unavailable')
+        diagonal = math.hypot(*size)
+        cube = diagonal * diagonal * diagonal
+        if not math.isfinite(cube) or cube <= 0:
+            return dict(result,reason='assembled_diagonal_unusable')
+        diagonals.append(diagonal)
+        cubes.append(cube)
+    normalized = []
+    for evidence,diagonal,cube in zip((baseline,candidate),diagonals,cubes):
+        support = dict(evidence['support'])
+        support['total_support_volume_mm3'] /= cube
+        support['total_volume_mm3'] /= cube
+        support['total_risky_projected_area_mm2'] /= diagonal * diagonal
+        if (not all(_nonnegative(support[k]) for k in ('total_support_volume_mm3',
+                'total_volume_mm3','total_risky_projected_area_mm2')) or support['total_volume_mm3'] <= 0):
+            return dict(result,reason='support_normalization_unusable')
+        normalized.append(dict(support=support,part_count=evidence['part_count']))
+    normalized_tau = tau / cubes[0]
+    if not _nonnegative(normalized_tau) or tau > 0 and normalized_tau == 0:
+        return dict(result,reason='tolerance_normalization_unusable')
+    # The Action's inequalities are reused on dimensionless local copies only.
+    # Never publish its normalized numbers under the *_mm3 field names.
+    decision = support_postcheck(*normalized,tolerance_mm3=normalized_tau)
+    result.update(conclusion=decision['conclusion'],rule=decision['rule'],
+        baseline_diagonal_mm=diagonals[0],candidate_diagonal_mm=diagonals[1],
+        baseline_normalized_support=normalized[0]['support']['total_support_volume_mm3'],
+        candidate_normalized_support=normalized[1]['support']['total_support_volume_mm3'],
+        delta_normalized_support=decision['delta_support_mm3'],normalized_tolerance=normalized_tau)
+    return result
 
 
 def _mode_a_pose(baseline, candidate, *, baseline_hash, candidate_hash):
@@ -1124,7 +1175,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                         source_sha256=file_hash(Path(base['source'])),layer_height_mm=overhang_config['layer_height_mm'])
                     support_evidence['tolerance_mm3'] = base_evidence['tolerance_mm3']
                     support_evidence['comparison_baseline'] = {k:deepcopy(base_evidence[k]) for k in (
-                        'source_version','source_sha256','measurement_config_sha256','support','part_count','tolerance_mm3')}
+                        'source_version','source_sha256','measurement_config_sha256','support','part_count','tolerance_mm3','assembled_size_mm')}
                     # Physical/geometric failures may still be repaired. Lack of support
                     # evidence alone is not a repair authorization.
                     required_ready = bool(gate_passed and implementation_complete and
@@ -1319,8 +1370,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                 partition_candidate_in_progress=False)
                             book['feedback']=feedback
                             write_json(book_path,book)
-                    feedback['primary_objective'] = ('Complete the same support candidate; eventual adoption compares S/N with its original baseline.'
-                        if support_baseline_id else 'Resolve necessary defects first; optional edits use support_evidence S/N, never volume dilution.')
+                    feedback['primary_objective'] = ('Complete the same support candidate; eventual adoption compares S_hat=S/D^3 and N with its original baseline.'
+                        if support_baseline_id else 'Resolve necessary defects first; optional edits compare S_hat=S/D^3 and N from support_evidence; never use volume dilution.')
                     if not feedback['orientation_only_edit']:
                         feedback['edit_restriction'] = ('Authorized local shape edits may reduce support; preserve nominal size, semantic ownership, root frame, appearance and interfaces.'
                             if shape_editable else 'Optional support edits preserve pre-connector body shape; necessary repairs retain evidence-based permissions.')

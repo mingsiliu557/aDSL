@@ -635,6 +635,7 @@ def _support_for_agent(value):
         out['comparison_baseline'] = _fields(base,('source_version','source_sha256',
             'measurement_config_sha256','part_count','tolerance_mm3'))
         out['comparison_baseline']['support'] = _fields(base.get('support'),support_fields)
+        out['comparison_baseline']['assembled_size_mm'] = _vector(base.get('assembled_size_mm'))
     out['items'] = []
     for row in value.get('items',[]):
         item = _fields(row,('part_id',))
