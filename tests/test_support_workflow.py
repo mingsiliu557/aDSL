@@ -506,6 +506,8 @@ def test_uniform_scaling_cannot_earn_support_gain():
     original=(deepcopy(baseline),deepcopy(candidate))
     result=flow._compare_support(baseline,candidate)
     assert result['conclusion']=='REJECT' and result['rule']=='no_support_gain'
+    assert result['absolute_decision']==dict(conclusion='ACCEPT',rule='support_gain')
+    assert result['normalized_decision']==dict(conclusion='REJECT',rule='no_support_gain')
     assert result['delta_normalized_support']==pytest.approx(0,abs=1e-16)
     assert result['delta_support_mm3']==pytest.approx(12*(.9**3-1))
     assert result['normalized_tolerance']==pytest.approx(1.2/13**3)
@@ -521,6 +523,36 @@ def test_added_material_inside_same_bounds_cannot_dilute_support_objective():
     assert result['conclusion']=='REJECT' and result['rule']=='no_support_gain'
     assert result['delta_normalized_support']==0
     assert result['delta_support_mm3']==0
+
+
+@pytest.mark.parametrize('baseline_n,candidate_s,raw_rule,normalized_rule',[
+    (1,12,'no_support_gain','support_gain'),
+    (2,14,'merge_worsens_support','merge_acceptable_support'),
+])
+def test_larger_bounds_cannot_override_absolute_support_rejection(
+        baseline_n,candidate_s,raw_rule,normalized_rule):
+    baseline=normalized_evidence(12,n=baseline_n)
+    candidate=normalized_evidence(candidate_s,n=1,
+        size=[x*1.1 for x in baseline['assembled_size_mm']])
+    original=(deepcopy(baseline),deepcopy(candidate))
+    # Independent oracle: the enlarged diagonal improves the normalized measure,
+    # while unchanged support (same count) or +2 mm³ (merge) fails the raw rule.
+    normalized_delta=candidate_s/(13*1.1)**3-12/13**3
+    normalized_tau=1.2/13**3
+    assert normalized_delta < -normalized_tau
+    if baseline_n==1:
+        assert candidate_s-12 == 0
+    else:
+        assert candidate_s-12 > 1.2
+    result=flow._compare_support(baseline,candidate)
+    assert result['conclusion']=='REJECT' and result['rule']==raw_rule
+    assert result['absolute_decision']==dict(conclusion='REJECT',rule=raw_rule)
+    assert result['normalized_decision']==dict(conclusion='ACCEPT',rule=normalized_rule)
+    assert result['delta_support_mm3']==candidate_s-12
+    assert result['delta_normalized_support']==pytest.approx(normalized_delta)
+    assert result['tolerance_mm3']==1.2
+    assert result['normalized_tolerance']==pytest.approx(normalized_tau)
+    assert (baseline,candidate)==original
 
 
 @pytest.mark.parametrize('side',['baseline','candidate'])
@@ -545,6 +577,10 @@ def test_normalized_comparison_preserves_count_rules_and_units(n,s,expected):
     baseline['tolerance_mm3']=2*cube
     result=flow._compare_support(baseline,normalized_evidence(s*cube,n=n))
     assert result['rule']==expected
+    accepted=expected in {'split_support_gain','support_gain','merge_acceptable_support'}
+    assert result['conclusion']==('ACCEPT' if accepted else 'REJECT')
+    assert result['absolute_decision']==result['normalized_decision']==dict(
+        conclusion=result['conclusion'],rule=expected)
     assert result['delta_support_mm3']==pytest.approx((s-12)*cube)
     assert result['tolerance_mm3']==2*cube
     assert result['normalized_tolerance']==2
@@ -581,6 +617,9 @@ def test_visual_only_uses_existing_canonical_assembled_size_evidence():
             'support_measurement_config_sha256':'same-ray-contract'}))
     result=flow._support_evidence(reviews,source_version='original',source_sha256=digest,layer_height_mm=.2)
     assert result['assembled_size_mm']==[3.,4.,12.]
+    assert 'Both absolute and normalized checks must pass' in result['acceptance_rule']
+    assert 'delta_S < -tau AND delta_S_hat < -tau_hat' in result['acceptance_rule']
+    assert 'delta_S <= tau AND delta_S_hat <= tau_hat' in result['acceptance_rule']
     geometry['canonical_scene_consistency']['status']='FAIL'
     result=flow._support_evidence(reviews,source_version='original',source_sha256=digest,layer_height_mm=.2)
     assert result['assembled_size_mm'] is None
@@ -590,6 +629,9 @@ def test_visual_only_uses_existing_canonical_assembled_size_evidence():
 def test_nsv_prompt_keeps_regroup_implementation_guidance(role):
     prompt=object_prompt(role,articulation=False,fixed_assembly=True,support_metric='nsv',shape_editable=True)
     for text in ('source_part_ids, target_print_parts, connection_changes',
+                 'Both absolute and normalized checks must pass',
+                 'delta_S < -tau AND delta_S_hat < -tau_hat',
+                 'delta_S <= tau AND delta_S_hat <= tau_hat',
                  'four_legs ID','cannot be split into invented IDs','original pre-connector bodies/children',
                  'On merge, remove internal connectors','local Boolean cuts',
                  'exactly one piece','Keep mounting shoulders','connect()',

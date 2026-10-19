@@ -332,19 +332,20 @@ def _support_evidence(reviews, *, source_version, source_sha256, layer_height_mm
         interface_count=len(connections) if isinstance(connections,list) else None,
         topology_status=reviews.get('assembly_topology',{}).get('status','NOT_EXECUTED'),
         standing_status=reviews.get('assembly_standing',{}).get('status','NOT_EXECUTED'),
-        acceptance_rule='S_hat=S/D^3; tau_hat=tau/D_baseline^3; split/same-count: delta_S_hat < -tau_hat; merge: delta_S_hat <= tau_hat',
+        acceptance_rule='Both absolute and normalized checks must pass; S_hat=S/D^3; tau_hat=tau/D_baseline^3; split/same-count: delta_S < -tau AND delta_S_hat < -tau_hat; merge: delta_S <= tau AND delta_S_hat <= tau_hat',
         scale_note='Assembled bounding-box diagonal normalization for comparison only; fixed task dimensions still required; geometry and STL are not rescaled')
 
 
 def _compare_support(baseline, candidate):
-    """Compare S/D³; preserve raw-mm³ diagnostics and the pure Action interface."""
+    """Require both S and S/D³ checks; preserve each decision and its units."""
     import math
     from .support_volume import _nonnegative
 
     tau = baseline.get('tolerance_mm3')
     result = dict(conclusion='REJECT',rule='support_unavailable',delta_support_mm3=None,
         delta_part_count=None,tolerance_mm3=tau,
-        comparison_metric='support_per_assembled_diagonal_cubed_v1',
+        comparison_metric='absolute_and_normalized_support_v1',
+        absolute_decision=None,normalized_decision=None,
         baseline_diagonal_mm=None,candidate_diagonal_mm=None,
         baseline_normalized_support=None,candidate_normalized_support=None,
         delta_normalized_support=None,normalized_tolerance=None)
@@ -352,7 +353,8 @@ def _compare_support(baseline, candidate):
             baseline['measurement_config_sha256'] != candidate.get('measurement_config_sha256')):
         return dict(result,reason='measurement_contract_unavailable_or_mismatched')
     raw = support_postcheck(baseline,candidate,tolerance_mm3=tau)
-    result.update(delta_support_mm3=raw['delta_support_mm3'],delta_part_count=raw['delta_part_count'])
+    result.update(delta_support_mm3=raw['delta_support_mm3'],delta_part_count=raw['delta_part_count'],
+        absolute_decision={k:raw[k] for k in ('conclusion','rule')})
     if raw['rule']=='support_unavailable':
         return result
     diagonals, cubes = [], []
@@ -383,7 +385,11 @@ def _compare_support(baseline, candidate):
     # The Action's inequalities are reused on dimensionless local copies only.
     # Never publish its normalized numbers under the *_mm3 field names.
     decision = support_postcheck(*normalized,tolerance_mm3=normalized_tau)
-    result.update(conclusion=decision['conclusion'],rule=decision['rule'],
+    accepted = raw['conclusion']=='ACCEPT' and decision['conclusion']=='ACCEPT'
+    # A normalized improvement cannot override an absolute-volume rejection.
+    final_decision = raw if raw['conclusion']=='REJECT' else decision
+    result.update(conclusion='ACCEPT' if accepted else 'REJECT',rule=final_decision['rule'],
+        normalized_decision={k:decision[k] for k in ('conclusion','rule')},
         baseline_diagonal_mm=diagonals[0],candidate_diagonal_mm=diagonals[1],
         baseline_normalized_support=normalized[0]['support']['total_support_volume_mm3'],
         candidate_normalized_support=normalized[1]['support']['total_support_volume_mm3'],
@@ -1370,8 +1376,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                 partition_candidate_in_progress=False)
                             book['feedback']=feedback
                             write_json(book_path,book)
-                    feedback['primary_objective'] = ('Complete the same support candidate; eventual adoption compares S_hat=S/D^3 and N with its original baseline.'
-                        if support_baseline_id else 'Resolve necessary defects first; optional edits compare S_hat=S/D^3 and N from support_evidence; never use volume dilution.')
+                    feedback['primary_objective'] = ('Complete the same support candidate; eventual adoption requires both absolute S and normalized S_hat=S/D^3 checks, each with its N-dependent rule, to pass against the original baseline.'
+                        if support_baseline_id else 'Resolve necessary defects first; optional edits must pass both absolute S and normalized S_hat=S/D^3 checks, each with its N-dependent rule from support_evidence; never use volume or bounding-box dilution.')
                     if not feedback['orientation_only_edit']:
                         feedback['edit_restriction'] = ('Authorized local shape edits may reduce support; preserve nominal size, semantic ownership, root frame, appearance and interfaces.'
                             if shape_editable else 'Optional support edits preserve pre-connector body shape; necessary repairs retain evidence-based permissions.')

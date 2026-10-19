@@ -32,18 +32,21 @@ version's assembled bounding box. Use `S_hat = S/D**3` and
 uniform model shrinkage being counted as a shape improvement. No mesh, scale,
 manufacturing STL or raw measurement is modified.
 
-- More parts: accept the support tradeoff only when `delta_S_hat < -tau_hat`.
-- Same part count: require `delta_S_hat < -tau_hat`.
-- Fewer parts: allow `delta_S_hat <= tau_hat`.
+- More parts: require both `delta_S < -tau` and `delta_S_hat < -tau_hat`.
+- Same part count: require both `delta_S < -tau` and `delta_S_hat < -tau_hat`.
+- Fewer parts: require both `delta_S <= tau` and `delta_S_hat <= tau_hat`.
 
-Equality at `-tau_hat` is not a support improvement. A merge may accept equality at
-`+tau_hat`. Valid zero-support/zero-area baselines have tau=0. Ratio improvement from
+Both comparisons must pass. Enlarging the bounding box cannot override an absolute
+support rejection. Equality at either negative threshold is not a support improvement.
+A merge may accept equality at both positive thresholds.
+Valid zero-support/zero-area baselines have tau=0. Ratio improvement from
 increasing V within unchanged bounds is not an adoption criterion. These local rules do not prove global
 monotonicity or absence of cycles; existing budgets remain unchanged.
 
 The support decision only tightens the existing feasibility/appearance gates.
 Independent necessary repairs do not require support reduction. A repair inside
-an optional candidate must eventually pass the original baseline's normalized-support/count test.
+an optional candidate must eventually pass both the original baseline's absolute-support/count
+and normalized-support/count tests.
 Backend/config differences or missing results are not silently comparable.
 Missing, nonfinite or zero-diagonal sizes also reject comparison. Geometry-mode
 manifests provide assembled_size_mm at the top level; visual-only output provides
@@ -55,7 +58,11 @@ support values, delta_normalized_support and normalized_tolerance. Existing
 the normalized decision values. Raw S, V and NSV continue to describe the output.
 A resumed candidate's baseline evidence retains its original assembled_size_mm.
 The low-level support_postcheck Action retains its interface; the controller applies
-its same inequalities to normalized local copies and labels the returned data.
+its same inequalities to raw evidence and normalized local copies. The result records
+`absolute_decision` and `normalized_decision` separately (conclusion and rule); a check
+not reached remains null. When both checks are available, an absolute rejection keeps
+its rule as the final rule, otherwise the normalized rule applies. Missing comparison
+evidence still rejects as support_unavailable and preserves any completed absolute decision.
 
 ## Modes and evidence
 

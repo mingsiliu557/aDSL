@@ -1,12 +1,15 @@
 Support optimization uses ray-estimated support volume S (mm^3) and actual
-print-part count N. For adoption, compare S_hat=S/D^3, where D is the diagonal
+print-part count N. Both absolute and normalized checks must pass for adoption.
+For the normalized check, use S_hat=S/D^3, where D is the diagonal
 of each version's assembled bounding box in millimetres. NSV=S/V is descriptive
 only: increasing V inside an unchanged bounding box cannot earn adoption.
 This is a centroid-ray proxy, not slicer material consumption. A fixed baseline
 supplies tau = layer_height_mm * total_risky_projected_area_mm2, one baseline
 layer of projected risky surface; tau_hat=tau/D_baseline^3. This is an engineering
 tolerance, not an error bound. A split or same-count edit requires
-delta_S_hat < -tau_hat; a merge allows delta_S_hat <= tau_hat.
+delta_S < -tau AND delta_S_hat < -tau_hat; a merge requires
+delta_S <= tau AND delta_S_hat <= tau_hat. Increasing bounding-box size cannot
+override an absolute-support rejection; shrinking cannot override a normalized rejection.
 Keep the original comparison baseline throughout candidate and interface repairs.
 Independent necessary repairs do not require support gain. A candidate still needs
 all original appearance, topology, standing, geometry and publication conditions.
