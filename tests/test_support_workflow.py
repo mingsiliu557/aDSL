@@ -254,8 +254,16 @@ def test_shape_only_origin_requires_recorded_parent_chain(tmp_path):
     record=version_record('attempt_0001',candidate,None,reviews=review)
     book={'versions':{'original':base,'attempt_0001':record}}
     assert flow._shape_only_origin(book,'attempt_0001','original')
-    record['reviews']['repair_proposal']['grouping_change']={'operation':'split'}
+    # Build a separately bound record for the legitimate grouped-candidate case.
+    grouped_review=deepcopy(review)
+    grouped_review['repair_proposal']['grouping_change']={'operation':'split'}
+    book['versions']['attempt_0001']=version_record('attempt_0001',candidate,None,reviews=grouped_review)
     assert not flow._shape_only_origin(book,'attempt_0001','original')
+    # Mutating an already bound record is tampering, not a valid lineage variant.
+    book['versions']['attempt_0001']=record
+    record['reviews']['repair_proposal']['grouping_change']={'operation':'split'}
+    with pytest.raises(ValueError,match='version checker/review record changed'):
+        flow._shape_only_origin(book,'attempt_0001','original')
 
 
 def test_root_and_ownership_checks():
@@ -422,7 +430,7 @@ def test_d_authorized_grouping_keeps_real_intent(tmp_path,monkeypatch,shape_edit
 def test_engineering_actual_input_uses_support_not_dapper(tmp_path,monkeypatch):
     import asyncio
     from adsl.agents.service import ObjectWorkflow
-    from adsl.agents.models import ObjectRequest, FixedAssemblyPlan
+    from adsl.agents.models import ObjectRequest, FixedAssemblyPlan, EngineeringCriticDecision
     from test_fixed_assembly import CONFIG, plan_data
     source=tmp_path/'source.py';source.write_text('scene = None\n')
     config=deepcopy(CONFIG)
@@ -435,8 +443,8 @@ def test_engineering_actual_input_uses_support_not_dapper(tmp_path,monkeypatch):
         def agent(self,**kw):return kw
         async def run(self,**kw):
             captured.append(kw)
-            return SimpleNamespace(final_output={'approved':False,'observations':['No justified local change'],
-                'repair_proposals':[],'unresolved_findings':[]})
+            return SimpleNamespace(final_output=EngineeringCriticDecision(approved=False,
+                observations=['No justified local change'],repair_proposals=[],unresolved_findings=[]))
     evidence=dict(source_version='original',source_sha256=flow.file_hash(source),
         support=measurement(12)['support'],part_count=1,tolerance_mm3=1.2,items=[])
     spec=physics.checker_spec('assembly_overhang')
