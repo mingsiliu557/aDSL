@@ -619,6 +619,57 @@ def _history(rows):
     return result
 
 
+def _support_for_agent(value):
+    """Finite explicit support view. Detailed regions remain in the item files."""
+    if not isinstance(value, Mapping):
+        return None
+    support_fields = ('status','reason','support_volume_mm3','mesh_volume_mm3','nsv',
+        'risky_projected_area_mm2','risky_face_count','ray_backend','total_support_volume_mm3',
+        'total_volume_mm3','nsv_total','total_risky_projected_area_mm2')
+    out = _fields(value, ('source_version','source_sha256','measurement_config_sha256','part_count',
+        'tolerance_mm3','interface_count','topology_status','standing_status','acceptance_rule','scale_note'))
+    out['support'] = _fields(value.get('support'),support_fields)
+    out['items'] = []
+    for row in value.get('items',[]):
+        item = _fields(row,('part_id',))
+        item['support'] = _fields(row.get('support'),support_fields)
+        matrix = row.get('print_transform_mm')
+        if isinstance(matrix,list) and len(matrix)==4 and all(isinstance(r,list) and len(r)==4 for r in matrix):
+            item['print_transform_mm'] = [[_json(x) if isinstance(x,(int,float)) else None for x in r] for r in matrix]
+        else:
+            item['print_transform_mm'] = None
+        item['largest_regions'] = []
+        for region in row.get('largest_regions',[])[:3]:
+            clean = _fields(region,('area_mm2',))
+            for key, shape in (('centroid_mm',(3,)),('bounds_mm',(2,3))):
+                v = region.get(key)
+                if isinstance(v,list) and len(v)==shape[0]:
+                    if len(shape)==1 and all(isinstance(x,(int,float)) for x in v):
+                        clean[key] = _json(v)
+                    elif len(shape)==2 and all(isinstance(r,list) and len(r)==shape[1] and all(isinstance(x,(int,float)) for x in r) for r in v):
+                        clean[key] = _json(v)
+            item['largest_regions'].append(clean)
+        item['evidence_ref'] = _fields(row.get('evidence_ref'),('path','json_pointer','source_sha256','source_version'))
+        out['items'].append(item)
+    return out
+
+
+def _remove_support_score_fields(value):
+    # Model view only. Raw reports and controller scoring remain intact.
+    forbidden = {'partition_objective','partition_guidance','partition_measurement',
+        'partition_change_vs_baseline','gap_voxels','reference_voxels','alpha','score',
+        'gap_volume_mm3','candidate_score','score_delta'}
+    if isinstance(value,dict):
+        for key in list(value):
+            if key in forbidden:
+                value.pop(key)
+            elif isinstance(value[key],(dict,list)):
+                _remove_support_score_fields(value[key])
+    elif isinstance(value,list):
+        for row in value:
+            _remove_support_score_fields(row)
+
+
 def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                       report_ref=None, evidence_files=()):
     if role not in {'engineering', 'code_critic', 'image_critic', 'coder', 'debugger'}:
@@ -626,6 +677,11 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
     try:
         view = _Projection(workspace, source_path, source_version, report_ref, evidence_files)
         out = deepcopy(dict(payload))
+        nsv = (isinstance(out.get('support_evidence'),Mapping) or
+            isinstance((out.get('feedback') or {}).get('support_evidence'),Mapping) or
+            (out.get('fixed_assembly') or {}).get('physics',{}).get('overhang',{}).get('support_metric')=='nsv')
+        if nsv:
+            _remove_support_score_fields(out)
         full_histories = {}
         existing = out.get('evaluation_feedback')
         existing_index_ref = None
@@ -664,6 +720,8 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
         def process(container, container_identity=''):
             if not isinstance(container, dict):
                 return
+            if nsv and 'support_evidence' in container:
+                container['support_evidence'] = _support_for_agent(container['support_evidence'])
             failure_ids = list(container.get('evaluation_failure_ids') or [])
             execution_failure = container.pop('execution_failure', None)
             if isinstance(execution_failure, Mapping):
@@ -779,6 +837,7 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                 return {}
             names = ('evaluation_feedback', 'evaluation_failure_ids', 'typed_findings', 'checker_evidence',
                 'checker_summary', 'preview_info', 'evidence_files', 'render_issue', 'execution_error',
+                'support_evidence', 'support_baseline_version', 'support_round',
                 'error', 'duplicate_source', 'error_evidence_ref', 'execution_error_evidence_ref', 'render_issue_evidence_ref', *_HISTORY_FIELDS)
             selected = {k: container[k] for k in names if k in container}
             for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback'):

@@ -61,7 +61,10 @@ def support_volume(mesh_mm, *, overhang_threshold_from_horizontal_deg, bed_toler
     mask = overhang_mask(mesh, angle, bed_tolerance_mm)
     ids = np.flatnonzero(mask)
     projected = np.asarray(mesh.area_faces[ids] * np.abs(mesh.face_normals[ids, 2]))
-    intersector, backend = _ray_backend(mesh)
+    try:
+        intersector, backend = _ray_backend(mesh)
+    except (ImportError, OSError, RuntimeError) as error:
+        raise SupportMeasurementError('ray_backend_unavailable: ' + type(error).__name__) from error
     centers = np.asarray(mesh.triangles_center[ids], dtype=np.float64)
     heights = centers[:, 2].copy()
     # A local numerical self-hit convention, not a manufacturing tolerance.

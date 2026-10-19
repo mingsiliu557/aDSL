@@ -95,7 +95,7 @@ def t_mesh(k=1.):
     import trimesh
     outline=np.array([[-1,0],[1,0],[1,2],[3,2],[3,3],[-3,3],[-3,2],[-1,2]],float)
     vertices=np.array([[x,y,z] for y in (-1,1) for x,z in outline])*k
-    cap=[(0,1,2),(0,2,7),(7,2,3),(7,3,4),(7,4,5),(7,5,6)]
+    cap=[(0,1,2),(0,2,7),(5,6,7),(5,7,2),(5,2,3),(5,3,4)]
     faces=[(a,b,c) for a,b,c in cap]+[(a+8,c+8,b+8) for a,b,c in cap]
     for i in range(8):
         j=(i+1)%8;faces.extend([(i,j+8,j),(i,i+8,j+8)])
@@ -116,4 +116,28 @@ def test_ray_failure_is_not_platform_fallback(monkeypatch):
     def fail(**kwargs):raise RuntimeError('backend failed')
     monkeypatch.setattr(sv,'_ray_backend',lambda m:(SimpleNamespace(intersects_location=fail),'stub'))
     with pytest.raises(sv.SupportMeasurementError,match='ray_backend_failed'):
+        sv.support_volume(t_mesh(),overhang_threshold_from_horizontal_deg=45,bed_tolerance_mm=.01)
+
+
+def test_nearest_downward_hit_and_self_hits(monkeypatch):
+    def backend(mesh):
+        ids=np.flatnonzero(mesh.face_normals[:,2] < -.9)
+        ids=ids[mesh.triangles_center[ids,2] > .01]
+        def hits(*,ray_origins,ray_directions,multiple_hits):
+            assert multiple_hits
+            locations=[];rays=[];faces=[]
+            for i,(origin,face) in enumerate(zip(ray_origins,ids)):
+                for distance,hit_face in [(0,face),(1e-15,0),(1.,0),(1.5,0)]:
+                    locations.append(origin+[0,0,-distance]);rays.append(i);faces.append(hit_face)
+            return np.array(locations),np.array(rays),np.array(faces)
+        return SimpleNamespace(intersects_location=hits),'stub'
+    monkeypatch.setattr(sv,'_ray_backend',backend)
+    result=sv.support_volume(t_mesh(),overhang_threshold_from_horizontal_deg=45,bed_tolerance_mm=.01)
+    assert result['support_volume_mm3']==pytest.approx(8.)
+
+
+def test_missing_backend_is_unavailable_not_zero(monkeypatch):
+    def missing(mesh):raise sv.SupportMeasurementError('ray_backend_unavailable')
+    monkeypatch.setattr(sv,'_ray_backend',missing)
+    with pytest.raises(sv.SupportMeasurementError,match='unavailable'):
         sv.support_volume(t_mesh(),overhang_threshold_from_horizontal_deg=45,bed_tolerance_mm=.01)

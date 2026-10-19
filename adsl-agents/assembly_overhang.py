@@ -256,10 +256,12 @@ def _support_measurements(args, config, report, meshes, result, *, recommended):
         result.summary = 'Support measurement incomplete; no partial total'
         result.findings = [f for f in result.findings if f.category != 'optimization_opportunity']
         return
+    result.summary = 'Support-volume proxy measured at the recorded print poses; not slicer consumption or minimum-support pose search'
     for row in rows:
         support = row['support']
         domain = dict(support=support, print_transform_mm=row['support_print_transform_mm'],
-            largest_regions=row.get('support_regions',[]), evidence_ref=row.get('support_evidence_ref'))
+            largest_regions=row.get('support_regions',[]), evidence_ref=row.get('support_evidence_ref'),
+            overlay=row.get('recommended_pose_display_overlay' if recommended else 'display_overlay'))
         if config.get('shape_editable',False) and support['support_volume_mm3'] > (
                 config['layer_height_mm'] * support['risky_projected_area_mm2']):
             result.findings.append(finding(NAME,'SUPPORT_SHAPE_OPPORTUNITY',

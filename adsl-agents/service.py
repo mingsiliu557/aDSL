@@ -42,7 +42,7 @@ from .models import (
     RepairProposal,
     RepairTarget,
 )
-from .prompts import object_prompt
+from .prompts import object_prompt, support_prompt_options, fixed_assembly_for_agent
 from .repair_controller import RepairController
 from .overhang_edit import (budget_remaining, reserve_attempt, opportunities, protection_check,
                            original_execution, allowed_edit, compare_measurements,
@@ -274,7 +274,8 @@ class ObjectWorkflow:
         context = AgentToolContext(workspace=workspace, source_path=source_path)
         coder = runtime.agent(
             name="object-coder",
-            instructions=object_prompt("coder", articulation=request.articulation, fixed_assembly=bool(request.fixed_assembly)),
+            instructions=object_prompt("coder", articulation=request.articulation, fixed_assembly=bool(request.fixed_assembly),
+                **support_prompt_options(request.fixed_assembly)),
             tools=WRITE_TOOLS,
         )
         await runtime.run(
@@ -285,7 +286,7 @@ class ObjectWorkflow:
                         "requirement": request.requirement,
                         "articulation_required": request.articulation,
                         "plan": plan.model_dump(),
-                        **({'fixed_assembly':request.fixed_assembly} if request.fixed_assembly else {}),
+                        **({'fixed_assembly':fixed_assembly_for_agent(request.fixed_assembly)} if request.fixed_assembly else {}),
                         "assignment": "Write source.py with the complete initial implementation.",
                     },
                     ensure_ascii=False,
@@ -450,7 +451,8 @@ class ObjectWorkflow:
                     context = AgentToolContext(workspace=workspace, source_path=source_path)
                     coder = runtime.agent(
                         name="object-coder",
-                        instructions=object_prompt("coder", articulation=request.articulation, fixed_assembly=bool(request.fixed_assembly)),
+                        instructions=object_prompt("coder", articulation=request.articulation, fixed_assembly=bool(request.fixed_assembly),
+                            **support_prompt_options(request.fixed_assembly)),
                         tools=WRITE_TOOLS,
                     )
                     await runtime.run(
@@ -460,7 +462,7 @@ class ObjectWorkflow:
                                 "requirement": request.requirement,
                                 "articulation_required": request.articulation,
                                 "plan": plan.model_dump(),
-                                **({'fixed_assembly':request.fixed_assembly} if request.fixed_assembly else {}),
+                                **({'fixed_assembly':fixed_assembly_for_agent(request.fixed_assembly)} if request.fixed_assembly else {}),
                                 "assignment": "Write source.py with the complete initial implementation.",
                             }, ensure_ascii=False),
                             request.image_paths,
@@ -558,12 +560,13 @@ class ObjectWorkflow:
     ) -> ObjectPlan:
         planner = runtime.agent(
             name="object-planner",
-            instructions=object_prompt("planner", articulation=request.articulation, fixed_assembly=bool(request.fixed_assembly)),
+            instructions=object_prompt("planner", articulation=request.articulation, fixed_assembly=bool(request.fixed_assembly),
+                **support_prompt_options(request.fixed_assembly)),
             output_type=FixedAssemblyPlan if request.fixed_assembly else ObjectPlan,
         )
         result = await runtime.run(
             agent=planner,
-            input=user_input(json.dumps({'requirement':request.requirement, 'fixed_assembly':request.fixed_assembly})
+            input=user_input(json.dumps({'requirement':request.requirement, 'fixed_assembly':fixed_assembly_for_agent(request.fixed_assembly)})
                              if request.fixed_assembly else request.requirement, request.image_paths),
             role="planner",
             stage="plan",
@@ -2460,6 +2463,7 @@ class ObjectWorkflow:
             raise ValueError("max_rounds must be at least 1")
         if request.fixed_assembly:
             FixedAssemblyConfig.model_validate(request.fixed_assembly)
+            support_prompt_options(request.fixed_assembly)  # validate explicit mode values before model calls
             if request.articulation or request.overhang_experiment:
                 raise ValueError('fixed assembly cannot reuse articulation or overhang/planned-checks modes')
         names = [spec.name for spec in request.checker_specs]

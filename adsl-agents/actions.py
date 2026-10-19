@@ -166,7 +166,8 @@ def support_postcheck(baseline, candidate, *, tolerance_mm3):
         if (support.get('status') != 'PASS' or type(count) is not int or count <= 0 or
                 not _nonnegative(support.get('total_support_volume_mm3')) or
                 not _nonnegative(support.get('total_volume_mm3')) or support['total_volume_mm3'] <= 0 or
-                not _nonnegative(support.get('total_risky_projected_area_mm2'))):
+                not _nonnegative(support.get('total_risky_projected_area_mm2')) or
+                not _nonnegative(support.get('nsv_total'))):
             return result
     ds = candidate['support']['total_support_volume_mm3'] - baseline['support']['total_support_volume_mm3']
     dn = candidate['part_count'] - baseline['part_count']

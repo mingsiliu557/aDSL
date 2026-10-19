@@ -500,7 +500,12 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
         'Do not change shapes just for overhang, loads, material, support, friction or tool settings. '
         'A source change requires rechecking all selected applicable tools.' if len(physical_runs)>1 or
         any(r.spec.name!='assembly_topology' for r in physical_runs) else '')
-    partition_enabled = bool(request.fixed_assembly.get('physics',{}).get('overhang',{}).get('partition_objective'))
+    support_config = request.fixed_assembly.get('physics',{}).get('overhang',{})
+    from .support_volume import support_options
+    from .prompts import support_prompt_options, _support_prompt
+    support_metric, shape_editable = support_options(support_config)
+    nsv = support_metric == 'nsv'
+    partition_enabled = bool(support_config.get('partition_objective'))
     if partition_enabled and request.repair_policy.print_partition_editable:
         instruction = ENGINEERING_INSTRUCTION + '''
 Follow next_edit_purpose and primary_objective. Necessary localized geometry or
@@ -535,8 +540,10 @@ Do not change checker/reference/configuration. Keep mounting shoulders and unnam
 body details. All selected checks must run again. Standing/required physical or
 visual failures remain necessary repairs; a high score cannot excuse them.
 '''
+    if nsv:
+        instruction = ENGINEERING_INSTRUCTION + '\n' + _support_prompt('',shape_editable=shape_editable)
     agent=runtime.agent(name='object-engineering-critic',tools=READ_TOOLS,
-        instructions=object_prompt('engineering_critic',articulation=False,fixed_assembly=True)+ '\n'+instruction,
+        instructions=object_prompt('engineering_critic',articulation=False,fixed_assembly=True, **support_prompt_options(request.fixed_assembly))+ '\n'+instruction,
         output_type=EngineeringCriticDecision,strict_json_schema=False)
     payload={'requirement':request.requirement,'plan':plan.model_dump(),
         'assigned_source':str(source.relative_to(request.workspace)), 'assembly_context':context,
@@ -563,6 +570,11 @@ visual failures remain necessary repairs; a high score cannot excuse them.
         'pending_reviews':{k:feedback.get(k) for k in ('image_critic','code_critic','render_issue','repair_history')},
         'remaining_repairs':remaining,'maximum_repair_proposals':1,
         'assignment':instruction + EVIDENCE_PATH_INSTRUCTION}
+    if nsv:
+        for key in ('partition_measurement','partition_change_vs_baseline','partition_guidance'):
+            payload.pop(key,None)
+        payload.update(support_evidence=feedback.get('support_evidence'),
+            support_baseline_version=feedback.get('support_baseline_version'),support_round=feedback.get('support_round',False))
     payload = payload_for_agent(payload, workspace=request.workspace, source_path=source,
         source_version=feedback.get('source_version'), role='engineering',
         report_ref=feedback.get('geometry_report_ref'), evidence_files=feedback.get('evidence_files', ()))
@@ -588,7 +600,8 @@ visual failures remain necessary repairs; a high score cannot excuse them.
         try:
             validate_partition_proposal(proposal,purpose=feedback.get('next_edit_purpose'),
                 continuing=feedback.get('partition_candidate_in_progress',False),
-                assembly=context.get('current_assembly'), editable=request.repair_policy.print_partition_editable)
+                assembly=context.get('current_assembly'), editable=request.repair_policy.print_partition_editable,
+                **(dict(support_metric=support_metric,shape_editable=shape_editable) if nsv else {}))
         except ValueError as error:
             feedback['engineering'] = {'status':'UNAVAILABLE','code':'INVALID_PROPOSAL','reason':str(error)}
             write_json(root/'proposal_rejected.json',feedback['engineering'])
