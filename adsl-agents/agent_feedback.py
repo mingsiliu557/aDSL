@@ -625,14 +625,23 @@ def _support_for_agent(value):
         return None
     support_fields = ('status','reason','support_volume_mm3','mesh_volume_mm3','nsv',
         'risky_projected_area_mm2','risky_face_count','ray_backend','total_support_volume_mm3',
-        'total_volume_mm3','nsv_total','total_risky_projected_area_mm2')
+        'total_volume_mm3','nsv_total','total_risky_projected_area_mm2','value_status')
     out = _fields(value, ('source_version','source_sha256','measurement_config_sha256','part_count',
-        'tolerance_mm3','interface_count','topology_status','standing_status','acceptance_rule','scale_note'))
+        'tolerance_mm3','interface_count','topology_status','standing_status','acceptance_rule','scale_note','length_unit','value_status'))
+    out['assembled_size_mm'] = _vector(value.get('assembled_size_mm'))
     out['support'] = _fields(value.get('support'),support_fields)
+    if isinstance(value.get('comparison_baseline'),Mapping):
+        base=value['comparison_baseline']
+        out['comparison_baseline'] = _fields(base,('source_version','source_sha256',
+            'measurement_config_sha256','part_count','tolerance_mm3'))
+        out['comparison_baseline']['support'] = _fields(base.get('support'),support_fields)
     out['items'] = []
     for row in value.get('items',[]):
         item = _fields(row,('part_id',))
         item['support'] = _fields(row.get('support'),support_fields)
+        bounds = row.get('bounds_mm')
+        item['bounds_mm'] = ([_vector(v) for v in bounds]
+            if isinstance(bounds,list) and len(bounds)==2 else None)
         matrix = row.get('print_transform_mm')
         if isinstance(matrix,list) and len(matrix)==4 and all(isinstance(r,list) and len(r)==4 for r in matrix):
             item['print_transform_mm'] = [[_json(x) if isinstance(x,(int,float)) else None for x in r] for r in matrix]
@@ -837,7 +846,7 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                 return {}
             names = ('evaluation_feedback', 'evaluation_failure_ids', 'typed_findings', 'checker_evidence',
                 'checker_summary', 'preview_info', 'evidence_files', 'render_issue', 'execution_error',
-                'support_evidence', 'support_baseline_version', 'support_round',
+                'support_evidence', 'support_baseline_version', 'support_round', 'mode_a_pose_check',
                 'error', 'duplicate_source', 'error_evidence_ref', 'execution_error_evidence_ref', 'render_issue_evidence_ref', *_HISTORY_FIELDS)
             selected = {k: container[k] for k in names if k in container}
             for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback'):
@@ -856,6 +865,10 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
             if measure() <= FEEDBACK_LIMIT_BYTES:
                 break
             def reduce(container):
+                support = container.get('support_evidence')
+                if isinstance(support,dict):
+                    for item in support.get('items',[]):
+                        item['largest_regions'] = item.get('largest_regions',[])[:candidate_limit]
                 for key in _HISTORY_FIELDS:
                     limit = max(1,history_limit) if key == 'repair_history' else history_limit
                     if isinstance(container.get(key), list) and len(container[key]) > limit:

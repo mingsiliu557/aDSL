@@ -56,11 +56,14 @@ def support_fixture(tmp_path,monkeypatch,values,*,patch_status='CHANGED',appeara
                               target=RepairTarget(),action='reshape')
     monkeypatch.setattr(topology,'engineer',advise)
     async def code(**kw):
+        assert 'Support optimization uses' in kw['code_critic']['instructions']
+        assert 'Dapper' not in kw['code_critic']['instructions']
         return GradedCodeCriticDecision(approved=True,observations=[],issues=[])
     monkeypatch.setattr(w,'_review_generation_code',code)
     original_repair=w._repair
     captured=[]
     async def repair(**kw):
+        assert 'Support optimization uses' in kw['repairer']['instructions']
         p=kw['payload']
         captured.append(payload_for_agent(p,workspace=tmp_path,source_path=kw['source_path'],
             source_version=p['source_version'],role='coder'))
@@ -294,3 +297,198 @@ def test_a_initial_non_upright_stops_without_new_edit(tmp_path,monkeypatch):
     result,book=run_flow(f)
     assert not result.approved and not inputs
     assert book['versions']['original']['reviews']['mode_a_pose_check']['rule']=='print_pose_changed'
+
+
+def test_default_area_frozen_hash_and_feedback_keys_remain_legacy(tmp_path,monkeypatch):
+    import hashlib
+    from test_fixed_assembly import plan_data
+    from adsl.agents.models import FixedAssemblyPlan
+    f=mock_flow(tmp_path,monkeypatch,[('PASS',True)])
+    f=(f[0],replace(f[1],checker_specs=()),*f[2:])
+    frozen={**f[1].fixed_assembly,'assembly_plan':FixedAssemblyPlan.model_validate(plan_data()).model_dump()}
+    expected=hashlib.sha256(json.dumps(frozen,sort_keys=True).encode()).hexdigest()
+    result,book=run_flow(f)
+    assert result.approved and book['config_sha256']==expected
+    assert 'support_checkpoints' not in book and 'support_evidence' not in book['feedback']
+    assert 'support_round' not in book['versions']['original']['reviews']
+
+
+def test_d_rejected_candidate_resume_does_not_reserve_again(tmp_path,monkeypatch):
+    f,checks,inputs,refs,published=d_fixture(tmp_path,monkeypatch,[12,12])
+    result,book=run_flow(f)
+    counts=(len(f[-1]),len(checks),len(inputs))
+    result,book=run_flow(f)
+    assert (len(f[-1]),len(checks),len(inputs))==counts
+    assert book['working']==book['retained']=='original'
+
+
+def test_a_internal_visual_repair_still_compares_original_support(tmp_path,monkeypatch):
+    f,checks,inputs=support_fixture(tmp_path,monkeypatch,[12,5,12])
+    execute=flow.execute_asset_source
+    def appearance(source,out,**kw):
+        result=execute(source,out,**kw)
+        mock_flow.appearance=len(f[-1])!=1
+        return result
+    monkeypatch.setattr(flow,'execute_asset_source',appearance)
+    async def code(**kw):
+        from adsl.agents.models import GradedCodeCriticDecision
+        approved=len(f[-1])!=1
+        return GradedCodeCriticDecision(approved=approved,observations=[],
+            required_changes=[] if approved else ['Restore silhouette'],
+            issues=[] if approved else [dict(severity='HIGH',aspect='geometry',target=None,
+                problem='Silhouette changed',suggested_fix='Restore silhouette')])
+    monkeypatch.setattr(f[0],'_review_generation_code',code)
+    result,book=run_flow(f)
+    assert len(inputs)==2 and all(p['support_baseline_version']=='original' for p in inputs)
+    assert inputs[1]['source_version']=='attempt_0001'
+    assert book['versions']['attempt_0002']['reviews']['support_postcheck']['rule']=='no_support_gain'
+    assert book['retained']==book['qualified']==book['working']=='original'
+
+
+def test_measurement_unavailable_restores_baseline(tmp_path,monkeypatch):
+    f,checks,inputs=support_fixture(tmp_path,monkeypatch,[12,8])
+    run=physics.run_assembly_checks
+    def missing(specs,**kw):
+        rows=run(specs,**kw)
+        if f[-1]:
+            rows[0].result.status='INDETERMINATE'
+            rows[0].result.metrics['support']={'status':'INDETERMINATE','reason':'backend_missing'}
+            rows[0].result.findings=[]
+            write_json(rows[0].output_dir/'result.json',rows[0].result.model_dump())
+        return rows
+    monkeypatch.setattr(physics,'run_assembly_checks',missing)
+    result,book=run_flow(f)
+    assert book['retained']==book['working']=='original'
+    assert book['versions']['attempt_0001']['reviews']['support_postcheck']['rule']=='support_unavailable'
+
+
+def test_d_budget_exhaustion_restores_original_reference(tmp_path,monkeypatch):
+    f,checks,inputs,refs,published=d_fixture(tmp_path,monkeypatch,[12,8],bad_middle=True)
+    result,book=run_flow(f)
+    assert not book['versions']['attempt_0001']['reviews']['accepted']
+    assert book['retained']==book['working']=='original'
+    assert book['partition_reference']==refs[0] and not book.get('active_partition_intent')
+
+
+@pytest.mark.parametrize('shape_editable',[False,True])
+def test_d_authorized_grouping_keeps_real_intent(tmp_path,monkeypatch,shape_editable):
+    from adsl.agents.models import PrintGroupingChange
+    f,checks,inputs,refs,published=d_fixture(tmp_path,monkeypatch,[12,8])
+    config=deepcopy(f[1].fixed_assembly)
+    config['physics']['overhang']['shape_editable']=shape_editable
+    request=replace(f[1],fixed_assembly=config,
+        repair_policy=f[1].repair_policy.model_copy(update={'print_partition_editable':True}))
+    f=(f[0],request,*f[2:])
+    execute=flow.execute_asset_source
+    def grouped(source,out,**kw):
+        result=execute(source,out,**kw)
+        if f[-1]:
+            path=out/'assembly/assembly_manifest.json';m=json.loads(path.read_text())
+            m['part_declarations']=[dict(id='body',components=['crossbar'],assembly_transform=np.eye(4).tolist()),
+                                   dict(id='stem',components=['stem'],assembly_transform=np.eye(4).tolist())]
+            m['parts'].append(dict(id='stem',print_transform_mm=np.eye(4).tolist()))
+            write_json(path,m)
+        return result
+    monkeypatch.setattr(flow,'execute_asset_source',grouped)
+    original_run=physics.run_assembly_checks
+    def measurements(specs,**kw):
+        results=original_run(specs,**kw)
+        for r in results:
+            r.result.metrics['partition_objective']['print_part_count']=2 if f[-1] else 1
+            r.result.findings=[physics.finding('assembly_overhang','PRINT_PARTITION_OPPORTUNITY','grouping',
+                category='optimization_opportunity',repairability='design_variable',required=False)]
+            write_json(r.output_dir/'result.json',r.result.model_dump())
+        return results
+    monkeypatch.setattr(physics,'run_assembly_checks',measurements)
+    # This stub isolates regroup routing, not real shape or interface validity.
+    from adsl.agents import partition_score as scoring
+    monkeypatch.setattr(scoring,'reference_shape_comparison',lambda *a,**kw:dict(
+        status='MATCH',semantic_ownership_preserved=True,root_frame_preserved=True))
+    async def split(*a,**kw):
+        return RepairProposal(proposal_id='split',finding_ids=['support'],hypothesis='split stem',
+            target=RepairTarget(),action='regroup_print_parts',grouping_change=PrintGroupingChange(
+                operation='split',source_part_ids=['body'],target_print_parts=[
+                    dict(id='body',components=['crossbar']),dict(id='stem',components=['stem'])],
+                connection_changes=['create body/stem connection']))
+    monkeypatch.setattr(topology,'engineer',split)
+    result,book=run_flow(f)
+    candidate=book['versions']['attempt_0001']['reviews']
+    assert candidate['grouping_realization']['status']=='MATCH'
+    assert candidate['support_postcheck']['rule']=='split_support_gain'
+    assert inputs[0]['partition_intent']['grouping_change']['operation']=='split'
+    assert book['retained']=='attempt_0001' and book.get('active_partition_intent') is None
+
+
+def test_engineering_actual_input_uses_support_not_dapper(tmp_path,monkeypatch):
+    import asyncio
+    from adsl.agents.service import ObjectWorkflow
+    from adsl.agents.models import ObjectRequest, FixedAssemblyPlan
+    from test_fixed_assembly import CONFIG, plan_data
+    source=tmp_path/'source.py';source.write_text('scene = None\n')
+    config=deepcopy(CONFIG)
+    config['physics']={'overhang':dict(support_metric='nsv',shape_editable=True,
+        layer_height_mm=.2,overhang_threshold_from_horizontal_deg=45,
+        partition_objective={'alpha':.2})}
+    request=ObjectRequest('fixture',tmp_path,'fixture',fixed_assembly=config)
+    captured=[]
+    class Runtime:
+        def agent(self,**kw):return kw
+        async def run(self,**kw):
+            captured.append(kw)
+            return SimpleNamespace(final_output={'approved':False,'observations':['No justified local change'],
+                'repair_proposals':[],'unresolved_findings':[]})
+    evidence=dict(source_version='original',source_sha256=flow.file_hash(source),
+        support=measurement(12)['support'],part_count=1,tolerance_mm3=1.2,items=[])
+    spec=physics.checker_spec('assembly_overhang')
+    result=CheckerResult(checker=spec.name,status='PASS',summary='measured support',
+        metrics={'partition_objective':{'score':999,'alpha':.2,'gap_voxels':5},'items':[]})
+    run=CheckerRun(spec,result,tmp_path/'checkers',())
+    feedback=dict(source_version='original',support_evidence=evidence,repair_history=[],
+                  partition_guidance={'score':999},next_edit_purpose='partition_optimization')
+    workflow=ObjectWorkflow.__new__(ObjectWorkflow)
+    answer=asyncio.run(topology.engineer(workflow,Runtime(),request,
+        FixedAssemblyPlan.model_validate(plan_data()),source,None,tmp_path/'engineering',run,
+        {'current_assembly':None},feedback,1))
+    assert answer is None and len(captured)==1
+    assert 'Dapper' not in captured[0]['agent']['instructions']
+    saved=json.loads((tmp_path/'engineering/engineering_input.json').read_text())
+    assert saved['support_evidence']['part_count']==1
+    assert 'partition_measurement' not in saved and 'partition_guidance' not in saved
+    assert feedback['engineering']['status']=='NO_PROPOSAL'
+
+
+def test_initial_and_resumed_coder_receive_nsv_policy(tmp_path,monkeypatch):
+    import asyncio
+    from adsl.agents.service import ObjectWorkflow
+    from adsl.agents.models import ObjectRequest, FixedAssemblyPlan
+    from test_fixed_assembly import CONFIG, plan_data
+    config=deepcopy(CONFIG)
+    config['physics']={'overhang':dict(support_metric='nsv',shape_editable=True,
+        layer_height_mm=.2,overhang_threshold_from_horizontal_deg=45)}
+    workspace=tmp_path/'new'
+    request=ObjectRequest('fixture',workspace,'test',fixed_assembly=config)
+    captures=[]
+    class Runtime:
+        usage=SimpleNamespace(update_manifest=lambda **kw:None)
+        def agent(self,**kw):return kw
+        async def run(self,**kw):
+            if kw['role']=='planner':
+                assert 'Support optimization uses' in kw['agent']['instructions']
+                return SimpleNamespace(final_output=FixedAssemblyPlan.model_validate(plan_data()))
+            captures.append(kw)
+            context=kw['context'];context.source_path.write_text('scene = None\n')
+            context.record('write_file',context.source_path)
+            return SimpleNamespace(final_output='done')
+    w=ObjectWorkflow.__new__(ObjectWorkflow)
+    monkeypatch.setattr(w,'_runtime',lambda *a,**kw:Runtime())
+    async def stop(**kw):return 'fixture stopped before executor'
+    monkeypatch.setattr(w,'_iterate',stop)
+    assert asyncio.run(w.generate(request))=='fixture stopped before executor'
+    (workspace/'source.py').write_text('')
+    write_json(workspace/'checkpoint.json',{'mode':'generate','stage':'planned'})
+    assert asyncio.run(w.resume(request))=='fixture stopped before executor'
+    assert len(captures)==2
+    for capture in captures:
+        prompt=capture['agent']['instructions']
+        assert 'Support optimization uses' in prompt and 'Dapper' not in prompt
+    assert config==request.fixed_assembly

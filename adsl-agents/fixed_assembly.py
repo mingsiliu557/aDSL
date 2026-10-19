@@ -301,8 +301,9 @@ def _support_evidence(reviews, *, source_version, source_sha256, layer_height_mm
     ids = [p.get('id') for p in declarations]
     parts = report.get('parts') or []
     bound = (report.get('source_sha256') == source_sha256 and
-             reviews.get('checker_source_sha256') == source_sha256)
-    complete = bool(ids and len(ids)==len(set(ids)) and set(ids)=={p.get('id') for p in parts}
+             reviews.get('checker_source_sha256') == source_sha256 and
+             result.get('assumptions',{}).get('source_sha256') == source_sha256)
+    complete = bool(ids and all(isinstance(i,str) and i for i in ids) and len(ids)==len(set(ids)) and set(ids)=={p.get('id') for p in parts}
                     and len(parts)==len(ids))
     support = deepcopy(metrics.get('support') or {'status':'INDETERMINATE','reason':'support_unavailable'})
     count = len(ids) if complete else None
@@ -317,7 +318,9 @@ def _support_evidence(reviews, *, source_version, source_sha256, layer_height_mm
     return dict(source_version=source_version, source_sha256=source_sha256,
         measurement_config_sha256=metrics.get('support_measurement_config_sha256'),
         support=support, part_count=count, tolerance_mm3=tolerance,
+        length_unit='mm', assembled_size_mm=report.get('assembled_size_mm'),
         items=[dict(part_id=r['part_id'],support=deepcopy(r.get('support')),
+                    bounds_mm=next((p.get('bounds_mm') for p in parts if p.get('id')==r['part_id']),None),
                     print_transform_mm=r.get('support_print_transform_mm'),
                     largest_regions=r.get('support_regions',[])[:3],evidence_ref=r.get('support_evidence_ref'))
                for r in metrics.get('items',[])],
@@ -1068,6 +1071,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     if pose_check['conclusion'] != 'ACCEPT':
                         accepted = False
                         reason = pose_check['rule']
+                        if original is not None and pose_check['rule'] in {'part_count_changed','part_identity_changed','print_pose_changed'}:
+                            repairable_implementation_issue = True
                         if original is None and report.get('parts'):
                             book['completed'] = True
                             stop = 'mode_a_initial_conditions_not_met'
@@ -1118,9 +1123,13 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     base_evidence = _support_evidence(base['reviews'],source_version=support_baseline_id,
                         source_sha256=file_hash(Path(base['source'])),layer_height_mm=overhang_config['layer_height_mm'])
                     support_evidence['tolerance_mm3'] = base_evidence['tolerance_mm3']
+                    support_evidence['comparison_baseline'] = {k:deepcopy(base_evidence[k]) for k in (
+                        'source_version','source_sha256','measurement_config_sha256','support','part_count','tolerance_mm3')}
                     # Physical/geometric failures may still be repaired. Lack of support
                     # evidence alone is not a repair authorization.
-                    required_ready = bool(gate_passed and not check_regressed and implementation_complete and
+                    required_ready = bool(gate_passed and implementation_complete and
+                        not any(retained['reviews'].get(r.spec.name,{}).get('status')=='PASS' and r.result.status!='PASS'
+                                for r in runs if r.spec.name!='assembly_overhang') and
                         all(r.result.status=='PASS' for r in runs if r.spec.required and r.spec.name!='assembly_overhang') and
                         not any(spec.required and spec.name not in NAMES for spec in request.checker_specs) and
                         _geometry_visual_ready(reviews,display_available) and
@@ -1218,6 +1227,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                         if value: row[field]=value
             if nsv:
                 feedback['support_evidence'] = support_evidence
+                if mode_a:
+                    feedback['mode_a_pose_check'] = pose_check
                 if support_baseline_id and not accepted and not partition_adopted:
                     feedback.update(support_baseline_version=support_baseline_id,support_round=False)
                 elif support_baseline_id and (accepted or partition_adopted):
@@ -1380,7 +1391,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 feedback.pop('engineering_proposal', None)
                 feedback.update(next_edit_purpose=edit_purpose, comparison_baseline_version=comparison_baseline,
                     partition_candidate_in_progress=bool(intent), partition_intent=intent, grouping_realization=realization)
-                feedback['primary_objective'] = ('Fix the bound generated-source API/runtime error first. No appearance task without current render. ' if source_failure else 'Implement the authorized print-group declarations before proposing further physical changes. ') + 'Preserve partition_intent, independent bodies, edit purpose and comparison baseline; do not modify mesh backends.'
+                feedback['primary_objective'] = ('Restore mode A single-part identity print rotation; keep its baseline part ID. ' if mode_a and pose_check and pose_check['conclusion']!='ACCEPT' and not source_failure else '') + ('Fix the bound generated-source API/runtime error first. No appearance task without current render. ' if source_failure else 'Implement the authorized print-group declarations before proposing further physical changes. ') + 'Preserve partition_intent, independent bodies, edit purpose and comparison baseline; do not modify mesh backends.'
             # Export unavailability alone is not a reason to change shape. Keep
             # independent visual/topology defects repairable, in the same loop.
             image_pending = bool(reviews.get('appearance_approved') is False

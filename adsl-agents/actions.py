@@ -194,7 +194,7 @@ def print_pose_postcheck(baseline_parts, candidate_parts):
         return dict(result, rule='part_count_changed')
     try:
         a, b = baseline_parts[0], candidate_parts[0]
-        if not a.get('id') or not b.get('id'):
+        if not all(isinstance(p.get('id'),str) and p['id'] for p in (a,b)):
             return result
         if a['id'] != b['id']:
             return dict(result, rule='part_identity_changed')

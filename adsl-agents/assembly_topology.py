@@ -502,7 +502,7 @@ async def engineer(workflow,runtime,request,plan,source,execution,root,run,conte
         any(r.spec.name!='assembly_topology' for r in physical_runs) else '')
     support_config = request.fixed_assembly.get('physics',{}).get('overhang',{})
     from .support_volume import support_options
-    from .prompts import support_prompt_options, _support_prompt
+    from .prompts import support_prompt_options
     support_metric, shape_editable = support_options(support_config)
     nsv = support_metric == 'nsv'
     partition_enabled = bool(support_config.get('partition_objective'))
@@ -541,7 +541,7 @@ body details. All selected checks must run again. Standing/required physical or
 visual failures remain necessary repairs; a high score cannot excuse them.
 '''
     if nsv:
-        instruction = ENGINEERING_INSTRUCTION + '\n' + _support_prompt('',shape_editable=shape_editable)
+        instruction = ENGINEERING_INSTRUCTION + '\nUse support_evidence and the NSV rules in the API instructions. Necessary repairs retain priority; a candidate internal repair keeps its original support baseline.'
     agent=runtime.agent(name='object-engineering-critic',tools=READ_TOOLS,
         instructions=object_prompt('engineering_critic',articulation=False,fixed_assembly=True, **support_prompt_options(request.fixed_assembly))+ '\n'+instruction,
         output_type=EngineeringCriticDecision,strict_json_schema=False)
