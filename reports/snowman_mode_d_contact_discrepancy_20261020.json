@@ -1,0 +1,509 @@
+{
+  "run_id": "support_D_snowman_v5_ssh_sol61_20261020T143819Z",
+  "code_commit": "1faac68c15581489c068f370eb4f3a541745bb1c",
+  "case_id": "DensiCrafter_21",
+  "mode": "D",
+  "model": "gpt-6.1-sol",
+  "channel": "SSH token channel",
+  "candidate_version": "attempt_0003",
+  "source_sha256": "7c6f9eaccf4ec91f9aa9b1439e826721864a5f093e14235d43ed97016e4c323a",
+  "manifest_sha256": "b7391a3ec2c4d0acf323586e9d7da2bcf3f3840a6a472dab6528aa5388958392",
+  "physics_sha256": "5536fd4644ac4c2ce2b4adbf06e58d590f80ac941ae265b45e2c0dd2992c6ae4",
+  "initial_plan": {
+    "print_part_count": 4,
+    "print_parts": [
+      {
+        "id": "body_core",
+        "components": [
+          "lower_snowball",
+          "middle_snowball",
+          "head",
+          "left_eye",
+          "right_eye",
+          "carrot_nose",
+          "head_bump_left",
+          "head_bump_right",
+          "middle_upper_button",
+          "middle_lower_button",
+          "lower_upper_button",
+          "lower_lower_button"
+        ]
+      },
+      {
+        "id": "hat_piece",
+        "components": [
+          "top_hat"
+        ]
+      },
+      {
+        "id": "left_arm_piece",
+        "components": [
+          "left_stick_arm"
+        ]
+      },
+      {
+        "id": "right_arm_piece",
+        "components": [
+          "right_stick_arm"
+        ]
+      }
+    ],
+    "connections": [
+      {
+        "id": "hat_to_head",
+        "tab_part": "hat_piece",
+        "slot_part": "body_core",
+        "tab_port": "hat_underside_center_tab",
+        "slot_port": "head_top_center_socket",
+        "parameter_name": "hat_mount_fit",
+        "interface_type": "tab_slot",
+        "insertion_direction": "World -Z, from the underside of the hat into the head; assembled stop-plane center approximately (0, 0, 118) mm. Use the same downward insert_axis on both frames and +X for tab width.",
+        "fit_intent": "Fixed keyed slip-fit with 0.2 mm single-sided allowance; nominal tab 8 x 5 mm, insertion 5 mm, slot depth 5.5 mm. The hat brim seats on the trimmed head. Retention and strength are not guaranteed by clearance alone."
+      },
+      {
+        "id": "left_arm_to_torso",
+        "tab_part": "left_arm_piece",
+        "slot_part": "body_core",
+        "tab_port": "left_arm_inner_root_tab",
+        "slot_port": "torso_left_arm_socket",
+        "parameter_name": "arm_mount_fit",
+        "interface_type": "tab_slot",
+        "insertion_direction": "Approximately world +X, from the left arm into the torso, with a stop-plane center near (-25, 0, 79) mm. Set both frame insert axes to the same inward root direction and use world +Y for tab width.",
+        "fit_intent": "Concealed keyed slip-fit with 0.2 mm single-sided allowance; nominal tab 3 x 2 mm, insertion 5 mm, slot depth 5.5 mm, and embedded root overlap 1 mm. Reserve a connected shoulder around the root; do not expose its enlarged section outside the torso."
+      },
+      {
+        "id": "right_arm_to_torso",
+        "tab_part": "right_arm_piece",
+        "slot_part": "body_core",
+        "tab_port": "right_arm_inner_root_tab",
+        "slot_port": "torso_right_arm_socket",
+        "parameter_name": "arm_mount_fit",
+        "interface_type": "tab_slot",
+        "insertion_direction": "Inward and downward along the right-arm root, approximately the normalized vector (-49, 0, -26), with a stop-plane center near (25, 0, 79) mm. Both frames use this same direction and world +Y for tab width.",
+        "fit_intent": "Reuse exactly the arm_mount_fit parameter value: 0.2 mm single-sided allowance, nominal tab 3 x 2 mm, insertion 5 mm, slot depth 5.5 mm, and root overlap 1 mm. Conceal the mounting shoulder and preserve the rising visible twig."
+      }
+    ],
+    "relations": [
+      "Use millimetres directly: +x is right, +y is inward, and +z is up. The face looks toward -y. The intended assembled envelope is 150 mm wide, 65 mm deep, and 150 mm tall, with bounds approximately x=[-75,75], y=[-32.5,32.5], z=[0,150].",
+      "Stack the three snowballs vertically in decreasing diameter: lower 65 mm, middle 58 mm, head 43 mm. Their overlaps must create one connected body but leave two recognizable neck-like concavities. Do not substitute a single tapered body.",
+      "The lower snowball alone contacts the ground. Its small planar bottom cut is part of the snowball, not a separate stand or unrelated support. Keep all other major geometry above z=0.",
+      "Attach eyes, nose, head bumps, and buttons to their corresponding snowball surfaces with actual overlap. Determine front-surface y coordinates from the host sphere rather than placing all details on a common plane.",
+      "The two middle buttons and two lower buttons follow a slightly right-offset vertical line on the front. Preserve their white-on-white raised appearance. The two small head bumps are separate from these larger buttons.",
+      "Keep the hat upright and approximately concentric with the head. The brim is substantially wider than the crown and nearly as wide as the lower snowball. Its underside seats at z=118 mm, concealing the head's upper trim and the central connector.",
+      "The arms are static, not articulated. The left arm is nearly horizontal and the right arm slopes upward. Both terminate in small twig forks and together establish the 150 mm width.",
+      "Initial print grouping uses one body_core piece for all snowballs and the small facial and button details. This preserves the continuous snow surface and avoids seams and connectors on tiny features. Build the white body as connected geometry and retain the required black and orange surface colors on the attached details.",
+      "The top_hat is a separate hat_piece because its broad brim and tall crown have a useful flat printing face and would otherwise impose a conspicuous overhang on the head. Keep brim and crown together so their appearance remains continuous. This is an initial print-orientation hypothesis, not a measured support improvement.",
+      "Each stick arm is a separate print piece because a slender branched arm can be oriented close to the bed independently of the upright snowman. Keep each complete twig and its branches together. Conceal connector shoulders inside the middle snowball rather than thickening the visible arm along its length. This grouping benefit must be evaluated rather than assumed.",
+      "Construct four independent pre-connector bodies with unique material ownership. The body_core owns the snowballs and all facial and button details; the hat and the two arms own only their respective external geometry. Remove cross-part volumetric overlap at the mating shoulders before connect() creates the paired interfaces.",
+      "Use a central downward-inserting rectangular tab on the hat into the head seat. A suitable shared hat parameter is width 8 mm, thickness 5 mm, insertion 5 mm, slot depth 5.5 mm, root overlap 0.5 mm, and single-sided fit_offset_mm=0.2.",
+      "Use one concealed rectangular tab on each arm directed into the torso along its root axis. A suitable shared arm parameter is width 3 mm, thickness 2 mm, insertion 5 mm, slot depth 5.5 mm, root overlap 1 mm, and single-sided fit_offset_mm=0.2. Provide sufficient solid yellow shoulder material around the tab root and white torso material around the entire receiver.",
+      "Use assembly.connect to create both mating sides and place every non-root piece. Both endpoint frames of each connection must use the same insertion direction. Do not manually model duplicate tabs or slot cutters.",
+      "Process the hat, left-arm, and right-arm connections in the listed order from body_core. This is connection evaluation order, not a claimed physical assembly insertion sequence.",
+      "Use public color controls for white snow and buttons, black hat and eyes, orange carrot, and yellow arms. Do not invent roughness or specular setters. No articulation, unrelated decorative additions, or separate support structures are required."
+    ],
+    "components": [
+      {
+        "name": "lower_snowball",
+        "description": "Largest white snowball, approximately 65 mm in diameter, centered at (0, 0, 30.5) mm. Its outline and sections are spherical except for a small horizontal grounding cut at z=0. Preserve the rounded bottom silhouette rather than adding a pedestal. Construct with Sphere and boolean_difference or boolean_intersection. The grounding cut gives an approximately 22 mm diameter contact patch while retaining the requested upright pose."
+      },
+      {
+        "name": "middle_snowball",
+        "description": "White spherical torso, approximately 58 mm in diameter, centered at (0, 0, 71.5) mm. Overlap the lower snowball sufficiently to make a continuous structural body, while retaining a clearly visible concave waist between the two spherical lobes. This ball carries both arms and two raised white buttons."
+      },
+      {
+        "name": "head",
+        "description": "Smallest white sphere, approximately 43 mm in diameter, centered at (0, 0, 101.5) mm. It overlaps the middle sphere but remains visibly distinct through a neck indentation. Trim its uppermost cap at z=118 mm to create a concealed horizontal seat beneath the hat brim. Keep the visible face rounded, with no mouth opening. Reserve solid material beneath the hat seat and at both arm receiver locations in the torso."
+      },
+      {
+        "name": "top_hat",
+        "description": "Black top hat comprising a broad, thin circular brim and a tall, straight-sided circular crown. Use a brim approximately 62 mm in diameter spanning z=118 to 120 mm, and a crown approximately 28 mm in diameter spanning z=120 to 150 mm. Cylinders joined with boolean_union are suitable. Both the brim and crown have closed surfaces; do not add a through-hole. Maintain the strong brim overhang and flat crown top visible in the reference."
+      },
+      {
+        "name": "left_eye",
+        "description": "Small black round eye on the front, negative-y face of the head, approximately 4.6 mm in diameter. Position near x=-7 mm and z=105 mm, with its center close to the spherical face surface so that it appears as a shallow rounded bump rather than a stalk or recessed hole."
+      },
+      {
+        "name": "right_eye",
+        "description": "Matching black round eye near x=7 mm and z=105 mm on the front of the head. Match the left eye's size and embed depth, and retain clear separation from the nose and brim."
+      },
+      {
+        "name": "carrot_nose",
+        "description": "Orange tapered carrot projecting forward and slightly toward the viewer's right and downward. Use an approximately 5 mm diameter root near (0, -18.5, 100) mm and a narrow tip near (7, -30, 95) mm. Make a solid cone-like form with a tiny nonzero terminal section using loft or scaled linear_extrude and rotation. Embed the root into the face and keep the tip within the overall depth envelope."
+      },
+      {
+        "name": "head_bump_left",
+        "description": "Small raised white snow bump, approximately 2.8 mm in diameter, on the lower front of the head near x=2 mm and z=90.5 mm. Place its center on the curved head surface with partial embedding."
+      },
+      {
+        "name": "head_bump_right",
+        "description": "Second small white snow bump, approximately 3.2 mm in diameter, near x=8 mm and z=92 mm on the lower front of the head. Keep it distinct from the first bump and from the orange nose."
+      },
+      {
+        "name": "middle_upper_button",
+        "description": "Raised white spherical button, approximately 6 mm in diameter, on the front-right portion of the middle snowball near x=14 mm and z=75 mm. Locate its y coordinate from the sphere surface and embed about half its diameter. It is a white bump, not a dark button or hole."
+      },
+      {
+        "name": "middle_lower_button",
+        "description": "Second raised white spherical button, approximately 5.5 mm in diameter, near x=14 mm and z=57 mm on the middle snowball. Follow the torso curvature and maintain visible spacing from the upper button and the lower-ball waist."
+      },
+      {
+        "name": "lower_upper_button",
+        "description": "Raised white spherical button, approximately 6 mm in diameter, near x=15 mm and z=31 mm on the front of the lower snowball. Embed partially into the spherical surface."
+      },
+      {
+        "name": "lower_lower_button",
+        "description": "Matching raised white spherical button, approximately 5.5 mm in diameter, near x=15 mm and z=16 mm on the lower snowball. Keep it above the grounding cut and visibly separate from the upper button."
+      },
+      {
+        "name": "left_stick_arm",
+        "description": "Slender yellow twig arm on the snowman's left, extending almost horizontally from approximately (-25, 0, 79) mm toward x=-74 mm. Use connected cylindrical segments with approximately 1.8 to 2.2 mm diameters and short forked twigs at the outer end. Arrange the terminal branches so the exact leftmost extent is x=-75 mm. Preserve the thin stick silhouette, with no mitten or hand. A short, thicker mounting shoulder may be concealed inside the torso."
+      },
+      {
+        "name": "right_stick_arm",
+        "description": "Slender yellow twig arm on the snowman's right, rising outward from approximately (25, 0, 79) mm toward (74, 0, 105) mm. Use connected cylindrical segments of approximately 1.8 to 2.2 mm diameter, with small forked terminal twigs reaching an exact rightmost extent of x=75 mm. Maintain the asymmetry relative to the nearly horizontal left arm. Conceal a short, thicker connector shoulder inside the torso."
+      }
+    ],
+    "root_part": "body_core",
+    "evidence": "jobs/DensiCrafter_21/ours/generation/role_calls/001_plan.json",
+    "grouping_reasons_are_unmeasured_hypotheses": true
+  },
+  "topology": {
+    "status": "PASS",
+    "summary": "Assembly topology PASS; item counts {'PASS': 13, 'FAIL': 0, 'INDETERMINATE': 0}",
+    "scope": "within-part solid connectivity, local TabSlot pairing and global assembly material interference; not retention, insertion path, strength or manufacturing",
+    "pair_checks": [
+      {
+        "pair_id": "body_core:hat_piece",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "raw_intersection_mm3": -1.8172130467064562e-12,
+        "undeclared_interference_mm3": -1.8172130467064562e-12,
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.000286102294921875,
+        "volume_tolerance_mm3": 6.570456230852449
+      },
+      {
+        "pair_id": "body_core:left_arm_piece",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "raw_intersection_mm3": 3.745693618689922e-15,
+        "undeclared_interference_mm3": 3.745693618689922e-15,
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.000286102294921875,
+        "volume_tolerance_mm3": 6.570456230852449
+      },
+      {
+        "pair_id": "body_core:right_arm_piece",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "raw_intersection_mm3": 1.588356182691264e-17,
+        "undeclared_interference_mm3": 1.588356182691264e-17,
+        "method": "manifold_intersection",
+        "length_tolerance_mm": 0.000286102294921875,
+        "volume_tolerance_mm3": 6.570456230852449
+      },
+      {
+        "pair_id": "hat_piece:left_arm_piece",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.000286102294921875,
+        "volume_tolerance_mm3": 6.570456230852449
+      },
+      {
+        "pair_id": "hat_piece:right_arm_piece",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.000286102294921875,
+        "volume_tolerance_mm3": 6.570456230852449
+      },
+      {
+        "pair_id": "left_arm_piece:right_arm_piece",
+        "status": "PASS",
+        "code": "NO_UNDECLARED_PART_INTERFERENCE",
+        "raw_intersection_mm3": 0.0,
+        "undeclared_interference_mm3": 0.0,
+        "method": "aabb_disjoint",
+        "length_tolerance_mm": 0.000286102294921875,
+        "volume_tolerance_mm3": 6.570456230852449
+      }
+    ]
+  },
+  "standing": {
+    "status": "INDETERMINATE",
+    "summary": "INITIAL_CONTACT_INTERPENETRATION: initial depth exceeds shell thickness and mesh precision; dynamic verdict unverified | After 5 s self-weight: final tilt 0.001144 deg; 0 interfaces outside; standing observation INDETERMINATE; settling diagnostic: motion not settled (not a pass requirement)",
+    "collision_backend": "rigid_flex",
+    "mujoco_version": "3.12.0",
+    "contact_settings": {
+      "radius_mm": 0.01,
+      "margin_mm": 0.0,
+      "gap_mm": 0.0,
+      "paired_shell_thickness_mm": 0.02,
+      "minimum_fit_clearance_mm": 0.2,
+      "remaining_minimum_clearance_mm": 0.18000000000000002,
+      "choice": "min(0.01 mm, minimum positive single-sided fit / 20), or explicit radius_mm",
+      "representation": "rigid dim=2 surface flex; not volumetric FEM; no remeshing"
+    },
+    "initial_contact_check": {
+      "verified": false,
+      "maximum_penetration_mm": 0.03130934429404119,
+      "shell_plus_numeric_bound_mm": 0.02057220458984375
+    },
+    "contact_pairs": [
+      {
+        "part_ids": [
+          "body_core",
+          "static_or_geom"
+        ],
+        "contact_count": 50,
+        "deepest_contact": {
+          "distance_mm": -0.01,
+          "position_mm": [
+            -8.840106212060624,
+            -6.28798379287973,
+            -0.005
+          ],
+          "geom_ids": [
+            0,
+            -1
+          ],
+          "flex_ids": [
+            -1,
+            0
+          ],
+          "element_ids": [
+            -1,
+            -1
+          ],
+          "part_ids": [
+            "static_or_geom",
+            "body_core"
+          ]
+        }
+      },
+      {
+        "part_ids": [
+          "body_core",
+          "hat_piece"
+        ],
+        "contact_count": 50,
+        "deepest_contact": {
+          "distance_mm": -0.019999996495491997,
+          "position_mm": [
+            5.212969099980506,
+            -12.585224834774856,
+            118.00000000000003
+          ],
+          "geom_ids": [
+            -1,
+            -1
+          ],
+          "flex_ids": [
+            0,
+            1
+          ],
+          "element_ids": [
+            7799,
+            148
+          ],
+          "part_ids": [
+            "body_core",
+            "hat_piece"
+          ]
+        }
+      },
+      {
+        "part_ids": [
+          "body_core",
+          "left_arm_piece"
+        ],
+        "contact_count": 50,
+        "deepest_contact": {
+          "distance_mm": -0.019999999967877793,
+          "position_mm": [
+            -27.499999999999996,
+            -2.010608783533764,
+            78.60006695327576
+          ],
+          "geom_ids": [
+            -1,
+            -1
+          ],
+          "flex_ids": [
+            0,
+            2
+          ],
+          "element_ids": [
+            365,
+            3111
+          ],
+          "part_ids": [
+            "body_core",
+            "left_arm_piece"
+          ]
+        }
+      },
+      {
+        "part_ids": [
+          "body_core",
+          "right_arm_piece"
+        ],
+        "contact_count": 50,
+        "deepest_contact": {
+          "distance_mm": -0.03130934429404119,
+          "position_mm": [
+            27.64924021791603,
+            0.672571151748021,
+            79.55766436064054
+          ],
+          "geom_ids": [
+            -1,
+            -1
+          ],
+          "flex_ids": [
+            0,
+            3
+          ],
+          "element_ids": [
+            8896,
+            539
+          ],
+          "part_ids": [
+            "body_core",
+            "right_arm_piece"
+          ]
+        }
+      }
+    ],
+    "final_tilt_deg": 0.0011441070193053834,
+    "final_tipped": false,
+    "final_exited_interfaces": []
+  },
+  "support": {
+    "status": "INDETERMINATE",
+    "support": {
+      "status": "INDETERMINATE",
+      "total_support_volume_mm3": null,
+      "total_volume_mm3": null,
+      "nsv_total": null,
+      "total_risky_projected_area_mm2": null,
+      "reason": "incomplete_print_part_measurement"
+    },
+    "partition_reference_error": "MeshEvaluationError: INPUT_GEOMETRY_INVALID: mesh is not closed, manifold and consistently oriented"
+  },
+  "feedback_bytes": [
+    {
+      "stage": "plan",
+      "sizes": [
+        2
+      ]
+    },
+    {
+      "stage": "initial_code",
+      "sizes": [
+        2
+      ]
+    },
+    {
+      "stage": "assembly_repair:2",
+      "sizes": [
+        9550
+      ]
+    },
+    {
+      "stage": "assembly_repair:3",
+      "sizes": [
+        11443
+      ]
+    },
+    {
+      "stage": "image_critic:3",
+      "sizes": [
+        82
+      ]
+    },
+    {
+      "stage": "code_critic:3",
+      "sizes": [
+        52
+      ]
+    },
+    {
+      "stage": "assembly_repair:4",
+      "sizes": [
+        9256
+      ]
+    },
+    {
+      "stage": "image_critic:4",
+      "sizes": [
+        3080
+      ]
+    },
+    {
+      "stage": "code_critic:4",
+      "sizes": [
+        3207
+      ]
+    }
+  ],
+  "outcome": {
+    "stop_reason": "assembly_checks_unverified_no_executable_feedback",
+    "retained": "original",
+    "qualified": null,
+    "source_repairs": 3,
+    "elapsed_seconds": 1206.8897557258606,
+    "usage": {
+      "requests": 18,
+      "input_tokens": 323648,
+      "output_tokens": 12193,
+      "reasoning_tokens": 2486,
+      "cached_tokens": 154624,
+      "cache_write_tokens": 0,
+      "total_tokens": 335841,
+      "cost": null
+    },
+    "engineering_called": false,
+    "support_candidate_adopted": false
+  },
+  "evidence": [
+    {
+      "path": "jobs/DensiCrafter_21/ours/generation/native/assembly_versions.json",
+      "sha256": "34fbfcdaa87dca6f60b0c73c78ce39410d577fd82b4f770e4140eb92dc7f8023"
+    },
+    {
+      "path": "jobs/DensiCrafter_21/ours/generation/native/rounds/round_04/candidates/03_assembly_or_appearance/checkers/assembly_standing/initial_contacts.json",
+      "sha256": "8242cc77ac48c0b67be92bbf10a5e9145a079afdc892a831b018c4e8f2493e46"
+    },
+    {
+      "path": "jobs/DensiCrafter_21/ours/generation/native/rounds/round_04/candidates/03_assembly_or_appearance/checkers/assembly_topology/report.json",
+      "sha256": "89bd785d755ffcdbdbc09bbc5d047cd3d4e65f708eb5bcf1907064f7ed926b72"
+    },
+    {
+      "path": "jobs/DensiCrafter_21/ours/generation/native/rounds/round_04/candidates/03_assembly_or_appearance/checkers/assembly_standing/report.json",
+      "sha256": "d70e15904f1e65404ce755b59c2076f78f555fae12f39a1998612271b9841465"
+    },
+    {
+      "path": "jobs/DensiCrafter_21/ours/generation/native/rounds/round_04/candidates/03_assembly_or_appearance/checkers/assembly_overhang/report.json",
+      "sha256": "a57d5183f25627494bea128fad502149b914a7e1ce1e8088a7474f7d67efd5ff"
+    },
+    {
+      "path": "preflight/ours_imports.json",
+      "sha256": "0d34b2ea1fd46cfe6adffa54f4880be9f380c99562d7d83deb90a03bf392bcff"
+    },
+    {
+      "path": "jobs/DensiCrafter_21/ours/generation/role_calls/001_plan.json",
+      "sha256": "43cffa2e72b6d8edad820381e14fbda83a89241ca9aadf3664c8ce366b4d7754"
+    }
+  ],
+  "limitations": [
+    "Collision contact penetration is not proof of material overlap in the original solids.",
+    "No new simulation, model request or code change was performed to prepare this report.",
+    "Contact discrepancy root cause remains unverified; no threshold change is proposed as a conclusion."
+  ]
+}
