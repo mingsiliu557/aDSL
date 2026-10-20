@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from adsl.agents.agent_feedback import (
-    AgentFeedbackError, evaluation_details, finding_for_agent, payload_for_agent,
+    AgentFeedbackError, FEEDBACK_LIMIT_BYTES, evaluation_details, finding_for_agent, payload_for_agent,
 )
 from adsl.agents.utils.request_errors import classify_model_request_error
 
@@ -264,7 +264,10 @@ def test_missing_report_retains_only_real_raw_finding_evidence(tmp_path, complet
     assert project(tmp_path, source, None, out) == out
 
 
-def test_budget_reduction_preserves_complete_refs_and_idempotence(tmp_path):
+def test_budget_reduction_preserves_complete_refs_and_idempotence(tmp_path,monkeypatch):
+    from adsl.agents import agent_feedback as adapter
+    # Keep exercising the same reduction boundary after changing the default.
+    monkeypatch.setattr(adapter,'FEEDBACK_LIMIT_BYTES',32*1024)
     from adsl.agents.agent_feedback import _at, FEEDBACK_LIMIT_BYTES
     source, rows, ref, _ = inputs(tmp_path, 1)
     row = deepcopy(rows[0])
@@ -752,10 +755,28 @@ def test_image_data_excluded_from_feedback_budget(tmp_path):
 
 
 def test_required_facts_over_budget_fail_without_raw_fallback(tmp_path):
-    payload = {'checker_summary': [{'status': 'FAIL', 'required': True, 'rule_id': 'x' * 200}] * 300}
+    payload = {'checker_summary': [{'status': 'FAIL', 'required': True, 'rule_id': 'x' * 200}] * (FEEDBACK_LIMIT_BYTES//200+1)}
     with pytest.raises(AgentFeedbackError) as caught:
         payload_for_agent(payload, workspace=tmp_path, source_path=None, source_version=None, role='engineering')
     assert caught.value.code == 'AGENT_FEEDBACK_TOO_LARGE'
+
+
+def test_96k_default_accepts_feedback_above_legacy_limit(tmp_path,monkeypatch):
+    from adsl.agents import agent_feedback as adapter
+    raw={'checker_summary':[{'status':'FAIL','required':True,'rule_id':'x'*200} for _ in range(180)]}
+    before=deepcopy(raw)
+    size=adapter.feedback_size_report(raw)['actual_bytes']
+    assert 32*1024<size<adapter.FEEDBACK_LIMIT_BYTES==96*1024
+    def project(value):
+        return payload_for_agent(value,workspace=tmp_path,source_path=None,source_version=None,role='engineering')
+    out=project(raw)
+    assert out==raw and project(out)==out
+    monkeypatch.setattr(adapter,'FEEDBACK_LIMIT_BYTES',32*1024)
+    with pytest.raises(AgentFeedbackError) as caught:
+        project(raw)
+    assert caught.value.code=='AGENT_FEEDBACK_TOO_LARGE'
+    assert caught.value.details['actual_bytes']==size and caught.value.details['limit_bytes']==32*1024
+    assert raw==before
 
 
 def test_repair_history_survives_nested_budget_reduction(tmp_path,monkeypatch):
@@ -802,7 +823,9 @@ def test_reprojection_rehydrates_omitted_groups_before_typed_association(tmp_pat
     assert payload_for_agent(out,workspace=tmp_path,source_path=source,source_version='original',role='coder',report_ref=ref)==out
 
 
-def test_default_budget_crops_evidence_directory_with_complete_pointer(tmp_path):
+def test_legacy_budget_crops_evidence_directory_with_complete_pointer(tmp_path,monkeypatch):
+    from adsl.agents import agent_feedback as adapter
+    monkeypatch.setattr(adapter,'FEEDBACK_LIMIT_BYTES',32*1024)
     source = tmp_path/'source.py'; source.write_text('source')
     digest = hashlib.sha256(source.read_bytes()).hexdigest()
     directory = tmp_path/('evidence_' + 'x'*160); directory.mkdir()
@@ -966,7 +989,7 @@ def test_feedback_size_report_has_exact_scope_bounded_lists_and_escaped_pointers
         checker_evidence={**{str(i):'x'*i for i in range(25)},'a~/b':'value'})
     before=deepcopy(raw);report=feedback_size_report(raw)
     assert report['actual_bytes']==len(_encoded(_feedback_view(raw)))
-    assert report['limit_bytes']==32768
+    assert report['limit_bytes']==FEEDBACK_LIMIT_BYTES==96*1024
     assert len(report['top_level_bytes'])<=15 and len(report['nested_field_bytes'])==15
     for rows in (report['top_level_bytes'],report['nested_field_bytes']):
         assert rows==sorted(rows,key=lambda r:(-r['bytes'],r['path']))
@@ -989,7 +1012,7 @@ def test_support_oversize_error_keeps_code_and_bounded_field_distribution(tmp_pa
     error=captured.value
     assert error.code=='AGENT_FEEDBACK_TOO_LARGE'
     assert set(error.details)=={'actual_bytes','limit_bytes','top_level_bytes','nested_field_bytes'}
-    assert error.details['actual_bytes']>error.details['limit_bytes']==32768
+    assert error.details['actual_bytes']>error.details['limit_bytes']==FEEDBACK_LIMIT_BYTES
     assert len(error.details['top_level_bytes'])<=15 and len(error.details['nested_field_bytes'])<=15
     assert 'fixture' not in json.dumps(error.details)
 
@@ -1094,3 +1117,242 @@ def test_support_provenance_tracks_existing_budget_region_reduction(tmp_path,mon
     assert once==reduced and project(once)==once
     assert adapter.feedback_size_report(once)['actual_bytes']==limit
     assert raw==before
+
+
+# v5 contracts: written only; no native geometry or real model calls.
+def assembly_candidates_input(tmp_path, *, count=6, checker='assembly_topology'):
+    source = tmp_path / 'source.py'
+    source.write_text('scene = None\n')
+    sha = hashlib.sha256(source.read_bytes()).hexdigest()
+    row = dict(finding_id=f'{checker}:body:CONTRACT', rule_id='CONTRACT',
+        category='geometry_failure', required=True, repairability='geometry',
+        applicability='applicable', message='Keep this exact judgement',
+        metric=dict(name='gap', value=.123456789012345, unit='mm', comparator='<=', threshold=0),
+        region=dict(kind='aabb', frame='assembly', unit='mm', bounds=[[0,0,0],[1,2,3]]),
+        domain={'part_id':'body'}, source_candidates=[dict(feature_id=f'feature:{i}',
+            source_ids=[f'source:{i}:{j}' for j in range(4)],
+            source_locations=[{'path':'source.py','line':j+1,'function':'Piece'} for j in range(4)],
+            method='direct', relation_role='tab', ambiguous=True,
+            overlap_score=.123456789012345, evidence=['Original full evidence']*3)
+            for i in range(count)])
+    report = tmp_path/'topology.json'
+    report.write_text(json.dumps(dict(source_sha256=sha, source_version='original', findings=[row])))
+    ref = dict(path='topology.json', source_sha256=sha, source_version='original')
+    typed = finding_for_agent(row, result_ref='topology.json', result_pointer='/findings/0', source_sha256=sha)
+    payload = dict(plan=dict(print_parts=[dict(id='body',components=['piece'])], connections=[], root_part='body'),
+                   assembly_context={}, typed_findings=[typed])
+    return source, row, ref, payload
+
+
+@pytest.mark.parametrize('role', ['engineering','coder','code_critic'])
+@pytest.mark.parametrize('metric', ['area','nsv'])
+@pytest.mark.parametrize('checker', ['assembly_topology','assembly_standing','assembly_overhang'])
+def test_compact_candidates_preserves_judgements_and_complete_reference(tmp_path, monkeypatch, role, metric, checker):
+    from adsl.agents import agent_feedback as a
+    source, raw, ref, payload = assembly_candidates_input(tmp_path, checker=checker)
+    if role != 'engineering':
+        payload['fixed_assembly'] = {'physics':{'overhang':{'support_metric':metric}}}
+    if metric == 'nsv':
+        payload['support_evidence'] = dict(source_sha256=ref['source_sha256'], source_version='original',
+            measurement_config_sha256='ray-config', support={'status':'PASS'}, items=[])
+    before = deepcopy(payload)
+    with monkeypatch.context() as m:
+        m.setattr(a, '_COMPACT_ASSEMBLY_CANDIDATES', False)
+        old = project(tmp_path, source, ref, payload, role)
+    out = project(tmp_path, source, ref, payload, role)
+    f = out['typed_findings'][0]; previous = old['typed_findings'][0]
+    expected = [{k:c[k] for k in a._CANDIDATE_FIELDS if k in c} for c in previous['source_candidates']]
+    assert f['source_candidates'] == expected and len(expected) == 6
+    assert {k:v for k,v in f.items() if k not in {'source_candidates','preview_info'}} == {
+        k:v for k,v in previous.items() if k not in {'source_candidates','preview_info'}}
+    info = f['preview_info']['source_candidates']; full_ref = info['full_ref']
+    assert info['total'] == 6 and info['omitted_count'] == 0
+    assert full_ref['source_binding'] == 'CURRENT'
+    assert a._at(json.loads((tmp_path/full_ref['path']).read_text()), full_ref['json_pointer']) == raw['source_candidates']
+    assert f['detail_ref']['json_pointer'] == '/findings/0/domain'
+    assert len(a._encoded(a._feedback_view(out))) < len(a._encoded(a._feedback_view(old)))
+    assert payload == before and project(tmp_path, source, ref, out, role) == out
+    assert not list(tmp_path.glob('diagnostics/agent_feedback/*.json'))
+
+
+@pytest.mark.parametrize('count', [6,9])
+def test_compact_full_ref_via_read_file_tool_and_budget(tmp_path, monkeypatch, count):
+    import asyncio
+    from adsl.agents import agent_feedback as a
+    from adsl.agents.tools.context import AgentToolContext
+    from adsl.agents.tools.files import read_file
+    from test_assembly_feedback_recovery import tool
+    source, raw, ref, payload = assembly_candidates_input(tmp_path, count=count)
+    first = project(tmp_path, source, ref, payload)
+    # Force existing budget reductions; no new hard card/field limit.
+    size = a.feedback_size_report(first)['actual_bytes']
+    monkeypatch.setattr(a, 'FEEDBACK_LIMIT_BYTES', size - 100)
+    out = project(tmp_path, source, ref, payload)
+    info = out['typed_findings'][0]['preview_info']['source_candidates']
+    assert len(out['typed_findings'][0]['source_candidates']) < 6
+    assert info['total'] == count
+    assert info['omitted_count'] == count - len(out['typed_findings'][0]['source_candidates'])
+    full = info['full_ref']
+    response = asyncio.run(tool(read_file, AgentToolContext(workspace=tmp_path, source_path=source),
+        'candidates', path=full['path'], json_pointer=full['json_pointer'], max_chars=12000))
+    assert json.loads(response) == raw['source_candidates']
+    assert project(tmp_path, source, ref, out) == out
+
+
+@pytest.mark.parametrize('fault', ['missing','pointer','stale','conflict','summary','file_hash','wrong_finding'])
+def test_compaction_falls_back_without_reliable_full_original(tmp_path, monkeypatch, fault):
+    from adsl.agents import agent_feedback as a
+    source, raw, ref, payload = assembly_candidates_input(tmp_path)
+    typed = payload['typed_findings'][0]
+    document = json.loads((tmp_path/'topology.json').read_text())
+    if fault == 'missing': (tmp_path/'topology.json').unlink()
+    if fault == 'pointer': typed['result_pointer'] = '/findings/999'
+    if fault == 'stale': typed['source_sha256'] = 'a'*64
+    if fault == 'conflict': document['source_sha256'] = 'b'*64
+    if fault == 'summary': document['findings'][0] = deepcopy(typed)
+    if fault == 'wrong_finding': document['findings'][0]['finding_id'] = 'assembly_topology:another:CONTRACT'
+    if fault in {'conflict','summary','wrong_finding'}:
+        (tmp_path/'topology.json').write_text(json.dumps(document))
+    if fault == 'file_hash':
+        typed['preview_info'] = {'source_candidates':{'total':6,'omitted_count':0,
+            'full_ref':{**ref,'file_sha256':'0'*64,'json_pointer':'/findings/0/source_candidates'}}}
+    with monkeypatch.context() as m:
+        m.setattr(a, '_COMPACT_ASSEMBLY_CANDIDATES', False)
+        old = project(tmp_path, source, ref, payload)
+    assert project(tmp_path, source, ref, payload) == old
+
+
+def test_compact_recovery_snapshot_and_finding_identity(tmp_path):
+    from adsl.agents import agent_feedback as a
+    source, raw, ref, payload = assembly_candidates_input(tmp_path)
+    (tmp_path/'topology.json').unlink()
+    payload['typed_findings'] = [{**raw, 'result_ref':'missing.json',
+        'result_pointer':'/findings/0','source_sha256':ref['source_sha256']}]
+    first = project(tmp_path, source, ref, payload)
+    f = first['typed_findings'][0]; full = f['preview_info']['source_candidates']['full_ref']
+    assert 'finding_snapshot_' in full['path']
+    assert a._at(json.loads((tmp_path/full['path']).read_text()), full['json_pointer']) == raw['source_candidates']
+    snapshots = {p.name:p.read_bytes() for p in tmp_path.glob('diagnostics/agent_feedback/*.json')}
+    assert project(tmp_path, source, ref, first) == first
+    assert snapshots == {p.name:p.read_bytes() for p in tmp_path.glob('diagnostics/agent_feedback/*.json')}
+    assert any(r['availability']=='UNAVAILABLE' for r in f['evidence_refs'])
+
+
+@pytest.mark.parametrize('role', ['image_critic','debugger'])
+def test_non_target_roles_keep_original_candidates(tmp_path, monkeypatch, role):
+    from adsl.agents import agent_feedback as a
+    source, _, ref, payload = assembly_candidates_input(tmp_path)
+    actual = project(tmp_path, source, ref, payload, role)
+    monkeypatch.setattr(a, '_COMPACT_ASSEMBLY_CANDIDATES', False)
+    assert actual == project(tmp_path, source, ref, payload, role)
+
+
+@pytest.mark.parametrize('case', ['nonassembly','unknown','mesh','source'])
+def test_non_target_findings_and_empty_fields_keep_old_projection(tmp_path, monkeypatch, case):
+    from adsl.agents import agent_feedback as a
+    source, _, ref, payload = assembly_candidates_input(tmp_path)
+    if case == 'nonassembly':
+        payload.update(plan={}, fixed_assembly={}, assembly_context={})
+    else:
+        payload['typed_findings'][0]['finding_id'] = {
+            'unknown':'unknown:body:CONTRACT','mesh':'assembly_mesh_evaluation:0:body:ERR',
+            'source':'source_execution:body:ERR'}[case]
+    actual = project(tmp_path, source, ref, payload)
+    monkeypatch.setattr(a, '_COMPACT_ASSEMBLY_CANDIDATES', False)
+    assert actual == project(tmp_path, source, ref, payload)
+
+
+def test_same_features_in_distinct_findings_never_share_wrong_pointer(tmp_path):
+    from adsl.agents import agent_feedback as a
+    source, raw, ref, payload = assembly_candidates_input(tmp_path)
+    second = deepcopy(raw); second['finding_id'] = 'assembly_topology:second:CONTRACT'
+    second['source_candidates'][0]['evidence'] = ['Different original evidence']
+    (tmp_path/'topology.json').write_text(json.dumps(dict(source_sha256=ref['source_sha256'],
+        source_version='original', findings=[raw,second])))
+    payload['typed_findings'].append(finding_for_agent(second, result_ref='topology.json',
+        result_pointer='/findings/1',source_sha256=ref['source_sha256']))
+    out = project(tmp_path, source, ref, payload)
+    for i,f in enumerate(out['typed_findings']):
+        info=f['preview_info']['source_candidates']; full=info['full_ref']
+        assert full['json_pointer'] == f'/findings/{i}/source_candidates'
+        assert a._at(json.loads((tmp_path/full['path']).read_text()), full['json_pointer']) == [raw,second][i]['source_candidates']
+    assert len(out['typed_findings']) == 2
+
+
+@pytest.mark.parametrize('metric', ['area','nsv'])
+def test_compact_candidates_at_three_actual_runtime_boundaries(tmp_path, monkeypatch, metric):
+    import asyncio
+    from dataclasses import replace
+    from types import SimpleNamespace
+    from adsl.agents import assembly_topology as topology, assembly_physics as physics
+    from adsl.agents.models import FixedAssemblyPlan, EngineeringCriticDecision, GradedCodeCriticDecision, CheckerResult
+    from adsl.agents.service import ObjectWorkflow
+    from adsl.agents.checkers import CheckerRun
+    from test_fixed_assembly import mock_flow, plan_data
+    from test_assembly_feedback_recovery import payload as model_payload, tool
+    from adsl.agents.tools.files import read_file
+    state = mock_flow(tmp_path, monkeypatch, [('PASS',True)])
+    workflow, request, runtime, _, _ = state
+    source, raw, ref, base = assembly_candidates_input(tmp_path)
+    config = deepcopy(request.fixed_assembly)
+    config['physics'] = {'overhang':{'support_metric':metric,'shape_editable':True}}
+    request = replace(request, fixed_assembly=config)
+    captures = {}
+    async def run(**kw):
+        data = model_payload(kw); stage = kw['stage'].split(':')[0]
+        captures[stage] = data
+        container = data if stage == 'assembly_engineering' else data['assembly_context'] if stage == 'code_critic' else data['feedback']
+        f = container['typed_findings'][0]
+        assert len(f['source_candidates']) == 6
+        assert 'source_locations' not in f['source_candidates'][0]
+        full = f['preview_info']['source_candidates']['full_ref']
+        details = await tool(read_file, kw['context'], 'details', path=full['path'], json_pointer=full['json_pointer'])
+        assert json.loads(details) == raw['source_candidates']
+        if stage == 'assembly_engineering':
+            return SimpleNamespace(final_output=EngineeringCriticDecision(approved=False,
+                observations=['No justified proposal'], repair_proposals=[]))
+        if stage == 'code_critic':
+            await tool(read_file, kw['context'], 'source', path=data['assigned_source'])
+            return SimpleNamespace(final_output=GradedCodeCriticDecision(approved=True,observations=[],issues=[]))
+        return SimpleNamespace(final_output='{"edit_action":"NO_CHANGE","reason":"No appropriate edit"}')
+    runtime.run = run
+    plan = FixedAssemblyPlan.model_validate(plan_data())
+    root = tmp_path/'review';root.mkdir()
+    feedback = dict(typed_findings=base['typed_findings'], source_version='original', geometry_report_ref=ref,
+                    checker_summary=[], evidence_files=[])
+    if metric == 'nsv':
+        feedback['support_evidence'] = dict(source_sha256=ref['source_sha256'], source_version='original',
+            measurement_config_sha256='ray-config', support={'status':'PASS'}, items=[])
+    context = dict(typed_findings=base['typed_findings'], report_ref=ref)
+    result = CheckerResult(checker='assembly_topology',status='PASS',summary='stub',metrics={})
+    check = CheckerRun(physics.checker_spec('assembly_topology'),result,tmp_path/'checks',())
+    async def exercise():
+        # Empty context is the real Engineering-positive case without fixed_assembly at top level.
+        await topology.engineer(workflow,runtime,request,plan,source,None,root,check,{},feedback,1)
+        await ObjectWorkflow._review_generation_code(workflow,runtime=runtime,request=request,plan=plan,
+            execution=None,workspace=tmp_path,source_path=source,round_number=1,max_rounds=2,
+            round_root=root,code_critic={},image_decision=None,code_history=[],assembly_context=context)
+        outcome = await ObjectWorkflow._repair(workflow,runtime=runtime,repairer={},workspace=tmp_path,
+            source_path=source,role='coder',stage='repair:1',allow_no_change=True,
+            payload=dict(fixed_assembly=config,plan=plan.model_dump(),assembly_context={},
+                         feedback=feedback,source_version='original'))
+        assert outcome['status'] == 'NO_CHANGE'
+    asyncio.run(exercise())
+    assert set(captures) == {'assembly_engineering','code_critic','repair'}
+    assert source.read_text() == 'scene = None\n'
+
+
+@pytest.mark.parametrize('container', ['feedback','assembly_context','pending_reviews','engineering_feedback','checker_evidence'])
+@pytest.mark.parametrize('field', ['typed_findings','checker_evidence'])
+def test_candidate_compaction_uses_only_known_recursive_containers(tmp_path, container, field):
+    source, _, ref, payload = assembly_candidates_input(tmp_path)
+    rows = payload.pop('typed_findings')
+    payload['fixed_assembly'] = {'mm_per_unit':1}
+    payload[container] = {field:rows}
+    payload['task_data'] = {'typed_findings':deepcopy(rows)}
+    out = project(tmp_path, source, ref, payload)
+    f = out[container][field][0]
+    assert 'source_locations' not in f['source_candidates'][0]
+    assert f['preview_info']['source_candidates']['total'] == 6
+    assert out['task_data'] == payload['task_data']
+    assert project(tmp_path, source, ref, out) == out

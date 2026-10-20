@@ -90,7 +90,7 @@ cross-part connect/frame; combine current checks in one Engineering proposal.
 measurement hash, S/V/NSV/N/tau, printed transforms, up to three regions per item,
 file references, interface count and existing physical statuses. Internal Dapper
 results remain in raw checker records but are not a competing Agent objective.
-The view is included in the existing 32 KiB feedback budget.
+The view is included in the 96 KiB feedback budget.
 
 The canonical current-version summary is at top-level `support_evidence`.
 In NSV requests, an identical nested copy is removed only when the complete strict
@@ -107,7 +107,7 @@ shortening explanations/regions must not make different original records eligibl
 for deduplication on a later projection. The input fingerprint is reused only when
 its view hash matches; changed views are rebound before projection. Different earlier
 previews of one raw record also retain their input distinction. View hashes track
-the existing budget reductions, and both marker hashes count toward the same 32 KiB
+the existing budget reductions, and both marker hashes count toward the same 96 KiB
 budget. These are comparison markers, not source authorization or measurement proof.
 Ordinary identical copies and single evidence records do not acquire markers.
 
@@ -116,8 +116,12 @@ Ordinary identical copies and single evidence records do not acquire markers.
 top-level/nested field sizes each. These exclude requirement/source/image inputs.
 Parent and child sizes overlap and must not be summed. Oversize errors retain
 `AGENT_FEEDBACK_TOO_LARGE`, `actual_bytes` and `limit_bytes`, with bounded field-size
-lists; successful Agent payloads do not acquire size-report fields. The limit stays
-32,768 bytes, and all existing preview/reduction stages remain in their old order.
+lists; successful Agent payloads do not acquire size-report fields. The limit is
+98,304 bytes; the earlier 32,768-byte limit remains the scope of historical replay
+reports. All existing preview/reduction stages remain in their old order. The
+larger limit may stop reduction earlier; it does not bypass source binding,
+deduplication, strict JSON checks or the final feedback-only size check. It is not
+the model's token limit or the byte size of the whole request.
 
 For an explicitly described saved input, `scripts/feedback_size_report.py --input
 <description.json> --output <replay-dir>` runs only the adapter on copied evidence.
@@ -148,3 +152,38 @@ interpreting raw S changes as equal-size manufacturing gains. No automatic model
 - `actions.regroup_precheck(..., support_metric='area', shape_editable=False)`
 
 Existing Action execution wrappers and model output DTOs are unchanged.
+
+## Assembly source-candidate views (v5, validation pending)
+
+The fixed-assembly Engineering, Coder and Code Critic input adapter keeps each
+finding and its judgement. In both area and NSV, a candidate may inline only
+`feature_id`, `source_ids`, `method`, `relation_role`, `ambiguous`, and
+`overlap_score`. Candidate order and the existing six-candidate preview are
+preserved. `preview_info.source_candidates.full_ref` addresses the complete
+original list even when `omitted_count` is zero (fields, rather than entries,
+were omitted). Use the existing bounded `read_file` JSON-pointer interface when
+locations or evidence are needed. Source candidates remain hints, not causes.
+
+Compaction requires a readable complete list, matching finding and source
+binding, verified file hash, and matching displayed candidates. Missing, stale,
+conflicting or summary-only evidence keeps the old view. The private
+`_COMPACT_ASSEMBLY_CANDIDATES` switch disables only this projection and its local
+preview preservation at the same 96 KiB budget. No controller or permission
+rule is changed. Any further budget-driven cropping keeps the original full
+reference, without expanding previous previews.
+
+NSV initial Planner alone receives `prompt/support_grouping.md`: semantic parts
+can share a print part, and small attached features default to their parent
+unless a printing/assembly benefit or explicit task requirement justifies a
+feasible interface. Reasons in `relations` are hypotheses, not measured gains.
+Area Planner does not receive that grouping addition. The four assembly code
+roles receive a shared candidate-reading note in both modes; original API,
+modeling and support-acceptance instructions remain in place.
+
+The existing `scripts/feedback_size_report.py` now prepares equal-96-KiB
+comparisons (including a legacy-candidates option), records candidate field
+sizes separately from total feedback, verifies every candidate full reference,
+and records exact retained-field and other-finding-field comparisons at the
+compaction boundary. Those sizes overlap and must not be summed. Post-projection
+archives cannot establish full raw-input savings. v5 tests and replay additions
+are written but have not been executed in this task.

@@ -646,3 +646,54 @@ def test_nsv_prompt_keeps_regroup_implementation_guidance(role):
                  'ONE coordinated proposal','All selected checks must'):
         assert text in prompt
     assert 'Dapper' not in prompt and 'preserve all bodies' not in prompt
+
+
+@pytest.mark.parametrize('metric', ['area','nsv'])
+@pytest.mark.parametrize('role', ['planner','coder','engineering_critic','code_critic','code_critic_review','image_critic'])
+def test_v5_prompt_is_only_explicit_append(role, metric):
+    from importlib.resources import files
+    from adsl.agents import prompts as p
+    # Reconstruct the pre-v5 composition from unchanged resources; no model call.
+    old = p.render_prompt_resource(p.PROMPT_ROOT/p.ROLE_PROMPTS[role], articulation=False)
+    if role in {'code_critic','code_critic_review','engineering_critic'}:
+        old += '\n' + files('adsl.core').joinpath('docs/fixed_assembly.md').read_text(encoding='utf-8')
+    elif role not in {'image_critic','image_critic_review'}:
+        old += '\n' + (p.PROMPT_ROOT/'fixed_assembly.md').read_text(encoding='utf-8')
+    if metric == 'nsv':
+        old = p._support_prompt(old, shape_editable=True)
+    additions = ''
+    if role in {'coder','engineering_critic','code_critic','code_critic_review'}:
+        additions += '\n' + p._SOURCE_CANDIDATE_READING
+    grouping = (p.PROMPT_ROOT/'support_grouping.md').read_text(encoding='utf-8')
+    if role == 'planner' and metric == 'nsv':
+        additions += '\n' + grouping
+    actual = object_prompt(role, articulation=False, fixed_assembly=True, support_metric=metric, shape_editable=True)
+    assert actual == old + additions
+    assert actual.count(grouping) == int(role == 'planner' and metric == 'nsv')
+    assert 'support_stage' not in actual
+
+
+@pytest.mark.parametrize('metric', ['area','nsv'])
+def test_v5_grouping_reaches_actual_planner_only(tmp_path, metric):
+    import asyncio
+    from adsl.agents import prompts as p
+    from adsl.agents.models import ObjectRequest, FixedAssemblyPlan
+    from adsl.agents.service import ObjectWorkflow
+    from test_fixed_assembly import CONFIG, plan_data
+    config = deepcopy(CONFIG)
+    config['physics'] = {'overhang':{'support_metric':metric,'shape_editable':True}}
+    request = ObjectRequest('Keep explicit detachable hat',tmp_path,'fixture',fixed_assembly=config)
+    calls=[]
+    class Runtime:
+        def agent(self, **kw): return kw
+        async def run(self, **kw):
+            calls.append(kw)
+            assert kw['agent']['output_type'] is FixedAssemblyPlan
+            return SimpleNamespace(final_output=FixedAssemblyPlan.model_validate(plan_data()))
+    workflow=ObjectWorkflow.__new__(ObjectWorkflow)
+    plan=asyncio.run(workflow._plan_generation(Runtime(),request))
+    assert len(calls)==1 and calls[0]['role']=='planner'
+    grouping=(p.PROMPT_ROOT/'support_grouping.md').read_text()
+    assert calls[0]['agent']['instructions'].count(grouping)==int(metric=='nsv')
+    assert plan.model_dump()==FixedAssemblyPlan.model_validate(plan_data()).model_dump()
+    assert request.fixed_assembly==config

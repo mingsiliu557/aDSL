@@ -20,6 +20,14 @@ ROLE_PROMPTS = {
 }
 
 
+_SOURCE_CANDIDATE_READING = (
+    'Source candidates are location hints, not confirmed causes. Their inline entries may omit '
+    'detailed locations and evidence. Read preview_info.source_candidates.full_ref with read_file '
+    'and a JSON pointer only when those details are needed. Use bounded pages; do not load every '
+    'candidate report. Existing repair permissions and checker requirements remain unchanged.'
+)
+
+
 def object_prompt(role: str, *, articulation: bool, fixed_assembly: bool = False,
                   support_metric: str = 'area', shape_editable: bool = False) -> str:
     try:
@@ -37,6 +45,10 @@ def object_prompt(role: str, *, articulation: bool, fixed_assembly: bool = False
         prompt += '\n' + (PROMPT_ROOT / 'fixed_assembly.md').read_text(encoding='utf-8')
     if fixed_assembly and support_metric == 'nsv':
         prompt = _support_prompt(prompt, shape_editable=shape_editable)
+    if fixed_assembly and role in {'coder', 'engineering_critic', 'code_critic', 'code_critic_review'}:
+        prompt += '\n' + _SOURCE_CANDIDATE_READING
+    if fixed_assembly and support_metric == 'nsv' and role == 'planner':
+        prompt += '\n' + (PROMPT_ROOT / 'support_grouping.md').read_text(encoding='utf-8')
     return prompt
 
 

@@ -161,11 +161,54 @@ def check_refs(value, adapter, original, isolated):
     return refs
 
 
+def finding_rows(value, pointer=''):
+    """Same known containers as the adapter; no arbitrary task traversal."""
+    if not isinstance(value, Mapping):
+        return
+    for key in ('typed_findings', 'checker_evidence'):
+        if isinstance(value.get(key), list):
+            for index, finding in enumerate(value[key]):
+                yield pointer + '/' + key + '/' + str(index), finding
+    for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback', 'checker_evidence'):
+        if isinstance(value.get(key), Mapping):
+            yield from finding_rows(value[key], pointer + '/' + key)
+
+
+def candidate_statistics(value, adapter):
+    rows = list(finding_rows(value))
+    lists = [row.get('source_candidates', []) for _, row in rows]
+    return dict(finding_count=len(rows), candidate_count=sum(len(c) for c in lists),
+        findings_bytes=sum(len(adapter._encoded(row)) for _, row in rows),
+        source_candidates_bytes=sum(len(adapter._encoded(c)) for c in lists),
+        note='List/field sizes overlap total feedback; do not add them to the total.')
+
+
+def check_candidate_refs(value, adapter, arguments):
+    """Validate every candidate full_ref, including identity/binding/completeness."""
+    if not hasattr(adapter._Projection, 'candidate_ref'):
+        return dict(status='NOT_EVALUATED', reason='baseline_has_no_candidate_validator', items=[])
+    view = adapter._Projection(arguments['workspace'], arguments['source_path'],
+        arguments['source_version'], arguments['report_ref'], arguments['evidence_files'])
+    rows = []
+    for pointer, finding in finding_rows(value):
+        info = (finding.get('preview_info') or {}).get('source_candidates') or {}
+        ref = info.get('full_ref')
+        if not isinstance(ref, Mapping):
+            continue
+        checked = view.candidate_ref(finding, finding, ref)
+        rows.append(dict(payload_pointer=pointer, finding_id=finding.get('finding_id'),
+            full_ref=ref, total=info.get('total'), displayed=len(finding.get('source_candidates', [])),
+            status='PASS' if checked is not None and checked[1] == info.get('total') else 'UNAVAILABLE'))
+    return dict(status='CHECKED', items=rows)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--input', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--adapter-source', type=Path, default=REPO/'adsl-agents/agent_feedback.py')
+    parser.add_argument('--legacy-source-candidates', action='store_true',
+        help='Disable only v5 compaction; compare both adapters with a fixed 96 KiB budget.')
     args = parser.parse_args(argv)
     description_path = args.input.resolve()
     description = load(description_path)
@@ -194,7 +237,13 @@ def main(argv=None):
     adapter_source = args.adapter_source.resolve()
     adapter = load_adapter(adapter_source)
     implementation_hash = file_hash(adapter_source)
-    run = output/'runs'/implementation_hash
+    loaded_limit = adapter.FEEDBACK_LIMIT_BYTES
+    # Replay comparison premise, never a production runtime configuration.
+    adapter.FEEDBACK_LIMIT_BYTES = 96 * 1024
+    if args.legacy_source_candidates:
+        adapter._COMPACT_ASSEMBLY_CANDIDATES = False
+    mode = 'legacy_candidates' if args.legacy_source_candidates else 'current_candidates'
+    run = output/'runs'/(implementation_hash + '_' + mode)
     if run.exists():
         raise ValueError('result already exists for this implementation; use a fresh output directory')
     run.mkdir(parents=True)
@@ -219,6 +268,32 @@ def main(argv=None):
         captured['final_view'] = deepcopy(view)
         return view
     adapter._feedback_view = observe
+    candidate_edits = []
+    compact = getattr(adapter, '_compact_source_candidates', None)
+    if compact is not None:
+        def observe_candidates(finding, **kwargs):
+            projected = compact(finding, **kwargs)
+            if projected is not finding:
+                fields = adapter._CANDIDATE_FIELDS
+                expected = [{k:c[k] for k in fields if k in c} for c in finding['source_candidates']]
+                def other_fields(row):
+                    other = deepcopy(row)
+                    other.pop('source_candidates', None)
+                    preview = other.get('preview_info', {})
+                    preview.pop('source_candidates', None)
+                    if not preview:
+                        other.pop('preview_info', None)
+                    return other
+                candidate_edits.append(dict(finding_id=finding.get('finding_id'),
+                    before_bytes=len(adapter._encoded(finding)), after_bytes=len(adapter._encoded(projected)),
+                    before_candidates_bytes=len(adapter._encoded(finding['source_candidates'])),
+                    after_candidates_bytes=len(adapter._encoded(projected['source_candidates'])),
+                    candidate_count=len(projected['source_candidates']),
+                    retained_fields_exact=projected['source_candidates']==expected,
+                    other_fields_exact=other_fields(finding)==other_fields(projected),
+                    full_ref=projected['preview_info']['source_candidates']['full_ref']))
+            return projected
+        adapter._compact_source_candidates = observe_candidates
     before = adapter._encoded(payload)
     status, error, result = 'PASS', None, None
     arguments = dict(workspace=isolated,
@@ -232,6 +307,8 @@ def main(argv=None):
         error = dict(code=failure.code, details=failure.details)
     finally:
         adapter._feedback_view = select
+        if compact is not None:
+            adapter._compact_source_candidates = compact
     final_view = captured.get('final_view')
     stages['final_selected'] = adapter.feedback_size_report(final_view) if final_view is not None else None
     repeated = dict(status='NOT_EVALUATED', reason='initial_projection_failed')
@@ -260,6 +337,13 @@ def main(argv=None):
         reconstruction_limitation=description.get('reconstruction_limitation'),
         full_chain_comparison_eligible=description['input_kind']!='captured_post_projection',
         original_recorded_final_bytes=description.get('original_recorded_final_bytes'),
+        candidate_projection_mode=mode, loaded_adapter_limit_bytes=loaded_limit,
+        comparison_limit_bytes=96*1024,
+        candidate_statistics=dict(input=candidate_statistics(payload, adapter),
+                                  final=candidate_statistics(final_view, adapter)),
+        candidate_compaction=candidate_edits,
+        candidate_reference_checks=check_candidate_refs(result or final_view, adapter, arguments),
+        configuration_sha256=description.get('configuration_sha256'),
         stages=stages, deduplication_events=events, input_unchanged=adapter._encoded(payload)==before,
         original_files_unchanged=unchanged, error=error,
         repeated_projection=repeated,

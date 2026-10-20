@@ -14,7 +14,11 @@ from pathlib import Path
 import re
 from typing import Any
 
-FEEDBACK_LIMIT_BYTES = 32 * 1024
+FEEDBACK_LIMIT_BYTES = 96 * 1024
+# Code-level rollback only; not an Agent-controlled configuration.
+_COMPACT_ASSEMBLY_CANDIDATES = True
+_CANDIDATE_FIELDS = ('feature_id', 'source_ids', 'method', 'relation_role',
+                     'ambiguous', 'overlap_score')
 _TEXT_LIMIT = 240
 _EXPLANATIONS = {'message', 'reason', 'rejection_reason', 'summary', 'problem',
                  'suggested_fix', 'modification_summary', 'applicability_basis',
@@ -338,6 +342,34 @@ def _attempt(raw):
     return out
 
 
+def _assembly_candidate_scope(payload, role):
+    if not _COMPACT_ASSEMBLY_CANDIDATES or role not in {'engineering', 'coder', 'code_critic'}:
+        return False
+    config = payload.get('fixed_assembly')
+    if isinstance(config, Mapping) and config:
+        return True
+    plan = payload.get('plan')
+    return (isinstance(payload.get('assembly_context'), Mapping) and isinstance(plan, Mapping)
+            and isinstance(plan.get('print_parts'), list)
+            and isinstance(plan.get('connections'), list)
+            and isinstance(plan.get('root_part'), str) and bool(plan['root_part']))
+
+
+def _compact_source_candidates(finding, *, view, full_ref):
+    """Only remove candidate fields after verifying a full, bound original list."""
+    if full_ref is None:
+        return finding
+    out = deepcopy(finding)
+    out['source_candidates'] = [{key: deepcopy(candidate[key]) for key in _CANDIDATE_FIELDS
+                                 if key in candidate}
+                                for candidate in finding.get('source_candidates', [])]
+    ref, total = full_ref
+    out.setdefault('preview_info', {})['source_candidates'] = {
+        'total': total, 'omitted_count': total - len(out['source_candidates']), 'full_ref': ref}
+    view.compacted_findings.add(id(out))
+    return out
+
+
 class _Projection:
     def __init__(self, workspace, source_path, version, report_ref, evidence_files):
         self.workspace = Path(workspace).resolve()
@@ -356,6 +388,7 @@ class _Projection:
         self.classifications = {}
         self.seen_rows = set()
         self.failure_count = 0
+        self.compacted_findings = set()
 
     def ref(self, supplied=None, *, pointer=None):
         supplied = supplied if isinstance(supplied, Mapping) else {'path': supplied}
@@ -546,7 +579,73 @@ class _Projection:
         group['occurrence_count'] = len(group['occurrences'])
         return failure_id
 
-    def findings(self, raw_findings):
+    def candidate_ref(self, raw, row, binding):
+        """Resolve full candidates without expanding a preview or trusting file existence.
+
+        An explicit full_ref is authoritative: a broken/stale one must not be
+        replaced with a snapshot of the shortened model view.
+        """
+        info = (raw.get('preview_info') or {}).get('source_candidates') or {}
+        existing = info.get('full_ref')
+        options = [existing] if isinstance(existing, Mapping) else [
+            {**binding, 'path': row.get('result_ref'),
+             'json_pointer': _pointer(row.get('result_pointer'), 'source_candidates')},
+            {**binding, 'json_pointer': _pointer(binding.get('json_pointer'), 'source_candidates')}]
+        for supplied in options:
+            ref = self.ref({**binding, **supplied})
+            if ref['availability'] != 'AVAILABLE' or ref['source_binding'] != 'CURRENT':
+                continue
+            document = self.document(ref)
+            pointer = ref.get('json_pointer')
+            if not isinstance(pointer, str) or not pointer.endswith('/source_candidates'):
+                continue
+            try:
+                parent = _at(document, pointer[:-len('/source_candidates')])
+                full = _at(document, pointer)
+            except (KeyError, IndexError, TypeError, ValueError):
+                continue
+            if not isinstance(parent, Mapping) or not isinstance(full, list):
+                continue
+            if not row.get('finding_id') or parent.get('finding_id') != row['finding_id']:
+                continue
+            if any(parent.get(k) != row.get(k) for k in ('rule_id', 'category') if k in row):
+                continue
+            assumptions = (document.get('assumptions') or {}) if isinstance(document, Mapping) else {}
+            bindings = [parent, document, assumptions, raw, binding]
+            if any(obj.get('source_sha256') not in (None, ref['source_sha256']) or
+                   obj.get('source_version') not in (None, ref.get('source_version'))
+                   for obj in bindings if isinstance(obj, Mapping)):
+                continue
+            path = self.workspace / ref['path']
+            try:
+                digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            except OSError:
+                continue
+            if ref.get('file_sha256') != digest:
+                continue
+            # A saved short summary is not a complete original, even if it has
+            # the right ID. Original SourceCandidate records carry both fields.
+            if any(not isinstance(c, Mapping) or not isinstance(c.get('source_locations'), list)
+                   or not isinstance(c.get('evidence'), list) or c.get('preview_info') for c in full):
+                continue
+            shown = row.get('source_candidates') or []
+            if len(full) < len(shown) or info.get('total', len(full)) != len(full):
+                continue
+            matches = True
+            for short, original in zip(shown, full):
+                expected = {key: original[key] for key in _CANDIDATE_FIELDS if key in original}
+                if 'source_ids' in expected:
+                    expected['source_ids'] = expected['source_ids'][:3]
+                actual = {key: short[key] for key in _CANDIDATE_FIELDS if key in short}
+                locations = short.get('source_locations')
+                if actual != expected or (locations and locations != original['source_locations'][:3]):
+                    matches = False
+                    break
+            if matches:
+                return ref, len(full)
+        return None
+
+    def findings(self, raw_findings, *, compact_source_candidates=False):
         result = []
         for raw in raw_findings or []:
             row = finding_for_agent(raw, result_ref=raw.get('result_ref'),
@@ -607,6 +706,10 @@ class _Projection:
                             if isinstance(item, dict):
                                 bind_refs(item)
             bind_refs(row)
+            if compact_source_candidates and row.get('source_candidates') and not evaluation and row.get('finding_id', '').split(':', 1)[0] in {
+                    'assembly_topology', 'assembly_standing', 'assembly_overhang'}:
+                full_ref = self.candidate_ref(raw, row, ref)
+                row = _compact_source_candidates(row, view=self, full_ref=full_ref)
             result.append(row)
         return result
 
@@ -823,6 +926,7 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
     try:
         view = _Projection(workspace, source_path, source_version, report_ref, evidence_files)
         out = deepcopy(dict(payload))
+        compact_candidates = _assembly_candidate_scope(out, role)
         nsv = (isinstance(out.get('support_evidence'),Mapping) or
             isinstance((out.get('feedback') or {}).get('support_evidence'),Mapping) or
             (out.get('fixed_assembly') or {}).get('physics',{}).get('overhang',{}).get('support_metric')=='nsv')
@@ -892,7 +996,7 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                 container['evaluation_failure_ids'] = failure_ids
             for key in ('typed_findings', 'checker_evidence'):
                 if isinstance(container.get(key), list):
-                    container[key] = view.findings(container[key])
+                    container[key] = view.findings(container[key], compact_source_candidates=compact_candidates)
             for key in _HISTORY_FIELDS:
                 if isinstance(container.get(key), list):
                     original = container[key]
@@ -1016,7 +1120,11 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                         snap = view.snapshot({'evidence_files': refs}, 'evidence_directory')
                         ref = {**snap, 'json_pointer': '/evidence_files'}
                     _preview(container, 'evidence_files', refs, 3, ref)
-                for f in container.get('typed_findings') or []:
+                findings = list(container.get('typed_findings') or [])
+                if compact_candidates and isinstance(container.get('checker_evidence'), list):
+                    findings += [f for f in container['checker_evidence']
+                                 if id(f) in view.compacted_findings]
+                for f in findings:
                     candidates = f.get('source_candidates', [])
                     ref = None
                     if len(candidates) > candidate_limit and not f.get('preview_info', {}).get('source_candidates', {}).get('full_ref'):
@@ -1047,7 +1155,11 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                             snap = view.snapshot({'source_candidates':candidates}, 'candidates_snapshot')
                             ref = view.ref({**snap, 'source_sha256':ref.get('source_sha256'),
                                 'source_version':ref.get('source_version')}, pointer='/source_candidates')
+                    compact_info = deepcopy(f.get('preview_info', {}).get('source_candidates')) if id(f) in view.compacted_findings else None
                     _preview(f, 'source_candidates', candidates, candidate_limit, ref)
+                    if compact_info is not None:
+                        compact_info['omitted_count'] = compact_info['total'] - len(f['source_candidates'])
+                        f.setdefault('preview_info', {})['source_candidates'] = compact_info
                 for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback'):
                     if isinstance(container.get(key), dict):
                         reduce(container[key])
