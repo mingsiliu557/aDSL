@@ -1,5 +1,8 @@
 Support optimization uses ray-estimated support volume S (mm^3) and actual
 print-part count N. Both absolute and normalized checks must pass for adoption.
+The current version's canonical support summary is at top-level support_evidence;
+its comparison_baseline describes the comparison baseline. Nested evidence with a
+different source/version/configuration remains evidence for that stated source.
 For the normalized check, use S_hat=S/D^3, where D is the diagonal
 of each version's assembled bounding box in millimetres. NSV=S/V is descriptive
 only: increasing V inside an unchanged bounding box cannot earn adoption.

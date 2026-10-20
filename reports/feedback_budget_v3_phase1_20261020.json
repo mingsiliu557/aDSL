@@ -1,0 +1,203 @@
+{
+  "baseline_commit": "095a263e45f0862e7db5f3448361f0d49a3e4384",
+  "recorded_at_utc": "2026-10-19T17:34:21.812548+00:00",
+  "implementation": {
+    "statistics_only_sha256": "6140465c97ecf119885b3c163163acf952fff3cf3055cec66cc27a7d548bc64d",
+    "deduplicated_adapter_sha256": "cba7e4502d5422c875889e561327d509cbc34ba6c721dd95dd1b6bc288ad3765",
+    "replay_script_sha256": "a6fbe030bbecd510c4bf4b02e80b704d6017997f3c059f81fe53e8a8b500c310"
+  },
+  "role": "coder",
+  "input_kind": "reconstructed_pre_projection",
+  "source_version": "original",
+  "source_sha256": "2ec7cba8eacf2610820a009d8f0a85c0dc60a2da2afb123a58ce4419a2d7863b",
+  "assigned_source": "rounds/round_02/candidates/01_assembly_or_appearance/source.py",
+  "input_sha256": "8fab52ea4ed6b4d8b1f0c926edd5f33647b08a178e3fbf2e84bd7e79a354e93b",
+  "reconstruction_limitation": "Pre-projection request was not captured; temporal identity is reconstructed from final ledger and audited call code, not an original request capture.",
+  "sizes": {
+    "limit_bytes": 32768,
+    "input_selected": 37468,
+    "after_existing_score_filter": 37468,
+    "deduplicated_selected": 29756,
+    "before_final": 35559,
+    "after_final": 29822,
+    "local_dedup_saved": 7712,
+    "final_saved": 5737,
+    "remaining_bytes": 2946
+  },
+  "deduplication_events": [
+    {
+      "canonical_path": "/support_evidence",
+      "removed_path": "/feedback/support_evidence",
+      "source_sha256": "2ec7cba8eacf2610820a009d8f0a85c0dc60a2da2afb123a58ce4419a2d7863b",
+      "source_version": "original",
+      "measurement_config_sha256": "cdf5f01e7b9b7d93701fcf4f434a2ba333578586aa2535fc029357aa0d49525f"
+    }
+  ],
+  "before_final_fields": {
+    "actual_bytes": 35559,
+    "limit_bytes": 32768,
+    "top_level_bytes": [
+      {
+        "path": "/feedback",
+        "bytes": 28198
+      },
+      {
+        "path": "/support_evidence",
+        "bytes": 5720
+      },
+      {
+        "path": "/evidence_files",
+        "bytes": 984
+      },
+      {
+        "path": "/preview_info",
+        "bytes": 514
+      },
+      {
+        "path": "/support_round",
+        "bytes": 5
+      },
+      {
+        "path": "/support_baseline_version",
+        "bytes": 4
+      },
+      {
+        "path": "/assembly_context",
+        "bytes": 2
+      }
+    ],
+    "nested_field_bytes": [
+      {
+        "path": "/feedback/typed_findings",
+        "bytes": 18338
+      },
+      {
+        "path": "/feedback/support_evidence",
+        "bytes": 5720
+      },
+      {
+        "path": "/feedback/checker_summary",
+        "bytes": 1814
+      },
+      {
+        "path": "/feedback/preview_info",
+        "bytes": 1018
+      },
+      {
+        "path": "/feedback/evidence_files",
+        "bytes": 984
+      },
+      {
+        "path": "/feedback/repair_history",
+        "bytes": 194
+      },
+      {
+        "path": "/feedback/render_issue",
+        "bytes": 4
+      }
+    ]
+  },
+  "after_final_fields": {
+    "actual_bytes": 29822,
+    "limit_bytes": 32768,
+    "top_level_bytes": [
+      {
+        "path": "/feedback",
+        "bytes": 22461
+      },
+      {
+        "path": "/support_evidence",
+        "bytes": 5720
+      },
+      {
+        "path": "/evidence_files",
+        "bytes": 984
+      },
+      {
+        "path": "/preview_info",
+        "bytes": 514
+      },
+      {
+        "path": "/support_round",
+        "bytes": 5
+      },
+      {
+        "path": "/support_baseline_version",
+        "bytes": 4
+      },
+      {
+        "path": "/assembly_context",
+        "bytes": 2
+      }
+    ],
+    "nested_field_bytes": [
+      {
+        "path": "/feedback/typed_findings",
+        "bytes": 18338
+      },
+      {
+        "path": "/feedback/checker_summary",
+        "bytes": 1814
+      },
+      {
+        "path": "/feedback/evidence_files",
+        "bytes": 984
+      },
+      {
+        "path": "/feedback/repair_history",
+        "bytes": 701
+      },
+      {
+        "path": "/feedback/preview_info",
+        "bytes": 514
+      },
+      {
+        "path": "/feedback/render_issue",
+        "bytes": 4
+      }
+    ]
+  },
+  "before_refs": {
+    "total": 47,
+    "available": 47,
+    "unavailable": 0
+  },
+  "after_refs": {
+    "total": 41,
+    "available": 41,
+    "unavailable": 0
+  },
+  "copied_dependency_count": 35,
+  "unavailable_dependencies": {},
+  "source_material_bindings": {
+    "assembly_versions.json": true,
+    "runtime_config.json": true,
+    "plan.json": true,
+    "rounds/round_02/candidates/01_assembly_or_appearance/source.py": true,
+    "original/source.py": true,
+    "rounds/round_02/candidates/01_assembly_or_appearance/repair_request_error.json": true
+  },
+  "input_unchanged": true,
+  "original_files_unchanged": true,
+  "repeated_projection": {
+    "status": "PASS",
+    "payload_identical": true,
+    "snapshots_unchanged": true
+  },
+  "exact_checks": {
+    "exact_support_summary": true,
+    "exact_tolerance": true,
+    "exact_assembled_size": true,
+    "exact_part_count": true,
+    "support_matches_old_final_view": true,
+    "typed_findings_match_old_final_view": true,
+    "checker_summary_match_old_final_view": true,
+    "old_baseline_size_matches_recorded": true,
+    "control_flags_unchanged": true
+  },
+  "engineering_replay": "NOT_AVAILABLE: this snowman did not call Engineering",
+  "testing": "WRITTEN_NOT_RUN; no pytest or test collection",
+  "model_calls": 0,
+  "checker_calls": 0,
+  "phase2": "DEFERRED"
+}

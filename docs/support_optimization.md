@@ -92,6 +92,33 @@ file references, interface count and existing physical statuses. Internal Dapper
 results remain in raw checker records but are not a competing Agent objective.
 The view is included in the existing 32 KiB feedback budget.
 
+The canonical current-version summary is at top-level `support_evidence`.
+In NSV requests, an identical nested copy is removed only when the complete strict
+JSON content and all three source bindings (`source_sha256`, `source_version`,
+`measurement_config_sha256`) match. If the top-level key is absent, the first
+fully bound copy in the known feedback containers is promoted. Existing invalid
+top-level values are not overwritten. Missing bindings or conflicting content
+remain separate; `comparison_baseline` and control flags are not moved or deduplicated.
+Raw controller feedback, measurements and the public payload interface are unchanged.
+
+`agent_feedback._feedback_view()` defines the original feedback-only byte scope;
+`feedback_size_report()` reports its exact compact UTF-8 JSON size and at most 15
+top-level/nested field sizes each. These exclude requirement/source/image inputs.
+Parent and child sizes overlap and must not be summed. Oversize errors retain
+`AGENT_FEEDBACK_TOO_LARGE`, `actual_bytes` and `limit_bytes`, with bounded field-size
+lists; successful Agent payloads do not acquire size-report fields. The limit stays
+32,768 bytes, and all existing preview/reduction stages remain in their old order.
+
+For an explicitly described saved input, `scripts/feedback_size_report.py --input
+<description.json> --output <replay-dir>` runs only the adapter on copied evidence.
+`--adapter-source <statistics-only-snapshot.py>` selects the baseline implementation.
+Each implementation's outputs are archived by content hash; both passes reset and
+reuse the same isolated workspace path. A replay-only resolver maps original
+absolute references to the copied files without rewriting their bytes/hashes.
+Missing/outside-workspace evidence is not invented. Reports distinguish captured,
+reconstructed and already-projected inputs, local deduplication savings, final
+old/new savings, and reference availability. This is not a model or physical run.
+
 Checkpoints preserve working baseline, retained, qualified, partition reference
 (including None), and baseline feedback. Rejection, unfinished budget exhaustion,
 NO_CHANGE, unavailable comparison or interruption restores those bindings together.

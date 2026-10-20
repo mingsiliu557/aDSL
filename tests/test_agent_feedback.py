@@ -847,3 +847,160 @@ def test_partition_intent_is_short_read_only_input(tmp_path):
     projected=payload_for_agent(payload,workspace=tmp_path,source_path=source,source_version='attempt_0001',role='coder')
     assert projected['partition_intent']==intent and payload==before
     assert payload_for_agent(projected,workspace=tmp_path,source_path=source,source_version='attempt_0001',role='coder')==projected
+
+
+def support_budget_evidence():
+    return dict(source_sha256='a'*64, source_version='original', measurement_config_sha256='b'*64,
+        part_count=1, tolerance_mm3=1.2000000000000002, assembled_size_mm=[3.,4.,12.],
+        support=dict(status='PASS',total_support_volume_mm3=12.000000000000002,
+            total_volume_mm3=100.,nsv_total=.12000000000000002,total_risky_projected_area_mm2=6.),
+        items=[dict(part_id='body',support=dict(status='PASS',support_volume_mm3=12.000000000000002,
+            mesh_volume_mm3=100.,nsv=.12000000000000002,risky_projected_area_mm2=6.,
+            risky_face_count=1,ray_backend='fixture'),bounds_mm=[[0.,0.,0.],[3.,4.,12.]],
+            print_transform_mm=[[1.,0.,0.,0.],[0.,1.,0.,0.],[0.,0.,1.,.12345678901234568],[0.,0.,0.,1.]],
+            largest_regions=[],evidence_ref={'path':'support.json','json_pointer':'/support'})])
+
+
+@pytest.mark.parametrize('container',['feedback','assembly_context','pending_reviews','engineering_feedback','checker_evidence'])
+def test_support_dedup_is_source_bound_and_does_not_mutate_input(tmp_path,container):
+    from adsl.agents.agent_feedback import _support_for_agent
+    support=support_budget_evidence()
+    baseline=deepcopy(support);baseline['source_version']='previous'
+    support['comparison_baseline']=baseline
+    raw=dict(support_evidence=support,**{container:dict(support_evidence=deepcopy(support),
+        support_round=False,support_baseline_version=None,mode_a_pose_check={'conclusion':'ACCEPT'})})
+    before=deepcopy(raw)
+    out=payload_for_agent(raw,workspace=tmp_path,source_path=None,source_version='original',role='coder')
+    assert 'support_evidence' not in out[container]
+    assert out['support_evidence']==_support_for_agent(support)
+    assert out[container]['support_round'] is False
+    assert out[container]['support_baseline_version'] is None
+    assert out[container]['mode_a_pose_check']=={'conclusion':'ACCEPT'}
+    assert out['support_evidence']['comparison_baseline']['source_version']=='previous'
+    assert out['support_evidence']['tolerance_mm3']==support['tolerance_mm3']
+    assert out['support_evidence']['items'][0]['print_transform_mm']==support['items'][0]['print_transform_mm']
+    assert raw==before
+    assert payload_for_agent(out,workspace=tmp_path,source_path=None,source_version='original',role='coder')==out
+
+
+@pytest.mark.parametrize('field,value',[('source_sha256','c'*64),('source_version','other'),
+    ('measurement_config_sha256','d'*64),('source_sha256',None),('source_version',''),
+    ('measurement_config_sha256',None),('part_count',2)])
+def test_support_dedup_retains_missing_identity_or_conflicting_evidence(field,value):
+    from adsl.agents.agent_feedback import _deduplicate_support_evidence
+    first=support_budget_evidence();other=deepcopy(first);other[field]=value
+    payload=dict(support_evidence=first,feedback={'support_evidence':other})
+    before=deepcopy(payload)
+    assert _deduplicate_support_evidence(payload)==[]
+    assert payload==before
+
+
+def test_support_dedup_compares_complete_strict_json_before_projection():
+    from adsl.agents.agent_feedback import _deduplicate_support_evidence
+    first=support_budget_evidence();other=deepcopy(first);other['raw_only']='different detail'
+    payload=dict(support_evidence=first,feedback={'support_evidence':other})
+    assert _deduplicate_support_evidence(payload)==[]
+    assert payload['feedback']['support_evidence']['raw_only']=='different detail'
+    first['support']['total_support_volume_mm3']=float('nan')
+    other=deepcopy(first);payload=dict(support_evidence=first,feedback={'support_evidence':other})
+    assert _deduplicate_support_evidence(payload)==[]
+    assert payload['support_evidence'] is first and payload['feedback']['support_evidence'] is other
+
+
+def test_support_dedup_promotes_missing_top_and_keeps_invalid_top():
+    from adsl.agents.agent_feedback import _deduplicate_support_evidence
+    support=support_budget_evidence()
+    payload={'feedback':{'pending_reviews':{'support_evidence':deepcopy(support)}}}
+    events=_deduplicate_support_evidence(payload)
+    assert payload['support_evidence']==support
+    assert 'support_evidence' not in payload['feedback']['pending_reviews']
+    assert events[0]['removed_path']=='/feedback/pending_reviews/support_evidence'
+    assert events[0]['canonical_path']=='/support_evidence'
+    assert _deduplicate_support_evidence(payload)==[]
+    for invalid in (None,'invalid',{}, {'source_version':'original'}):
+        payload=dict(support_evidence=deepcopy(invalid),feedback={'support_evidence':deepcopy(support)})
+        assert _deduplicate_support_evidence(payload)==[]
+        assert payload['support_evidence']==invalid and payload['feedback']['support_evidence']==support
+
+
+def test_support_dedup_ignores_task_data_and_comparison_baseline_and_bounds_events():
+    from adsl.agents.agent_feedback import _deduplicate_support_evidence
+    support=support_budget_evidence()
+    payload=dict(support_evidence=support,task={'support_evidence':deepcopy(support)})
+    current=payload
+    for _ in range(20):
+        current['feedback']={'support_evidence':deepcopy(support)};current=current['feedback']
+    events=_deduplicate_support_evidence(payload)
+    assert len(events)==15 and payload['task']['support_evidence']==support
+    assert 'support_evidence' not in current
+    assert set(events[0])=={'canonical_path','removed_path','source_sha256','source_version','measurement_config_sha256'}
+    # JSON member ordering does not distinguish otherwise identical evidence.
+    nested=dict(reversed(list(support.items())))
+    assert _deduplicate_support_evidence(dict(support_evidence=support,feedback={'support_evidence':nested}))
+
+
+def test_engineering_single_support_and_area_contracts_unchanged(tmp_path,monkeypatch):
+    from adsl.agents import agent_feedback as adapter
+    support=support_budget_evidence()
+    projected=payload_for_agent(dict(support_evidence=support),workspace=tmp_path,
+        source_path=None,source_version='original',role='engineering')
+    assert projected=={'support_evidence':adapter._support_for_agent(support)}
+    assert 'feedback' not in projected
+    assert payload_for_agent(projected,workspace=tmp_path,source_path=None,source_version='original',role='engineering')==projected
+    def unexpected(_):raise AssertionError('area must not invoke support deduplication')
+    monkeypatch.setattr(adapter,'_deduplicate_support_evidence',unexpected)
+    area=dict(requirement='unchanged task',fixed_assembly={'physics':{'overhang':{}}},
+        feedback={'repair_history':[],'support_round':False})
+    assert payload_for_agent(area,workspace=tmp_path,source_path=None,source_version=None,role='coder')==area
+
+
+def test_feedback_size_report_has_exact_scope_bounded_lists_and_escaped_pointers():
+    from adsl.agents.agent_feedback import _feedback_view,_encoded,feedback_size_report
+    raw=dict(requirement='unbudgeted'*1000,source='unbudgeted source',image='unbudgeted image',
+        support_evidence=support_budget_evidence(),feedback={'support_round':False},
+        checker_evidence={**{str(i):'x'*i for i in range(25)},'a~/b':'value'})
+    before=deepcopy(raw);report=feedback_size_report(raw)
+    assert report['actual_bytes']==len(_encoded(_feedback_view(raw)))
+    assert report['limit_bytes']==32768
+    assert len(report['top_level_bytes'])<=15 and len(report['nested_field_bytes'])==15
+    for rows in (report['top_level_bytes'],report['nested_field_bytes']):
+        assert rows==sorted(rows,key=lambda r:(-r['bytes'],r['path']))
+        assert all(set(r)=={'path','bytes'} for r in rows)
+    escaped=feedback_size_report({'checker_evidence':{'a~/b':'value'}})
+    assert escaped['nested_field_bytes']==[dict(path='/checker_evidence/a~0~1b',bytes=len(_encoded('value')))]
+    parent=feedback_size_report({'feedback':{'support_evidence':{'support_round':False}}})
+    assert parent['actual_bytes']!=sum(r['bytes'] for r in parent['top_level_bytes']+parent['nested_field_bytes'])
+    assert raw==before
+    assert all('/items/' not in r['path'] for r in report['nested_field_bytes'])
+    with pytest.raises(ValueError):feedback_size_report(raw,limit=0)
+
+
+def test_support_oversize_error_keeps_code_and_bounded_field_distribution(tmp_path):
+    from adsl.agents.agent_feedback import _feedback_view,_encoded
+    support=support_budget_evidence();support['items']=[deepcopy(support['items'][0]) for _ in range(300)]
+    with pytest.raises(AgentFeedbackError) as captured:
+        payload_for_agent({'support_evidence':support},workspace=tmp_path,source_path=None,
+            source_version='original',role='coder')
+    error=captured.value
+    assert error.code=='AGENT_FEEDBACK_TOO_LARGE'
+    assert set(error.details)=={'actual_bytes','limit_bytes','top_level_bytes','nested_field_bytes'}
+    assert error.details['actual_bytes']>error.details['limit_bytes']==32768
+    assert len(error.details['top_level_bytes'])<=15 and len(error.details['nested_field_bytes'])<=15
+    assert 'fixture' not in json.dumps(error.details)
+
+
+def test_saved_snowman_five_part_support_structure_fits_after_strict_dedup(tmp_path):
+    from adsl.agents.agent_feedback import feedback_size_report
+    fixture=json.loads((Path(__file__).parent/'fixtures/feedback_snowman_support.json').read_text())
+    # The full historical request was replayed separately. This fixture retains
+    # its real five-part support structure, not the entire historical workflow.
+    support=fixture['support_evidence'];raw=dict(support_evidence=support,feedback={'support_evidence':deepcopy(support)})
+    before=deepcopy(raw)
+    out=payload_for_agent(raw,workspace=tmp_path,source_path=None,source_version='original',role='coder')
+    assert len(out['support_evidence']['items'])==out['support_evidence']['part_count']==5
+    assert {r['part_id'] for r in out['support_evidence']['items']}=={
+        'snow_body','head_module','hat_module','left_arm_piece','right_arm_piece'}
+    assert 'support_evidence' not in out['feedback']
+    assert out['support_evidence']['support']==support['support']
+    assert feedback_size_report(out)['actual_bytes']<=32768
+    assert raw==before

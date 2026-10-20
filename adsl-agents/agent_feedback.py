@@ -98,6 +98,50 @@ def _pointer(base, *tokens):
                                  for token in tokens)
 
 
+def _feedback_view(payload) -> dict:
+    """Select exactly the feedback fields covered by the existing byte budget."""
+    if not isinstance(payload, Mapping):
+        return {}
+    names = ('evaluation_feedback', 'evaluation_failure_ids', 'typed_findings', 'checker_evidence',
+        'checker_summary', 'preview_info', 'evidence_files', 'render_issue', 'execution_error',
+        'support_evidence', 'support_baseline_version', 'support_round', 'mode_a_pose_check',
+        'error', 'duplicate_source', 'error_evidence_ref', 'execution_error_evidence_ref',
+        'render_issue_evidence_ref', *_HISTORY_FIELDS)
+    selected = {k: payload[k] for k in names if k in payload}
+    for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback'):
+        if key in payload:
+            selected[key] = _feedback_view(payload[key])
+    return selected
+
+
+def feedback_size_report(payload, *, limit=15) -> dict:
+    """Report bounded field sizes without exposing values or performing I/O.
+
+    Parent/child sizes overlap. Only actual_bytes includes the whole JSON shape.
+    """
+    if type(limit) is not int or limit < 1:
+        raise ValueError('limit must be a positive integer')
+    limit = min(limit, 15)
+    view = _feedback_view(payload)
+    top = [{'path': _pointer('', key), 'bytes': len(_encoded(value))}
+           for key, value in view.items()]
+    nested = []
+    def visit(container, pointer):
+        for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback', 'checker_evidence'):
+            child = container.get(key)
+            if not isinstance(child, Mapping):
+                continue
+            path = _pointer(pointer, key)
+            nested.extend({'path': _pointer(path, name), 'bytes': len(_encoded(value))}
+                          for name, value in child.items())
+            visit(child, path)
+    visit(view, '')
+    order = lambda row: (-row['bytes'], row['path'])
+    return {'actual_bytes': len(_encoded(view)), 'limit_bytes': FEEDBACK_LIMIT_BYTES,
+            'top_level_bytes': sorted(top, key=order)[:limit],
+            'nested_field_bytes': sorted(nested, key=order)[:limit]}
+
+
 def _ref_fields(raw):
     if isinstance(raw, str) or raw is None:
         return {'path':raw, 'json_pointer':None}
@@ -680,6 +724,52 @@ def _remove_support_score_fields(value):
             _remove_support_score_fields(row)
 
 
+def _deduplicate_support_evidence(payload: dict) -> list[dict]:
+    """Consolidate only identical, fully source-bound support in an input copy.
+
+    Compare complete strict JSON before projection. No rounding, normalized NaN
+    comparison, I/O, new permissions, or model-visible reference placeholders.
+    """
+    identity_fields = ('source_sha256', 'source_version', 'measurement_config_sha256')
+    def signature(value):
+        if not isinstance(value, Mapping) or not all(
+                isinstance(value.get(k), str) and value[k].strip() for k in identity_fields):
+            return None
+        try:
+            return tuple(value[k] for k in identity_fields), _encoded(value)
+        except (ValueError, TypeError):
+            # Leave malformed evidence to the existing projection/validation.
+            return None
+    locations = []
+    def visit(container, pointer):
+        if not isinstance(container, dict):
+            return
+        if 'support_evidence' in container:
+            locations.append((container, _pointer(pointer, 'support_evidence')))
+        for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback', 'checker_evidence'):
+            visit(container.get(key), _pointer(pointer, key))
+    visit(payload, '')
+    if 'support_evidence' not in payload:
+        first = next((container['support_evidence'] for container, _ in locations
+                      if signature(container['support_evidence']) is not None), None)
+        if first is not None:
+            payload['support_evidence'] = deepcopy(first)
+    canonical = signature(payload.get('support_evidence'))
+    if canonical is None:
+        return []
+    events = []
+    for container, pointer in locations:
+        if container is payload:
+            continue
+        if signature(container.get('support_evidence')) != canonical:
+            continue
+        del container['support_evidence']
+        if len(events) < 15:
+            events.append(dict(canonical_path='/support_evidence', removed_path=pointer,
+                               **dict(zip(identity_fields, canonical[0]))))
+    return events
+
+
 def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                       report_ref=None, evidence_files=()):
     if role not in {'engineering', 'code_critic', 'image_critic', 'coder', 'debugger'}:
@@ -692,6 +782,7 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
             (out.get('fixed_assembly') or {}).get('physics',{}).get('overhang',{}).get('support_metric')=='nsv')
         if nsv:
             _remove_support_score_fields(out)
+            _deduplicate_support_evidence(out)
         full_histories = {}
         existing = out.get('evaluation_feedback')
         existing_index_ref = None
@@ -842,21 +933,8 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                      {**index_ref, 'json_pointer': '/failures'} if index_ref else None)
             out['evaluation_feedback'] = feedback
 
-        def feedback_only(container):
-            if not isinstance(container, Mapping):
-                return {}
-            names = ('evaluation_feedback', 'evaluation_failure_ids', 'typed_findings', 'checker_evidence',
-                'checker_summary', 'preview_info', 'evidence_files', 'render_issue', 'execution_error',
-                'support_evidence', 'support_baseline_version', 'support_round', 'mode_a_pose_check',
-                'error', 'duplicate_source', 'error_evidence_ref', 'execution_error_evidence_ref', 'render_issue_evidence_ref', *_HISTORY_FIELDS)
-            selected = {k: container[k] for k in names if k in container}
-            for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback'):
-                if key in container:
-                    selected[key] = feedback_only(container[key])
-            return selected
-
         def measure():
-            return len(_encoded(feedback_only(out)))
+            return len(_encoded(_feedback_view(out)))
 
         # Reduce explanations, never a verdict/permission or current metric.
         for history_limit, candidate_limit, attempt_limit, occurrence_limit, group_limit in (
@@ -961,11 +1039,10 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
             minimal_history(out)
         actual = measure()
         if actual > FEEDBACK_LIMIT_BYTES:
-            raise AgentFeedbackError('AGENT_FEEDBACK_TOO_LARGE', {'actual_bytes': actual,
-                                                               'limit_bytes': FEEDBACK_LIMIT_BYTES})
+            raise AgentFeedbackError('AGENT_FEEDBACK_TOO_LARGE', feedback_size_report(out))
         # Feedback only is strict JSON. Images and task/source fields remain as
         # delivered by the existing workflow, outside this engineering budget.
-        _encoded(feedback_only(out))
+        _encoded(_feedback_view(out))
         return out
     except AgentFeedbackError:
         raise
