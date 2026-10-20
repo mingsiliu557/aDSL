@@ -710,6 +710,39 @@ class _Projection:
                     'assembly_topology', 'assembly_standing', 'assembly_overhang'}:
                 full_ref = self.candidate_ref(raw, row, ref)
                 row = _compact_source_candidates(row, view=self, full_ref=full_ref)
+                if full_ref is None:
+                    # _preview may have removed a zero-omission preview before
+                    # validation. Its original reference is still needed when
+                    # the details were omitted by an earlier projection.
+                    previous = _preview_metadata(raw.get('preview_info')).get('source_candidates')
+                    if previous and isinstance(previous.get('full_ref'), Mapping):
+                        saved = self.ref(previous['full_ref'])
+                        reason = saved.get('reason')
+                        if saved['availability'] == 'AVAILABLE':
+                            try:
+                                digest = hashlib.sha256((self.workspace / saved['path']).read_bytes()).hexdigest()
+                                if saved.get('file_sha256') != digest:
+                                    reason = 'file_hash_mismatch'
+                                elif saved['source_binding'] != 'CURRENT':
+                                    reason = 'source_binding_stale' if saved['source_binding'] == 'STALE' else 'source_binding_unknown'
+                                else:
+                                    _at(self.document(saved), saved.get('json_pointer'))
+                                    reason = 'candidate_reference_mismatch'
+                            except (KeyError, IndexError, TypeError, ValueError):
+                                reason = 'pointer_unreadable'
+                            except OSError:
+                                reason = 'file_unreadable'
+                        saved.update(availability='UNAVAILABLE', reason=reason or 'candidate_reference_mismatch')
+                        previous['full_ref'] = saved
+                        row.setdefault('preview_info', {})['source_candidates'] = previous
+                        if all(isinstance(c, Mapping) and set(c).issubset(_CANDIDATE_FIELDS)
+                               for c in raw.get('source_candidates', [])):
+                            # Do not fabricate empty locations or per-candidate
+                            # evidence refs for a previously compact view.
+                            row['source_candidates'] = deepcopy(raw['source_candidates'][:len(row['source_candidates'])])
+                        # Budget reduction must retain this unavailable reference
+                        # too, rather than snapshot the shortened candidates.
+                        self.compacted_findings.add(id(row))
             result.append(row)
         return result
 

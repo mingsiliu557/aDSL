@@ -1219,7 +1219,14 @@ def test_compaction_falls_back_without_reliable_full_original(tmp_path, monkeypa
     with monkeypatch.context() as m:
         m.setattr(a, '_COMPACT_ASSEMBLY_CANDIDATES', False)
         old = project(tmp_path, source, ref, payload)
-    assert project(tmp_path, source, ref, payload) == old
+    actual = project(tmp_path, source, ref, payload)
+    if fault == 'file_hash':
+        info = actual['typed_findings'][0]['preview_info']['source_candidates']
+        assert info['total'] == 6 and info['omitted_count'] == 0
+        assert info['full_ref']['availability'] == 'UNAVAILABLE'
+        assert info['full_ref']['reason'] == 'file_hash_mismatch'
+        actual['typed_findings'][0].pop('preview_info')
+    assert actual == old
 
 
 def test_compact_recovery_snapshot_and_finding_identity(tmp_path):
@@ -1356,3 +1363,42 @@ def test_candidate_compaction_uses_only_known_recursive_containers(tmp_path, con
     assert f['preview_info']['source_candidates']['total'] == 6
     assert out['task_data'] == payload['task_data']
     assert project(tmp_path, source, ref, out) == out
+
+
+
+def _assert_compact_reference_survives_invalid_evidence(tmp_path, *, modified):
+    source, _, ref, payload = assembly_candidates_input(tmp_path)
+    first = project(tmp_path, source, ref, payload)
+    first_before = deepcopy(first)
+    finding = first['typed_findings'][0]
+    original_info = deepcopy(finding['preview_info']['source_candidates'])
+    assert original_info['total'] == 6 and original_info['omitted_count'] == 0
+    assert 'source_locations' not in finding['source_candidates'][0]
+    snapshots = {p.name:p.read_bytes() for p in tmp_path.glob('diagnostics/agent_feedback/*.json')}
+    evidence_path = tmp_path / original_info['full_ref']['path']
+    if modified:
+        document = json.loads(evidence_path.read_text())
+        document['findings'][0]['source_candidates'][0]['evidence'] = ['Changed since projection']
+        evidence_path.write_text(json.dumps(document))
+    else:
+        evidence_path.unlink()
+    again = project(tmp_path, source, ref, first)
+    current = again['typed_findings'][0]
+    info = current['preview_info']['source_candidates']
+    assert current['source_candidates'] == finding['source_candidates']
+    assert (info['total'], info['omitted_count']) == (6, 0)
+    for key in ('path','json_pointer','source_sha256','source_version','file_sha256'):
+        assert info['full_ref'][key] == original_info['full_ref'][key]
+    assert info['full_ref']['availability'] == 'UNAVAILABLE'
+    assert info['full_ref']['reason'] == ('file_hash_mismatch' if modified else 'file_not_found')
+    assert first == first_before
+    assert project(tmp_path, source, ref, again) == again
+    assert snapshots == {p.name:p.read_bytes() for p in tmp_path.glob('diagnostics/agent_feedback/*.json')}
+
+
+def test_compact_full_reference_survives_deleted_original(tmp_path):
+    _assert_compact_reference_survives_invalid_evidence(tmp_path, modified=False)
+
+
+def test_compact_full_reference_survives_modified_original(tmp_path):
+    _assert_compact_reference_survives_invalid_evidence(tmp_path, modified=True)
