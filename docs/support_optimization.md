@@ -101,6 +101,16 @@ top-level values are not overwritten. Missing bindings or conflicting content
 remain separate; `comparison_baseline` and control flags are not moved or deduplicated.
 Raw controller feedback, measurements and the public payload interface are unchanged.
 
+Same-source conflicting records retain an adjacent `support_evidence_provenance`
+marker (strict input-content and current-view SHA256s). Removing unknown fields or
+shortening explanations/regions must not make different original records eligible
+for deduplication on a later projection. The input fingerprint is reused only when
+its view hash matches; changed views are rebound before projection. Different earlier
+previews of one raw record also retain their input distinction. View hashes track
+the existing budget reductions, and both marker hashes count toward the same 32 KiB
+budget. These are comparison markers, not source authorization or measurement proof.
+Ordinary identical copies and single evidence records do not acquire markers.
+
 `agent_feedback._feedback_view()` defines the original feedback-only byte scope;
 `feedback_size_report()` reports its exact compact UTF-8 JSON size and at most 15
 top-level/nested field sizes each. These exclude requirement/source/image inputs.

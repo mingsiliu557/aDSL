@@ -196,8 +196,113 @@
     "control_flags_unchanged": true
   },
   "engineering_replay": "NOT_AVAILABLE: this snowman did not call Engineering",
-  "testing": "WRITTEN_NOT_RUN; no pytest or test collection",
+  "testing": "Initial phase: tests written only. Boundary followup: directed and related regressions executed; see projection_boundary_followup.",
   "model_calls": 0,
   "checker_calls": 0,
-  "phase2": "DEFERRED"
+  "phase2": "DEFERRED",
+  "projection_boundary_followup": {
+    "base_commit": "56a43deefdc3def2e7101ac484701d3036bf3580",
+    "adapter_sha256": "237ed5a0939cf552bfcd68801ef1ea0d2c382d934db0096c5601ceb47222610e",
+    "before_fix": {
+      "expected_failures": 10,
+      "reason": "second_projection_deleted_distinct_original_support"
+    },
+    "final_tests": {
+      "directed": {
+        "tests": 93,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 28.809
+      },
+      "related": {
+        "tests": 301,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 43.479,
+        "deselected": 1
+      }
+    },
+    "related_nodes": [
+      "tests/test_support_volume.py",
+      "tests/test_support_overhang.py",
+      "tests/test_support_workflow.py",
+      "tests/test_mesh_evaluation_feedback.py",
+      "tests/test_generation_review_contract.py",
+      "tests/test_fixed_assembly_recovery.py",
+      "tests/test_read_file_recovery.py",
+      "tests/test_assembly_feedback_recovery.py",
+      "tests/test_actions.py",
+      "tests/test_fixed_assembly.py::test_old_schema_and_prompt_unchanged",
+      "tests/test_fixed_assembly.py::test_actual_planner_and_initial_coder_inputs",
+      "tests/test_fixed_assembly.py::test_empty_source_resume_preserves_complete_initial_coder_payload",
+      "tests/test_fixed_assembly.py::test_plan_errors",
+      "tests/test_fixed_assembly.py::test_rejected_geometry_keeps_original_and_budget",
+      "tests/test_fixed_assembly.py::test_successful_candidate_publishes_matching_results",
+      "tests/test_fixed_assembly.py::test_no_change_and_errors_preserve_assets",
+      "tests/test_fixed_assembly.py::test_changed_frozen_config_rejected_on_resume",
+      "tests/test_assembly_physics.py::test_comparison_missing_data_never_zero_and_ast_scope",
+      "tests/test_assembly_physics.py::test_timeout_isolated_and_all_tools_run",
+      "tests/test_assembly_physics.py::test_multitool_feedback_one_repair_despite_image_rejection_and_timeout",
+      "tests/test_assembly_physics.py::test_measurement_pass_still_optimizes_and_rejected_orientation_keeps_results",
+      "tests/test_source_execution_feedback.py::test_source_error_skips_critics_and_reaches_existing_coder_loop",
+      "tests/test_source_execution_feedback.py::test_source_failure_does_not_start_configured_physical_checks",
+      "tests/test_source_execution_feedback.py::test_source_error_reaches_real_coder_adapter_and_file_tools",
+      "tests/test_partition_selection.py",
+      "tests/test_partition_feedback.py",
+      "tests/test_partition_score.py",
+      "tests/test_fixed_assembly_prompt.py::test_partition_implementation_contract_in_actual_coder_prompt"
+    ],
+    "related_filter": "not interference_real_geometry",
+    "initial_related_result": {
+      "passed": 299,
+      "failed": 2,
+      "deselected": 1,
+      "reason": "cleaned_archived_fixture_missing"
+    },
+    "isolated_fixture": {
+      "git_ref": "HEAD:reports/benchmark_six_boolean_failure_20261007/source.py",
+      "sha256": "286f51cb95bed9d3fe996369ba406378d13465299ce0feb6ee10e908eb70f068",
+      "adapter_origin": "adsl-agents/agent_feedback.py",
+      "adapter_sha256": "237ed5a0939cf552bfcd68801ef1ea0d2c382d934db0096c5601ceb47222610e",
+      "purpose": "source-index regression only; no mesh export or physical checker"
+    },
+    "provenance_fields": [
+      "raw_sha256",
+      "view_sha256"
+    ],
+    "provenance_budgeted": true,
+    "replay": {
+      "status": "PASS",
+      "adapter_sha256": "237ed5a0939cf552bfcd68801ef1ea0d2c382d934db0096c5601ceb47222610e",
+      "input_kind": "reconstructed_pre_projection",
+      "source_version": "original",
+      "source_sha256": "2ec7cba8eacf2610820a009d8f0a85c0dc60a2da2afb123a58ce4419a2d7863b",
+      "input_unchanged": true,
+      "original_files_unchanged": true,
+      "repeated_projection": {
+        "status": "PASS",
+        "payload_identical": true,
+        "snapshots_unchanged": true
+      },
+      "remaining_bytes": 2946,
+      "reference_summary": {
+        "total": 41,
+        "available": 41,
+        "unavailable": 0
+      },
+      "final_selected_bytes": 29822,
+      "phase1_payload_identical": true
+    },
+    "local_artifacts": "temp/feedback_budget_boundary_20261020/",
+    "representative_8_to_10_part_feedback": "NOT_EVALUATED",
+    "phase2_implemented": false,
+    "real_model_calls": 0,
+    "real_object_exports": 0,
+    "physical_simulation_runs": 0,
+    "benchmark_runs": 0,
+    "publication_branch": "action_v1",
+    "publication_note": "Recorded by the enclosing Git commit; consult the remote action_v1 branch for push status."
+  }
 }

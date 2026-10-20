@@ -104,7 +104,7 @@ def _feedback_view(payload) -> dict:
         return {}
     names = ('evaluation_feedback', 'evaluation_failure_ids', 'typed_findings', 'checker_evidence',
         'checker_summary', 'preview_info', 'evidence_files', 'render_issue', 'execution_error',
-        'support_evidence', 'support_baseline_version', 'support_round', 'mode_a_pose_check',
+        'support_evidence', 'support_evidence_provenance', 'support_baseline_version', 'support_round', 'mode_a_pose_check',
         'error', 'duplicate_source', 'error_evidence_ref', 'execution_error_evidence_ref',
         'render_issue_evidence_ref', *_HISTORY_FIELDS)
     selected = {k: payload[k] for k in names if k in payload}
@@ -724,6 +724,46 @@ def _remove_support_score_fields(value):
             _remove_support_score_fields(row)
 
 
+def _support_evidence_locations(payload, pointer=''):
+    if not isinstance(payload, dict):
+        return
+    if 'support_evidence' in payload:
+        yield payload, _pointer(pointer, 'support_evidence')
+    for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback', 'checker_evidence'):
+        yield from _support_evidence_locations(payload.get(key), _pointer(pointer, key))
+
+
+def _support_evidence_signature(container):
+    value = container.get('support_evidence')
+    identity_fields = ('source_sha256', 'source_version', 'measurement_config_sha256')
+    if not isinstance(value, Mapping) or not all(
+            isinstance(value.get(k), str) and value[k].strip() for k in identity_fields):
+        return None
+    try:
+        content = _encoded(value)
+    except (ValueError, TypeError):
+        return None
+    digest = hashlib.sha256(content).hexdigest()
+    provenance = container.get('support_evidence_provenance')
+    # A prior raw identity applies only to the exact view it accompanied. It
+    # carries no source-binding or repair authority, and stale markers are ignored.
+    raw_digest = digest
+    if (isinstance(provenance, Mapping) and provenance.get('view_sha256') == digest
+            and isinstance(provenance.get('raw_sha256'), str)
+            and re.fullmatch('[0-9a-f]{64}', provenance['raw_sha256'])):
+        raw_digest = provenance['raw_sha256']
+    return tuple(value[k] for k in identity_fields), content, raw_digest
+
+
+def _refresh_support_evidence_provenance(payload):
+    # Projection and the existing budget reductions may both change the view.
+    # Refresh before measuring so the next invocation can verify the marker.
+    for container, _ in _support_evidence_locations(payload):
+        provenance = container.get('support_evidence_provenance')
+        if isinstance(provenance, dict):
+            provenance['view_sha256'] = hashlib.sha256(_encoded(container['support_evidence'])).hexdigest()
+
+
 def _deduplicate_support_evidence(payload: dict) -> list[dict]:
     """Consolidate only identical, fully source-bound support in an input copy.
 
@@ -731,39 +771,45 @@ def _deduplicate_support_evidence(payload: dict) -> list[dict]:
     comparison, I/O, new permissions, or model-visible reference placeholders.
     """
     identity_fields = ('source_sha256', 'source_version', 'measurement_config_sha256')
-    def signature(value):
-        if not isinstance(value, Mapping) or not all(
-                isinstance(value.get(k), str) and value[k].strip() for k in identity_fields):
-            return None
-        try:
-            return tuple(value[k] for k in identity_fields), _encoded(value)
-        except (ValueError, TypeError):
-            # Leave malformed evidence to the existing projection/validation.
-            return None
-    locations = []
-    def visit(container, pointer):
-        if not isinstance(container, dict):
-            return
-        if 'support_evidence' in container:
-            locations.append((container, _pointer(pointer, 'support_evidence')))
-        for key in ('feedback', 'assembly_context', 'pending_reviews', 'engineering_feedback', 'checker_evidence'):
-            visit(container.get(key), _pointer(pointer, key))
-    visit(payload, '')
+    locations = list(_support_evidence_locations(payload))
     if 'support_evidence' not in payload:
-        first = next((container['support_evidence'] for container, _ in locations
-                      if signature(container['support_evidence']) is not None), None)
+        first = next((container for container, _ in locations
+                      if _support_evidence_signature(container) is not None), None)
         if first is not None:
-            payload['support_evidence'] = deepcopy(first)
-    canonical = signature(payload.get('support_evidence'))
+            payload['support_evidence'] = deepcopy(first['support_evidence'])
+            if 'support_evidence_provenance' in first:
+                payload['support_evidence_provenance'] = deepcopy(first['support_evidence_provenance'])
+            locations.insert(0, (payload, '/support_evidence'))
+    signatures = [(container, pointer, _support_evidence_signature(container))
+                  for container, pointer in locations]
+    by_source = {}
+    for container, _, signature in signatures:
+        if signature is not None:
+            by_source.setdefault(signature[0], set()).add(signature[1:])
+    # Retain the raw distinction only where same-source evidence conflicts. A
+    # lossy projection must not make those records eligible for later deduplication.
+    for container, _, signature in signatures:
+        if signature is not None and (len(by_source[signature[0]]) > 1
+                or 'support_evidence_provenance' in container):
+            current_digest = hashlib.sha256(signature[1]).hexdigest()
+            # Earlier projections may have produced different previews of the
+            # same raw record. Preserve that input distinction before any further
+            # reduction makes these views equal, too.
+            raw_digest = (current_digest if sum(raw == signature[2]
+                for _, raw in by_source[signature[0]]) > 1 else signature[2])
+            container['support_evidence_provenance'] = {
+                'raw_sha256': raw_digest, 'view_sha256': current_digest}
+    canonical = _support_evidence_signature(payload)
     if canonical is None:
         return []
     events = []
     for container, pointer in locations:
         if container is payload:
             continue
-        if signature(container.get('support_evidence')) != canonical:
+        if _support_evidence_signature(container) != canonical:
             continue
         del container['support_evidence']
+        container.pop('support_evidence_provenance', None)
         if len(events) < 15:
             events.append(dict(canonical_path='/support_evidence', removed_path=pointer,
                                **dict(zip(identity_fields, canonical[0]))))
@@ -934,6 +980,8 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
             out['evaluation_feedback'] = feedback
 
         def measure():
+            if nsv:
+                _refresh_support_evidence_provenance(out)
             return len(_encoded(_feedback_view(out)))
 
         # Reduce explanations, never a verdict/permission or current metric.

@@ -892,7 +892,12 @@ def test_support_dedup_retains_missing_identity_or_conflicting_evidence(field,va
     payload=dict(support_evidence=first,feedback={'support_evidence':other})
     before=deepcopy(payload)
     assert _deduplicate_support_evidence(payload)==[]
-    assert payload==before
+    assert payload['support_evidence']==before['support_evidence']
+    assert payload['feedback']['support_evidence']==before['feedback']['support_evidence']
+    if field=='part_count':
+        assert payload['support_evidence_provenance']['raw_sha256']!=payload['feedback']['support_evidence_provenance']['raw_sha256']
+    else:
+        assert payload==before
 
 
 def test_support_dedup_compares_complete_strict_json_before_projection():
@@ -1003,4 +1008,89 @@ def test_saved_snowman_five_part_support_structure_fits_after_strict_dedup(tmp_p
     assert 'support_evidence' not in out['feedback']
     assert out['support_evidence']['support']==support['support']
     assert feedback_size_report(out)['actual_bytes']<=32768
+    assert raw==before
+
+
+@pytest.mark.parametrize('container',['feedback','assembly_context','pending_reviews','engineering_feedback','checker_evidence'])
+@pytest.mark.parametrize('difference',['raw_only','truncated_reason'])
+def test_support_conflicts_survive_two_full_projections(tmp_path,container,difference):
+    from adsl.agents.agent_feedback import _encoded, feedback_size_report
+    first=support_budget_evidence();second=deepcopy(first)
+    if difference=='raw_only':
+        first['raw_only']='original A';second['raw_only']='original B'
+    else:
+        first['support']['reason']='x'*240+' original A'
+        second['support']['reason']='x'*240+' original B'
+    raw=dict(support_evidence=first,**{container:{'support_evidence':second}})
+    before=deepcopy(raw)
+    once=payload_for_agent(raw,workspace=tmp_path,source_path=None,source_version='original',role='coder')
+    assert once['support_evidence']==once[container]['support_evidence']
+    assert once['support_evidence_provenance']['raw_sha256']==hashlib.sha256(_encoded(first)).hexdigest()
+    assert once[container]['support_evidence_provenance']['raw_sha256']==hashlib.sha256(_encoded(second)).hexdigest()
+    assert once['support_evidence_provenance']['raw_sha256']!=once[container]['support_evidence_provenance']['raw_sha256']
+    for location in (once,once[container]):
+        assert location['support_evidence_provenance']['view_sha256']==hashlib.sha256(_encoded(location['support_evidence'])).hexdigest()
+    assert any(row['path']=='/support_evidence_provenance' for row in feedback_size_report(once)['top_level_bytes'])
+    twice=payload_for_agent(once,workspace=tmp_path,source_path=None,source_version='original',role='coder')
+    assert twice==once
+    assert raw==before
+
+
+def test_support_provenance_rebinds_changed_view_and_survives_promotion(tmp_path):
+    from adsl.agents.agent_feedback import _encoded
+    first=support_budget_evidence();second=deepcopy(first)
+    first['raw_only']='A';second['raw_only']='B'
+    project=lambda value:payload_for_agent(value,workspace=tmp_path,source_path=None,source_version='original',role='coder')
+    once=project(dict(support_evidence=first,feedback={'support_evidence':second}))
+    changed=deepcopy(once)
+    changed['feedback']['support_evidence']['support']['total_volume_mm3']=101.
+    changed_raw_hash=hashlib.sha256(_encoded(changed['feedback']['support_evidence'])).hexdigest()
+    rebound=project(changed)
+    assert rebound['feedback']['support_evidence_provenance']['raw_sha256']==changed_raw_hash
+    assert rebound['support_evidence_provenance']['raw_sha256']==once['support_evidence_provenance']['raw_sha256']
+    assert project(rebound)==rebound
+    # Promoting an already projected view must not replace its original identity.
+    raw={'feedback':deepcopy(once['feedback']),'assembly_context':{
+        'support_evidence':deepcopy(once['support_evidence']),
+        'support_evidence_provenance':deepcopy(once['support_evidence_provenance'])}}
+    before=deepcopy(raw);promoted=project(raw)
+    assert 'support_evidence' not in promoted['feedback']
+    assert 'support_evidence_provenance' not in promoted['feedback']
+    assert promoted['support_evidence_provenance']==once['feedback']['support_evidence_provenance']
+    assert promoted['assembly_context']['support_evidence_provenance']==once['support_evidence_provenance']
+    assert project(promoted)==promoted and raw==before
+
+
+@pytest.mark.parametrize('difference',['raw_only','previous_previews'])
+def test_support_provenance_tracks_existing_budget_region_reduction(tmp_path,monkeypatch,difference):
+    from adsl.agents import agent_feedback as adapter
+    first=support_budget_evidence();second=deepcopy(first)
+    for evidence,label in ((first,'A'),(second,'B')):
+        evidence['raw_only']=label
+        evidence['items'][0]['largest_regions']=[{
+            'area_mm2':float(i),'centroid_mm':[0.,1.,float(i)],
+            'bounds_mm':[[0.,0.,0.],[1.,2.,float(i)]]} for i in (1,2,3)]
+    raw=dict(support_evidence=first,feedback={'support_evidence':second});before=deepcopy(raw)
+    if difference=='previous_previews':
+        # Valid but unequal earlier previews can share the same raw fingerprint.
+        # The full entry must preserve their distinction through later reduction.
+        raw_hash=hashlib.sha256(adapter._encoded(first)).hexdigest()
+        raw['support_evidence']=adapter._support_for_agent(first)
+        raw['feedback']['support_evidence']=deepcopy(raw['support_evidence'])
+        raw['feedback']['support_evidence']['items'][0]['largest_regions']=raw['feedback']['support_evidence']['items'][0]['largest_regions'][:1]
+        for location in (raw,raw['feedback']):
+            location['support_evidence_provenance']={'raw_sha256':raw_hash}
+        adapter._refresh_support_evidence_provenance(raw)
+        before=deepcopy(raw)
+    project=lambda value:payload_for_agent(value,workspace=tmp_path,source_path=None,source_version='original',role='coder')
+    full=project(raw);reduced=deepcopy(full)
+    for location in (reduced,reduced['feedback']):
+        location['support_evidence']['items'][0]['largest_regions']=location['support_evidence']['items'][0]['largest_regions'][:1]
+    adapter._refresh_support_evidence_provenance(reduced)
+    limit=adapter.feedback_size_report(reduced)['actual_bytes']
+    assert limit<adapter.feedback_size_report(full)['actual_bytes']
+    monkeypatch.setattr(adapter,'FEEDBACK_LIMIT_BYTES',limit)
+    once=project(raw)
+    assert once==reduced and project(once)==once
+    assert adapter.feedback_size_report(once)['actual_bytes']==limit
     assert raw==before
