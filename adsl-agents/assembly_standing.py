@@ -13,7 +13,58 @@ from .models import CheckerResult
 from .utils.io import write_json
 
 NAME='assembly_standing'
+STANDING_PROTOCOL = 'independent_contact_warning_v1'
 def checker_spec(timeout_seconds=900,**kwargs): return _spec(NAME,timeout_seconds,**kwargs)
+
+
+def with_protocol(result):
+    """Attach explicit unavailable observations to early/transport failures too."""
+    result.assumptions['standing_protocol'] = STANDING_PROTOCOL
+    result.assumptions['interface_observation_limit'] = (
+        'Exit uses declared TabSlot query geometry at simulated relative poses; '
+        'it does not prove that an actual tab exists. Topology is assessed separately.')
+    result.metrics.setdefault('standing_observation', dict(status='UNAVAILABLE',
+        observed_tipping=None, observed_interface_exit=None, peak_tilt_deg=None,
+        final_tilt_deg=None, duration_s=None))
+    result.metrics.setdefault('contact_diagnostic', dict(status='UNAVAILABLE',
+        code='CONTACT_DIAGNOSTIC_UNAVAILABLE', maximum_penetration_mm=None,
+        reference_bound_mm=None, affects_standing_verdict=False))
+    return result
+
+
+def _validate_physical_inputs(report, meshes):
+    """Validate model construction/observation inputs, not interface geometry."""
+    from adsl.core.assembly import TabSlot
+    from adsl.core.assembly_topology import mm_matrix
+    parts = report['parts']
+    names = [p['id'] for p in parts]
+    expected = [p['id'] for p in report.get('part_declarations', parts)]
+    if (len(names) != len(set(names)) or len(expected) != len(set(expected))
+            or set(names) != set(expected) or set(names) != set(meshes)
+            or report['root_id'] not in meshes):
+        raise ValueError('INVALID_PHYSICAL_INPUT: incomplete or ambiguous rigid bodies')
+    scale = float(report['mm_per_unit'])
+    if not math.isfinite(scale) or scale <= 0:
+        raise ValueError('INVALID_PHYSICAL_INPUT: invalid length scale')
+    def frame(value):
+        try:
+            return mm_matrix(value, scale)  # Existing rigid-frame contract.
+        except ValueError as error:
+            raise ValueError(f'INVALID_PHYSICAL_INPUT: {error}') from error
+    for part in parts:
+        frame(part['assembly_transform'])
+    connection_ids = set()
+    for c in report['connections']:
+        if (c['id'] in connection_ids or c['tab_part'] == c['slot_part']
+                or c['tab_part'] not in meshes or c['slot_part'] not in meshes):
+            raise ValueError('INVALID_PHYSICAL_INPUT: ambiguous connection observation')
+        connection_ids.add(c['id'])
+        try:
+            TabSlot(**c['parameters'])  # Existing finite/dimension constraints only.
+        except ValueError as error:
+            raise ValueError(f'INVALID_PHYSICAL_INPUT: {error}') from error
+        frame(c['tab_frame'])
+        frame(c['slot_frame'])
 
 
 def collision_proxies(mesh, config):
@@ -104,9 +155,15 @@ def xml_model(report,meshes,proxies,config,density):
         q=Rotation.from_matrix(matrix[:3,:3]).as_quat()[[3,0,1,2]]
         body=ET.SubElement(world,'body',name=name,pos=values(matrix[:3,3]),quat=values(q))
         ET.SubElement(body,'freejoint',name=f'free_{name}')
-        # Inertia from non-overlapping material, NEVER the proxy-volume sum.
+        # Per-part material inertia, NEVER the proxy-volume sum. Inter-part
+        # interference is reported separately by Topology.
         physical=mesh.copy();physical.apply_scale(.001);physical.density=density
         inertia=physical.moment_inertia
+        if (not math.isfinite(float(physical.mass)) or physical.mass <= 0
+                or not np.isfinite(physical.center_mass).all()
+                or not np.isfinite(inertia).all()
+                or np.any(np.linalg.eigvalsh(inertia) <= 0)):
+            raise ValueError(f'INVALID_PHYSICAL_INPUT: invalid mass/inertia for {name}')
         ET.SubElement(body,'inertial',pos=values(physical.center_mass),mass=str(physical.mass),
             fullinertia=values([inertia[0,0],inertia[1,1],inertia[2,2],inertia[0,1],inertia[0,2],inertia[1,2]]))
         if rigid_flex:
@@ -265,6 +322,10 @@ def save_frames(report,meshes,trajectory,output):
 
 
 def analyze(args,physics):
+    return with_protocol(_analyze(args, physics))
+
+
+def _analyze(args,physics):
     config=physics.get('standing',{});density=physics.get('material',{}).get('density_kg_m3')
     required=('duration_seconds','timestep_seconds','friction','tilt_threshold_deg','settle_window_seconds',
               'settle_linear_m_s','settle_angular_rad_s')
@@ -273,19 +334,19 @@ def analyze(args,physics):
     if backend=='coacd': required+=('coacd',)
     if density is None or any(k not in config for k in required):
         return CheckerResult(checker=NAME,status='INDETERMINATE',summary='NEEDS_SPEC: density/contact/settling settings')
-    if density<=0 or config['timestep_seconds']<=0 or not 0<config['settle_window_seconds']<=config['duration_seconds']:
+    if (not math.isfinite(float(density)) or density<=0
+            or any(not math.isfinite(float(config[k])) for k in required if k not in ('coacd','friction'))
+            or len(config['friction']) != 3
+            or any(not math.isfinite(float(v)) or v < 0 for v in config['friction'])
+            or config['timestep_seconds']<=0 or not 0<config['settle_window_seconds']<=config['duration_seconds']):
         raise ValueError('invalid standing configuration')
     report,rows,meshes=load_parts(args)
     if not rows or any(r['status']!='PASS' for r in rows):
         return CheckerResult(checker=NAME,status='INDETERMINATE',summary='DEPENDENCY_MESH_UNAVAILABLE: one connected volume per rigid print body required',metrics={'items':rows})
-    from adsl.core.assembly_topology import mesh_solid,interface_measurement
-    parts={p['id']:p for p in report['parts']};solids={n:mesh_solid(m) for n,m in meshes.items()}
-    interfaces=[interface_measurement(c,parts,solids,report['mm_per_unit']) for c in report['connections']]
-    if any(r['status']!='PASS' for r in interfaces):
-        return CheckerResult(checker=NAME,status='INDETERMINATE',summary='INTERFACE_GEOMETRY_UNVERIFIED',metrics={'items':interfaces})
+    _validate_physical_inputs(report, meshes)
     if any(c['parameters']['fit_offset_mm']<0 for c in report['connections']):
         return CheckerResult(checker=NAME,status='INDETERMINATE',summary='RIGID_CONTACT_INTERFERENCE_UNSUPPORTED: elastic press fit not simulated')
-    proxies={};checks={};proxy_solids={}
+    proxies={};checks={}
     contact=flex_contact_settings(report,config) if backend=='rigid_flex' else None
     if contact:
         write_json(args.output/'rigid_flex_contact.json',contact)
@@ -293,16 +354,24 @@ def analyze(args,physics):
         write_json(args.output/'stage.json',{'stage':'collision_decomposition','part_id':n,'status':'RUNNING'})
         proxies[n]=collision_proxies(m,config['coacd'])
         gaps=[c['parameters']['fit_offset_mm'] for c in report['connections'] if n in (c['tab_part'],c['slot_part'])]
-        checks[n],proxy_solids[n]=verify_proxies(m,proxies[n],min(gaps) if gaps else None)
+        checks[n],_=verify_proxies(m,proxies[n],min(gaps) if gaps else None)
         for i,p in enumerate(proxies[n]): p.export(args.output/f'{n}.proxy_{i}.obj')
     if backend=='coacd':
-        proxy_interfaces=[interface_measurement(c,parts,proxy_solids,report['mm_per_unit']) for c in report['connections']]
-        write_json(args.output/'collision_proxy_validation.json',{'parts':checks,'interfaces':proxy_interfaces})
-        if not all(c['accepted'] for c in checks.values()) or any(r['status']!='PASS' for r in proxy_interfaces):
-            return CheckerResult(checker=NAME,status='INDETERMINATE',summary='COLLISION_PROXY_UNVERIFIED',metrics={'proxy_checks':checks,'items':proxy_interfaces})
+        write_json(args.output/'collision_proxy_validation.json',{'parts':checks})
+        if not all(c['accepted'] for c in checks.values()):
+            return CheckerResult(checker=NAME,status='INDETERMINATE',summary='COLLISION_PROXY_UNVERIFIED',metrics={'proxy_checks':checks})
     write_json(args.output/'stage.json',{'stage':'self_weight_simulation','status':'RUNNING'})
     xml=xml_model(report,meshes,proxies,config,density);(args.output/'model.xml').write_text(xml)
     result,trajectory=simulate(xml,report,config,args.output)
+    complete = (result.get('interface_retention_verified') is True
+        and all(isinstance(result.get(k), (int, float)) and math.isfinite(result[k])
+                for k in ('assessment_time_seconds', 'peak_tilt_deg', 'final_tilt_deg'))
+        and result['assessment_time_seconds'] >= config['duration_seconds'])
+    if not complete:
+        return CheckerResult(checker=NAME,status='INDETERMINATE',
+            summary='OBSERVATION_UNAVAILABLE: complete standing/interface observation required',
+            metrics=result, artifacts={'trajectory':str(args.output/'trajectory.json'),
+                                     'simulation':str(args.output/'model.xml')})
     findings=[]
     if result['tipped']:
         findings.append(finding(NAME,'SELF_WEIGHT_TIPPING',
@@ -318,25 +387,28 @@ def analyze(args,physics):
             part_ids=[c['tab_part'],c['slot_part']],domain={'connection_id':cid,'first_exit_seconds':t,
                 'assessment_time_seconds':result['assessment_time_seconds'],
                 'final_interface':next(i for i in result['final_interfaces'] if i['connection_id']==cid)}))
-    capture_verified=result['interface_retention_verified']
     # Settling is diagnostic only; standing requires no tipping or interface exit.
-    status='FAIL' if findings else 'PASS' if capture_verified else 'INDETERMINATE'
+    status='FAIL' if findings else 'PASS'
+    result['standing_observation']=dict(status=status, observed_tipping=bool(result['tipped']),
+        observed_interface_exit=bool(result['exits']), peak_tilt_deg=result['peak_tilt_deg'],
+        final_tilt_deg=result['final_tilt_deg'], duration_s=result['assessment_time_seconds'])
+    contact_note = ''
     if contact:
         from adsl.core.assembly_topology import length_bound
-        # Distinguish touching surfaces' intentional shell overlap from deep
-        # initial material intersection. No new model geometry/tolerance rule:
-        # use the configured paired radii and existing mesh precision bound.
+        # Compatibility reference only, not a gate on the observed verdict.
         limit=contact['paired_shell_thickness_mm']+2*max(length_bound(m) for m in meshes.values())
         depth=max(0.,-(result['initial_minimum_contact_distance_mm'] or 0.))
         result['initial_contact_check']=dict(verified=depth<=limit,
             maximum_penetration_mm=depth,shell_plus_numeric_bound_mm=limit)
+        result['contact_diagnostic']=dict(status='WARNING' if depth>limit else 'OK',
+            code='INITIAL_CONTACT_DEPTH_EXCEEDS_REFERENCE' if depth>limit else 'INITIAL_CONTACT_DEPTH_WITHIN_REFERENCE',
+            maximum_penetration_mm=depth, reference_bound_mm=limit, affects_standing_verdict=False)
         if depth>limit:
-            status='INDETERMINATE';findings=[]
-            result['diagnostic_only_reason']='INITIAL_CONTACT_INTERPENETRATION: initial depth exceeds shell thickness and mesh precision; dynamic verdict unverified'
+            contact_note='INITIAL_CONTACT_DEPTH_EXCEEDS_REFERENCE: contact warning only; standing verdict unchanged | '
     write_json(args.output/'stage.json',{'stage':'completed','status':status})
     result['simulation_frames']=save_frames(report,meshes,trajectory,args.output)
     return CheckerResult(checker=NAME,status=status,
-        summary=result.get('diagnostic_only_reason','')+(' | ' if result.get('diagnostic_only_reason') else '')+
+        summary=contact_note+
             f'After {result["assessment_time_seconds"]:g} s self-weight: final tilt {result["final_tilt_deg"]:.4g} deg; '
             f'{len(result["final_exited_interfaces"])} interfaces outside; '+
             f'standing observation {status}; settling diagnostic: '+

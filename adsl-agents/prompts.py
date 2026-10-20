@@ -26,6 +26,14 @@ _SOURCE_CANDIDATE_READING = (
     'and a JSON pointer only when those details are needed. Use bounded pages; do not load every '
     'candidate report. Existing repair permissions and checker requirements remain unchanged.'
 )
+_STANDING_EVALUATION = (
+    'Topology and standing are separate evaluations. An initial contact-depth warning '
+    'alone does not invalidate the standing observation and is not a mandatory geometry '
+    'repair. A standing pass does not override topology failures or prove physical '
+    'manufacturability. Unavailable standing evidence is not observed tipping. '
+    'Read checker_summary and its result_ref/result_pointer for details; historical '
+    'checker summaries retain their original source binding and are not current measurements.'
+)
 
 
 def object_prompt(role: str, *, articulation: bool, fixed_assembly: bool = False,
@@ -47,6 +55,7 @@ def object_prompt(role: str, *, articulation: bool, fixed_assembly: bool = False
         prompt = _support_prompt(prompt, shape_editable=shape_editable)
     if fixed_assembly and role in {'coder', 'engineering_critic', 'code_critic', 'code_critic_review'}:
         prompt += '\n' + _SOURCE_CANDIDATE_READING
+        prompt += '\n' + _STANDING_EVALUATION
     if fixed_assembly and support_metric == 'nsv' and role == 'planner':
         prompt += '\n' + (PROMPT_ROOT / 'support_grouping.md').read_text(encoding='utf-8')
     return prompt

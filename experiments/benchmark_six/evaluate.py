@@ -18,6 +18,10 @@ from types import SimpleNamespace
 
 import numpy as np
 import trimesh
+# Direct and frozen harnesses use the selected ours code tree's pure metrics.
+from importlib.util import find_spec
+sys.path.insert(0, str(Path(find_spec('adsl.agents').origin).resolve().parents[1]))
+from benchmark.metrics.physical import STANDING_PROTOCOL, classify_standing_record, physical_table_row
 
 LONGEST_MM = 150.0
 OVERHANG = {"overhang_threshold_from_horizontal_deg": 45.0, "layer_height_mm": 0.2}
@@ -201,6 +205,9 @@ def print_measurements(manifest, source, output, voxel_pitch_mm):
     from adsl.agents.assembly_physics import load_parts
     from adsl.agents.assembly_overhang import measure_part
     from adsl.agents.partition_score import best_print_pose, rotations24
+    from adsl.agents.support_volume import (
+        support_volume, aggregate, SupportMeasurementError, ALGORITHM_VERSION,
+        SELF_HIT_RELATIVE_EPSILON)
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     args = SimpleNamespace(manifest=Path(manifest), source=Path(source), output=output,
@@ -242,6 +249,20 @@ def print_measurements(manifest, source, output, voxel_pitch_mm):
                 row["gap_volume_mm3"] = gap["gap_voxels"] * voxel_pitch_mm ** 3
             except (ValueError, RuntimeError, OSError, ImportError) as error:
                 row["gap_error"] = f"{type(error).__name__}: {str(error)[:240]}"
+            if row.get('gap_best_pose') is not None:
+                # Reuse the existing G-selected pose, not a new NSV search.
+                pose = row['gap_best_pose']['recommended_print_transform_mm']
+                printed = mesh.copy()
+                printed.apply_transform(np.asarray(pose))
+                row['support_print_transform_mm'] = pose
+                try:
+                    row['support'] = support_volume(printed,
+                        overhang_threshold_from_horizontal_deg=OVERHANG['overhang_threshold_from_horizontal_deg'],
+                        bed_tolerance_mm=OVERHANG['layer_height_mm'])
+                except SupportMeasurementError as error:
+                    row['support'] = dict(status='INDETERMINATE', reason=str(error))
+            else:
+                row['support'] = dict(status='INDETERMINATE', reason='print_pose_unavailable')
             if row["gap_voxels"] is not None and row["min_overhang_area_mm2"] is not None:
                 row["status"] = "PASS"
         rows.append(row)
@@ -252,11 +273,20 @@ def print_measurements(manifest, source, output, voxel_pitch_mm):
     gap_complete = complete and all(r["gap_voxels"] is not None for r in rows)
     volume_complete = complete and all(r["material_volume_mm3"] is not None for r in rows)
     gap = sum(r["gap_voxels"] for r in rows) if gap_complete else None
-    return {"status": "PASS" if area_complete and gap_complete else "INDETERMINATE",
+    support = aggregate([r.get('support') for r in rows] if complete else [])
+    support_contract = dict(algorithm=ALGORITHM_VERSION, self_hit_relative_epsilon=SELF_HIT_RELATIVE_EPSILON,
+        mask_bed_epsilon_mm=1e-8,
+        overhang=OVERHANG, pose_policy='G_best_axis_aligned_24', longest_mm=LONGEST_MM,
+        ray_backends=sorted({r['support']['ray_backend'] for r in rows
+                            if r.get('support', {}).get('status') == 'PASS'}))
+    return {"status": "PASS" if area_complete and gap_complete and support['status'] == 'PASS' else "INDETERMINATE",
             "N": count, "G": gap, "gap_volume_mm3": gap * voxel_pitch_mm ** 3 if gap is not None else None,
             "min_overhang_area_mm2": sum(r["min_overhang_area_mm2"] for r in rows) if area_complete else None,
             "material_volume_mm3": sum(r["material_volume_mm3"] for r in rows) if volume_complete else None,
             "voxel_pitch_mm": voxel_pitch_mm, "parts": rows,
+            "support": support, "support_measurement_config": support_contract,
+            "support_measurement_config_sha256": hashlib.sha256(json.dumps(
+                support_contract, sort_keys=True, separators=(',', ':')).encode()).hexdigest(),
             "support_material": "NOT_EVALUATED", "score": "NOT_COMPUTED_FOR_COMMON_COMPARISON"}
 
 
@@ -328,6 +358,38 @@ def native_dapper(job, directory):
     return unavailable("bound report has no native Dapper objective", "UNAVAILABLE")
 
 
+def attach_physical_evaluation(result, *, state):
+    """Reporting only: no verdict mutation, new geometry or inferred S from G."""
+    checker = result.get('standing', {})
+    if checker.get('status') == 'NA' or checker == unavailable('not measured'):
+        checker = {}
+    metrics = result.get('metrics', {})
+    parts = metrics.get('parts', [])
+    volumes = {p['part_id']:p.get('material_volume_mm3') for p in parts}
+    # Only complete final part lists can establish an IVR denominator.
+    count = metrics.get('N') if result.get('selected_output_sha256') else None
+    if not parts or len(parts) != len(volumes) or len(volumes) != count:
+        volumes = {}
+        count = None
+    record = dict(case_id=result['case_id'], applicable=result['denominators']['standing'],
+        state=state, protocol_id=STANDING_PROTOCOL,
+        generation_status=('GENERATION_FAILED' if result.get('failure_stage') in
+            {'generation','generation_api_interruption'} else result.get('generation', {}).get('status', '')),
+        checker=checker,
+        termination_reason_codes=(['TIMEOUT'] if result.get('failure_stage') == 'evaluation_timeout'
+            and not checker else []),
+        source_sha256=result.get('selected_source_sha256'),
+        asset_sha256=result.get('selected_output_sha256'), part_count=count,
+        part_volumes_mm3=volumes,
+        pair_intersections=[r for r in result.get('topology', {}).get('metrics', {}).get('items', [])
+                            if r.get('kind') == 'pair'],
+        support=metrics.get('support'),
+        support_measurement_config_sha256=metrics.get('support_measurement_config_sha256'))
+    result['physical_evaluation_record'] = record
+    result['standing_evaluation'] = classify_standing_record(record, protocol_id=STANDING_PROTOCOL)
+    result['main_table_metrics'] = physical_table_row(record, protocol_id=STANDING_PROTOCOL)
+
+
 def evaluate(run_root, case_id, arm, *, render_python=None, skip_render=False):
     root = Path(run_root).resolve()
     case = case_config(root, case_id)
@@ -354,6 +416,11 @@ def evaluate(run_root, case_id, arm, *, render_python=None, skip_render=False):
               "render_paths": {"status": "INDETERMINATE", "native_views": [], "neutral_views": []}}
     write_json(output / "result.json", result)
     status = str(job.get("generation", {}).get("status", "")).lower()
+    if status in ('', 'pending', 'prepared', 'running', 'queued', 'not_started'):
+        result['status'] = 'PENDING'
+        attach_physical_evaluation(result, state='PENDING' if status != 'running' else 'RUNNING')
+        write_json(output / 'result.json', result)
+        return result
     published = job.get("selected_glb") and resolve_path(job["selected_glb"], directory).is_file()
     failed = status in ("fail", "failed", "error", "generation_failed", "timeout", "api_interrupted") or not published
     if failed:
@@ -373,6 +440,7 @@ def evaluate(run_root, case_id, arm, *, render_python=None, skip_render=False):
         write_json(output / "result.json", result)
         try:
             source = resolve_path(job.get("source") or job["selected_glb"], directory)
+            result["selected_source_sha256"] = sha256(source)
             result["selected_output_sha256"] = sha256(glb)
             if arm == "official":
                 manifest = official_manifest(glb, source, output / "material")
@@ -410,6 +478,7 @@ def evaluate(run_root, case_id, arm, *, render_python=None, skip_render=False):
                "requirement": case["requirement"], "reference_image": str(resolve_path(case["input_image"], root)),
                "rendered_images": views if ready else [], "read_only": True, "no_candidate_selection": True}
     write_json(output / "image_critic_request.json", request)
+    attach_physical_evaluation(result, state='TERMINAL')
     write_json(output / "result.json", result)
     return result
 

@@ -227,7 +227,7 @@ def request_fields(case, arm, physics):
 
 def source_tree_hash(root):
     paths = []
-    for name in ('adsl-agents', 'adsl-core'):
+    for name in ('adsl-agents', 'adsl-core', 'benchmark/metrics'):
         directory = Path(root) / name
         paths.extend(p for p in directory.rglob('*') if p.is_file() and
                      p.suffix in {'.py', '.md', '.toml'} and '__pycache__' not in p.parts)
@@ -755,6 +755,18 @@ def evaluate_child(root, case_id, arm, arms, common):
     saved = read_json(path) if path.is_file() else dict(case_id=case_id, arm=arm, metrics={'N': None})
     saved.update(status='INDETERMINATE', failure_stage='evaluation_timeout',
                  reason='offline evaluation exceeded its fixed 3600-second budget')
+    # The timeout terminates evaluation; do not leave a missing Standing
+    # observation looking like a task still queued. Completed observations
+    # already written before a later rendering/measurement timeout are retained.
+    evaluator_spec = importlib.util.spec_from_file_location('six_timeout_evaluate', HERE.with_name('evaluate.py'))
+    evaluator = importlib.util.module_from_spec(evaluator_spec)
+    evaluator_spec.loader.exec_module(evaluator)
+    saved.setdefault('case_id', case_id)
+    if 'denominators' not in saved:
+        case = evaluator.case_config(root, case_id)
+        saved['denominators'] = dict(standing=bool(case.get('standing_applicable', True))
+            and case_id not in ('dragon_007','Toys4K_dragon_007'))
+    evaluator.attach_physical_evaluation(saved, state='TERMINAL')
     write_json(path, saved)
     write_json(folder / 'evaluation/image_critic_request.json',
                dict(status='INDETERMINATE', rendered_images=[], read_only=True, no_candidate_selection=True))

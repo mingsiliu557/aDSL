@@ -103,6 +103,10 @@ def test_score_hard_gates_purpose_and_selected_print_bundle(tmp_path,monkeypatch
     assert result.approved and book['retained']==selected
     assert len(checks)==2
     reviews=book['versions']['attempt_0001']['reviews']
+    if mode == 'topology_fail':
+        assert reviews['assembly_standing']['status'] == 'PASS'
+        assert reviews['assembly_topology']['status'] == 'FAIL'
+        assert reviews['accepted'] is False  # Independent Standing cannot approve the product.
     assert reviews['edit_purpose']==('required_repair' if mode=='required_repair' else 'partition_optimization')
     final=json.loads((tmp_path/'assembly_result.json').read_text())
     assert final['version_id']==selected

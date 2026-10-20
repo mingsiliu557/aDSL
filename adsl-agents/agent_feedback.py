@@ -118,6 +118,22 @@ def _feedback_view(payload) -> dict:
     return selected
 
 
+def standing_summary_for_agent(result):
+    """Only bounded scalar facts; contacts and trajectories stay in the report."""
+    metrics = result.get('metrics', {})
+    out = _fields(result.get('assumptions', {}),
+                  ('standing_protocol', 'source_sha256', 'manifest_sha256'))
+    for field, keys in (
+        ('standing_observation', ('status', 'observed_tipping', 'observed_interface_exit',
+                                  'peak_tilt_deg', 'final_tilt_deg', 'duration_s')),
+        ('contact_diagnostic', ('status', 'code', 'maximum_penetration_mm',
+                                'reference_bound_mm', 'affects_standing_verdict')),
+    ):
+        if isinstance(metrics.get(field), Mapping):
+            out[field] = _fields(metrics[field], keys)
+    return out
+
+
 def feedback_size_report(payload, *, limit=15) -> dict:
     """Report bounded field sizes without exposing values or performing I/O.
 
@@ -1004,6 +1020,13 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
         def process(container, container_identity=''):
             if not isinstance(container, dict):
                 return
+            summaries = container.get('checker_summary')
+            for row in summaries if isinstance(summaries, list) else ():
+                if isinstance(row, dict) and row.get('checker') == 'assembly_standing':
+                    safe = standing_summary_for_agent({'assumptions': row, 'metrics': row})
+                    for key in ('standing_observation', 'contact_diagnostic'):
+                        row.pop(key, None)
+                    row.update(safe)
             if nsv and 'support_evidence' in container:
                 container['support_evidence'] = _support_for_agent(container['support_evidence'])
             failure_ids = list(container.get('evaluation_failure_ids') or [])

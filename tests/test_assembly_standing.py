@@ -68,18 +68,33 @@ def test_flex_analyze_does_not_decompose(tmp_path,monkeypatch):
     assert (args.output/'rigid_flex_contact.json').is_file()
 
 
-def test_deep_initial_intersection_never_becomes_stable_pass(tmp_path,monkeypatch):
+@pytest.mark.parametrize('tipping,exit_seen,expected', [
+    (False,False,'PASS'), (True,False,'FAIL'), (False,True,'FAIL'), (True,True,'FAIL'),
+])
+def test_deep_initial_contact_warns_without_erasing_observation(tmp_path,monkeypatch,tipping,exit_seen,expected):
     args,_=fixture(tmp_path)
     def fake_simulate(*a,**kw):
-        return dict(tipped=False,exits={},settled=True,interface_retention_verified=True,
-            assessment_time_seconds=5.,final_tilt_deg=0.,final_exited_interfaces=[],
+        return dict(tipped=tipping,exits={'joint':.4} if exit_seen else {},
+            settled=True,interface_retention_verified=True,
+            assessment_time_seconds=5.,final_tilt_deg=0.,peak_tilt_deg=26. if tipping else 0.,
+            final_exited_interfaces=[], final_interfaces=[{'connection_id':'joint','exited':False}],
             initial_minimum_contact_distance_mm=-30.),[]
     monkeypatch.setattr(standing,'simulate',fake_simulate)
     monkeypatch.setattr(standing,'save_frames',lambda *a:[])
     result=standing.analyze(args,{'standing':flex_config(),'material':MATERIAL})
-    assert result.status=='INDETERMINATE'
-    assert result.summary.startswith('INITIAL_CONTACT_INTERPENETRATION')
-    assert not result.findings  # Do not guide geometry edits from this simulation.
+    assert result.status==expected
+    assert result.summary.startswith('INITIAL_CONTACT_DEPTH_EXCEEDS_REFERENCE')
+    assert result.assumptions['standing_protocol']==standing.STANDING_PROTOCOL
+    assert not result.metrics['initial_contact_check']['verified']
+    assert result.metrics['contact_diagnostic']['status']=='WARNING'
+    assert result.metrics['contact_diagnostic']['affects_standing_verdict'] is False
+    observation=result.metrics['standing_observation']
+    assert observation['status']==expected and observation['observed_tipping'] is tipping
+    assert observation['observed_interface_exit'] is exit_seen  # Exit then return still fails.
+    assert {f.rule_id for f in result.findings} == (
+        ({'SELF_WEIGHT_TIPPING'} if tipping else set()) |
+        ({'SELF_WEIGHT_INTERFACE_EXIT'} if exit_seen else set()))
+    json.dumps(result.model_dump(),allow_nan=False)
 
 
 @pytest.mark.skipif(os.environ.get('ADSL_TEST_RIGID_FLEX')!='1',reason='explicit native CPU smoke')

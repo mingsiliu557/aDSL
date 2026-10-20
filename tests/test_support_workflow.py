@@ -664,6 +664,7 @@ def test_v5_prompt_is_only_explicit_append(role, metric):
     additions = ''
     if role in {'coder','engineering_critic','code_critic','code_critic_review'}:
         additions += '\n' + p._SOURCE_CANDIDATE_READING
+        additions += '\n' + p._STANDING_EVALUATION
     grouping = (p.PROMPT_ROOT/'support_grouping.md').read_text(encoding='utf-8')
     if role == 'planner' and metric == 'nsv':
         additions += '\n' + grouping

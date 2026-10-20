@@ -61,6 +61,11 @@ def run_assembly_checks(specs, *, execution, source, root, physics, initial_topo
                     'assumptions':{'source_sha256':sha256_file(source)}})
                 write_json(run.output_dir/'result.json', result.model_dump())
                 run = CheckerRun(spec,result,run.output_dir,run.command)
+            if spec.name == 'assembly_standing':
+                from .assembly_standing import with_protocol
+                result = with_protocol(run.result)
+                write_json(run.output_dir/'result.json', result.model_dump())
+                run = CheckerRun(spec,result,run.output_dir,run.command)
         runs.append(run)
     return runs
 
@@ -133,6 +138,9 @@ def cli(name, analyze):
         result = CheckerResult(checker=name,status='INDETERMINATE',summary=f'ANALYSIS_UNAVAILABLE: {str(error)[:240]}',
             violations=[{'code':'ANALYSIS_UNAVAILABLE','stage':'input_or_analysis','reason':str(error)[:240]}])
     # Unexpected exceptions escape: run_checker's ERROR preserves the traceback.
+    if name == 'assembly_standing':
+        from .assembly_standing import with_protocol
+        result = with_protocol(result)
     result.assumptions.update(source_sha256=sha256_file(args.source),
         manifest_sha256=sha256_file(args.manifest) if args.manifest.is_file() else None,
         physics_sha256=sha256_file(args.physics),elapsed_seconds=time.monotonic()-started)

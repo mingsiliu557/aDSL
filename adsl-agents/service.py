@@ -17,7 +17,7 @@ from .checkers import (
     run_checkers,
 )
 from .feedback_schema import build_analysis_context, findings_payload, localized_mesh_feedback
-from .agent_feedback import finding_for_agent, payload_for_agent, feedback_observation
+from .agent_feedback import finding_for_agent, payload_for_agent, feedback_observation, standing_summary_for_agent
 from .utils.request_errors import classify_model_request_error, propagate_request_error
 from .localization import LocalizationReport, localize_findings
 from .models import (
@@ -144,6 +144,9 @@ def _checker_evidence(
             "finding_ids": [f.finding_id for _, f in selected],
             "result_ref": result_ref,
         })
+        if run.spec.name == 'assembly_standing':
+            summaries[-1].update(standing_summary_for_agent(run.result.model_dump()))
+            summaries[-1]['result_pointer'] = '/metrics'
         if run.result.status in {"ERROR", "INDETERMINATE"}:
             violation = next(iter(run.result.violations), {})
             summaries[-1].update({

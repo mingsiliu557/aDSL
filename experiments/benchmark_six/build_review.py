@@ -4,8 +4,12 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import sys
 
 from PIL import Image
+from importlib.util import find_spec
+sys.path.insert(0, str(Path(find_spec('adsl.agents').origin).resolve().parents[1]))
+from benchmark.metrics.physical import STANDING_PROTOCOL, summarize_physical_methods
 
 
 def read(path, default=None):
@@ -24,16 +28,34 @@ def build(root):
     output.mkdir(parents=True, exist_ok=True)
     configured = read(root / "config/cases.json", {"cases": []})
     cases = configured.get("cases", []) if isinstance(configured, dict) else configured
+    environments = read(root / 'config/envs.json', {})
+    arms = tuple(environments.get('arms', {})) or ('official', 'ours')
+    physical_records = {arm:[] for arm in arms}
     rows, pictures = [], []
     for case in cases:
         cid = case.get("case_id", case.get("id"))
+        applicable = bool(case.get('standing_applicable', True)) and cid not in (
+            'dragon_007','Toys4K_dragon_007')
         views = {}
-        for arm in ("official", "ours"):
+        for arm in arms:
             directory = root / "jobs" / cid / arm
             job = read(directory / "job.json", {})
             measured = read(directory / "evaluation/result.json", {})
             review = read(directory / "review/image_critic.json", {})
             metrics = measured.get("metrics", {})
+            record = measured.get('physical_evaluation_record')
+            if record is None:
+                if measured:
+                    raise ValueError('legacy evaluation has no independent standing protocol record; do not mix reports')
+                generation = str(job.get('generation', {}).get('status', '')).upper()
+                terminal_failure = generation in {'FAIL','FAILED','ERROR','GENERATION_FAILED','TIMEOUT','API_INTERRUPTED'}
+                record = dict(case_id=cid, applicable=applicable,
+                    protocol_id=STANDING_PROTOCOL, state='TERMINAL' if terminal_failure else 'PENDING',
+                    generation_status=generation, checker={},
+                    source_sha256=job.get('selected_source_sha256'), asset_sha256=job.get('selected_glb_sha256'))
+            if record.get('case_id') != cid or record.get('applicable') is not applicable:
+                raise ValueError('evaluation identity/applicability differs from frozen case')
+            physical_records[arm].append(record)
             dapper = measured.get("native_dapper", {}).get("partition_objective", {})
             rows.append(dict(case_id=cid, arm=arm,
                 generation=job.get("generation", {}).get("status", "PENDING"),
@@ -55,7 +77,7 @@ def build(root):
                 native_selected_source=job.get("source"),
                 evaluation=str(directory / "evaluation/result.json")))
             views[arm] = measured.get("render_paths", {}).get("native_views", [])
-        if len(views["official"]) == len(views["ours"]) == 8:
+        if len(views.get("official", [])) == len(views.get("ours", [])) == 8:
             pair_dir = output / cid
             pair_dir.mkdir(exist_ok=True)
             for index, (a, b) in enumerate(zip(views["official"], views["ours"]), 1):
@@ -70,16 +92,31 @@ def build(root):
                     canvas.convert("RGB").save(destination)
                     pictures.append(dict(case_id=cid, view=index, path=str(destination),
                                          left="official", right="ours"))
+    physical = summarize_physical_methods(physical_records, protocol_id=STANDING_PROTOCOL)
+    (output/'physical_metrics.json').write_text(json.dumps(physical, ensure_ascii=False, indent=2)+'\n')
     summary = dict(status=read(root / "checkpoint.json", {}).get("status", "PREPARING"),
-                   denominators={"appearance": 6, "printing": 6, "standing": 5},
+                   physical=physical,
+                   denominators={"appearance": len(cases), "printing": len(cases),
+                       "standing":sum(bool(c.get('standing_applicable',True))
+                           and c.get('case_id',c.get('id')) not in ('dragon_007','Toys4K_dragon_007') for c in cases)},
                    rows=rows, pictures=pictures)
     (output / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n")
-    lines = ["# Six-case official aDSL / ours comparison", "",
-        f"Batch status: {summary['status']}. Each case/method has one initial generation and at most nine source repairs.", "",
+    lines = ["# Physical method comparison", "",
+        f"Batch status: {summary['status']}; physical summary: {physical['status']}.", "",
+        "| Method | Standing success rate ↑ | Raw IVR ↓ | NSV ↓ | N |",
+        "|---|---:|---:|---:|---:|"]
+    lines += ["| " + " | ".join(shown(row[k]) for k in
+        ('method','standing_success_rate','raw_ivr','nsv','N')) + " |" for row in physical['table']]
+    lines += ["",
+        "Standing uses the frozen applicable denominator, including terminal generation/simulation failures. Pending records mean the experiment is incomplete.",
+        "IVR, NSV and N means use the respective common measurable case lists in physical_metrics.json; those subsets are not all-task success rates.",
+        "Single-part IVR is not applicable. Missing measurements remain null. NSV is the existing ray S/V proxy at the G-selected 24-pose orientation, not slicer consumption.",
+        "Contact warnings do not change standing observations; topology failures still matter for final product acceptance.",
+        "", "## Per-case evidence appendix", "",
         "Comparison images: left = official aDSL, right = ours; common native-material views, without independent crops or text overlays.", "",
         "Minimum geometric overhang area and minimum gap use separately selected print orientations. Neither is slicer support usage.",
         "Dapper scores are internal ours records and cannot rank methods with different reference quantities.",
-        "Failures remain in the six-case denominators; standing has five cases because the flying dragon is not applicable.", "",
+        "Failures remain in the frozen denominators; applicability and missing reasons are retained in physical_metrics.json.", "",
         "| Case | Method | Generation | Native approved | Common appearance | Topology | Standing | Min area mm2 | G | N | Internal O | Repairs | Gen requests | Gen tokens | Final review requests | Final review tokens | Gen seconds |",
         "|---|---|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
     keys = ("case_id", "arm", "generation", "native_approved", "common_appearance_approved", "topology", "standing",

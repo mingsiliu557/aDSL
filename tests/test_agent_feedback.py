@@ -12,6 +12,101 @@ from adsl.agents.agent_feedback import (
 from adsl.agents.utils.request_errors import classify_model_request_error
 
 
+@pytest.mark.parametrize('role', ['engineering','coder','code_critic'])
+def test_standing_observation_is_bounded_nonactionable_and_idempotent(tmp_path, role):
+    from adsl.agents.service import _checker_evidence, _actionable_findings
+    from adsl.agents.models import CheckerResult, CheckerSpec
+    from adsl.agents.checkers import CheckerRun
+    from adsl.agents.assembly_standing import STANDING_PROTOCOL
+    from adsl.agents.agent_feedback import feedback_size_report
+    source=tmp_path/'source.py';source.write_text('scene=None')
+    source_hash=hashlib.sha256(source.read_bytes()).hexdigest()
+    output=tmp_path/'standing';output.mkdir()
+    observation=dict(status='PASS',observed_tipping=False,observed_interface_exit=False,
+        peak_tilt_deg=.0012,final_tilt_deg=.0011,duration_s=5.)
+    warning=dict(status='WARNING',code='INITIAL_CONTACT_DEPTH_EXCEEDS_REFERENCE',
+        maximum_penetration_mm=.031309,reference_bound_mm=.020572,affects_standing_verdict=False)
+    result=CheckerResult(checker='assembly_standing',status='PASS',summary='observation complete',
+        metrics=dict(standing_observation=observation,contact_diagnostic=warning,
+                     contacts=[{'vertices':[1,2,3]}]*1000),
+        assumptions=dict(standing_protocol=STANDING_PROTOCOL,source_sha256=source_hash))
+    (output/'result.json').write_text(result.model_dump_json())
+    run=CheckerRun(CheckerSpec(name='assembly_standing',command=['stub']),result,output,())
+    assert _actionable_findings(run)==[]
+    raw={'feedback':_checker_evidence([run],workspace=tmp_path)}
+    # Unknown nested data must not leak when a restored summary is projected.
+    raw['feedback']['checker_summary'][0]['contact_diagnostic']['contacts']=['large']*1000
+    before=deepcopy(raw)
+    out=payload_for_agent(raw,workspace=tmp_path,source_path=source,source_version='original',role=role)
+    row=out['feedback']['checker_summary'][0]
+    assert row['standing_observation']==observation and row['contact_diagnostic']==warning
+    assert row['result_pointer']=='/metrics' and row['result_ref']=='standing/result.json'
+    assert out['feedback']['typed_findings']==[]
+    assert 'vertices' not in json.dumps(out) and 'contacts' not in json.dumps(out)
+    assert payload_for_agent(out,workspace=tmp_path,source_path=source,
+        source_version='original',role=role)==out
+    assert raw==before
+    assert feedback_size_report(out)['actual_bytes']>len(json.dumps(warning))
+
+
+def test_standing_summary_at_actual_engineering_coder_code_critic_boundaries(tmp_path,monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+    from adsl.agents import assembly_topology as topology, assembly_physics as physics
+    from adsl.agents.assembly_standing import STANDING_PROTOCOL
+    from adsl.agents.models import FixedAssemblyPlan, EngineeringCriticDecision, GradedCodeCriticDecision, CheckerResult
+    from adsl.agents.service import ObjectWorkflow, _checker_evidence
+    from adsl.agents.checkers import CheckerRun
+    from test_fixed_assembly import mock_flow, plan_data
+    from test_assembly_feedback_recovery import payload as model_payload, tool
+    from adsl.agents.tools.files import read_file
+    workflow,request,runtime,source,_=mock_flow(tmp_path,monkeypatch,[('PASS',True)])
+    out=tmp_path/'standing';out.mkdir()
+    warning=dict(status='WARNING',code='INITIAL_CONTACT_DEPTH_EXCEEDS_REFERENCE',
+        maximum_penetration_mm=.031309,reference_bound_mm=.020572,affects_standing_verdict=False)
+    result=CheckerResult(checker='assembly_standing',status='PASS',summary='complete',
+        metrics={'standing_observation':dict(status='PASS',observed_tipping=False,
+            observed_interface_exit=False,peak_tilt_deg=.0012,final_tilt_deg=.0011,duration_s=5.),
+            'contact_diagnostic':warning}, assumptions={'standing_protocol':STANDING_PROTOCOL,
+                'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest()})
+    (out/'result.json').write_text(result.model_dump_json())
+    check=CheckerRun(physics.checker_spec('assembly_standing'),result,out,())
+    feedback={**_checker_evidence([check],workspace=tmp_path),'source_version':'original'}
+    captured=[]
+    async def run(**kw):
+        data=model_payload(kw);stage=kw['stage'].split(':')[0];captured.append(stage)
+        context=(data if stage=='assembly_engineering' else data['feedback'] if stage=='repair'
+                 else data['assembly_context']['pending_reviews'])
+        row=context['checker_summary'][0]
+        assert row['contact_diagnostic']==warning
+        contents=await tool(read_file,kw['context'],'contact',path=row['result_ref'],
+            json_pointer=row['result_pointer']+'/contact_diagnostic')
+        assert json.loads(contents)==warning
+        if stage=='assembly_engineering':
+            return SimpleNamespace(final_output=EngineeringCriticDecision(approved=True,
+                observations=['Warning alone does not need repair'],repair_proposals=[]))
+        if stage=='code_critic':
+            await tool(read_file,kw['context'],'source',path=data['assigned_source'])
+            return SimpleNamespace(final_output=GradedCodeCriticDecision(approved=True,observations=[],issues=[]))
+        return SimpleNamespace(final_output='{"edit_action":"NO_CHANGE","reason":"No necessary edit"}')
+    runtime.run=run
+    root=tmp_path/'review';root.mkdir()
+    plan=FixedAssemblyPlan.model_validate(plan_data())
+    async def exercise():
+        await topology.engineer(workflow,runtime,request,plan,source,None,root,check,{},feedback,1)
+        await ObjectWorkflow._review_generation_code(workflow,runtime=runtime,request=request,
+            plan=plan,execution=None,workspace=tmp_path,source_path=source,round_number=1,max_rounds=2,
+            round_root=root,code_critic={},image_decision=None,code_history=[],
+            assembly_context={'pending_reviews':{'checker_summary':feedback['checker_summary'],
+                'evidence_role':'previous_candidate_physical_observation'}})
+        result=await ObjectWorkflow._repair(workflow,runtime=runtime,repairer={},workspace=tmp_path,
+            source_path=source,role='coder',stage='repair:1',allow_no_change=True,
+            payload={'feedback':feedback,'source_version':'original'})
+        assert result['status']=='NO_CHANGE'
+    asyncio.run(exercise())
+    assert captured==['assembly_engineering','code_critic','repair']
+
+
 class RequestFailure(Exception):
     def __init__(self, status, code=None, message='request rejected'):
         super().__init__(message)

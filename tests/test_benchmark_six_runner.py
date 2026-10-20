@@ -705,7 +705,8 @@ def test_evaluation_timeout_retains_partial_numbers_and_case_denominator(tmp_pat
     folder = tmp_path / 'jobs' / run.CASE_ORDER[0] / 'ours'
     folder.mkdir(parents=True)
     result = folder / 'evaluation/result.json'
-    run.write_json(result, {'status': 'INDETERMINATE', 'included_in_denominator': True, 'metrics': {'N': 4, 'G': None}})
+    run.write_json(result, {'status': 'INDETERMINATE', 'included_in_denominator': True,
+        'denominators':{'standing':True}, 'metrics': {'N': 4, 'G': None}})
     class TimedOut:
         pid = 12345
         def __init__(self, *args, **kwargs):
@@ -724,6 +725,9 @@ def test_evaluation_timeout_retains_partial_numbers_and_case_denominator(tmp_pat
     saved = run.read_json(result)
     assert saved['included_in_denominator'] and saved['metrics']['N'] == 4 and saved['metrics']['G'] is None
     assert saved['failure_stage'] == 'evaluation_timeout'
+    assert saved['standing_evaluation']['evaluation_outcome'] == 'FAIL'
+    assert 'TIMEOUT' in saved['standing_evaluation']['reason_codes']
+    assert saved['standing_evaluation']['observation'] is None
     assert killed == [(12345, run.signal.SIGTERM)]
 
 

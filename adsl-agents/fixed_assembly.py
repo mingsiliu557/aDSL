@@ -879,6 +879,14 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                         'source_sha256':file_hash(current), 'source_version':version_id}
                 assembly_context = _assembly_context(current, report, version_role='current_candidate',
                                                       report_ref=geometry_report_ref)
+                previous_standing = [row for row in feedback.get('checker_summary', [])
+                                     if row.get('checker') == 'assembly_standing']
+                if previous_standing:
+                    # Critics precede this candidate's physical checks. Carry
+                    # only source-bound history, never relabel it as current.
+                    assembly_context['pending_reviews'] = {
+                        'checker_summary':deepcopy(previous_standing),
+                        'evidence_role':'previous_candidate_physical_observation'}
                 if partition is not None:
                     assembly_context.update(edit_purpose=edit_purpose,body_reference_comparison=shape_comparison,
                         partition_reference=reference_path,print_partition_editable=request.repair_policy.print_partition_editable,

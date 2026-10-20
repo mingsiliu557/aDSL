@@ -120,6 +120,13 @@ def test_missing_native_declared_part_cannot_use_partial_normalization(tmp_path)
 
 def test_print_metrics_real_solid_and_independent_area_gap_poses(tmp_path, monkeypatch):
     from adsl.agents import assembly_physics, partition_score
+    from adsl.agents import support_volume
+    support_calls=[]
+    def measure_support(mesh, **kwargs):
+        support_calls.append((mesh.bounds.copy(),kwargs))
+        return dict(status='PASS',support_volume_mm3=3.,mesh_volume_mm3=24.,nsv=.125,
+            risky_projected_area_mm2=1.,risky_face_count=1,ray_backend='stub')
+    monkeypatch.setattr(support_volume,'support_volume',measure_support)
     mesh = trimesh.creation.box([2, 3, 4])
     # Freeze a nonzero G outcome at rotation 9 to catch accidental use of the
     # area-selected orientation (the real cube's minimum area ties at rotation 0).
@@ -142,6 +149,9 @@ def test_print_metrics_real_solid_and_independent_area_gap_poses(tmp_path, monke
     assert row["gap_best_pose"]["selected_rotation_id"] == 9
     assert row["area_best_pose"]["rotation_id"] == 0
     assert len(row["area_orientations"]) == 24
+    assert len(support_calls)==1  # No extra orientation search.
+    assert result['support']['nsv_total']==.125
+    assert row['support_print_transform_mm']==np.eye(4).tolist()
 
 
 def prepare_job(root, case_id="Toys4K_dragon_007", arm="official", failed=True):
@@ -200,6 +210,70 @@ def test_render_failure_never_falls_back_to_native_generation_views(tmp_path, mo
     assert result["metrics"]["G"] is result["metrics"]["min_overhang_area_mm2"] is None
     request = evaluation.read_json(directory / "evaluation" / "image_critic_request.json")
     assert request["rendered_images"] == [] and request["read_only"]
+    assert result['standing_evaluation']['evaluation_outcome']=='FAIL'
+    assert result['main_table_metrics']['nsv'] is None
+
+
+def test_pending_generation_is_not_evaluated_or_counted_failed(tmp_path,monkeypatch):
+    _,job=prepare_job(tmp_path,case_id='pending')
+    job['generation']['status']='RUNNING'
+    evaluation.write_json(tmp_path/'jobs/pending/official/job.json',job)
+    monkeypatch.setattr(evaluation,'physical_checks',lambda *a:pytest.fail('pending task measured'))
+    monkeypatch.setattr(evaluation,'render_final',lambda *a:pytest.fail('pending task rendered'))
+    result=evaluation.evaluate(tmp_path,'pending','official')
+    assert result['standing_evaluation']['evaluation_outcome']=='PENDING'
+    assert result['main_table_metrics']['N'] is None
+
+
+def test_terminal_generation_failure_counts_without_observed_tipping(tmp_path):
+    prepare_job(tmp_path,case_id='failed')
+    result=evaluation.evaluate(tmp_path,'failed','official')
+    row=result['standing_evaluation']
+    assert row['evaluation_outcome']=='FAIL' and 'GENERATION_FAILED' in row['reason_codes']
+    assert row['observation'] is None
+    assert result['main_table_metrics']['nsv'] is None
+
+
+def test_standing_pass_is_independent_in_evaluation_record():
+    from test_physical_metrics import record
+    raw=record()
+    result=dict(case_id='one',denominators={'standing':True},generation={'status':'COMPLETED'},
+        standing=raw['checker'],topology={'status':'FAIL','metrics':{'items':[]}},
+        metrics={},selected_output_sha256='asset',selected_source_sha256='source')
+    evaluation.attach_physical_evaluation(result,state='TERMINAL')
+    assert result['standing_evaluation']['evaluation_outcome']=='PASS'
+    assert result['topology']['status']=='FAIL'
+
+
+def test_reporting_uses_all_cases_and_lists_metric_samples(tmp_path):
+    from experiments.benchmark_six.build_review import build
+    from test_physical_metrics import record
+    evaluation.write_json(tmp_path/'config/cases.json',{'cases':[
+        {'case_id':'one','standing_applicable':True},
+        {'case_id':'later','standing_applicable':True}]})
+    for arm in ('official','ours'):
+        folder=tmp_path/'jobs/one'/arm
+        evaluation.write_json(folder/'job.json',{'generation':{'status':'COMPLETED'}})
+        evaluation.write_json(folder/'evaluation/result.json',{'physical_evaluation_record':record()})
+    result=build(tmp_path)
+    assert result['physical']['status']=='INCOMPLETE'
+    for row in result['physical']['table']:
+        assert row['standing_success_rate'] is None
+        assert row['raw_ivr'] is row['nsv'] is row['N'] is None
+    sample=result['physical']['samples']['ours']['standing']
+    assert sample['planned_total']==2 and sample['success_count']==1 and sample['pending_count']==1
+    assert (tmp_path/'review/physical_metrics.json').is_file()
+
+
+def test_report_builder_rejects_legacy_protocol_without_rewriting(tmp_path):
+    from experiments.benchmark_six.build_review import build
+    evaluation.write_json(tmp_path/'config/cases.json',{'cases':[{'case_id':'old'}]})
+    path=tmp_path/'jobs/old/official/evaluation/result.json'
+    evaluation.write_json(path,{'standing':{'status':'INDETERMINATE'}})
+    before=path.read_bytes()
+    with pytest.raises(ValueError,match='legacy'):
+        build(tmp_path)
+    assert path.read_bytes()==before
 
 
 def test_render_command_uses_common_cli_profile_without_a_real_render(tmp_path, monkeypatch):
@@ -266,12 +340,14 @@ def test_partial_print_measurement_keeps_unknown_totals_and_declared_n(tmp_path,
 
 @pytest.mark.parametrize('missing',[False,True])
 def test_area_and_gap_optima_are_independent_with_stub_parts(tmp_path,monkeypatch,missing):
-    from adsl.agents import assembly_physics,assembly_overhang,partition_score
+    from adsl.agents import assembly_physics,assembly_overhang,partition_score,support_volume
     report={'parts':[{'id':'a'},{'id':'b'}]}
     rows=[{'part_id':p['id'],'status':'PASS'} for p in report['parts']]
     class Mesh:
         vertices=np.array([[0.,0,0],[1,2,3]])
         volume=3.
+        def copy(self): return Mesh()
+        def apply_transform(self, transform): pass
     meshes={'a':Mesh(),'b':Mesh()} if not missing else {'a':Mesh()}
     monkeypatch.setattr(assembly_physics,'load_parts',lambda *a:(report,rows,meshes))
     calls=[]
@@ -279,10 +355,14 @@ def test_area_and_gap_optima_are_independent_with_stub_parts(tmp_path,monkeypatc
         i=len(calls)%24;calls.append(i)
         return {'area_mm2':2 if i==4 else 10,'uncertainty':{'bound_mm2':0}},None
     monkeypatch.setattr(assembly_overhang,'measure_part',area)
-    monkeypatch.setattr(partition_score,'best_print_pose',lambda *a:dict(gap_voxels=7,selected_rotation_id=9))
+    monkeypatch.setattr(partition_score,'best_print_pose',lambda *a:dict(gap_voxels=7,selected_rotation_id=9,
+        recommended_print_transform_mm=np.eye(4).tolist()))
+    monkeypatch.setattr(support_volume,'support_volume',lambda *a,**k:dict(status='PASS',
+        support_volume_mm3=1.,mesh_volume_mm3=3.,risky_projected_area_mm2=1.,ray_backend='stub'))
     out=evaluation.print_measurements('unused','unused',tmp_path,1.)
     assert out['N']==2 and len(calls)==(24 if missing else 48)
     assert out['parts'][0]['area_best_pose']['rotation_id']==4
     assert out['parts'][0]['gap_best_pose']['selected_rotation_id']==9
     assert out['min_overhang_area_mm2']==(None if missing else 4)
     assert out['G']==(None if missing else 14)
+    assert out['support']['nsv_total']==(None if missing else pytest.approx(1/3))
