@@ -1,0 +1,484 @@
+{
+  "recorded_at_utc": "2026-10-20T08:48:36.656077+00:00",
+  "base_commit": "5285285d8e8400e1ca941dacee2f1de9f5ef9b54",
+  "report_scope": "Read-only comparison of saved historical records; no new model, mesh, physical or benchmark runs for report preparation.",
+  "public_paths": "Source labels are logical archive-relative identifiers. Raw archives and payloads are not included in this report commit.",
+  "library": {
+    "manifest": "benchmark_results/ours_vs_adsl_current30_20261013/method_metrics_60.csv",
+    "manifest_sha256": "b2c8359c592f46f618638465cb6b397f0a6032d0744426bb5caad5e354ba4add",
+    "count": 30,
+    "part_count_distribution": {
+      "2": 1,
+      "1": 28,
+      "7": 1
+    },
+    "native_results_available": 24,
+    "native_results_missing": [
+      "ABO_B075X12HWJ",
+      "Toys4K_giraffe_003",
+      "Toys4K_penguin_034",
+      "ABO_B0742D9X4R",
+      "Toys4K_dinosaur_048",
+      "Toys4K_deer_moose_027"
+    ],
+    "stop_reasons": {
+      "no_reasonable_partition_proposal": 6,
+      "partition_engineering_unavailable": 7,
+      "agent_input_too_large": 3,
+      "partition_candidate_unverified_no_executable_feedback": 4,
+      "partition_reference_shape_changed_or_unavailable": 1,
+      "FLOW_ERROR": 2,
+      "round_budget_exhausted": 1
+    },
+    "historical_feedback_limit_cases": [
+      {
+        "case_id": "ABO_B082JGPBLQ",
+        "part_count": 7,
+        "generation_status": "COMPLETED",
+        "native_approved": false,
+        "retained_version": "original",
+        "stop_reason": "agent_input_too_large",
+        "reported_topology": "PASS",
+        "reported_standing": "PASS"
+      },
+      {
+        "case_id": "Toys4K_sheep_038",
+        "part_count": 1,
+        "generation_status": "COMPLETED",
+        "native_approved": false,
+        "retained_version": "original",
+        "stop_reason": "agent_input_too_large",
+        "reported_topology": "FAIL",
+        "reported_standing": "INDETERMINATE"
+      },
+      {
+        "case_id": "Toys4K_penguin_001",
+        "part_count": 1,
+        "generation_status": "COMPLETED",
+        "native_approved": false,
+        "retained_version": "original",
+        "stop_reason": "agent_input_too_large",
+        "reported_topology": "FAIL",
+        "reported_standing": "INDETERMINATE"
+      }
+    ],
+    "selection_scope": "Outcome-selected development/showcase library; not an unbiased generation-success denominator."
+  },
+  "matched_input": {
+    "case_id": "DensiCrafter_21",
+    "reference_sha256": "0bd54cfa8b5a39fe662eec5442bc103e9806484bfdaab0dd2b544f0d19ea3ec8",
+    "final_size_mm": [
+      150.0,
+      65.0,
+      150.0
+    ],
+    "model_label": "gpt-5.6-sol",
+    "max_rounds": 5,
+    "source_repair_limit": 4,
+    "controls_not_identical": [
+      "generated source",
+      "mode/prompt instructions",
+      "NSV and shape permission",
+      "partition exponent .1 vs .2",
+      "model serving channel and stochastic output are not controlled"
+    ]
+  },
+  "old_snowman": {
+    "code_commit": "0bc50c5cea439a812d82bfabb7661d49bcbc3d65",
+    "budget_bytes": 32768,
+    "part_count": 1,
+    "retained": "attempt_0001",
+    "qualified": "attempt_0001",
+    "stop_reason": "partition_candidate_unverified_no_executable_feedback",
+    "engineering_inputs": [
+      {
+        "label": "old_snowman/native/rounds/round_01/engineering_input.json",
+        "feedback_bytes": 16664,
+        "finding_count": 2,
+        "has_support_evidence": false,
+        "finding_rules": [
+          "PRINT_PARTITION_OPPORTUNITY",
+          "SELF_WEIGHT_TIPPING"
+        ]
+      },
+      {
+        "label": "old_snowman/native/rounds/round_02/candidates/01_standing_base_contact_01/engineering_input.json",
+        "feedback_bytes": 12183,
+        "finding_count": 1,
+        "has_support_evidence": false,
+        "finding_rules": [
+          "PRINT_PARTITION_OPPORTUNITY"
+        ]
+      }
+    ],
+    "version_outcomes": [
+      {
+        "version": "original",
+        "reason": "assembly_required_checks_not_passed",
+        "accepted": false,
+        "purpose": "required_repair"
+      },
+      {
+        "version": "attempt_0001",
+        "reason": "export_and_selected_checks_passed_visual_advisory",
+        "accepted": true,
+        "purpose": "required_repair"
+      },
+      {
+        "version": "attempt_0002",
+        "reason": "partition_reference_shape_changed_or_unavailable",
+        "accepted": false,
+        "purpose": "partition_optimization"
+      }
+    ]
+  },
+  "new32_snowman": {
+    "run_label": "support_D_snowman_sol56_20261020T032831Z",
+    "part_count": 5,
+    "finding_count_from_saved_feedback": 8,
+    "budget_bytes": 32768,
+    "final_feedback_bytes": 37055,
+    "finding_bytes": 26616,
+    "support_summary_bytes": 5809,
+    "input_capture_status": "Complete Engineering payload was not saved; final byte count is from the saved local error.",
+    "stop_reason": "agent_input_too_large"
+  },
+  "new96_snowman": {
+    "run_label": "support_D_snowman_96k_sol56_20261020T075701Z",
+    "code_base_commit": "5285285d8e8400e1ca941dacee2f1de9f5ef9b54",
+    "adapter_sha256": "0625b181f5017ebc3824361a535945f7386a190b7ea766a99d388aa0732f6d28",
+    "worktree_delta": "FEEDBACK_LIMIT_BYTES changed from 32*1024 to 96*1024; this report-only commit does not include that patch.",
+    "budget_bytes": 98304,
+    "part_count": 5,
+    "interface_count": 4,
+    "pair_count": 10,
+    "engineering": {
+      "feedback_bytes": 98045,
+      "remaining_bytes": 259,
+      "finding_count": 14,
+      "finding_bytes": 80953,
+      "support_summary_bytes": 7479,
+      "source_candidate_bytes": 46733,
+      "shape_opportunity_count": 5,
+      "shape_opportunity_bytes": 19483,
+      "same_feature_id_set_reuse": [
+        {
+          "candidate_count": 6,
+          "finding_count": 10,
+          "finding_ids": [
+            "assembly_topology:hat_to_head:INTERFACE_LOCAL_INTERFERENCE",
+            "assembly_topology:nose_to_head:INTERFACE_LOCAL_INTERFERENCE",
+            "assembly_topology:left_arm_to_middle:INTERFACE_LOCAL_INTERFERENCE",
+            "assembly_topology:right_arm_to_middle:INTERFACE_LOCAL_INTERFERENCE",
+            "assembly_topology:pair:body_core:hat:UNDECLARED_PART_INTERFERENCE",
+            "assembly_topology:pair:body_core:left_arm:UNDECLARED_PART_INTERFERENCE",
+            "assembly_topology:pair:body_core:nose:UNDECLARED_PART_INTERFERENCE",
+            "assembly_topology:pair:body_core:right_arm:UNDECLARED_PART_INTERFERENCE",
+            "assembly_overhang:SUPPORT_SHAPE_OPPORTUNITY:body_core",
+            "assembly_overhang:PRINT_PARTITION_OPPORTUNITY:body_core:hat:nose:left_arm:right_arm"
+          ]
+        }
+      ],
+      "top_fields": [
+        {
+          "path": "/typed_findings",
+          "bytes": 80953
+        },
+        {
+          "path": "/support_evidence",
+          "bytes": 7479
+        },
+        {
+          "path": "/evidence_files",
+          "bytes": 5518
+        },
+        {
+          "path": "/checker_summary",
+          "bytes": 2205
+        },
+        {
+          "path": "/pending_reviews",
+          "bytes": 1719
+        },
+        {
+          "path": "/support_round",
+          "bytes": 5
+        },
+        {
+          "path": "/support_baseline_version",
+          "bytes": 4
+        },
+        {
+          "path": "/assembly_context",
+          "bytes": 2
+        }
+      ],
+      "findings": [
+        {
+          "finding_id": "assembly_topology:hat_to_head:INTERFACE_LOCAL_INTERFERENCE",
+          "rule_id": "INTERFACE_LOCAL_INTERFERENCE",
+          "required": true,
+          "bytes": 6651,
+          "candidate_count": 6,
+          "source_candidates_bytes": 4273
+        },
+        {
+          "finding_id": "assembly_topology:nose_to_head:INTERFACE_LOCAL_INTERFERENCE",
+          "rule_id": "INTERFACE_LOCAL_INTERFERENCE",
+          "required": true,
+          "bytes": 6656,
+          "candidate_count": 6,
+          "source_candidates_bytes": 4273
+        },
+        {
+          "finding_id": "assembly_topology:left_arm_to_middle:INTERFACE_LOCAL_INTERFERENCE",
+          "rule_id": "INTERFACE_LOCAL_INTERFERENCE",
+          "required": true,
+          "bytes": 6688,
+          "candidate_count": 6,
+          "source_candidates_bytes": 4273
+        },
+        {
+          "finding_id": "assembly_topology:right_arm_to_middle:INTERFACE_LOCAL_INTERFERENCE",
+          "rule_id": "INTERFACE_LOCAL_INTERFERENCE",
+          "required": true,
+          "bytes": 6689,
+          "candidate_count": 6,
+          "source_candidates_bytes": 4273
+        },
+        {
+          "finding_id": "assembly_topology:pair:body_core:hat:UNDECLARED_PART_INTERFERENCE",
+          "rule_id": "UNDECLARED_PART_INTERFERENCE",
+          "required": true,
+          "bytes": 7055,
+          "candidate_count": 6,
+          "source_candidates_bytes": 4273
+        },
+        {
+          "finding_id": "assembly_topology:pair:body_core:left_arm:UNDECLARED_PART_INTERFERENCE",
+          "rule_id": "UNDECLARED_PART_INTERFERENCE",
+          "required": true,
+          "bytes": 7063,
+          "candidate_count": 6,
+          "source_candidates_bytes": 4273
+        },
+        {
+          "finding_id": "assembly_topology:pair:body_core:nose:UNDECLARED_PART_INTERFERENCE",
+          "rule_id": "UNDECLARED_PART_INTERFERENCE",
+          "required": true,
+          "bytes": 7018,
+          "candidate_count": 6,
+          "source_candidates_bytes": 4273
+        },
+        {
+          "finding_id": "assembly_topology:pair:body_core:right_arm:UNDECLARED_PART_INTERFERENCE",
+          "rule_id": "UNDECLARED_PART_INTERFERENCE",
+          "required": true,
+          "bytes": 7074,
+          "candidate_count": 6,
+          "source_candidates_bytes": 4273
+        },
+        {
+          "finding_id": "assembly_overhang:SUPPORT_SHAPE_OPPORTUNITY:body_core",
+          "rule_id": "SUPPORT_SHAPE_OPPORTUNITY",
+          "required": false,
+          "bytes": 6524,
+          "candidate_count": 6,
+          "source_candidates_bytes": 4273
+        },
+        {
+          "finding_id": "assembly_overhang:SUPPORT_SHAPE_OPPORTUNITY:hat",
+          "rule_id": "SUPPORT_SHAPE_OPPORTUNITY",
+          "required": false,
+          "bytes": 4274,
+          "candidate_count": 3,
+          "source_candidates_bytes": 2047
+        },
+        {
+          "finding_id": "assembly_overhang:SUPPORT_SHAPE_OPPORTUNITY:nose",
+          "rule_id": "SUPPORT_SHAPE_OPPORTUNITY",
+          "required": false,
+          "bytes": 2880,
+          "candidate_count": 1,
+          "source_candidates_bytes": 649
+        },
+        {
+          "finding_id": "assembly_overhang:SUPPORT_SHAPE_OPPORTUNITY:left_arm",
+          "rule_id": "SUPPORT_SHAPE_OPPORTUNITY",
+          "required": false,
+          "bytes": 2900,
+          "candidate_count": 1,
+          "source_candidates_bytes": 653
+        },
+        {
+          "finding_id": "assembly_overhang:SUPPORT_SHAPE_OPPORTUNITY:right_arm",
+          "rule_id": "SUPPORT_SHAPE_OPPORTUNITY",
+          "required": false,
+          "bytes": 2905,
+          "candidate_count": 1,
+          "source_candidates_bytes": 654
+        },
+        {
+          "finding_id": "assembly_overhang:PRINT_PARTITION_OPPORTUNITY:body_core:hat:nose:left_arm:right_arm",
+          "rule_id": "PRINT_PARTITION_OPPORTUNITY",
+          "required": false,
+          "bytes": 6561,
+          "candidate_count": 6,
+          "source_candidates_bytes": 4273
+        }
+      ]
+    },
+    "coder_inputs": [
+      {
+        "label": "new96/native/rounds/round_02/candidates/01_assembly_or_appearance/coder_agent_input.json",
+        "feedback_bytes": 9337
+      },
+      {
+        "label": "new96/native/rounds/round_03/candidates/02_repair_attachment_material_boundaries_v2/coder_agent_input.json",
+        "feedback_bytes": 86827
+      }
+    ],
+    "results": {
+      "assembly_topology": {
+        "status": "INDETERMINATE",
+        "summary": "Assembly topology INDETERMINATE; item counts {'PASS': 18, 'FAIL': 0, 'INDETERMINATE': 1}"
+      },
+      "assembly_standing": {
+        "status": "INDETERMINATE",
+        "summary": "INTERFACE_GEOMETRY_UNVERIFIED"
+      },
+      "assembly_overhang": {
+        "status": "PASS",
+        "summary": "Support-volume proxy measured at the recorded print poses; not slicer consumption or minimum-support pose search",
+        "support": {
+          "status": "PASS",
+          "total_support_volume_mm3": 18919.97669696349,
+          "total_volume_mm3": 211667.13055968256,
+          "nsv_total": 0.08938552077942369,
+          "total_risky_projected_area_mm2": 4336.949785683776
+        }
+      },
+      "geometry": {
+        "manufacturing_status": "PASS",
+        "manufacturing_geometry_valid": true,
+        "display_status": "PASS",
+        "part_ids": [
+          "body_core",
+          "hat",
+          "nose",
+          "left_arm",
+          "right_arm"
+        ]
+      }
+    },
+    "pre_repair_support": {
+      "status": "PASS",
+      "total_support_volume_mm3": 16604.437223500365,
+      "total_volume_mm3": 212347.00688438758,
+      "nsv_total": 0.07819482585191632,
+      "total_risky_projected_area_mm2": 4425.045517978291
+    },
+    "role_calls": 9,
+    "role_statuses": {
+      "COMPLETED": 9
+    },
+    "usage": {
+      "requests": 28,
+      "input_tokens": 969992,
+      "output_tokens": 31425,
+      "reasoning_tokens": 16307,
+      "cached_tokens": 726656,
+      "cache_write_tokens": 0,
+      "total_tokens": 1001417,
+      "cost": null
+    },
+    "elapsed_seconds": 1286.8372595310211,
+    "stop_reason": "assembly_checks_unverified_no_executable_feedback",
+    "retained": "original",
+    "qualified": null,
+    "optional_support_optimization_executed": false,
+    "support_postcheck_executed": false,
+    "api_errors_recorded": false
+  },
+  "measurement_notes": [
+    "All byte counts use compact sorted strict UTF-8 JSON over the feedback-only scope, not token counts or whole requests.",
+    "Parent/child byte sizes overlap; source candidate bytes are included in findings bytes.",
+    "Same feature IDs do not imply byte-identical candidate records; finding-specific references differ.",
+    "The 32 KiB and 96 KiB pilots are different fresh generations, not the same request replay at two budgets.",
+    "INDETERMINATE is not a proven physical FAIL or a valid standing result."
+  ],
+  "evidence": [
+    {
+      "label": "old_snowman/native/assembly_versions.json",
+      "sha256": "a94dacbcd090c938fd6a5a6db0d7adc06c235ddfa92a5bcb7f16f0c47c9e5af5"
+    },
+    {
+      "label": "new96/native/assembly_versions.json",
+      "sha256": "008ecc2bc4b76bd8cfbd2b2aed17bced788708ea4d1cc6e9efef15985aa067a0"
+    },
+    {
+      "label": "new96/ours/job.json",
+      "sha256": "0b05d4fed9144eaa6d86ee1fbfcf6a35198e1b5fe2fb33bda8c31d1259afcdce"
+    },
+    {
+      "label": "new96/submission.json",
+      "sha256": "01222ca4aa903312479723f00251de9624a99427899ba7b489727477c0cf90fe"
+    },
+    {
+      "label": "old_snowman/native/rounds/round_01/engineering_input.json",
+      "sha256": "6757895337b0e9e780c57396fdf44df7cc099853f96c5355f155bb065d97493b"
+    },
+    {
+      "label": "old_snowman/native/rounds/round_02/candidates/01_standing_base_contact_01/engineering_input.json",
+      "sha256": "d665a953a2960ee9f52279d4ebad3b2d5b04f83578cd827f5f08ed263faf4f5c"
+    },
+    {
+      "label": "new96/native/rounds/round_02/candidates/01_assembly_or_appearance/engineering_input.json",
+      "sha256": "a77414f9431b3bde8f446f7152cdfbe9107a6ea81bb5d0345e15c1b780d3d507"
+    },
+    {
+      "label": "new96/native/rounds/round_02/candidates/01_assembly_or_appearance/coder_agent_input.json",
+      "sha256": "0e3b910acb0cf155d0d7619fd0a79a984382abfb4cf3f65a9e1efdc51979dbd3"
+    },
+    {
+      "label": "new96/native/rounds/round_03/candidates/02_repair_attachment_material_boundaries_v2/coder_agent_input.json",
+      "sha256": "3534c2ed96934553d6e70756e0294ddb582297fcacef9cba95b877ad675abb12"
+    },
+    {
+      "label": "new96/native/rounds/round_03/candidates/02_repair_attachment_material_boundaries_v2/checkers/assembly_topology/result.json",
+      "sha256": "4bc44fedc819e89d71e6e3ae03b2edc6f89cd6ac93f4abfffcc3c61d7aac75d9"
+    },
+    {
+      "label": "new96/native/rounds/round_03/candidates/02_repair_attachment_material_boundaries_v2/checkers/assembly_standing/result.json",
+      "sha256": "9e75a6aa74a67c2e2a704477f6be9dff8796b344b19bcc447a8fcaa6ee871d6c"
+    },
+    {
+      "label": "new96/native/rounds/round_03/candidates/02_repair_attachment_material_boundaries_v2/checkers/assembly_overhang/result.json",
+      "sha256": "1b599603fcfbea4f1417fb5311902518d25ea2810672004a08bf8a49af424c1a"
+    },
+    {
+      "label": "new96/native/rounds/round_03/candidates/02_repair_attachment_material_boundaries_v2/asset/assembly/assembly_manifest.json",
+      "sha256": "8366ebb690ea3e295bb4cd7089e65f225750814bef77c677584a5eece987c216"
+    },
+    {
+      "label": "library/ABO_B082JGPBLQ/ours/assembly_result.json",
+      "sha256": "007890321ee2dfae527f2a23094a9730c624752875bedc3657b1b9ee519b12a3"
+    },
+    {
+      "label": "library/Toys4K_sheep_038/ours/assembly_result.json",
+      "sha256": "c6c08a0931b9652f0f849abe0f3febbb700bf4b2829785ff8144f4e08880d8a8"
+    },
+    {
+      "label": "library/Toys4K_penguin_001/ours/assembly_result.json",
+      "sha256": "b3683aca68365ccd7f2f11e238f9b1f24ec2f2fdf6ac67c408793678029533e9"
+    },
+    {
+      "label": "new32/native/assembly_versions.json",
+      "sha256": "70fa4a4e5ceef41409e9e2c880613e220cfdd450cb60aa1ee6dd5bbe4f32d027"
+    },
+    {
+      "label": "new32/native/rounds/round_02/candidates/01_assembly_or_appearance/engineering_error.json",
+      "sha256": "4636d35a61e252f53b816a72682bf899493cf0608a9ed1f2ade5930e71cd6397"
+    }
+  ]
+}
