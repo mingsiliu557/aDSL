@@ -118,6 +118,7 @@ def partition_measurement(args, physics, report, meshes, result, area_available)
     from .partition_score import (objective_config, create_reference, load_reference,
                                   best_print_pose, score_partition, partition_score_guidance)
     config = physics['overhang']
+    nsv = config.get('support_metric', 'area') == 'nsv'
     objective = objective_config(config['partition_objective'])
     reference = None
     try:
@@ -133,10 +134,28 @@ def partition_measurement(args, physics, report, meshes, result, area_available)
         name = row['part_id']
         row['input_pose_area_mm2'] = row.get('area_mm2')
         row['gap_voxels'] = None
-        if name not in meshes or reference is None:
+        if name not in meshes or (reference is None and not nsv):
             continue
         try:
-            measured = best_print_pose(meshes[name], reference)
+            if nsv:
+                from .support_volume import best_support_pose
+                measured = best_support_pose(meshes[name],
+                    overhang_threshold_from_horizontal_deg=config['overhang_threshold_from_horizontal_deg'],
+                    bed_tolerance_mm=config['layer_height_mm'])
+                # Keep the legacy score/layout integrity data at the SAME
+                # S-selected pose. G no longer chooses the NSV print rotation.
+                if reference is not None:
+                    rotation = np.asarray(measured['recommended_print_transform_mm'])[:3,:3]
+                    try:
+                        gap = best_print_pose(meshes[name], reference, rotations=[rotation])
+                        measured['gap_voxels'] = gap['gap_voxels']
+                        measured['orientations'] = [dict(gap['orientations'][0],
+                            rotation_id=measured['selected_rotation_id'])]
+                    except (ValueError, RuntimeError, OSError) as error:
+                        row['gap_measurement_error'] = str(error)[:240]
+                row['support_search_measurement'] = measured['support']
+            else:
+                measured = best_print_pose(meshes[name], reference)
             row.update(measured)
             printed = meshes[name].copy()
             printed.apply_transform(measured['recommended_print_transform_mm'])
@@ -159,7 +178,7 @@ def partition_measurement(args, physics, report, meshes, result, area_available)
             layouts.append(dict(part_id=name, stl=str(path.resolve()), stl_sha256=sha256_file(path),
                 mesh_sha256=sha256_file(args.output/f'{name}.solid.npz'),
                 file_validation=print_validation,
-                **{k:v for k,v in measured.items() if k != 'orientations'}))
+                **{k:v for k,v in measured.items() if k not in ('orientations','support_orientations')}))
         except (ValueError, RuntimeError, OSError) as error:
             row.update(status='INDETERMINATE', gap_voxels=None, reason=str(error)[:240])
         write_json(args.output/'partition_progress.json', {'items':result.metrics['items']})
@@ -172,12 +191,16 @@ def partition_measurement(args, physics, report, meshes, result, area_available)
                       if result.status=='PASS' else 'Partition measurement incomplete; total gap and score unknown')
     if config.get('support_metric', 'area') == 'nsv':
         _support_measurements(args, config, report, meshes, result, recommended=True)
+        if result.metrics['support']['status'] == 'PASS' and result.status != 'PASS':
+            result.summary = 'Support measured at minimum-S 24-rotation poses; partition reference/layout integrity remains unavailable'
     layout = dict(status=result.status, source_sha256=report['source_sha256'],
         manifest_sha256=sha256_file(args.manifest), reference_sha256=score['reference_sha256'],
         evaluation_config_sha256=score['evaluation_config_sha256'], parts=layouts)
     write_json(args.output/'print_layout.json', layout)
     result.artifacts['print_layout'] = str((args.output/'print_layout.json').resolve())
-    result.assumptions.update(partition_scope='Dapper objective; independent beds; 24 rotations; no packing/refinement',
+    result.assumptions.update(partition_scope=(
+        'Minimum ray support volume over 24 rotations; legacy Dapper values at the selected pose are integrity diagnostics only'
+        if nsv else 'Dapper objective; independent beds; 24 rotations; no packing/refinement'),
         limitations='Vertical empty voxel proxy; not actual support/time, bridging, removability or bed stability. Coarse voxels may mask connectors.')
     if result.status == 'PASS' and config.get('partition_editable',False):
         result.findings.append(finding(NAME,'PRINT_PARTITION_OPPORTUNITY',
@@ -194,7 +217,7 @@ def partition_measurement(args, physics, report, meshes, result, area_available)
 
 def _support_measurements(args, config, report, meshes, result, *, recommended):
     from .support_volume import (support_volume, aggregate, SupportMeasurementError,
-                                ALGORITHM_VERSION, SELF_HIT_RELATIVE_EPSILON)
+                                ALGORITHM_VERSION, SELF_HIT_RELATIVE_EPSILON, SUPPORT_POSE_POLICY)
     parts = {p['id']:p for p in report.get('parts', [])}
     declarations = report.get('part_declarations')
     rows = result.metrics['items']
@@ -214,9 +237,12 @@ def _support_measurements(args, config, report, meshes, result, *, recommended):
         measured_transform[2, 3] += bed_offset
         printed.apply_translation((0, 0, bed_offset))
         try:
-            row['support'] = support_volume(printed,
-                overhang_threshold_from_horizontal_deg=config['overhang_threshold_from_horizontal_deg'],
-                bed_tolerance_mm=config['layer_height_mm'])
+            if recommended and row.get('support_search_measurement') is not None:
+                row['support'] = row.pop('support_search_measurement')
+            else:
+                row['support'] = support_volume(printed,
+                    overhang_threshold_from_horizontal_deg=config['overhang_threshold_from_horizontal_deg'],
+                    bed_tolerance_mm=config['layer_height_mm'])
         except SupportMeasurementError as error:
             row['support'] = dict(status='INDETERMINATE', reason=str(error)[:240])
         row['support_print_transform_mm'] = measured_transform.tolist()
@@ -243,6 +269,7 @@ def _support_measurements(args, config, report, meshes, result, *, recommended):
     summary = aggregate(measured)
     result.metrics['support'] = summary
     contract = dict(algorithm=ALGORITHM_VERSION,
+        pose_policy=SUPPORT_POSE_POLICY if recommended else 'manifest_print_pose',
         overhang_threshold_from_horizontal_deg=config['overhang_threshold_from_horizontal_deg'],
         bed_tolerance_mm=config['layer_height_mm'], mask_bed_epsilon_mm=1e-8,
         self_hit_relative_epsilon=SELF_HIT_RELATIVE_EPSILON,
@@ -256,7 +283,11 @@ def _support_measurements(args, config, report, meshes, result, *, recommended):
         result.summary = 'Support measurement incomplete; no partial total'
         result.findings = [f for f in result.findings if f.category != 'optimization_opportunity']
         return
-    result.summary = 'Support-volume proxy measured at the recorded print poses; not slicer consumption or minimum-support pose search'
+    result.summary = ('Support-volume proxy minimized over the existing 24 rotations; not a continuous global minimum or slicer consumption'
+        if recommended else 'Support-volume proxy measured at the manifest print poses; no automatic pose search')
+    # Measurable support does not authorize an incomplete partition layout.
+    if result.status != 'PASS':
+        return
     for row in rows:
         support = row['support']
         domain = dict(support=support, print_transform_mm=row['support_print_transform_mm'],

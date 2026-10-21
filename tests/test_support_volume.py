@@ -141,3 +141,32 @@ def test_missing_backend_is_unavailable_not_zero(monkeypatch):
     monkeypatch.setattr(sv,'_ray_backend',missing)
     with pytest.raises(sv.SupportMeasurementError,match='unavailable'):
         sv.support_volume(t_mesh(),overhang_threshold_from_horizontal_deg=45,bed_tolerance_mm=.01)
+
+
+def test_minimum_support_pose_over_24_preserves_source_and_beats_upright():
+    mesh=t_mesh()
+    before=mesh.vertices.copy()
+    result=sv.best_support_pose(mesh,overhang_threshold_from_horizontal_deg=45,bed_tolerance_mm=.01)
+    poses=result['support_orientations']
+    assert len(poses)==24
+    assert poses[0]['support']['support_volume_mm3']==pytest.approx(16.)
+    assert result['support']['support_volume_mm3']==pytest.approx(0.)
+    best=min(poses,key=lambda r:(r['support']['support_volume_mm3'],r['rotation_id']))
+    assert result['selected_rotation_id']==best['rotation_id']
+    assert np.array_equal(before,mesh.vertices)
+    printed=mesh.copy();printed.apply_transform(result['recommended_print_transform_mm'])
+    measured=sv.support_volume(printed,overhang_threshold_from_horizontal_deg=45,bed_tolerance_mm=.01)
+    assert measured==result['support']
+
+
+def test_failed_search_pose_cannot_be_silently_ignored(monkeypatch):
+    calls=[]
+    def measure(*a,**kw):
+        calls.append(None)
+        if len(calls)==4:
+            raise sv.SupportMeasurementError('backend_failed')
+        return row(s=0)
+    monkeypatch.setattr(sv,'support_volume',measure)
+    with pytest.raises(sv.SupportMeasurementError,match='support_pose_3_unavailable'):
+        sv.best_support_pose(t_mesh(),overhang_threshold_from_horizontal_deg=45,bed_tolerance_mm=.01)
+    assert len(calls)==4  # A measured zero in another pose does not excuse a failed pose.

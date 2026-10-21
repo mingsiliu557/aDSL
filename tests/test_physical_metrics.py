@@ -98,27 +98,103 @@ def test_raw_ivr_uses_all_raw_pairs_and_no_interference_allowance():
     assert bounded['raw_intersection_mm3']==-1e-17
 
 
-def test_main_metrics_preserve_null_and_common_sample_lists():
-    a=record()
-    a.update(part_count=2,part_volumes_mm3={'a':10.,'b':20.},
-        pair_intersections=[dict(part_ids=['a','b'],raw_intersection_mm3=3.)],
-        support=dict(status='PASS',total_support_volume_mm3=3.,total_volume_mm3=30.,nsv_total=.1),
-        support_measurement_config_sha256='same-protocol')
-    b=deepcopy(a);b['support']={'status':'INDETERMINATE','nsv_total':None}
-    assert physical_table_row(b,protocol_id=PROTOCOL)['nsv'] is None
+def measured(case_id='one', *, count=1, internal=True, interpart=True):
+    r=record(case_id);r['part_count']=count
+    reasons=([] if internal else ['INTERNAL_PART_DISCONNECTED'])+([] if interpart else ['INTERPART_GRAPH_DISCONNECTED'])
+    r['connectivity']=dict(protocol_id='print_plan_structural_connectivity_v1',status='PASS',
+        overall_pass=internal and interpart,internal_connected=internal,interpart_connected=interpart,
+        part_count=count,reason_codes=reasons,asset_sha256='asset',measurement_config_sha256='connectivity-config')
+    r['support_evaluation']=dict(protocol_id='support_volume_min24_v1',status='PASS',
+        total_support_volume_mm3=3.,total_volume_mm3=30.,nsv_total=.1,part_count=count,
+        orientation_objective='support_volume_mm3',orientation_set='axis_aligned_24',
+        asset_sha256='asset',measurement_config_sha256='support-config',reason_codes=[])
+    return r
+
+
+def test_main_metrics_preserve_null_and_shared_nsv_n_sample_lists():
+    a=measured();b=deepcopy(a)
+    b['support_evaluation'].update(status='UNAVAILABLE',nsv_total=None)
     out=summarize_physical_methods({'a':[a],'b':[b]},protocol_id=PROTOCOL)
-    assert out['common_measurable_case_ids']['nsv']==[]
-    assert out['table'][0]['nsv'] is None and out['table'][0]['raw_ivr']==.1
-    assert set(out['table'][0])=={'method','standing_success_rate','raw_ivr','nsv','N'}
-    assert out['samples']['b']['metrics'][0]['missing_reasons']['nsv']=='SUPPORT_UNAVAILABLE'
+    assert out['common_measurable_case_ids']=={'nsv':[],'N':[]}
+    assert out['table'][0]['nsv'] is out['table'][0]['N'] is None
+    assert set(out['table'][0])=={'method','standing_success_rate','structural_connectivity_rate','nsv','N'}
+    assert out['samples']['b']['metrics'][0]['missing_reasons']['nsv']=='SUPPORT24_UNAVAILABLE'
     json.dumps(out,allow_nan=False)
 
 
-def test_nsv_different_config_is_not_comparable():
-    a=record();a.update(part_count=1,support=dict(status='PASS',
-        total_support_volume_mm3=1.,total_volume_mm3=10.,nsv_total=.1),
-        support_measurement_config_sha256='a')
-    b=deepcopy(a);b['support_measurement_config_sha256']='b'
-    out=summarize_physical_methods({'a':[a],'b':[b]},protocol_id=PROTOCOL)
-    assert out['nsv_configuration_mismatch_case_ids']==['one']
-    assert out['table'][0]['nsv'] is None
+def test_legacy_support_is_not_min24():
+    r=record();r.update(support=dict(status='PASS',nsv_total=.1,total_volume_mm3=30,total_support_volume_mm3=3),part_count=1)
+    result=physical_table_row(r,protocol_id=PROTOCOL)
+    assert result['nsv'] is None
+    assert result['missing_reasons']['nsv']=='SUPPORT24_NOT_MEASURED'
+
+
+@pytest.mark.parametrize('key',['connectivity','support_evaluation'])
+@pytest.mark.parametrize('field,value',[('protocol_id','old'),('asset_sha256','other')])
+def test_measurement_protocol_and_asset_mismatch_rejected(key,field,value):
+    r=measured();r[key][field]=value
+    with pytest.raises(ValueError,match='mismatch'):
+        physical_table_row(r,protocol_id=PROTOCOL)
+
+
+@pytest.mark.parametrize('key',['connectivity','support_evaluation'])
+def test_config_mismatch_rejected(key):
+    a=measured();b=deepcopy(a);b[key]['measurement_config_sha256']='other'
+    with pytest.raises(ValueError,match='configuration'):
+        summarize_physical_methods({'a':[a],'b':[b]},protocol_id=PROTOCOL)
+
+
+def test_single_baseline_multi_ours_ivr_na_does_not_affect_main_table():
+    a=measured(count=1);b=measured(count=2)
+    a.update(part_volumes_mm3={'whole':100},pair_intersections=[])
+    b.update(part_volumes_mm3={'a':80,'b':20},pair_intersections=[dict(part_ids=['a','b'],raw_intersection_mm3=.2)])
+    before=deepcopy([a,b]);out=summarize_physical_methods({'adsl':[a],'ours':[b]},protocol_id=PROTOCOL)
+    assert [r['N'] for r in out['table']]==[1,2]
+    assert [r['nsv'] for r in out['table']]==[.1,.1]
+    assert all(r['structural_connectivity_rate']==1 for r in out['table'])
+    assert physical_table_row(a,protocol_id=PROTOCOL)['raw_ivr'] is None
+    assert physical_table_row(b,protocol_id=PROTOCOL)['raw_ivr']==.002
+    assert [a,b]==before
+
+
+def test_joint_failure_counts_overlap_unavailable_and_standing_na():
+    a=measured('both',internal=False,interpart=False);a['applicable']=False
+    b=measured('internal',internal=False)
+    c=measured('unknown');c['connectivity'].update(status='UNAVAILABLE',overall_pass=None,
+        internal_connected=None,interpart_connected=None,reason_codes=['DISTANCE_UNAVAILABLE'])
+    d=measured('good')
+    out=summarize_physical_methods({'ours':[a,b,c,d]},protocol_id=PROTOCOL)
+    con=out['samples']['ours']['connectivity']
+    assert con['planned_total']==4 and con['success_rate']==.25
+    assert con['internal_disconnected_count']==2 and con['interpart_disconnected_count']==1
+    assert con['both_failure_count']==1 and con['unavailable_count']==1
+    assert con['terminal_failure_count']==3
+    assert out['samples']['ours']['standing']['planned_total']==3
+    assert con['cases'][3]['reason_codes']==[]
+    assert con['cases'][3]['internal_connected'] is con['cases'][3]['interpart_connected'] is True
+
+
+def test_pending_invalidates_rate_and_ns_samples_even_if_stale_measurements_present():
+    r=measured();r['state']='PENDING'
+    out=summarize_physical_methods({'ours':[r]},protocol_id=PROTOCOL)
+    assert out['status']=='INCOMPLETE'
+    assert out['table'][0]['structural_connectivity_rate'] is None
+    assert out['common_measurable_case_ids']['N']==[]
+
+
+def test_online_failures_do_not_remove_measured_geometry():
+    r=measured();r['checker']['status']='FAIL'
+    r['checker']['metrics']['standing_observation'].update(status='FAIL',observed_tipping=True)
+    out=summarize_physical_methods({'ours':[r]},protocol_id=PROTOCOL)
+    assert out['table'][0]['standing_success_rate']==0
+    assert out['table'][0]['structural_connectivity_rate']==1
+    assert out['table'][0]['nsv']==.1
+
+
+def test_invalid_success_reason_or_count_is_rejected():
+    r=measured();r['connectivity']['reason_codes']=['INTERNAL_PART_DISCONNECTED']
+    with pytest.raises(ValueError,match='reason'):
+        physical_table_row(r,protocol_id=PROTOCOL)
+    r=measured();r['support_evaluation']['part_count']=2
+    with pytest.raises(ValueError,match='count'):
+        physical_table_row(r,protocol_id=PROTOCOL)

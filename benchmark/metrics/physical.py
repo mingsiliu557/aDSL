@@ -150,64 +150,119 @@ def raw_ivr(part_volumes, pair_intersections):
     return dict(value=total/sum(part_volumes.values()), reason=None)
 
 
+def _measurement(record, key, expected_protocol):
+    value = record.get(key)
+    if value is None:
+        return None
+    if value.get('protocol_id') != expected_protocol:
+        raise ValueError(f'{key} protocol mismatch')
+    if value.get('status') not in {'PASS', 'UNAVAILABLE'}:
+        raise ValueError(f'{key} invalid measurement status')
+    if value.get('asset_sha256') != record.get('asset_sha256'):
+        raise ValueError(f'{key} asset binding mismatch')
+    if value['status'] == 'PASS' and (not value.get('asset_sha256') or not value.get('measurement_config_sha256')):
+        raise ValueError(f'{key} measured identity/config missing')
+    return value
+
+
+def _connectivity_record(record):
+    value = _measurement(record, 'connectivity', 'print_plan_structural_connectivity_v1')
+    applicable = record.get('connectivity_applicable', True)
+    if type(applicable) is not bool:
+        raise ValueError('frozen connectivity applicability must be boolean')
+    out = dict(case_id=record['case_id'], applicable=applicable, evaluation_outcome=None,
+        reason_codes=[], internal_connected=None, interpart_connected=None, status='UNAVAILABLE')
+    if value:
+        out.update({k:deepcopy(value.get(k)) for k in ('status','internal_connected','interpart_connected','reason_codes')})
+        if value['status'] == 'PASS':
+            a, b, overall = (value.get(k) for k in ('internal_connected','interpart_connected','overall_pass'))
+            if any(type(x) is not bool for x in (a,b,overall)) or overall != (a and b):
+                raise ValueError('inconsistent connectivity success evidence')
+            reasons = ([] if a else ['INTERNAL_PART_DISCONNECTED']) + ([] if b else ['INTERPART_GRAPH_DISCONNECTED'])
+            if set(value.get('reason_codes', [])) != set(reasons):
+                raise ValueError('inconsistent connectivity reason codes')
+        elif value.get('overall_pass') is not None:
+            raise ValueError('unavailable connectivity cannot declare a verdict')
+    if not applicable:
+        out.update(reason_codes=['NOT_APPLICABLE'])
+    elif record['state'] != 'TERMINAL':
+        out.update(evaluation_outcome='PENDING', reason_codes=['NOT_FINISHED'])
+    elif value and value['status']=='PASS':
+        out['evaluation_outcome'] = 'PASS' if value['overall_pass'] else 'FAIL'
+    else:
+        out.update(evaluation_outcome='FAIL', reason_codes=(out['reason_codes'] or ['CONNECTIVITY_NOT_MEASURED']))
+    return out
+
+
 def physical_table_row(record, *, protocol_id):
-    """Consume saved S/V and intersection measurements; never run or alter them."""
+    """Read protocol/asset-bound offline metrics; old support is not NSV24."""
     standing = classify_standing_record(record, protocol_id=protocol_id)
-    ivr = raw_ivr(record.get('part_volumes_mm3'), record.get('pair_intersections'))
-    support = record.get('support') or {}
-    nsv = support.get('nsv_total')
-    valid_support = (support.get('status') == 'PASS' and _number(nsv)
-        and _number(support.get('total_volume_mm3'), positive=True)
-        and _number(support.get('total_support_volume_mm3')))
+    connectivity = _connectivity_record(record)
+    support = _measurement(record, 'support_evaluation', 'support_volume_min24_v1')
     count = record.get('part_count')
     count = count if type(count) is int and count > 0 else None
-    return dict(case_id=record['case_id'], standing=standing,
-        raw_ivr=ivr['value'], nsv=nsv if valid_support else None, N=count,
-        missing_reasons=dict(raw_ivr=ivr['reason'],
-            nsv=None if valid_support else 'SUPPORT_UNAVAILABLE',
+    nsv = None
+    if support and support['status']=='PASS':
+        s,v,n = (support.get(k) for k in ('total_support_volume_mm3','total_volume_mm3','nsv_total'))
+        if (not _number(s) or not _number(v,positive=True) or not _number(n)
+                or not math.isclose(n,s/v,rel_tol=1e-12,abs_tol=0.)
+                or support.get('orientation_set')!='axis_aligned_24'
+                or support.get('orientation_objective')!='support_volume_mm3'
+                or count is None or type(support.get('part_count')) is not int or support.get('part_count') != count):
+            raise ValueError('invalid support24 measurement/count')
+        nsv = n
+    measured_connectivity = record.get('connectivity') or {}
+    if measured_connectivity.get('status')=='PASS' and (count is None or
+            type(measured_connectivity.get('part_count')) is not int or measured_connectivity.get('part_count') != count):
+        raise ValueError('connectivity print-part count mismatch')
+    ivr = raw_ivr(record.get('part_volumes_mm3'),record.get('pair_intersections'))
+    return dict(case_id=record['case_id'], standing=standing, connectivity=connectivity,
+        raw_ivr=ivr['value'], nsv=nsv, N=count,
+        missing_reasons=dict(raw_ivr=ivr['reason'], nsv=None if nsv is not None else
+            'SUPPORT24_NOT_MEASURED' if support is None else 'SUPPORT24_UNAVAILABLE',
             N=None if count else 'PART_COUNT_UNAVAILABLE'))
 
 
 def summarize_physical_methods(method_records, *, protocol_id):
-    """Same frozen case/applicability set for every method; no result-based pruning.
-
-    Standing uses all applicable cases. IVR/NSV/N means use explicitly recorded
-    common measurable sets, separately per metric. NSV also requires matching
-    measurement configuration within each paired case.
-    """
-    indexed, details = {}, {}
-    expected = None
+    """Fixed success denominators, and one common NSV24/N measurement subset."""
+    indexed, details, expected = {}, {}, None
     for method, records in method_records.items():
         rows = list(records)
-        keys = {r['case_id']:r['applicable'] for r in rows}
-        if len(keys) != len(rows) or (expected is not None and keys != expected):
+        keys = {r['case_id']:(r['applicable'],r.get('connectivity_applicable',True)) for r in rows}
+        if len(keys)!=len(rows) or (expected is not None and keys!=expected):
             raise ValueError('methods must share the frozen case and applicability list')
         expected = keys
         indexed[method] = {r['case_id']:r for r in rows}
-        details[method] = {r['case_id']:physical_table_row(r, protocol_id=protocol_id) for r in rows}
-    common = {}
-    for metric in ('raw_ivr', 'nsv', 'N'):
-        common[metric] = [cid for cid in (expected or {}) if all(
-            indexed[m][cid]['state'] == 'TERMINAL' and details[m][cid][metric] is not None
-            for m in indexed)]
-    mismatched = []
-    for cid in list(common['nsv']):
-        configs = {indexed[m][cid].get('support_measurement_config_sha256') for m in indexed}
-        if None in configs or len(configs) != 1:
-            common['nsv'].remove(cid)
-            mismatched.append(cid)
+        details[method] = {r['case_id']:physical_table_row(r,protocol_id=protocol_id) for r in rows}
+    # A protocol/configuration mismatch is an error, not result-based pruning.
+    for key in ('connectivity','support_evaluation'):
+        configs = {r[key]['measurement_config_sha256'] for records in indexed.values() for r in records.values()
+                   if (r.get(key) or {}).get('status')=='PASS'}
+        if len(configs)>1:
+            raise ValueError(f'{key} measurement configuration mismatch')
+    common = [cid for cid in (expected or {}) if all(
+        records[cid]['state']=='TERMINAL' and details[m][cid]['nsv'] is not None
+        and details[m][cid]['N'] is not None for m,records in indexed.items())]
     table, samples = [], {}
     for method, records in indexed.items():
-        standing = summarize_standing(records.values(), protocol_id=protocol_id)
-        means = {metric:sum(details[method][cid][metric] for cid in ids)/len(ids) if ids else None
-                 for metric, ids in common.items()}
+        standing = summarize_standing(records.values(),protocol_id=protocol_id)
+        connectivity_rows = [row['connectivity'] for row in details[method].values()]
+        active = [r for r in connectivity_rows if r['applicable']]
+        terminal = [r for r in active if r['evaluation_outcome']!='PENDING']
+        pending = len(active)-len(terminal)
+        success = sum(r['evaluation_outcome']=='PASS' for r in terminal)
+        connectivity = dict(planned_total=len(active), success_count=success,
+            terminal_failure_count=len(terminal)-success, pending_count=pending,
+            success_rate=success/len(active) if active and not pending else None,
+            internal_disconnected_count=sum(r['internal_connected'] is False for r in terminal),
+            interpart_disconnected_count=sum(r['interpart_connected'] is False for r in terminal),
+            both_failure_count=sum(r['internal_connected'] is False and r['interpart_connected'] is False for r in terminal),
+            unavailable_count=sum(r['status']=='UNAVAILABLE' for r in terminal), cases=connectivity_rows)
+        means = {key:sum(details[method][cid][key] for cid in common)/len(common) if common else None for key in ('nsv','N')}
         table.append(dict(method=method, standing_success_rate=standing['success_rate'],
-            raw_ivr=means['raw_ivr'], nsv=means['nsv'], N=means['N']))
-        samples[method] = dict(standing=standing, metrics=list(details[method].values()),
-            measured_counts={key:sum(row[key] is not None for row in details[method].values())
-                             for key in common})
-    return dict(status='INCOMPLETE' if any(
-        s['standing']['pending_count'] or any(r['state'] != 'TERMINAL' for r in indexed[m].values())
-        for m, s in samples.items()) else 'COMPLETE',
-        protocol_id=protocol_id, table=table, common_measurable_case_ids=common,
-        nsv_configuration_mismatch_case_ids=mismatched, samples=samples)
+            structural_connectivity_rate=connectivity['success_rate'], **means))
+        samples[method] = dict(standing=standing, connectivity=connectivity,
+            metrics=list(details[method].values()), metric_case_ids={'nsv':list(common),'N':list(common)},
+            measured_counts={key:sum(row[key] is not None for row in details[method].values()) for key in ('nsv','N')})
+    return dict(status='INCOMPLETE' if any(r['state']!='TERMINAL' for records in indexed.values() for r in records.values()) else 'COMPLETE',
+        protocol_id=protocol_id, table=table, common_measurable_case_ids={'nsv':common,'N':list(common)}, samples=samples)

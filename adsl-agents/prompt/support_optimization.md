@@ -23,8 +23,10 @@ advantage; it does not prove arbitrary dimensional changes meet the task require
 Read assigned_source, then only necessary evidence pointers. State a bounded hypothesis
 or NO_PROPOSAL/NO_CHANGE; do not invent measured gains. Support regions and transforms
 are in printed millimetres; invert the transform for local source placement.
-With a partition objective, existing 24-orientation selection supplies the measured
-and published pose; it is not an NSV-minimizing search. Do not spend a source edit
+With a partition objective, the existing 24 rotations are searched for minimum ray
+support volume S; for each fixed part this also minimizes NSV=S/V in that set.
+The selected pose is used for measurement and the recommended print layout.
+It is not a continuous global optimum. Do not spend a source edit
 copying these automatically published rotations. Regroup only when explicitly
 permitted, using action regroup_print_parts with grouping_change
 (operation, source_part_ids, target_print_parts, connection_changes).

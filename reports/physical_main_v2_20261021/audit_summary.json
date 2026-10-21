@@ -1,0 +1,30 @@
+{
+  "audit_only": true,
+  "asset_bindings_rechecked": 66,
+  "missing_count": 0,
+  "statistics": {
+    "official": {
+      "count": 33,
+      "D_min_mm": 152.545017328939,
+      "D_max_mm": 244.64158870292894,
+      "delta_min_mm": 0.762725086644695,
+      "delta_max_mm": 1.2232079435146448,
+      "fit_offset_min_mm": null,
+      "fit_offset_max_mm": null,
+      "clearance_exceeds_delta": []
+    },
+    "ours": {
+      "count": 33,
+      "D_min_mm": 152.5450072828726,
+      "D_max_mm": 245.73498752953842,
+      "delta_min_mm": 0.7627250364143631,
+      "delta_max_mm": 1.2286749376476922,
+      "fit_offset_min_mm": 0.2,
+      "fit_offset_max_mm": 0.2,
+      "clearance_exceeds_delta": []
+    }
+  },
+  "warning": "Official assets use their pre-existing 150-mm evaluation scale; ours uses retained native scale. This is a size audit, not a new cross-method performance comparison.",
+  "source_records_sha256": "3ffd233d08471fd513e6d97ffc2f9add428f3814625d9029750ea06db76985b3",
+  "config_sha256": "0202ba9c052ff4230d4b7f1db9ebf18d30646c13379727410516a51560d62924"
+}

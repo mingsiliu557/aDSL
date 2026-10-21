@@ -1427,7 +1427,7 @@ def test_compact_candidates_at_three_actual_runtime_boundaries(tmp_path, monkeyp
             measurement_config_sha256='ray-config', support={'status':'PASS'}, items=[])
     context = dict(typed_findings=base['typed_findings'], report_ref=ref)
     result = CheckerResult(checker='assembly_topology',status='PASS',summary='stub',metrics={})
-    check = CheckerRun(physics.checker_spec('assembly_topology'),result,tmp_path/'checks',())
+    check = CheckerRun(topology.checker_spec(),result,tmp_path/'checks',())
     async def exercise():
         # Empty context is the real Engineering-positive case without fixed_assembly at top level.
         await topology.engineer(workflow,runtime,request,plan,source,None,root,check,{},feedback,1)

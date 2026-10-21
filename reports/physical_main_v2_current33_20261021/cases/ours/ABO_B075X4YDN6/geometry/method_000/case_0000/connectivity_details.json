@@ -1,0 +1,86 @@
+{
+  "protocol_id": "print_plan_structural_connectivity_v1",
+  "status": "PASS",
+  "overall_pass": true,
+  "internal_connected": true,
+  "interpart_connected": true,
+  "part_count": 2,
+  "part_components": [
+    {
+      "part_id": "pedestal_base",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 0.0001220703125
+    },
+    {
+      "part_id": "upholstered_body",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 0.00028440193754004537
+    }
+  ],
+  "interpart_graph_component_count": 1,
+  "assembly_diagonal_mm": 245.73498752953842,
+  "delta_ratio": 0.005,
+  "delta_floor_mm": 0.0,
+  "delta_mm": 1.2286749376476922,
+  "reason_codes": [],
+  "measurement_config_sha256": "099b3838d7fecf3b7cfe76414901bfbbb81727cb76540aabff24109d66337872",
+  "measurement_config": {
+    "protocol_id": "print_plan_structural_connectivity_v1",
+    "delta_ratio": 0.005,
+    "delta_floor_mm": 0.0,
+    "backend": {
+      "trimesh": "5.0.0",
+      "python-fcl": "0.7.0.11",
+      "manifold3d": "3.5.2"
+    },
+    "intersection": "checked full material union; positive volume => zero distance",
+    "distance": "FCL triangle distance <= delta; no added threshold tolerance",
+    "internal": "existing union_print_mesh positive-volume material components"
+  },
+  "asset_sha256": "d2d366f499d5604f3d66fb1b1317b5610665231fb1a980872e2075a91be885bf",
+  "evidence_ref": null,
+  "details": {
+    "pairs": [
+      {
+        "part_ids": [
+          "pedestal_base",
+          "upholstered_body"
+        ],
+        "status": "PASS",
+        "edge": true,
+        "distance_mm": 0.0,
+        "intersection_mm3": 2.4202861936828413e-14,
+        "method": "MANIFOLD_POSITIVE_INTERSECTION"
+      }
+    ],
+    "graph_groups": [
+      [
+        "pedestal_base",
+        "upholstered_body"
+      ]
+    ],
+    "units": "mm",
+    "backend": {
+      "trimesh": "5.0.0",
+      "python-fcl": "0.7.0.11",
+      "manifold3d": "3.5.2",
+      "embreex": "4.4.0",
+      "rtree": "1.4.1"
+    },
+    "distance_tolerance_mm": 0.0,
+    "assembly_bounds_mm": [
+      [
+        -62.55464102737298,
+        -75.0,
+        0.0
+      ],
+      [
+        62.55464102737298,
+        75.0,
+        149.1085230289953
+      ]
+    ]
+  }
+}

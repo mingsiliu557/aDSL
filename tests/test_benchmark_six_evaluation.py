@@ -149,9 +149,11 @@ def test_print_metrics_real_solid_and_independent_area_gap_poses(tmp_path, monke
     assert row["gap_best_pose"]["selected_rotation_id"] == 9
     assert row["area_best_pose"]["rotation_id"] == 0
     assert len(row["area_orientations"]) == 24
-    assert len(support_calls)==1  # No extra orientation search.
+    assert len(support_calls)==24
     assert result['support']['nsv_total']==.125
-    assert row['support_print_transform_mm']==np.eye(4).tolist()
+    expected=np.eye(4);expected[:3,3]=-mesh.bounds[0]
+    assert row['support_print_transform_mm']==expected.tolist()
+    assert row['support_best_pose']['selected_rotation_id']==0  # deterministic tie
 
 
 def prepare_job(root, case_id="Toys4K_dragon_007", arm="official", failed=True):
@@ -259,7 +261,7 @@ def test_reporting_uses_all_cases_and_lists_metric_samples(tmp_path):
     assert result['physical']['status']=='INCOMPLETE'
     for row in result['physical']['table']:
         assert row['standing_success_rate'] is None
-        assert row['raw_ivr'] is row['nsv'] is row['N'] is None
+        assert row['structural_connectivity_rate'] is row['nsv'] is row['N'] is None
     sample=result['physical']['samples']['ours']['standing']
     assert sample['planned_total']==2 and sample['success_count']==1 and sample['pending_count']==1
     assert (tmp_path/'review/physical_metrics.json').is_file()

@@ -1,0 +1,2350 @@
+{
+  "protocol_id": "support_volume_min24_v1",
+  "status": "PASS",
+  "orientation_objective": "support_volume_mm3",
+  "orientation_set": "axis_aligned_24",
+  "total_support_volume_mm3": 28031.931426641368,
+  "total_volume_mm3": 69925.7235011874,
+  "nsv_total": 0.40088153576509455,
+  "part_count": 2,
+  "measurement_config_sha256": "3e8342b1d55062e6882d75d83e452f1c4173fefb8c3f8a7d4ae855eeda24f6ff",
+  "measurement_config": {
+    "protocol_id": "support_volume_min24_v1",
+    "algorithm": "centroid_downward_v1",
+    "orientation_set": "axis_aligned_24",
+    "rotations": [
+      [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      [
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          -1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      [
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          -1
+        ],
+        [
+          0,
+          -1,
+          0
+        ]
+      ],
+      [
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          1,
+          0
+        ]
+      ],
+      [
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          -1
+        ]
+      ],
+      [
+        [
+          0,
+          -1,
+          0
+        ],
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          -1
+        ]
+      ],
+      [
+        [
+          0,
+          -1,
+          0
+        ],
+        [
+          0,
+          0,
+          -1
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          -1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          -1,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          -1,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          -1
+        ],
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          -1
+        ],
+        [
+          0,
+          -1,
+          0
+        ],
+        [
+          -1,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          -1
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          -1
+        ],
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          -1,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          -1,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          -1,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          -1
+        ],
+        [
+          -1,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          -1
+        ]
+      ],
+      [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          -1,
+          0
+        ],
+        [
+          0,
+          0,
+          -1
+        ]
+      ],
+      [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          -1
+        ],
+        [
+          0,
+          1,
+          0
+        ]
+      ],
+      [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          -1,
+          0
+        ]
+      ]
+    ],
+    "overhang_threshold_from_horizontal_deg": 45.0,
+    "bed_tolerance_mm": 0.2,
+    "self_hit_relative_epsilon": 1.4210854715202004e-14,
+    "mask_bed_epsilon_mm": 1e-08,
+    "backend": {
+      "trimesh": "5.0.0",
+      "manifold3d": "3.5.2",
+      "embreex": "4.4.0",
+      "rtree": "1.4.1"
+    },
+    "ray_backends": [
+      "trimesh_embree"
+    ]
+  },
+  "asset_sha256": "22d2b6b0ca2ce1531b5acc74c0bc966ace6ea5840575df95c332562cff2f810a",
+  "reason_codes": [],
+  "evidence_ref": null,
+  "details": {
+    "items": [
+      {
+        "part_id": "lower_frame",
+        "orientations": [
+          {
+            "rotation_id": 0,
+            "print_transform_mm": [
+              [
+                1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 65162.965,
+              "mesh_volume_mm3": 22419.0916516,
+              "nsv": 2.906583639188141,
+              "risky_projected_area_mm2": 4654.4975,
+              "risky_face_count": 10,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 1,
+            "print_transform_mm": [
+              [
+                -1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 65162.965,
+              "mesh_volume_mm3": 22419.0916516,
+              "nsv": 2.906583639188141,
+              "risky_projected_area_mm2": 4654.4975,
+              "risky_face_count": 10,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 2,
+            "print_transform_mm": [
+              [
+                -1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                81.0
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 27618.263890066657,
+              "mesh_volume_mm3": 22419.091651599985,
+              "nsv": 1.2319082467418176,
+              "risky_projected_area_mm2": 1823.1709,
+              "risky_face_count": 52,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 3,
+            "print_transform_mm": [
+              [
+                -1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -0.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 31964.105290066655,
+              "mesh_volume_mm3": 22419.0916516,
+              "nsv": 1.425753807816984,
+              "risky_projected_area_mm2": 1823.1709000000005,
+              "risky_face_count": 52,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 4,
+            "print_transform_mm": [
+              [
+                -1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                81.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 299049.83187520003,
+              "mesh_volume_mm3": 22419.091651599985,
+              "nsv": 13.339069955310064,
+              "risky_projected_area_mm2": 4749.817956,
+              "risky_face_count": 54,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 5,
+            "print_transform_mm": [
+              [
+                0.0,
+                -1.0,
+                0.0,
+                21.0
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                81.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 299049.83187520003,
+              "mesh_volume_mm3": 22419.09165159999,
+              "nsv": 13.33906995531006,
+              "risky_projected_area_mm2": 4749.817956000001,
+              "risky_face_count": 54,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 6,
+            "print_transform_mm": [
+              [
+                0.0,
+                -1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                81.0
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 108555.67709006667,
+              "mesh_volume_mm3": 22419.091651599985,
+              "nsv": 4.842108626748014,
+              "risky_projected_area_mm2": 1473.7913999999998,
+              "risky_face_count": 42,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 7,
+            "print_transform_mm": [
+              [
+                0.0,
+                -1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -0.0
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 108555.67709006665,
+              "mesh_volume_mm3": 22419.091651600003,
+              "nsv": 4.842108626748009,
+              "risky_projected_area_mm2": 1473.7913999999998,
+              "risky_face_count": 42,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 8,
+            "print_transform_mm": [
+              [
+                0.0,
+                -1.0,
+                0.0,
+                21.0
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 65162.96499999999,
+              "mesh_volume_mm3": 22419.0916516,
+              "nsv": 2.9065836391881406,
+              "risky_projected_area_mm2": 4654.4975,
+              "risky_face_count": 10,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 9,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                -1.0,
+                81.0
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 31964.105290066647,
+              "mesh_volume_mm3": 22419.091651599974,
+              "nsv": 1.4257538078169851,
+              "risky_projected_area_mm2": 1823.1709,
+              "risky_face_count": 52,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 10,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                -1.0,
+                81.0
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                21.0
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 108555.67709006665,
+              "mesh_volume_mm3": 22419.091651599945,
+              "nsv": 4.842108626748022,
+              "risky_projected_area_mm2": 1473.7913999999996,
+              "risky_face_count": 42,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 11,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                -1.0,
+                81.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                21.0
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 108555.67709006666,
+              "mesh_volume_mm3": 22419.09165159997,
+              "nsv": 4.842108626748017,
+              "risky_projected_area_mm2": 1473.7913999999998,
+              "risky_face_count": 42,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 12,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                -1.0,
+                81.0
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 27618.263890066653,
+              "mesh_volume_mm3": 22419.09165159994,
+              "nsv": 1.2319082467418199,
+              "risky_projected_area_mm2": 1823.1708999999998,
+              "risky_face_count": 52,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 13,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                1.0,
+                -0.0
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 27618.263890066657,
+              "mesh_volume_mm3": 22419.091651600018,
+              "nsv": 1.2319082467418159,
+              "risky_projected_area_mm2": 1823.1709000000005,
+              "risky_face_count": 52,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 14,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                1.0,
+                -0.0
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                21.0
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 108555.67709006667,
+              "mesh_volume_mm3": 22419.09165160001,
+              "nsv": 4.842108626748009,
+              "risky_projected_area_mm2": 1473.7914,
+              "risky_face_count": 42,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 15,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                1.0,
+                -0.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                21.0
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 108555.67709006663,
+              "mesh_volume_mm3": 22419.09165160001,
+              "nsv": 4.842108626748007,
+              "risky_projected_area_mm2": 1473.7913999999998,
+              "risky_face_count": 42,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 16,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                1.0,
+                -0.0
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 31964.105290066655,
+              "mesh_volume_mm3": 22419.09165160001,
+              "nsv": 1.4257538078169831,
+              "risky_projected_area_mm2": 1823.1709000000005,
+              "risky_face_count": 52,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 17,
+            "print_transform_mm": [
+              [
+                0.0,
+                1.0,
+                0.0,
+                21.0
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 65162.965000000004,
+              "mesh_volume_mm3": 22419.0916516,
+              "nsv": 2.9065836391881414,
+              "risky_projected_area_mm2": 4654.4975,
+              "risky_face_count": 10,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 18,
+            "print_transform_mm": [
+              [
+                0.0,
+                1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                81.0
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 108555.67709006663,
+              "mesh_volume_mm3": 22419.091651599985,
+              "nsv": 4.842108626748012,
+              "risky_projected_area_mm2": 1473.7913999999996,
+              "risky_face_count": 42,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 19,
+            "print_transform_mm": [
+              [
+                0.0,
+                1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -0.0
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 108555.67709006667,
+              "mesh_volume_mm3": 22419.0916516,
+              "nsv": 4.842108626748011,
+              "risky_projected_area_mm2": 1473.7914,
+              "risky_face_count": 42,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 20,
+            "print_transform_mm": [
+              [
+                0.0,
+                1.0,
+                0.0,
+                21.0
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                81.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 299049.83187520003,
+              "mesh_volume_mm3": 22419.09165159998,
+              "nsv": 13.339069955310066,
+              "risky_projected_area_mm2": 4749.817956,
+              "risky_face_count": 54,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 21,
+            "print_transform_mm": [
+              [
+                1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                81.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 299049.83187520003,
+              "mesh_volume_mm3": 22419.091651599974,
+              "nsv": 13.33906995531007,
+              "risky_projected_area_mm2": 4749.817956000001,
+              "risky_face_count": 54,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 22,
+            "print_transform_mm": [
+              [
+                1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                81.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 31964.105290066655,
+              "mesh_volume_mm3": 22419.091651599985,
+              "nsv": 1.425753807816985,
+              "risky_projected_area_mm2": 1823.1709,
+              "risky_face_count": 52,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 23,
+            "print_transform_mm": [
+              [
+                1.0,
+                0.0,
+                0.0,
+                68.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -0.0
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                21.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 27618.263890066657,
+              "mesh_volume_mm3": 22419.0916516,
+              "nsv": 1.2319082467418168,
+              "risky_projected_area_mm2": 1823.1709000000003,
+              "risky_face_count": 52,
+              "ray_backend": "trimesh_embree"
+            }
+          }
+        ],
+        "selected_rotation_id": 12,
+        "status": "PASS",
+        "support": {
+          "status": "PASS",
+          "support_volume_mm3": 27618.263890066653,
+          "mesh_volume_mm3": 22419.09165159994,
+          "nsv": 1.2319082467418199,
+          "risky_projected_area_mm2": 1823.1708999999998,
+          "risky_face_count": 52,
+          "ray_backend": "trimesh_embree"
+        }
+      },
+      {
+        "part_id": "upper_console",
+        "orientations": [
+          {
+            "rotation_id": 0,
+            "print_transform_mm": [
+              [
+                1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -76.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 81287.61336278601,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.711079278786882,
+              "risky_projected_area_mm2": 6576.935497390121,
+              "risky_face_count": 574,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 1,
+            "print_transform_mm": [
+              [
+                -1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -76.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 81287.61336278537,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.7110792787868685,
+              "risky_projected_area_mm2": 6576.935497390121,
+              "risky_face_count": 574,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 2,
+            "print_transform_mm": [
+              [
+                -1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                93.30113683455123
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 64513.931066587844,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.3579984215855978,
+              "risky_projected_area_mm2": 4075.3860260645197,
+              "risky_face_count": 276,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 3,
+            "print_transform_mm": [
+              [
+                -1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -76.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 63603.18644580151,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.3388275272214198,
+              "risky_projected_area_mm2": 4075.386026351624,
+              "risky_face_count": 461,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 4,
+            "print_transform_mm": [
+              [
+                -1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                93.30113683455123
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 413.66753657471503,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 0.008707574510532414,
+              "risky_projected_area_mm2": 679.8700026991532,
+              "risky_face_count": 552,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 5,
+            "print_transform_mm": [
+              [
+                0.0,
+                -1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                93.30113683455123
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 413.66753657471503,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 0.008707574510532414,
+              "risky_projected_area_mm2": 679.8700026991531,
+              "risky_face_count": 552,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 6,
+            "print_transform_mm": [
+              [
+                0.0,
+                -1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                93.30113683455123
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 61762.04588391693,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.3000720842400295,
+              "risky_projected_area_mm2": 1193.089079105921,
+              "risky_face_count": 317,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 7,
+            "print_transform_mm": [
+              [
+                0.0,
+                -1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -76.0
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 61762.04588516055,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.3000720842662075,
+              "risky_projected_area_mm2": 1193.089079137766,
+              "risky_face_count": 317,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 8,
+            "print_transform_mm": [
+              [
+                0.0,
+                -1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -76.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 81287.61336278537,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.7110792787868685,
+              "risky_projected_area_mm2": 6576.935497390121,
+              "risky_face_count": 574,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 9,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                -1.0,
+                93.30113683455123
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 63603.18644580151,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.3388275272214198,
+              "risky_projected_area_mm2": 4075.386026351624,
+              "risky_face_count": 461,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 10,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                -1.0,
+                93.30113683455123
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 61762.04588516055,
+              "mesh_volume_mm3": 47506.63184958744,
+              "nsv": 1.300072084266208,
+              "risky_projected_area_mm2": 1193.089079137766,
+              "risky_face_count": 317,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 11,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                -1.0,
+                93.30113683455123
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 61762.04588391693,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.3000720842400295,
+              "risky_projected_area_mm2": 1193.089079105921,
+              "risky_face_count": 317,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 12,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                -1.0,
+                93.30113683455123
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 64513.931066587844,
+              "mesh_volume_mm3": 47506.63184958744,
+              "nsv": 1.3579984215855982,
+              "risky_projected_area_mm2": 4075.3860260645197,
+              "risky_face_count": 276,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 13,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                1.0,
+                -76.0
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 64513.931066587844,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.3579984215855978,
+              "risky_projected_area_mm2": 4075.3860260645197,
+              "risky_face_count": 276,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 14,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                1.0,
+                -76.0
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 61762.04588391693,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.3000720842400295,
+              "risky_projected_area_mm2": 1193.089079105921,
+              "risky_face_count": 317,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 15,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                1.0,
+                -76.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 61762.04588516055,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.3000720842662075,
+              "risky_projected_area_mm2": 1193.0890791377665,
+              "risky_face_count": 317,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 16,
+            "print_transform_mm": [
+              [
+                0.0,
+                0.0,
+                1.0,
+                -76.0
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 63603.18644580127,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.3388275272214147,
+              "risky_projected_area_mm2": 4075.386026351624,
+              "risky_face_count": 461,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 17,
+            "print_transform_mm": [
+              [
+                0.0,
+                1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -76.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 81287.61336278601,
+              "mesh_volume_mm3": 47506.63184958746,
+              "nsv": 1.7110792787868816,
+              "risky_projected_area_mm2": 6576.935497390121,
+              "risky_face_count": 574,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 18,
+            "print_transform_mm": [
+              [
+                0.0,
+                1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                93.30113683455123
+              ],
+              [
+                -1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 61762.04588516055,
+              "mesh_volume_mm3": 47506.63184958746,
+              "nsv": 1.3000720842662072,
+              "risky_projected_area_mm2": 1193.0890791377665,
+              "risky_face_count": 317,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 19,
+            "print_transform_mm": [
+              [
+                0.0,
+                1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -76.0
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 61762.04588391693,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.3000720842400295,
+              "risky_projected_area_mm2": 1193.089079105921,
+              "risky_face_count": 317,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 20,
+            "print_transform_mm": [
+              [
+                0.0,
+                1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                93.30113683455123
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 413.667536574715,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 0.008707574510532412,
+              "risky_projected_area_mm2": 679.8700026991531,
+              "risky_face_count": 552,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 21,
+            "print_transform_mm": [
+              [
+                1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                93.30113683455123
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 413.667536574715,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 0.008707574510532412,
+              "risky_projected_area_mm2": 679.8700026991531,
+              "risky_face_count": 552,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 22,
+            "print_transform_mm": [
+              [
+                1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                -1.0,
+                93.30113683455123
+              ],
+              [
+                0.0,
+                1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 63603.18644580127,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.3388275272214147,
+              "risky_projected_area_mm2": 4075.386026351624,
+              "risky_face_count": 461,
+              "ray_backend": "trimesh_embree"
+            }
+          },
+          {
+            "rotation_id": 23,
+            "print_transform_mm": [
+              [
+                1.0,
+                0.0,
+                0.0,
+                75.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0,
+                -76.0
+              ],
+              [
+                0.0,
+                -1.0,
+                0.0,
+                24.73341831564101
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "status": "PASS",
+            "support": {
+              "status": "PASS",
+              "support_volume_mm3": 64513.931066587844,
+              "mesh_volume_mm3": 47506.63184958745,
+              "nsv": 1.3579984215855978,
+              "risky_projected_area_mm2": 4075.3860260645197,
+              "risky_face_count": 276,
+              "ray_backend": "trimesh_embree"
+            }
+          }
+        ],
+        "selected_rotation_id": 20,
+        "status": "PASS",
+        "support": {
+          "status": "PASS",
+          "support_volume_mm3": 413.667536574715,
+          "mesh_volume_mm3": 47506.63184958745,
+          "nsv": 0.008707574510532412,
+          "risky_projected_area_mm2": 679.8700026991531,
+          "risky_face_count": 552,
+          "ray_backend": "trimesh_embree"
+        }
+      }
+    ]
+  }
+}

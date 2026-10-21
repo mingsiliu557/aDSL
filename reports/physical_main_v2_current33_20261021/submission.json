@@ -1,0 +1,26 @@
+{
+  "case_count": 33,
+  "method_count": 2,
+  "measurements": 66,
+  "standing_reused": 33,
+  "standing_new": 33,
+  "dataset_sha256": "a47a4c85be181b8bc44847edb6200dc1472942d705674812f3f637ddf8ee305b",
+  "base_commit": "c07b6ea0e601619d42f2cb05f7d2bc257b5dab74",
+  "config_sha256": "0202ba9c052ff4230d4b7f1db9ebf18d30646c13379727410516a51560d62924",
+  "physics_sha256": "3351c5651f0e1a1ec484a1c0715b8b7cd81b4e683c1308a19da99715000fc752",
+  "model_calls": 0,
+  "source_execution": false,
+  "workers": 2,
+  "standing_timeout_seconds": 900,
+  "geometry_timeout_seconds": 1800,
+  "scope": "Frozen current33 selected outputs; terminal missing values kept, no result-based case pruning",
+  "code_sha256": {
+    "benchmark/metrics/geometry.py": "cb4b84df49b43e2110e4db4bafb71a2f33fb7c8923190148362790c172f8efd8",
+    "benchmark/metrics/physical.py": "ced5cd42849ae9969fd3bad489d0404d775780e93e943b0c1b4011721e24deaf",
+    "benchmark/scripts/evaluate_physical_metrics.py": "21784154b9074e35f672950e8ac68eb4463d702fd7323a75a77ff51b70264388",
+    "adsl-agents/assembly_standing.py": "e5dfc4664e48c1e517a707b958c78e73160ae5121fd9cb2f15796ea902f137d9",
+    "adsl-agents/assembly_physics.py": "0ec458dff1e344deeb6830e5d4e7a439687132932e4ccd750c25a31a8701dbc1",
+    "adsl-agents/support_volume.py": "d198fd88fdd630cf7ef03ac9f3c339b571180bf8bf986b6790bd0c8c7229bca2",
+    "adsl-core/core/assembly_topology.py": "9c15fbf8d56762cfbb2f08b67ace230512bb1fb67bb409fae3211651b5bcc714"
+  }
+}

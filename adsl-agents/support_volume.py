@@ -8,6 +8,7 @@ import math
 from numbers import Real
 
 ALGORITHM_VERSION = 'centroid_downward_v1'
+SUPPORT_POSE_POLICY = 'min_support_axis_aligned_24_v1'
 SELF_HIT_RELATIVE_EPSILON = 64.0 * 2.220446049250313e-16
 
 
@@ -110,3 +111,33 @@ def aggregate(rows):
         return {**unavailable, 'reason':'nonfinite_total'}
     return dict(status='PASS', total_support_volume_mm3=s, total_volume_mm3=v,
         nsv_total=s/v, total_risky_projected_area_mm2=a)
+
+
+def best_support_pose(mesh_mm, *, overhang_threshold_from_horizontal_deg, bed_tolerance_mm):
+    """Minimum ray S among the existing 24 rotations, with deterministic ties.
+
+    For a fixed solid, V is rotation invariant, so minimizing S minimizes NSV.
+    Every pose must be measurable; a failed query cannot silently disappear
+    from the search. This requires no Dapper reference or voxel grid.
+    """
+    import numpy as np
+    from .partition_score import rotations24
+
+    rows = []
+    for index, rotation in enumerate(rotations24()):
+        transform = np.eye(4)
+        transform[:3, :3] = rotation
+        transform[:3, 3] = -(mesh_mm.vertices @ np.asarray(rotation).T).min(axis=0)
+        printed = mesh_mm.copy()
+        printed.apply_transform(transform)
+        try:
+            measured = support_volume(printed,
+                overhang_threshold_from_horizontal_deg=overhang_threshold_from_horizontal_deg,
+                bed_tolerance_mm=bed_tolerance_mm)
+        except SupportMeasurementError as error:
+            raise SupportMeasurementError(f'support_pose_{index}_unavailable: {error}') from error
+        rows.append(dict(rotation_id=index, print_transform_mm=transform.tolist(), support=measured))
+    best = min(rows, key=lambda row: (row['support']['support_volume_mm3'], row['rotation_id']))
+    return dict(selected_rotation_id=best['rotation_id'],
+        recommended_print_transform_mm=best['print_transform_mm'], support=best['support'],
+        support_pose_policy=SUPPORT_POSE_POLICY, support_orientations=rows)

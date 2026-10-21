@@ -1,0 +1,123 @@
+{
+  "code_head": "c07b6ea0e601619d42f2cb05f7d2bc257b5dab74",
+  "working_file_hashes": {
+    "support_volume.py": "d198fd88fdd630cf7ef03ac9f3c339b571180bf8bf986b6790bd0c8c7229bca2",
+    "assembly_overhang.py": "7d36e14096442a7dd31f5c3f4d0e8c5abd355163f7f1e54fc4b50c2f976a99ec",
+    "partition_score.py": "3d61d3fa591ba7a9190298348fa29017bfabb0155ec0846361643b127dfa54cb"
+  },
+  "case_id": "DensiCrafter_21",
+  "source_version": "attempt_0003",
+  "source_sha256": "7c6f9eaccf4ec91f9aa9b1439e826721864a5f093e14235d43ed97016e4c323a",
+  "manifest_sha256": "b7391a3ec2c4d0acf323586e9d7da2bcf3f3840a6a472dab6528aa5388958392",
+  "physics_sha256": "5536fd4644ac4c2ce2b4adbf06e58d590f80ac941ae265b45e2c0dd2992c6ae4",
+  "topology_status": "PASS",
+  "standing_status": "PASS",
+  "standing_observation": {
+    "status": "PASS",
+    "observed_tipping": false,
+    "observed_interface_exit": false,
+    "peak_tilt_deg": 0.001685337932478294,
+    "final_tilt_deg": 0.0011441070193053834,
+    "duration_s": 5.0
+  },
+  "contact_diagnostic": {
+    "status": "WARNING",
+    "code": "INITIAL_CONTACT_DEPTH_EXCEEDS_REFERENCE",
+    "maximum_penetration_mm": 0.03130934429404119,
+    "reference_bound_mm": 0.02057220458984375,
+    "affects_standing_verdict": false
+  },
+  "raw_ivr": 1.3668549433963797e-20,
+  "part_count": 4,
+  "overhang_status": "INDETERMINATE",
+  "support": {
+    "status": "PASS",
+    "total_support_volume_mm3": 14280.740194281794,
+    "total_volume_mm3": 275199.44224439916,
+    "nsv_total": 0.05189232971482316,
+    "total_risky_projected_area_mm2": 1314.9335867791324
+  },
+  "support_config": {
+    "algorithm": "centroid_downward_v1",
+    "pose_policy": "min_support_axis_aligned_24_v1",
+    "overhang_threshold_from_horizontal_deg": 45,
+    "bed_tolerance_mm": 0.2,
+    "mask_bed_epsilon_mm": 1e-08,
+    "self_hit_relative_epsilon": 1.4210854715202004e-14,
+    "ray_backends": [
+      "trimesh_embree"
+    ]
+  },
+  "partition_reference_error": "MeshEvaluationError: INPUT_GEOMETRY_INVALID: mesh is not closed, manifold and consistently oriented",
+  "layout_status": "INDETERMINATE",
+  "parts": [
+    {
+      "part_id": "body_core",
+      "rotation_count": 24,
+      "selected_rotation_id": 5,
+      "support": {
+        "status": "PASS",
+        "support_volume_mm3": 2267.3883462915237,
+        "mesh_volume_mm3": 250184.1007876841,
+        "nsv": 0.009062879452182763,
+        "risky_projected_area_mm2": 435.9781232874269,
+        "risky_face_count": 1590,
+        "ray_backend": "trimesh_embree"
+      },
+      "pose_and_stl_evidence_verified": true
+    },
+    {
+      "part_id": "hat_piece",
+      "rotation_count": 24,
+      "selected_rotation_id": 6,
+      "support": {
+        "status": "PASS",
+        "support_volume_mm3": 11814.398629630155,
+        "mesh_volume_mm3": 24553.514322751038,
+        "nsv": 0.481169354184181,
+        "risky_projected_area_mm2": 694.5553253293037,
+        "risky_face_count": 32,
+        "ray_backend": "trimesh_embree"
+      },
+      "pose_and_stl_evidence_verified": true
+    },
+    {
+      "part_id": "left_arm_piece",
+      "rotation_count": 24,
+      "selected_rotation_id": 23,
+      "support": {
+        "status": "PASS",
+        "support_volume_mm3": 94.62143420030507,
+        "mesh_volume_mm3": 221.22714763903173,
+        "nsv": 0.42771167648328323,
+        "risky_projected_area_mm2": 87.8862702929842,
+        "risky_face_count": 416,
+        "ray_backend": "trimesh_embree"
+      },
+      "pose_and_stl_evidence_verified": true
+    },
+    {
+      "part_id": "right_arm_piece",
+      "rotation_count": 24,
+      "selected_rotation_id": 16,
+      "support": {
+        "status": "PASS",
+        "support_volume_mm3": 104.33178415980875,
+        "mesh_volume_mm3": 240.59998632501666,
+        "nsv": 0.43363171275858353,
+        "risky_projected_area_mm2": 96.5138678694174,
+        "risky_face_count": 636,
+        "ray_backend": "trimesh_embree"
+      },
+      "pose_and_stl_evidence_verified": true
+    }
+  ],
+  "first_physical_run_seconds": 131.90491748973727,
+  "support_search_recheck_seconds": 8.851030968129635,
+  "original_archive_unchanged": true,
+  "isolated_input_unchanged": true,
+  "model_calls": 0,
+  "source_executed": false,
+  "fea_run": false,
+  "published": false
+}

@@ -1,0 +1,4826 @@
+{
+  "status": "COMPLETE",
+  "protocol_id": "independent_contact_warning_v1",
+  "table": [
+    {
+      "method": "official",
+      "standing_success_rate": 0.3939393939393939,
+      "structural_connectivity_rate": 0.48484848484848486,
+      "nsv": 0.849339946525675,
+      "N": 1.0
+    },
+    {
+      "method": "ours",
+      "standing_success_rate": 0.9393939393939394,
+      "structural_connectivity_rate": 0.7272727272727273,
+      "nsv": 0.808309061768668,
+      "N": 2.1515151515151514
+    }
+  ],
+  "common_measurable_case_ids": {
+    "nsv": [
+      "ABO_B075X2XZDD",
+      "Toys4K_dinosaur_020",
+      "ABO_B082JGPBLQ",
+      "ABO_B072ZK887F",
+      "ABO_B07S6WNZ7Y",
+      "ABO_B082XMFBY2",
+      "ABO_B07MNBYN11",
+      "ABO_B07DB92LG4",
+      "Toys4K_dog_046",
+      "Toys4K_cow_016",
+      "ABO_B075X4YDN6",
+      "ABO_B07F3Y9BSC",
+      "ABO_B07GFWF2GM",
+      "ABO_B073P3WGZZ",
+      "Toys4K_fox_024",
+      "Toys4K_frog_008",
+      "ABO_B0825CXG81",
+      "ABO_B07H8JN9KN",
+      "ABO_B07QF9Y23Z",
+      "ABO_B07H8VCM68",
+      "Toys4K_penguin_001",
+      "ABO_B075X12HWJ",
+      "Toys4K_giraffe_003",
+      "Toys4K_penguin_034",
+      "ABO_B0742D9X4R",
+      "DensiCrafter_21",
+      "Toys4K_dinosaur_048",
+      "Toys4K_deer_moose_027",
+      "ABO_B07HSMYNYF",
+      "DensiCrafter_173",
+      "ABO_B07QX2BYDH",
+      "Toys4K_panda_013",
+      "ABO_B07J1YW3YT"
+    ],
+    "N": [
+      "ABO_B075X2XZDD",
+      "Toys4K_dinosaur_020",
+      "ABO_B082JGPBLQ",
+      "ABO_B072ZK887F",
+      "ABO_B07S6WNZ7Y",
+      "ABO_B082XMFBY2",
+      "ABO_B07MNBYN11",
+      "ABO_B07DB92LG4",
+      "Toys4K_dog_046",
+      "Toys4K_cow_016",
+      "ABO_B075X4YDN6",
+      "ABO_B07F3Y9BSC",
+      "ABO_B07GFWF2GM",
+      "ABO_B073P3WGZZ",
+      "Toys4K_fox_024",
+      "Toys4K_frog_008",
+      "ABO_B0825CXG81",
+      "ABO_B07H8JN9KN",
+      "ABO_B07QF9Y23Z",
+      "ABO_B07H8VCM68",
+      "Toys4K_penguin_001",
+      "ABO_B075X12HWJ",
+      "Toys4K_giraffe_003",
+      "Toys4K_penguin_034",
+      "ABO_B0742D9X4R",
+      "DensiCrafter_21",
+      "Toys4K_dinosaur_048",
+      "Toys4K_deer_moose_027",
+      "ABO_B07HSMYNYF",
+      "DensiCrafter_173",
+      "ABO_B07QX2BYDH",
+      "Toys4K_panda_013",
+      "ABO_B07J1YW3YT"
+    ]
+  },
+  "samples": {
+    "official": {
+      "standing": {
+        "protocol_id": "independent_contact_warning_v1",
+        "status": "COMPLETE",
+        "planned_total": 33,
+        "success_count": 13,
+        "terminal_failure_count": 20,
+        "pending_count": 0,
+        "success_rate": 0.3939393939393939,
+        "observed_tipping_count": 3,
+        "observed_interface_exit_count": 0,
+        "cases": [
+          {
+            "case_id": "ABO_B075X2XZDD",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "a2431763b843e4bbb6552e8857f6944629ea3b66885d806ce85da7b4d9e8116d",
+            "asset_sha256": "380a69f239d0f10341665faf416395fb7c45bff4ec2b5e8473bf8174577deea3",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_dinosaur_020",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "443c2f27d748daa1defd69e916ed2980e7620c436c20a596c0894aa2c7d4a732",
+            "asset_sha256": "49204d1b8bbf8fa36c83b8ccd570bbb2bc1c360647e0a78b2602afa6f20c8c3f",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B082JGPBLQ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "8e85320bea01d992b7bcdd5e36963af46089b69e98f80978f56a28ed4d04aae1",
+            "asset_sha256": "9230fd61eb51c570b0c68fb40faaffdc9f1419a906dcd80c2a841080ae8dff1c",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B072ZK887F",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0009001005592883377,
+              "final_tilt_deg": 0.0008816150345000648,
+              "duration_s": 5.0
+            },
+            "source_sha256": "aa3dbbc2597594436950afd7f066694d0621328eb3058fd02ce1a72beca4aae2",
+            "asset_sha256": "9d54ec2020710e133e2fed935c270a444a5f7d9c69bd5670c146fe06cd3ab27c",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07S6WNZ7Y",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0031377835573907897,
+              "final_tilt_deg": 0.003137741625676719,
+              "duration_s": 5.0
+            },
+            "source_sha256": "e5fdc7bb19b464c8541ed99ab8ae6ef0b1152d9fe5858f28881cf045e21835f2",
+            "asset_sha256": "60f76b931f020e46994904de89e5a919169802b4cd351138f7b0a6569be68f2a",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B082XMFBY2",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0,
+              "final_tilt_deg": 0.0,
+              "duration_s": 5.0
+            },
+            "source_sha256": "70d625da9d79880922321b45ec0d291ae28cf39a559d33083fbd1775edb80568",
+            "asset_sha256": "3b18a6a9b25962d3eb4a23bfb908abd34821cf3ced75a57da2abb1a0e8f6ce25",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07MNBYN11",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0024588932994447053,
+              "final_tilt_deg": 0.0024588932994447053,
+              "duration_s": 5.0
+            },
+            "source_sha256": "027fbf8ae604372b75beb8042ae5b336cc46f51864904446909e870a9cd45be2",
+            "asset_sha256": "9e111606b0163c5c90ef89598f2cc81f18af25cffb9088e087385a3cc9b7c79f",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07DB92LG4",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "62a041bd32c60d28eee6ff22b27d27247b3a007a1642d94f550f322d73c8a418",
+            "asset_sha256": "bd70caa6d22049dad39dac16596005e87a1c9773453118a1b9ec89d6a619b69c",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_dog_046",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.06260528487479895,
+              "final_tilt_deg": 0.06260528457789583,
+              "duration_s": 5.0
+            },
+            "source_sha256": "f8f32b23b0735ce87c0d4b881bac897c46f6dbc50eaa472d1e52a176cf65cb5e",
+            "asset_sha256": "5a3856004437bcade26529a0ed6e1f692df281b1f7a4ceece3422f6dd3fdec99",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_cow_016",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "25c37cf21919b658d9ba82aefe450106c83d52cf08f45f6c84902f2afa63c5c7",
+            "asset_sha256": "4d4bf52cef3aaee4aaa5ac4d4a4f3d9a3c030808d054ee27d25516d7daf30a53",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B075X4YDN6",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "7cc3397757c38904a7f40edd023ff21742275bd2c29e2d3dd457479ebdfdc753",
+            "asset_sha256": "06a03512a22ae853322f45c6b32c1fd99bb2c0bb84094e88c8819b3e4ec1ed28",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07F3Y9BSC",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.08201960257969242,
+              "final_tilt_deg": 0.054016408065745744,
+              "duration_s": 5.0
+            },
+            "source_sha256": "2f0979ef9f263137e175fd2053c3154346fa79e96ec6334682cdd21a41e60bc3",
+            "asset_sha256": "ef05d19f18a8ba1728eadb2328c8258d8c45863f22ea6ea3c39b8d4aa16f52df",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07GFWF2GM",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "26b85f0c8017cca573b2aa41b0a62f7f7a33e07eceb66b095dcdab4dec2be45f",
+            "asset_sha256": "fe81837ca84214a125059d2dd3b76a705667a11be0bf549d08e6b128aaaa4666",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B073P3WGZZ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "c011242d72c150854267696d63d31c5b34dfee39460a6d4d4dc940b44141a32e",
+            "asset_sha256": "7c5f1d68ed68b872629b36ef12fc6c2399b1579f19efbd71760db412a1502655",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_fox_024",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "93cea2543f85c4a31ce4eb15e4b260fa9f7e80eeadab864228459d4da4324690",
+            "asset_sha256": "eb2d9f833fff5950d6d363ffc48e6154ed8714a55ad5c4cd9cbcfe0855bc124a",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_frog_008",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.010052171501720978,
+              "final_tilt_deg": 0.010052165084174652,
+              "duration_s": 5.0
+            },
+            "source_sha256": "d6d6111721f12cfdb93044df76ead7d7a179e691134d8866c0e793955444ae9b",
+            "asset_sha256": "f910f4c6c773660f912569d99010de5c4f45b355f6e494a1e772f316b3f16bf0",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B0825CXG81",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "dad2a121f61f3c2b15351e0502f69c02506f01424929ef6f83d80c7b20834838",
+            "asset_sha256": "4fb5aff781be42ce678e45a59f6fd4fb42503b214aac3e4db21da795cc2f8991",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07H8JN9KN",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "ff5f57f74b7e39b1a8352a151ac83e4658304808ea40d67e141659c62b2bdafc",
+            "asset_sha256": "58c34e4b329eb25b2bee9a188b8c5226d68eee18efe1374112f230f1199bccf0",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07QF9Y23Z",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "ff76bdc95f39411eeb3dbd350bc4a125b79d7f38ef112e79cba4ac1dc3f08718",
+            "asset_sha256": "f44a5c6080eb9d514d9f24e7b23ef148088edfef30d043818180bb911870011e",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07H8VCM68",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.001955073607914155,
+              "final_tilt_deg": 0.0019550730486542324,
+              "duration_s": 5.0
+            },
+            "source_sha256": "9dafaa221e673ab01818ee8a61a6da5d23eaf9b5240a783ec0b52a9000afd730",
+            "asset_sha256": "57779f3c6ee84e1337e77588ba6e1566d1fa945fb0ba1a78f9fc913b837edb71",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_penguin_001",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "2d267fa53ed6591a21e97f52035c17e0724922946bec4263e1d9728a7211fe87",
+            "asset_sha256": "4bf9217fb90f817d17c76933898f2fa38319e370d009414f92afa430d3199c2c",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B075X12HWJ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "TIPPING"
+            ],
+            "raw_status": "FAIL",
+            "observation": {
+              "status": "FAIL",
+              "observed_tipping": true,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 97.20608735840592,
+              "final_tilt_deg": 90.03718224509143,
+              "duration_s": 5.0
+            },
+            "source_sha256": "3eba98801a034ee6ad55d837d14926119890e56e2b29aa020e48516447604583",
+            "asset_sha256": "21831b984b1c3980d8004ed9325e917339a9c1b9a40e513af53bef44105c9689",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_giraffe_003",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "c9f0bf007386d01ca7a6d4b8c9cedf0f5420409ce249419e5e7e39c7cd8a1053",
+            "asset_sha256": "a247ce58c58cc9aea180aba4b4acc968d8d44eda33c2cda6ca222ae179f6dcdf",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_penguin_034",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "fd7403d1f4bf733cde71b80125c9cfa04ca51707e9b2f3e8e1a04bf34eab8a7d",
+            "asset_sha256": "22c4795c07883229550e27d46eb294c3c301772404d19d8fb7bf24688b7a173c",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B0742D9X4R",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "218e38adf9360b2b7e1cdad18e5bb7c5fa54cb1404ae558177d484090083c46a",
+            "asset_sha256": "45bd9a9f7e2d6aad0943e18d205764210b6d5de33a2ae04dd538372d5177fba8",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "DensiCrafter_21",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "TIPPING"
+            ],
+            "raw_status": "FAIL",
+            "observation": {
+              "status": "FAIL",
+              "observed_tipping": true,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 97.36705295416021,
+              "final_tilt_deg": 95.58472981286916,
+              "duration_s": 5.0
+            },
+            "source_sha256": "8966b860a65bc6feec77f576f9cbd84da9ab953d7515b46e6169c93f37738d24",
+            "asset_sha256": "62ae0a7189eb39fbf9e30a955b50380d0e14f23b4f39f6c605d00c4812fb21ad",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_dinosaur_048",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "fa46c795420c9d288f57aca3a8b1dae287a35a24579964200d2f58d94497f081",
+            "asset_sha256": "d5cd3ca400ae69ece34610e6f8207309193c84debe33ba2b45f7841099cf3f45",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_deer_moose_027",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.025242631863598923,
+              "final_tilt_deg": 0.02521783125578269,
+              "duration_s": 5.0
+            },
+            "source_sha256": "f5e5e856a0995f46833b1c954d1e55a27c4939989cc7e9b651d9f253db7a5b67",
+            "asset_sha256": "ba2fdda9aa24ba7ace007a6ee0b56f2a1fd8033c5b19697a4eb0ed5830501af9",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07HSMYNYF",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.001622707940787344,
+              "final_tilt_deg": 0.0016227074915817158,
+              "duration_s": 5.0
+            },
+            "source_sha256": "b856ff470de835f144cd7b5a67ac4da18dba630c11747a04a7bf65d515714beb",
+            "asset_sha256": "0d640c73ccc29bf4e43994684f924a405b3e95133de3e31cd10c6539e0db5e66",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "DensiCrafter_173",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "TIPPING"
+            ],
+            "raw_status": "FAIL",
+            "observation": {
+              "status": "FAIL",
+              "observed_tipping": true,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 90.03816454656206,
+              "final_tilt_deg": 81.47340729812186,
+              "duration_s": 5.0
+            },
+            "source_sha256": "43bd7cf37db178552f2931958aff25334148f0b8e13de8051a2706f224cb832b",
+            "asset_sha256": "f4bd70d53a6d3571cd87f264ef13536bf9140a71e00aa89f203bd2a3f0c9620e",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07QX2BYDH",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0005418927630611556,
+              "final_tilt_deg": 0.0005418907453257866,
+              "duration_s": 5.0
+            },
+            "source_sha256": "d6bb73aeb5df56dff80a8444eb19ff52208a7d5ff404c3d1830842af1d17b330",
+            "asset_sha256": "7e889bd87a369d8966742831a94b4b84de74ad37e0f60a11e9b0aa3b1ea8ac82",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_panda_013",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0011845022461314432,
+              "final_tilt_deg": 0.0011845019384369934,
+              "duration_s": 5.0
+            },
+            "source_sha256": "ab3236889ab627d0cf7ddfeb30b7bf46a3cb2b91e37c24dfc2a7d2219555efad",
+            "asset_sha256": "54ccf6a3a31181337d3c0acf9828562ab7e5973912e231f719e71359aaf9a094",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07J1YW3YT",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0011467260744558551,
+              "final_tilt_deg": 0.0011467254387943337,
+              "duration_s": 5.0
+            },
+            "source_sha256": "db18e195b20f144e7f56e0d4ddbee674ec7f000aa9cda5925b5723b795e3be1f",
+            "asset_sha256": "a2bb7820afb62ff0d248759ff32dbd8092d252548037e48dfd66d3691e5c6b78",
+            "protocol_id": "independent_contact_warning_v1"
+          }
+        ]
+      },
+      "connectivity": {
+        "planned_total": 33,
+        "success_count": 16,
+        "terminal_failure_count": 17,
+        "pending_count": 0,
+        "success_rate": 0.48484848484848486,
+        "internal_disconnected_count": 17,
+        "interpart_disconnected_count": 0,
+        "both_failure_count": 0,
+        "unavailable_count": 0,
+        "cases": [
+          {
+            "case_id": "ABO_B075X2XZDD",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_dinosaur_020",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B082JGPBLQ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B072ZK887F",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07S6WNZ7Y",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B082XMFBY2",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07MNBYN11",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07DB92LG4",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_dog_046",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_cow_016",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B075X4YDN6",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07F3Y9BSC",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07GFWF2GM",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B073P3WGZZ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_fox_024",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_frog_008",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B0825CXG81",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07H8JN9KN",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07QF9Y23Z",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07H8VCM68",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_penguin_001",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B075X12HWJ",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_giraffe_003",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_penguin_034",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B0742D9X4R",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "DensiCrafter_21",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_dinosaur_048",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_deer_moose_027",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07HSMYNYF",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "DensiCrafter_173",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07QX2BYDH",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_panda_013",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07J1YW3YT",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          }
+        ]
+      },
+      "metrics": [
+        {
+          "case_id": "ABO_B075X2XZDD",
+          "standing": {
+            "case_id": "ABO_B075X2XZDD",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "a2431763b843e4bbb6552e8857f6944629ea3b66885d806ce85da7b4d9e8116d",
+            "asset_sha256": "380a69f239d0f10341665faf416395fb7c45bff4ec2b5e8473bf8174577deea3",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B075X2XZDD",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 1.5819316917485382,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_dinosaur_020",
+          "standing": {
+            "case_id": "Toys4K_dinosaur_020",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "443c2f27d748daa1defd69e916ed2980e7620c436c20a596c0894aa2c7d4a732",
+            "asset_sha256": "49204d1b8bbf8fa36c83b8ccd570bbb2bc1c360647e0a78b2602afa6f20c8c3f",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_dinosaur_020",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.32054444015267936,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B082JGPBLQ",
+          "standing": {
+            "case_id": "ABO_B082JGPBLQ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "8e85320bea01d992b7bcdd5e36963af46089b69e98f80978f56a28ed4d04aae1",
+            "asset_sha256": "9230fd61eb51c570b0c68fb40faaffdc9f1419a906dcd80c2a841080ae8dff1c",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B082JGPBLQ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.03473579784080066,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B072ZK887F",
+          "standing": {
+            "case_id": "ABO_B072ZK887F",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0009001005592883377,
+              "final_tilt_deg": 0.0008816150345000648,
+              "duration_s": 5.0
+            },
+            "source_sha256": "aa3dbbc2597594436950afd7f066694d0621328eb3058fd02ce1a72beca4aae2",
+            "asset_sha256": "9d54ec2020710e133e2fed935c270a444a5f7d9c69bd5670c146fe06cd3ab27c",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B072ZK887F",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 2.4554435100951473,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07S6WNZ7Y",
+          "standing": {
+            "case_id": "ABO_B07S6WNZ7Y",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0031377835573907897,
+              "final_tilt_deg": 0.003137741625676719,
+              "duration_s": 5.0
+            },
+            "source_sha256": "e5fdc7bb19b464c8541ed99ab8ae6ef0b1152d9fe5858f28881cf045e21835f2",
+            "asset_sha256": "60f76b931f020e46994904de89e5a919169802b4cd351138f7b0a6569be68f2a",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07S6WNZ7Y",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.8574629073815676,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B082XMFBY2",
+          "standing": {
+            "case_id": "ABO_B082XMFBY2",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0,
+              "final_tilt_deg": 0.0,
+              "duration_s": 5.0
+            },
+            "source_sha256": "70d625da9d79880922321b45ec0d291ae28cf39a559d33083fbd1775edb80568",
+            "asset_sha256": "3b18a6a9b25962d3eb4a23bfb908abd34821cf3ced75a57da2abb1a0e8f6ce25",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B082XMFBY2",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.349267299736295,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07MNBYN11",
+          "standing": {
+            "case_id": "ABO_B07MNBYN11",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0024588932994447053,
+              "final_tilt_deg": 0.0024588932994447053,
+              "duration_s": 5.0
+            },
+            "source_sha256": "027fbf8ae604372b75beb8042ae5b336cc46f51864904446909e870a9cd45be2",
+            "asset_sha256": "9e111606b0163c5c90ef89598f2cc81f18af25cffb9088e087385a3cc9b7c79f",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07MNBYN11",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 3.160920745784871,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07DB92LG4",
+          "standing": {
+            "case_id": "ABO_B07DB92LG4",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "62a041bd32c60d28eee6ff22b27d27247b3a007a1642d94f550f322d73c8a418",
+            "asset_sha256": "bd70caa6d22049dad39dac16596005e87a1c9773453118a1b9ec89d6a619b69c",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07DB92LG4",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.5437668133653056,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_dog_046",
+          "standing": {
+            "case_id": "Toys4K_dog_046",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.06260528487479895,
+              "final_tilt_deg": 0.06260528457789583,
+              "duration_s": 5.0
+            },
+            "source_sha256": "f8f32b23b0735ce87c0d4b881bac897c46f6dbc50eaa472d1e52a176cf65cb5e",
+            "asset_sha256": "5a3856004437bcade26529a0ed6e1f692df281b1f7a4ceece3422f6dd3fdec99",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_dog_046",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.20446853193673195,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_cow_016",
+          "standing": {
+            "case_id": "Toys4K_cow_016",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "25c37cf21919b658d9ba82aefe450106c83d52cf08f45f6c84902f2afa63c5c7",
+            "asset_sha256": "4d4bf52cef3aaee4aaa5ac4d4a4f3d9a3c030808d054ee27d25516d7daf30a53",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_cow_016",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.29866995895747384,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B075X4YDN6",
+          "standing": {
+            "case_id": "ABO_B075X4YDN6",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "7cc3397757c38904a7f40edd023ff21742275bd2c29e2d3dd457479ebdfdc753",
+            "asset_sha256": "06a03512a22ae853322f45c6b32c1fd99bb2c0bb84094e88c8819b3e4ec1ed28",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B075X4YDN6",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.4353241231709211,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07F3Y9BSC",
+          "standing": {
+            "case_id": "ABO_B07F3Y9BSC",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.08201960257969242,
+              "final_tilt_deg": 0.054016408065745744,
+              "duration_s": 5.0
+            },
+            "source_sha256": "2f0979ef9f263137e175fd2053c3154346fa79e96ec6334682cdd21a41e60bc3",
+            "asset_sha256": "ef05d19f18a8ba1728eadb2328c8258d8c45863f22ea6ea3c39b8d4aa16f52df",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07F3Y9BSC",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.15340021133837128,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07GFWF2GM",
+          "standing": {
+            "case_id": "ABO_B07GFWF2GM",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "26b85f0c8017cca573b2aa41b0a62f7f7a33e07eceb66b095dcdab4dec2be45f",
+            "asset_sha256": "fe81837ca84214a125059d2dd3b76a705667a11be0bf549d08e6b128aaaa4666",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07GFWF2GM",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.01748983520560839,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B073P3WGZZ",
+          "standing": {
+            "case_id": "ABO_B073P3WGZZ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "c011242d72c150854267696d63d31c5b34dfee39460a6d4d4dc940b44141a32e",
+            "asset_sha256": "7c5f1d68ed68b872629b36ef12fc6c2399b1579f19efbd71760db412a1502655",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B073P3WGZZ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 1.4530722531842675,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_fox_024",
+          "standing": {
+            "case_id": "Toys4K_fox_024",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "93cea2543f85c4a31ce4eb15e4b260fa9f7e80eeadab864228459d4da4324690",
+            "asset_sha256": "eb2d9f833fff5950d6d363ffc48e6154ed8714a55ad5c4cd9cbcfe0855bc124a",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_fox_024",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.307582828369688,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_frog_008",
+          "standing": {
+            "case_id": "Toys4K_frog_008",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.010052171501720978,
+              "final_tilt_deg": 0.010052165084174652,
+              "duration_s": 5.0
+            },
+            "source_sha256": "d6d6111721f12cfdb93044df76ead7d7a179e691134d8866c0e793955444ae9b",
+            "asset_sha256": "f910f4c6c773660f912569d99010de5c4f45b355f6e494a1e772f316b3f16bf0",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_frog_008",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.13117106493727382,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B0825CXG81",
+          "standing": {
+            "case_id": "ABO_B0825CXG81",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "dad2a121f61f3c2b15351e0502f69c02506f01424929ef6f83d80c7b20834838",
+            "asset_sha256": "4fb5aff781be42ce678e45a59f6fd4fb42503b214aac3e4db21da795cc2f8991",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B0825CXG81",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.3702065944595049,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07H8JN9KN",
+          "standing": {
+            "case_id": "ABO_B07H8JN9KN",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "ff5f57f74b7e39b1a8352a151ac83e4658304808ea40d67e141659c62b2bdafc",
+            "asset_sha256": "58c34e4b329eb25b2bee9a188b8c5226d68eee18efe1374112f230f1199bccf0",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07H8JN9KN",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.1554042813915449,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07QF9Y23Z",
+          "standing": {
+            "case_id": "ABO_B07QF9Y23Z",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "ff76bdc95f39411eeb3dbd350bc4a125b79d7f38ef112e79cba4ac1dc3f08718",
+            "asset_sha256": "f44a5c6080eb9d514d9f24e7b23ef148088edfef30d043818180bb911870011e",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07QF9Y23Z",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.0030091111563811325,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07H8VCM68",
+          "standing": {
+            "case_id": "ABO_B07H8VCM68",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.001955073607914155,
+              "final_tilt_deg": 0.0019550730486542324,
+              "duration_s": 5.0
+            },
+            "source_sha256": "9dafaa221e673ab01818ee8a61a6da5d23eaf9b5240a783ec0b52a9000afd730",
+            "asset_sha256": "57779f3c6ee84e1337e77588ba6e1566d1fa945fb0ba1a78f9fc913b837edb71",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07H8VCM68",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 4.141326986312855,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_penguin_001",
+          "standing": {
+            "case_id": "Toys4K_penguin_001",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "2d267fa53ed6591a21e97f52035c17e0724922946bec4263e1d9728a7211fe87",
+            "asset_sha256": "4bf9217fb90f817d17c76933898f2fa38319e370d009414f92afa430d3199c2c",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_penguin_001",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.08014318305892962,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B075X12HWJ",
+          "standing": {
+            "case_id": "ABO_B075X12HWJ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "TIPPING"
+            ],
+            "raw_status": "FAIL",
+            "observation": {
+              "status": "FAIL",
+              "observed_tipping": true,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 97.20608735840592,
+              "final_tilt_deg": 90.03718224509143,
+              "duration_s": 5.0
+            },
+            "source_sha256": "3eba98801a034ee6ad55d837d14926119890e56e2b29aa020e48516447604583",
+            "asset_sha256": "21831b984b1c3980d8004ed9325e917339a9c1b9a40e513af53bef44105c9689",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B075X12HWJ",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 4.647176370455368,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_giraffe_003",
+          "standing": {
+            "case_id": "Toys4K_giraffe_003",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "c9f0bf007386d01ca7a6d4b8c9cedf0f5420409ce249419e5e7e39c7cd8a1053",
+            "asset_sha256": "a247ce58c58cc9aea180aba4b4acc968d8d44eda33c2cda6ca222ae179f6dcdf",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_giraffe_003",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.5268124191602417,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_penguin_034",
+          "standing": {
+            "case_id": "Toys4K_penguin_034",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "fd7403d1f4bf733cde71b80125c9cfa04ca51707e9b2f3e8e1a04bf34eab8a7d",
+            "asset_sha256": "22c4795c07883229550e27d46eb294c3c301772404d19d8fb7bf24688b7a173c",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_penguin_034",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.04961240705661896,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B0742D9X4R",
+          "standing": {
+            "case_id": "ABO_B0742D9X4R",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "218e38adf9360b2b7e1cdad18e5bb7c5fa54cb1404ae558177d484090083c46a",
+            "asset_sha256": "45bd9a9f7e2d6aad0943e18d205764210b6d5de33a2ae04dd538372d5177fba8",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B0742D9X4R",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 1.1684370054231143,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "DensiCrafter_21",
+          "standing": {
+            "case_id": "DensiCrafter_21",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "TIPPING"
+            ],
+            "raw_status": "FAIL",
+            "observation": {
+              "status": "FAIL",
+              "observed_tipping": true,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 97.36705295416021,
+              "final_tilt_deg": 95.58472981286916,
+              "duration_s": 5.0
+            },
+            "source_sha256": "8966b860a65bc6feec77f576f9cbd84da9ab953d7515b46e6169c93f37738d24",
+            "asset_sha256": "62ae0a7189eb39fbf9e30a955b50380d0e14f23b4f39f6c605d00c4812fb21ad",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "DensiCrafter_21",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.05017774194459171,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_dinosaur_048",
+          "standing": {
+            "case_id": "Toys4K_dinosaur_048",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "fa46c795420c9d288f57aca3a8b1dae287a35a24579964200d2f58d94497f081",
+            "asset_sha256": "d5cd3ca400ae69ece34610e6f8207309193c84debe33ba2b45f7841099cf3f45",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_dinosaur_048",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED"
+            ],
+            "internal_connected": false,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.4867334304970182,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_deer_moose_027",
+          "standing": {
+            "case_id": "Toys4K_deer_moose_027",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.025242631863598923,
+              "final_tilt_deg": 0.02521783125578269,
+              "duration_s": 5.0
+            },
+            "source_sha256": "f5e5e856a0995f46833b1c954d1e55a27c4939989cc7e9b651d9f253db7a5b67",
+            "asset_sha256": "ba2fdda9aa24ba7ace007a6ee0b56f2a1fd8033c5b19697a4eb0ed5830501af9",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_deer_moose_027",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.33572486175831234,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07HSMYNYF",
+          "standing": {
+            "case_id": "ABO_B07HSMYNYF",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.001622707940787344,
+              "final_tilt_deg": 0.0016227074915817158,
+              "duration_s": 5.0
+            },
+            "source_sha256": "b856ff470de835f144cd7b5a67ac4da18dba630c11747a04a7bf65d515714beb",
+            "asset_sha256": "0d640c73ccc29bf4e43994684f924a405b3e95133de3e31cd10c6539e0db5e66",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07HSMYNYF",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 1.093481127739828,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "DensiCrafter_173",
+          "standing": {
+            "case_id": "DensiCrafter_173",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "TIPPING"
+            ],
+            "raw_status": "FAIL",
+            "observation": {
+              "status": "FAIL",
+              "observed_tipping": true,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 90.03816454656206,
+              "final_tilt_deg": 81.47340729812186,
+              "duration_s": 5.0
+            },
+            "source_sha256": "43bd7cf37db178552f2931958aff25334148f0b8e13de8051a2706f224cb832b",
+            "asset_sha256": "f4bd70d53a6d3571cd87f264ef13536bf9140a71e00aa89f203bd2a3f0c9620e",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "DensiCrafter_173",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.4356117040643044,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07QX2BYDH",
+          "standing": {
+            "case_id": "ABO_B07QX2BYDH",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0005418927630611556,
+              "final_tilt_deg": 0.0005418907453257866,
+              "duration_s": 5.0
+            },
+            "source_sha256": "d6bb73aeb5df56dff80a8444eb19ff52208a7d5ff404c3d1830842af1d17b330",
+            "asset_sha256": "7e889bd87a369d8966742831a94b4b84de74ad37e0f60a11e9b0aa3b1ea8ac82",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07QX2BYDH",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 1.3664528674185341,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_panda_013",
+          "standing": {
+            "case_id": "Toys4K_panda_013",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0011845022461314432,
+              "final_tilt_deg": 0.0011845019384369934,
+              "duration_s": 5.0
+            },
+            "source_sha256": "ab3236889ab627d0cf7ddfeb30b7bf46a3cb2b91e37c24dfc2a7d2219555efad",
+            "asset_sha256": "54ccf6a3a31181337d3c0acf9828562ab7e5973912e231f719e71359aaf9a094",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_panda_013",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.17389711910884523,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07J1YW3YT",
+          "standing": {
+            "case_id": "ABO_B07J1YW3YT",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0011467260744558551,
+              "final_tilt_deg": 0.0011467254387943337,
+              "duration_s": 5.0
+            },
+            "source_sha256": "db18e195b20f144e7f56e0d4ddbee674ec7f000aa9cda5925b5723b795e3be1f",
+            "asset_sha256": "a2bb7820afb62ff0d248759ff32dbd8092d252548037e48dfd66d3691e5c6b78",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07J1YW3YT",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.6387590111357463,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        }
+      ],
+      "metric_case_ids": {
+        "nsv": [
+          "ABO_B075X2XZDD",
+          "Toys4K_dinosaur_020",
+          "ABO_B082JGPBLQ",
+          "ABO_B072ZK887F",
+          "ABO_B07S6WNZ7Y",
+          "ABO_B082XMFBY2",
+          "ABO_B07MNBYN11",
+          "ABO_B07DB92LG4",
+          "Toys4K_dog_046",
+          "Toys4K_cow_016",
+          "ABO_B075X4YDN6",
+          "ABO_B07F3Y9BSC",
+          "ABO_B07GFWF2GM",
+          "ABO_B073P3WGZZ",
+          "Toys4K_fox_024",
+          "Toys4K_frog_008",
+          "ABO_B0825CXG81",
+          "ABO_B07H8JN9KN",
+          "ABO_B07QF9Y23Z",
+          "ABO_B07H8VCM68",
+          "Toys4K_penguin_001",
+          "ABO_B075X12HWJ",
+          "Toys4K_giraffe_003",
+          "Toys4K_penguin_034",
+          "ABO_B0742D9X4R",
+          "DensiCrafter_21",
+          "Toys4K_dinosaur_048",
+          "Toys4K_deer_moose_027",
+          "ABO_B07HSMYNYF",
+          "DensiCrafter_173",
+          "ABO_B07QX2BYDH",
+          "Toys4K_panda_013",
+          "ABO_B07J1YW3YT"
+        ],
+        "N": [
+          "ABO_B075X2XZDD",
+          "Toys4K_dinosaur_020",
+          "ABO_B082JGPBLQ",
+          "ABO_B072ZK887F",
+          "ABO_B07S6WNZ7Y",
+          "ABO_B082XMFBY2",
+          "ABO_B07MNBYN11",
+          "ABO_B07DB92LG4",
+          "Toys4K_dog_046",
+          "Toys4K_cow_016",
+          "ABO_B075X4YDN6",
+          "ABO_B07F3Y9BSC",
+          "ABO_B07GFWF2GM",
+          "ABO_B073P3WGZZ",
+          "Toys4K_fox_024",
+          "Toys4K_frog_008",
+          "ABO_B0825CXG81",
+          "ABO_B07H8JN9KN",
+          "ABO_B07QF9Y23Z",
+          "ABO_B07H8VCM68",
+          "Toys4K_penguin_001",
+          "ABO_B075X12HWJ",
+          "Toys4K_giraffe_003",
+          "Toys4K_penguin_034",
+          "ABO_B0742D9X4R",
+          "DensiCrafter_21",
+          "Toys4K_dinosaur_048",
+          "Toys4K_deer_moose_027",
+          "ABO_B07HSMYNYF",
+          "DensiCrafter_173",
+          "ABO_B07QX2BYDH",
+          "Toys4K_panda_013",
+          "ABO_B07J1YW3YT"
+        ]
+      },
+      "measured_counts": {
+        "nsv": 33,
+        "N": 33
+      }
+    },
+    "ours": {
+      "standing": {
+        "protocol_id": "independent_contact_warning_v1",
+        "status": "COMPLETE",
+        "planned_total": 33,
+        "success_count": 31,
+        "terminal_failure_count": 2,
+        "pending_count": 0,
+        "success_rate": 0.9393939393939394,
+        "observed_tipping_count": 0,
+        "observed_interface_exit_count": 1,
+        "cases": [
+          {
+            "case_id": "ABO_B075X2XZDD",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.004604096120042941,
+              "final_tilt_deg": 0.004579112179737978,
+              "duration_s": 5.0
+            },
+            "source_sha256": "041eee5c04a4ee1eb181d01b972f02442acb0a5bf2c764f5408a0dbf75cccf8a",
+            "asset_sha256": "d0895f38f83dfab29d8e6a0a21489fb3cc58c4c693da54af34978f84361b02cc",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_dinosaur_020",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.014160344379020697,
+              "final_tilt_deg": 0.011273701451428298,
+              "duration_s": 5.0
+            },
+            "source_sha256": "623900541f9a132c1e9cbec95cd227d321fa0f2f2d991438d194d1ab8459d56c",
+            "asset_sha256": "c3d1cd61fa636d2a853035e375528915bbd4d727985b48d8c1d1ebf4860aa9dc",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B082JGPBLQ",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0001728886363444408,
+              "final_tilt_deg": 0.0001412963141971696,
+              "duration_s": 5.0
+            },
+            "source_sha256": "68bbc4f23acd431148f8f1421e9e1f5714a7b5da368f03675415903402f884a1",
+            "asset_sha256": "8b7699370cab2579a6a22656fd03a2089cffd38d265f87fddfef94d07d28dae2",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B072ZK887F",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.00110223169719385,
+              "final_tilt_deg": 0.0011004986646181722,
+              "duration_s": 5.0
+            },
+            "source_sha256": "cdd9b8fd6b6b50068e5955515008db0b46eacefd1ec6b4307631dfafe769ec1c",
+            "asset_sha256": "5523d3aeb4646dc49f04926dfe9c12e4e1242770dd5bf9605539559ecb654513",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07S6WNZ7Y",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0063500176476590986,
+              "final_tilt_deg": 0.006349874098992139,
+              "duration_s": 5.0
+            },
+            "source_sha256": "60de1b170030f75238492b1e030dad64df8156e508bf5cc1eec81bce7a2a3a11",
+            "asset_sha256": "b393cb5a503ea60bf725906a484ed8ec5cf363587e741e228b0d2d1ac1d15674",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B082XMFBY2",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0,
+              "final_tilt_deg": 0.0,
+              "duration_s": 5.0
+            },
+            "source_sha256": "bed39300167812d9b21b7ace2a8400971db55665a6b0cd6916c738c7b22ebef2",
+            "asset_sha256": "76e935c0ed4b21ac6daa9f1970962bcdb76208acc29f1617daa8ec93dc8f1fbc",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07MNBYN11",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.09216810407347675,
+              "final_tilt_deg": 0.08606403041077974,
+              "duration_s": 5.0
+            },
+            "source_sha256": "d82b6128aaac854362633a077c70720ade50cdedf10b120299a5655a4b5ab74c",
+            "asset_sha256": "38a6d448b63b7c9d63c0e8e2dd953ea9609ac84c75ee4617b29d3e22fb8143e3",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07DB92LG4",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.002604263361653733,
+              "final_tilt_deg": 0.001962587737596356,
+              "duration_s": 5.0
+            },
+            "source_sha256": "dd1dbcbca107a229462e82862167e4c92427a58c02459d73e7ffa157ca1fc118",
+            "asset_sha256": "22d2b6b0ca2ce1531b5acc74c0bc966ace6ea5840575df95c332562cff2f810a",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_dog_046",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.001434556202007575,
+              "final_tilt_deg": 0.0013766900830845968,
+              "duration_s": 5.0
+            },
+            "source_sha256": "eb69c94ebbb812301f6900347b50d91f1cf52a4b82be480d62395c6610b3589e",
+            "asset_sha256": "33e768deff89a960a49ed744905d19097f1d70679beaf7cbfc6ad5543b514a0b",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_cow_016",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 3.807677315947566e-05,
+              "final_tilt_deg": 3.807677315947566e-05,
+              "duration_s": 5.0
+            },
+            "source_sha256": "e7522eb7b990c5e8a18388fee5baa509d99bc75aa507e28b2c517d4d3f7b00e4",
+            "asset_sha256": "a3f801f16a0c58c318749f7eb43f1b164b56c028ca5353706056b755437d0c60",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B075X4YDN6",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.012376152729176911,
+              "final_tilt_deg": 0.009465104659277598,
+              "duration_s": 5.0
+            },
+            "source_sha256": "cb5b92018a12fb8dfcd1807e00af2ef2e5096e8eb5c23b471ee0b733a0e75971",
+            "asset_sha256": "d2d366f499d5604f3d66fb1b1317b5610665231fb1a980872e2075a91be885bf",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07F3Y9BSC",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.007501849215890411,
+              "final_tilt_deg": 0.0005004133329253801,
+              "duration_s": 5.0
+            },
+            "source_sha256": "42f64e2f80a1a29bc7c516da12b24c309d4b495335a2b87130ee7a78e94ae500",
+            "asset_sha256": "a93f8d78d6a3bb87ed914e0abc460ff2cc2a8cfc4fdbcb5bf14637e09ef817da",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07GFWF2GM",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0058245055158845675,
+              "final_tilt_deg": 0.004695099932764012,
+              "duration_s": 5.0
+            },
+            "source_sha256": "de5cbab9657d84eba5449cf3dd0bd1689f707dc61fd7fd70449c4b04dc9e8428",
+            "asset_sha256": "9c949c794da5076722b67ad7cb5c00124b9df68f88e7f8516cf43e6ee967b821",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B073P3WGZZ",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0013004458102773005,
+              "final_tilt_deg": 4.580238995444693e-05,
+              "duration_s": 5.0
+            },
+            "source_sha256": "f9e349aec80d8f830fbd511fd9059800bccf1e0211a0f2026326b5f33651c4e6",
+            "asset_sha256": "4d3bcf940b66776fc095aad24f77367312cf7f34b134f4cd3441f49129e1ef41",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_fox_024",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0034757068519551725,
+              "final_tilt_deg": 0.003475596956304853,
+              "duration_s": 5.0
+            },
+            "source_sha256": "3848aca418e6060c038028d47dcdcb939b8eb948d5343aab1703df0e0e209d67",
+            "asset_sha256": "9f7a146737481c958a6e81f04e47010d5de8c12a7c4c38cc8f4ce949e6925b05",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_frog_008",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0005508322340519778,
+              "final_tilt_deg": 0.0005508309107265267,
+              "duration_s": 5.0
+            },
+            "source_sha256": "007ee76d8b39f4f4c5629742b6192ccf204b153dbe2e70c9f81811c35ff7c9b5",
+            "asset_sha256": "0237762b8043d76bca823444f0487301f188174f241af0b115a1aabd89f08d28",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B0825CXG81",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.003574037620840121,
+              "final_tilt_deg": 0.0035626369182310685,
+              "duration_s": 5.0
+            },
+            "source_sha256": "b58de3c28535dd532f5e5ef06f741c18601ac8028c0930c97ef68799ed028dc7",
+            "asset_sha256": "37a5ddffad8a209350adaea3e8cf03eff18e0467bd8688d7b89157a43da23866",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07H8JN9KN",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0002479429815499616,
+              "final_tilt_deg": 0.0002479429815499616,
+              "duration_s": 5.0
+            },
+            "source_sha256": "d82c80cc9db96bf454ea87806efe369dcc153945bd4c4d847df36bcf03064c58",
+            "asset_sha256": "bc23ba432989e58731331065e518281f8c494d71e09f6c5ed7afc2b682d6e6e4",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07QF9Y23Z",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.04203995310349181,
+              "final_tilt_deg": 0.0029758596121238078,
+              "duration_s": 5.0
+            },
+            "source_sha256": "37f1b1f9d16f2c8c07cc49a37badf7471a7e7021c0ea50679eae58ad7c4769c8",
+            "asset_sha256": "6b4161ffe9fe5239131d2b085cc8c171185c7009333960e8c8f5842061d0c408",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07H8VCM68",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0017570866993065909,
+              "final_tilt_deg": 0.0017570866993065909,
+              "duration_s": 5.0
+            },
+            "source_sha256": "d0af798a600657c52834bd3e42a6f1e0c6b845ac502bf56f317d7941768171c5",
+            "asset_sha256": "86175d59d65a7473293968b37fe554f7293bc9ed919adc93eaa3056b9f14cbff",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_penguin_001",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.4719247696225282,
+              "final_tilt_deg": 0.43569935046656366,
+              "duration_s": 5.0
+            },
+            "source_sha256": "a856d5ab83b012444fc3dfa070d8d8887008609c5cc7cb0affc31f94082a265e",
+            "asset_sha256": "20707cb95aac1f6087d00a9252fdd3f2fdd50fe5495554e500dacf4845c1e46e",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B075X12HWJ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERFACE_EXIT"
+            ],
+            "raw_status": "FAIL",
+            "observation": {
+              "status": "FAIL",
+              "observed_tipping": false,
+              "observed_interface_exit": true,
+              "peak_tilt_deg": 3.7584589373155657,
+              "final_tilt_deg": 3.015567993170563,
+              "duration_s": 5.0
+            },
+            "source_sha256": "07642db0097398052f732ed3a272e2f3f5a171171ab63a302ccd9242d05d3fce",
+            "asset_sha256": "44658b89b048be03d1ec3b85344d1186e0b20fc43b4b4520a6e7c922945c096e",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_giraffe_003",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.006335650305616783,
+              "final_tilt_deg": 0.006335649557778532,
+              "duration_s": 5.0
+            },
+            "source_sha256": "148cbd665991dfcabeeccb40871a4cb42957155e57961fdf710f59d92c0ebe35",
+            "asset_sha256": "51372b7eff56e8285cbfd12e4989180b8d7c5dbd7944db6fd66d05491aeb14a5",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_penguin_034",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.04747574135439075,
+              "final_tilt_deg": 0.047049348705349985,
+              "duration_s": 5.0
+            },
+            "source_sha256": "afb8c76319806f6d028834d88d6f8db5a15419505272d0c9faca80dfea8a7520",
+            "asset_sha256": "0043372d028ffa320ebc0e7523278e59a6c7caf9af26a825cc9889f8ce60ba44",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B0742D9X4R",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.005958867829487957,
+              "final_tilt_deg": 0.005749156104946159,
+              "duration_s": 5.0
+            },
+            "source_sha256": "a090590494dbb742cd53d1162371df68012c78c913f75a9a7d579dacb65213f5",
+            "asset_sha256": "ed663a68474e3a6cd7be35bc26230c7dfe63cde2bf12061c86379752242e1931",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "DensiCrafter_21",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.001685337932478294,
+              "final_tilt_deg": 0.0011441070193053834,
+              "duration_s": 5.0
+            },
+            "source_sha256": "7c6f9eaccf4ec91f9aa9b1439e826721864a5f093e14235d43ed97016e4c323a",
+            "asset_sha256": "c389f2331e746e5132c1a4fdd58b4a42e14479b422ebf6123860bf731503e42e",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_dinosaur_048",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.006169185703537215,
+              "final_tilt_deg": 0.00616918564445896,
+              "duration_s": 5.0
+            },
+            "source_sha256": "9cecd3057d7eb931b003af90a4438c9fa59f09fbe0b85882e9528656c0f76813",
+            "asset_sha256": "231cc57fd37649d859acdc036dcd8b810bf7e295015f9035992efe85fb04f1b5",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_deer_moose_027",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0027006618939352254,
+              "final_tilt_deg": 0.0027006589249488973,
+              "duration_s": 5.0
+            },
+            "source_sha256": "be263437a7deb900313322dc3087adc8605ab7a4bfd7fba536b4137391dceb57",
+            "asset_sha256": "a404bf3df93cfa15b98e597cc61a7734c45577f412d00e35c1aa8f80d5da893a",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07HSMYNYF",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.00038317985208807077,
+              "final_tilt_deg": 0.0003831789009285307,
+              "duration_s": 5.0
+            },
+            "source_sha256": "e0672c635ddafe68b305890ce9aff879ab3498089457833879f3aa230b3bd744",
+            "asset_sha256": "e5f10106e8004d0322f3ca3168156ce6956903f0a2137a6285f00d04c5bf53aa",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "DensiCrafter_173",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "761309cf74f34372477ce3d7de9d58fe6421c26c4646347564c6876063fe5b21",
+            "asset_sha256": "3acdb81b6bd0c5ae219cadfd0e6b9105651537cd8fd90c422134291fa7aed4fa",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07QX2BYDH",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0029214267891847423,
+              "final_tilt_deg": 0.0022228076815086787,
+              "duration_s": 5.0
+            },
+            "source_sha256": "2d3e5b48fd390da1a9b7dff7f5b8e84b168bf025fd58bba17c296b5c30b9903c",
+            "asset_sha256": "15e91ad9f19f383f46c7189820ac643fd18be486b9532d5c77f62a4c239a2717",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "Toys4K_panda_013",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0006132115916560053,
+              "final_tilt_deg": 0.0006132115916560053,
+              "duration_s": 5.0
+            },
+            "source_sha256": "64cb4a43f0c4a2110461886a29b2c222f12acade42caf0d4cf175c2d91fcf609",
+            "asset_sha256": "9cb186d16977fcb336e2d136856dc338236bed18a131ae64e13e0211143c1139",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          {
+            "case_id": "ABO_B07J1YW3YT",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0,
+              "final_tilt_deg": 0.0,
+              "duration_s": 5.0
+            },
+            "source_sha256": "d03e27982aa94b465d2f42dd8bbe97cfacfe9042ec98d3dd6a3ef9a9f4752656",
+            "asset_sha256": "cbb4f992d8ea59540a3711c17c0850a1b5b462b299334d73c700c45d67dee29f",
+            "protocol_id": "independent_contact_warning_v1"
+          }
+        ]
+      },
+      "connectivity": {
+        "planned_total": 33,
+        "success_count": 24,
+        "terminal_failure_count": 9,
+        "pending_count": 0,
+        "success_rate": 0.7272727272727273,
+        "internal_disconnected_count": 1,
+        "interpart_disconnected_count": 0,
+        "both_failure_count": 0,
+        "unavailable_count": 9,
+        "cases": [
+          {
+            "case_id": "ABO_B075X2XZDD",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_dinosaur_020",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B082JGPBLQ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          {
+            "case_id": "ABO_B072ZK887F",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07S6WNZ7Y",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B082XMFBY2",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07MNBYN11",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          {
+            "case_id": "ABO_B07DB92LG4",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_dog_046",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_cow_016",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B075X4YDN6",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07F3Y9BSC",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07GFWF2GM",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          {
+            "case_id": "ABO_B073P3WGZZ",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_fox_024",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_frog_008",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B0825CXG81",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07H8JN9KN",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07QF9Y23Z",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          {
+            "case_id": "ABO_B07H8VCM68",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_penguin_001",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          {
+            "case_id": "ABO_B075X12HWJ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          {
+            "case_id": "Toys4K_giraffe_003",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_penguin_034",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B0742D9X4R",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "DensiCrafter_21",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          {
+            "case_id": "Toys4K_dinosaur_048",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "Toys4K_deer_moose_027",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07HSMYNYF",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "DensiCrafter_173",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED",
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": false,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          {
+            "case_id": "ABO_B07QX2BYDH",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          {
+            "case_id": "Toys4K_panda_013",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          {
+            "case_id": "ABO_B07J1YW3YT",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          }
+        ]
+      },
+      "metrics": [
+        {
+          "case_id": "ABO_B075X2XZDD",
+          "standing": {
+            "case_id": "ABO_B075X2XZDD",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.004604096120042941,
+              "final_tilt_deg": 0.004579112179737978,
+              "duration_s": 5.0
+            },
+            "source_sha256": "041eee5c04a4ee1eb181d01b972f02442acb0a5bf2c764f5408a0dbf75cccf8a",
+            "asset_sha256": "d0895f38f83dfab29d8e6a0a21489fb3cc58c4c693da54af34978f84361b02cc",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B075X2XZDD",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 1.3838351602367736,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_dinosaur_020",
+          "standing": {
+            "case_id": "Toys4K_dinosaur_020",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.014160344379020697,
+              "final_tilt_deg": 0.011273701451428298,
+              "duration_s": 5.0
+            },
+            "source_sha256": "623900541f9a132c1e9cbec95cd227d321fa0f2f2d991438d194d1ab8459d56c",
+            "asset_sha256": "c3d1cd61fa636d2a853035e375528915bbd4d727985b48d8c1d1ebf4860aa9dc",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_dinosaur_020",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.5559032712637304,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B082JGPBLQ",
+          "standing": {
+            "case_id": "ABO_B082JGPBLQ",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0001728886363444408,
+              "final_tilt_deg": 0.0001412963141971696,
+              "duration_s": 5.0
+            },
+            "source_sha256": "68bbc4f23acd431148f8f1421e9e1f5714a7b5da368f03675415903402f884a1",
+            "asset_sha256": "8b7699370cab2579a6a22656fd03a2089cffd38d265f87fddfef94d07d28dae2",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B082JGPBLQ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          "raw_ivr": null,
+          "nsv": 0.8385511342825613,
+          "N": 3,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B072ZK887F",
+          "standing": {
+            "case_id": "ABO_B072ZK887F",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.00110223169719385,
+              "final_tilt_deg": 0.0011004986646181722,
+              "duration_s": 5.0
+            },
+            "source_sha256": "cdd9b8fd6b6b50068e5955515008db0b46eacefd1ec6b4307631dfafe769ec1c",
+            "asset_sha256": "5523d3aeb4646dc49f04926dfe9c12e4e1242770dd5bf9605539559ecb654513",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B072ZK887F",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 2.521873941070464,
+          "N": 2,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07S6WNZ7Y",
+          "standing": {
+            "case_id": "ABO_B07S6WNZ7Y",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0063500176476590986,
+              "final_tilt_deg": 0.006349874098992139,
+              "duration_s": 5.0
+            },
+            "source_sha256": "60de1b170030f75238492b1e030dad64df8156e508bf5cc1eec81bce7a2a3a11",
+            "asset_sha256": "b393cb5a503ea60bf725906a484ed8ec5cf363587e741e228b0d2d1ac1d15674",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07S6WNZ7Y",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.6024138681558772,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B082XMFBY2",
+          "standing": {
+            "case_id": "ABO_B082XMFBY2",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0,
+              "final_tilt_deg": 0.0,
+              "duration_s": 5.0
+            },
+            "source_sha256": "bed39300167812d9b21b7ace2a8400971db55665a6b0cd6916c738c7b22ebef2",
+            "asset_sha256": "76e935c0ed4b21ac6daa9f1970962bcdb76208acc29f1617daa8ec93dc8f1fbc",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B082XMFBY2",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.23988255436285938,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07MNBYN11",
+          "standing": {
+            "case_id": "ABO_B07MNBYN11",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.09216810407347675,
+              "final_tilt_deg": 0.08606403041077974,
+              "duration_s": 5.0
+            },
+            "source_sha256": "d82b6128aaac854362633a077c70720ade50cdedf10b120299a5655a4b5ab74c",
+            "asset_sha256": "38a6d448b63b7c9d63c0e8e2dd953ea9609ac84c75ee4617b29d3e22fb8143e3",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07MNBYN11",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          "raw_ivr": null,
+          "nsv": 1.4830259643698136,
+          "N": 6,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07DB92LG4",
+          "standing": {
+            "case_id": "ABO_B07DB92LG4",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.002604263361653733,
+              "final_tilt_deg": 0.001962587737596356,
+              "duration_s": 5.0
+            },
+            "source_sha256": "dd1dbcbca107a229462e82862167e4c92427a58c02459d73e7ffa157ca1fc118",
+            "asset_sha256": "22d2b6b0ca2ce1531b5acc74c0bc966ace6ea5840575df95c332562cff2f810a",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07DB92LG4",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.40088153576509455,
+          "N": 2,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_dog_046",
+          "standing": {
+            "case_id": "Toys4K_dog_046",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.001434556202007575,
+              "final_tilt_deg": 0.0013766900830845968,
+              "duration_s": 5.0
+            },
+            "source_sha256": "eb69c94ebbb812301f6900347b50d91f1cf52a4b82be480d62395c6610b3589e",
+            "asset_sha256": "33e768deff89a960a49ed744905d19097f1d70679beaf7cbfc6ad5543b514a0b",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_dog_046",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.08309376902341015,
+          "N": 2,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_cow_016",
+          "standing": {
+            "case_id": "Toys4K_cow_016",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 3.807677315947566e-05,
+              "final_tilt_deg": 3.807677315947566e-05,
+              "duration_s": 5.0
+            },
+            "source_sha256": "e7522eb7b990c5e8a18388fee5baa509d99bc75aa507e28b2c517d4d3f7b00e4",
+            "asset_sha256": "a3f801f16a0c58c318749f7eb43f1b164b56c028ca5353706056b755437d0c60",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_cow_016",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.06132452289249662,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B075X4YDN6",
+          "standing": {
+            "case_id": "ABO_B075X4YDN6",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.012376152729176911,
+              "final_tilt_deg": 0.009465104659277598,
+              "duration_s": 5.0
+            },
+            "source_sha256": "cb5b92018a12fb8dfcd1807e00af2ef2e5096e8eb5c23b471ee0b733a0e75971",
+            "asset_sha256": "d2d366f499d5604f3d66fb1b1317b5610665231fb1a980872e2075a91be885bf",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B075X4YDN6",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.06104709964457198,
+          "N": 2,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07F3Y9BSC",
+          "standing": {
+            "case_id": "ABO_B07F3Y9BSC",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.007501849215890411,
+              "final_tilt_deg": 0.0005004133329253801,
+              "duration_s": 5.0
+            },
+            "source_sha256": "42f64e2f80a1a29bc7c516da12b24c309d4b495335a2b87130ee7a78e94ae500",
+            "asset_sha256": "a93f8d78d6a3bb87ed914e0abc460ff2cc2a8cfc4fdbcb5bf14637e09ef817da",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07F3Y9BSC",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.35949070231845887,
+          "N": 2,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07GFWF2GM",
+          "standing": {
+            "case_id": "ABO_B07GFWF2GM",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0058245055158845675,
+              "final_tilt_deg": 0.004695099932764012,
+              "duration_s": 5.0
+            },
+            "source_sha256": "de5cbab9657d84eba5449cf3dd0bd1689f707dc61fd7fd70449c4b04dc9e8428",
+            "asset_sha256": "9c949c794da5076722b67ad7cb5c00124b9df68f88e7f8516cf43e6ee967b821",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07GFWF2GM",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          "raw_ivr": null,
+          "nsv": 1.2445195043511534,
+          "N": 3,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B073P3WGZZ",
+          "standing": {
+            "case_id": "ABO_B073P3WGZZ",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0013004458102773005,
+              "final_tilt_deg": 4.580238995444693e-05,
+              "duration_s": 5.0
+            },
+            "source_sha256": "f9e349aec80d8f830fbd511fd9059800bccf1e0211a0f2026326b5f33651c4e6",
+            "asset_sha256": "4d3bcf940b66776fc095aad24f77367312cf7f34b134f4cd3441f49129e1ef41",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B073P3WGZZ",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 1.2698993688715319,
+          "N": 2,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_fox_024",
+          "standing": {
+            "case_id": "Toys4K_fox_024",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0034757068519551725,
+              "final_tilt_deg": 0.003475596956304853,
+              "duration_s": 5.0
+            },
+            "source_sha256": "3848aca418e6060c038028d47dcdcb939b8eb948d5343aab1703df0e0e209d67",
+            "asset_sha256": "9f7a146737481c958a6e81f04e47010d5de8c12a7c4c38cc8f4ce949e6925b05",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_fox_024",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.29588361067252705,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_frog_008",
+          "standing": {
+            "case_id": "Toys4K_frog_008",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0005508322340519778,
+              "final_tilt_deg": 0.0005508309107265267,
+              "duration_s": 5.0
+            },
+            "source_sha256": "007ee76d8b39f4f4c5629742b6192ccf204b153dbe2e70c9f81811c35ff7c9b5",
+            "asset_sha256": "0237762b8043d76bca823444f0487301f188174f241af0b115a1aabd89f08d28",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_frog_008",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.13976896742588601,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B0825CXG81",
+          "standing": {
+            "case_id": "ABO_B0825CXG81",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.003574037620840121,
+              "final_tilt_deg": 0.0035626369182310685,
+              "duration_s": 5.0
+            },
+            "source_sha256": "b58de3c28535dd532f5e5ef06f741c18601ac8028c0930c97ef68799ed028dc7",
+            "asset_sha256": "37a5ddffad8a209350adaea3e8cf03eff18e0467bd8688d7b89157a43da23866",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B0825CXG81",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.026182937888947398,
+          "N": 2,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07H8JN9KN",
+          "standing": {
+            "case_id": "ABO_B07H8JN9KN",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0002479429815499616,
+              "final_tilt_deg": 0.0002479429815499616,
+              "duration_s": 5.0
+            },
+            "source_sha256": "d82c80cc9db96bf454ea87806efe369dcc153945bd4c4d847df36bcf03064c58",
+            "asset_sha256": "bc23ba432989e58731331065e518281f8c494d71e09f6c5ed7afc2b682d6e6e4",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07H8JN9KN",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 3.6765138699885527,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07QF9Y23Z",
+          "standing": {
+            "case_id": "ABO_B07QF9Y23Z",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.04203995310349181,
+              "final_tilt_deg": 0.0029758596121238078,
+              "duration_s": 5.0
+            },
+            "source_sha256": "37f1b1f9d16f2c8c07cc49a37badf7471a7e7021c0ea50679eae58ad7c4769c8",
+            "asset_sha256": "6b4161ffe9fe5239131d2b085cc8c171185c7009333960e8c8f5842061d0c408",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07QF9Y23Z",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          "raw_ivr": null,
+          "nsv": 3.489846245467483,
+          "N": 5,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07H8VCM68",
+          "standing": {
+            "case_id": "ABO_B07H8VCM68",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0017570866993065909,
+              "final_tilt_deg": 0.0017570866993065909,
+              "duration_s": 5.0
+            },
+            "source_sha256": "d0af798a600657c52834bd3e42a6f1e0c6b845ac502bf56f317d7941768171c5",
+            "asset_sha256": "86175d59d65a7473293968b37fe554f7293bc9ed919adc93eaa3056b9f14cbff",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07H8VCM68",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 3.4107761883895287,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_penguin_001",
+          "standing": {
+            "case_id": "Toys4K_penguin_001",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.4719247696225282,
+              "final_tilt_deg": 0.43569935046656366,
+              "duration_s": 5.0
+            },
+            "source_sha256": "a856d5ab83b012444fc3dfa070d8d8887008609c5cc7cb0affc31f94082a265e",
+            "asset_sha256": "20707cb95aac1f6087d00a9252fdd3f2fdd50fe5495554e500dacf4845c1e46e",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_penguin_001",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          "raw_ivr": null,
+          "nsv": 0.07178263158450973,
+          "N": 3,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B075X12HWJ",
+          "standing": {
+            "case_id": "ABO_B075X12HWJ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERFACE_EXIT"
+            ],
+            "raw_status": "FAIL",
+            "observation": {
+              "status": "FAIL",
+              "observed_tipping": false,
+              "observed_interface_exit": true,
+              "peak_tilt_deg": 3.7584589373155657,
+              "final_tilt_deg": 3.015567993170563,
+              "duration_s": 5.0
+            },
+            "source_sha256": "07642db0097398052f732ed3a272e2f3f5a171171ab63a302ccd9242d05d3fce",
+            "asset_sha256": "44658b89b048be03d1ec3b85344d1186e0b20fc43b4b4520a6e7c922945c096e",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B075X12HWJ",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          "raw_ivr": null,
+          "nsv": 0.0822622839090179,
+          "N": 3,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_giraffe_003",
+          "standing": {
+            "case_id": "Toys4K_giraffe_003",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.006335650305616783,
+              "final_tilt_deg": 0.006335649557778532,
+              "duration_s": 5.0
+            },
+            "source_sha256": "148cbd665991dfcabeeccb40871a4cb42957155e57961fdf710f59d92c0ebe35",
+            "asset_sha256": "51372b7eff56e8285cbfd12e4989180b8d7c5dbd7944db6fd66d05491aeb14a5",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_giraffe_003",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.5434900875513711,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_penguin_034",
+          "standing": {
+            "case_id": "Toys4K_penguin_034",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.04747574135439075,
+              "final_tilt_deg": 0.047049348705349985,
+              "duration_s": 5.0
+            },
+            "source_sha256": "afb8c76319806f6d028834d88d6f8db5a15419505272d0c9faca80dfea8a7520",
+            "asset_sha256": "0043372d028ffa320ebc0e7523278e59a6c7caf9af26a825cc9889f8ce60ba44",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_penguin_034",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.03815327682194807,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B0742D9X4R",
+          "standing": {
+            "case_id": "ABO_B0742D9X4R",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.005958867829487957,
+              "final_tilt_deg": 0.005749156104946159,
+              "duration_s": 5.0
+            },
+            "source_sha256": "a090590494dbb742cd53d1162371df68012c78c913f75a9a7d579dacb65213f5",
+            "asset_sha256": "ed663a68474e3a6cd7be35bc26230c7dfe63cde2bf12061c86379752242e1931",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B0742D9X4R",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.06934167342599441,
+          "N": 2,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "DensiCrafter_21",
+          "standing": {
+            "case_id": "DensiCrafter_21",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.001685337932478294,
+              "final_tilt_deg": 0.0011441070193053834,
+              "duration_s": 5.0
+            },
+            "source_sha256": "7c6f9eaccf4ec91f9aa9b1439e826721864a5f093e14235d43ed97016e4c323a",
+            "asset_sha256": "c389f2331e746e5132c1a4fdd58b4a42e14479b422ebf6123860bf731503e42e",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "DensiCrafter_21",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          "raw_ivr": null,
+          "nsv": 0.05189232971482316,
+          "N": 4,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_dinosaur_048",
+          "standing": {
+            "case_id": "Toys4K_dinosaur_048",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.006169185703537215,
+              "final_tilt_deg": 0.00616918564445896,
+              "duration_s": 5.0
+            },
+            "source_sha256": "9cecd3057d7eb931b003af90a4438c9fa59f09fbe0b85882e9528656c0f76813",
+            "asset_sha256": "231cc57fd37649d859acdc036dcd8b810bf7e295015f9035992efe85fb04f1b5",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_dinosaur_048",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.4896916838819894,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_deer_moose_027",
+          "standing": {
+            "case_id": "Toys4K_deer_moose_027",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0027006618939352254,
+              "final_tilt_deg": 0.0027006589249488973,
+              "duration_s": 5.0
+            },
+            "source_sha256": "be263437a7deb900313322dc3087adc8605ab7a4bfd7fba536b4137391dceb57",
+            "asset_sha256": "a404bf3df93cfa15b98e597cc61a7734c45577f412d00e35c1aa8f80d5da893a",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_deer_moose_027",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.632197866296509,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07HSMYNYF",
+          "standing": {
+            "case_id": "ABO_B07HSMYNYF",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.00038317985208807077,
+              "final_tilt_deg": 0.0003831789009285307,
+              "duration_s": 5.0
+            },
+            "source_sha256": "e0672c635ddafe68b305890ce9aff879ab3498089457833879f3aa230b3bd744",
+            "asset_sha256": "e5f10106e8004d0322f3ca3168156ce6956903f0a2137a6285f00d04c5bf53aa",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07HSMYNYF",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 1.029250432966054,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "DensiCrafter_173",
+          "standing": {
+            "case_id": "DensiCrafter_173",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INVALID_INPUT",
+              "OBSERVATION_UNAVAILABLE"
+            ],
+            "raw_status": "INDETERMINATE",
+            "observation": {
+              "status": "UNAVAILABLE",
+              "observed_tipping": null,
+              "observed_interface_exit": null,
+              "peak_tilt_deg": null,
+              "final_tilt_deg": null,
+              "duration_s": null
+            },
+            "source_sha256": "761309cf74f34372477ce3d7de9d58fe6421c26c4646347564c6876063fe5b21",
+            "asset_sha256": "3acdb81b6bd0c5ae219cadfd0e6b9105651537cd8fd90c422134291fa7aed4fa",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "DensiCrafter_173",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "INTERNAL_PART_DISCONNECTED",
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": false,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          "raw_ivr": null,
+          "nsv": 0.1828499737452433,
+          "N": 6,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07QX2BYDH",
+          "standing": {
+            "case_id": "ABO_B07QX2BYDH",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0029214267891847423,
+              "final_tilt_deg": 0.0022228076815086787,
+              "duration_s": 5.0
+            },
+            "source_sha256": "2d3e5b48fd390da1a9b7dff7f5b8e84b168bf025fd58bba17c296b5c30b9903c",
+            "asset_sha256": "15e91ad9f19f383f46c7189820ac643fd18be486b9532d5c77f62a4c239a2717",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07QX2BYDH",
+            "applicable": true,
+            "evaluation_outcome": "FAIL",
+            "reason_codes": [
+              "DISTANCE_UNAVAILABLE"
+            ],
+            "internal_connected": true,
+            "interpart_connected": null,
+            "status": "UNAVAILABLE"
+          },
+          "raw_ivr": null,
+          "nsv": 0.28164377922341044,
+          "N": 5,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "Toys4K_panda_013",
+          "standing": {
+            "case_id": "Toys4K_panda_013",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0006132115916560053,
+              "final_tilt_deg": 0.0006132115916560053,
+              "duration_s": 5.0
+            },
+            "source_sha256": "64cb4a43f0c4a2110461886a29b2c222f12acade42caf0d4cf175c2d91fcf609",
+            "asset_sha256": "9cb186d16977fcb336e2d136856dc338236bed18a131ae64e13e0211143c1139",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "Toys4K_panda_013",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.0960041539009897,
+          "N": 1,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        },
+        {
+          "case_id": "ABO_B07J1YW3YT",
+          "standing": {
+            "case_id": "ABO_B07J1YW3YT",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "raw_status": "PASS",
+            "observation": {
+              "status": "PASS",
+              "observed_tipping": false,
+              "observed_interface_exit": false,
+              "peak_tilt_deg": 0.0,
+              "final_tilt_deg": 0.0,
+              "duration_s": 5.0
+            },
+            "source_sha256": "d03e27982aa94b465d2f42dd8bbe97cfacfe9042ec98d3dd6a3ef9a9f4752656",
+            "asset_sha256": "cbb4f992d8ea59540a3711c17c0850a1b5b462b299334d73c700c45d67dee29f",
+            "protocol_id": "independent_contact_warning_v1"
+          },
+          "connectivity": {
+            "case_id": "ABO_B07J1YW3YT",
+            "applicable": true,
+            "evaluation_outcome": "PASS",
+            "reason_codes": [],
+            "internal_connected": true,
+            "interpart_connected": true,
+            "status": "PASS"
+          },
+          "raw_ivr": null,
+          "nsv": 0.9609246489024597,
+          "N": 2,
+          "missing_reasons": {
+            "raw_ivr": "PART_VOLUMES_UNAVAILABLE",
+            "nsv": null,
+            "N": null
+          }
+        }
+      ],
+      "metric_case_ids": {
+        "nsv": [
+          "ABO_B075X2XZDD",
+          "Toys4K_dinosaur_020",
+          "ABO_B082JGPBLQ",
+          "ABO_B072ZK887F",
+          "ABO_B07S6WNZ7Y",
+          "ABO_B082XMFBY2",
+          "ABO_B07MNBYN11",
+          "ABO_B07DB92LG4",
+          "Toys4K_dog_046",
+          "Toys4K_cow_016",
+          "ABO_B075X4YDN6",
+          "ABO_B07F3Y9BSC",
+          "ABO_B07GFWF2GM",
+          "ABO_B073P3WGZZ",
+          "Toys4K_fox_024",
+          "Toys4K_frog_008",
+          "ABO_B0825CXG81",
+          "ABO_B07H8JN9KN",
+          "ABO_B07QF9Y23Z",
+          "ABO_B07H8VCM68",
+          "Toys4K_penguin_001",
+          "ABO_B075X12HWJ",
+          "Toys4K_giraffe_003",
+          "Toys4K_penguin_034",
+          "ABO_B0742D9X4R",
+          "DensiCrafter_21",
+          "Toys4K_dinosaur_048",
+          "Toys4K_deer_moose_027",
+          "ABO_B07HSMYNYF",
+          "DensiCrafter_173",
+          "ABO_B07QX2BYDH",
+          "Toys4K_panda_013",
+          "ABO_B07J1YW3YT"
+        ],
+        "N": [
+          "ABO_B075X2XZDD",
+          "Toys4K_dinosaur_020",
+          "ABO_B082JGPBLQ",
+          "ABO_B072ZK887F",
+          "ABO_B07S6WNZ7Y",
+          "ABO_B082XMFBY2",
+          "ABO_B07MNBYN11",
+          "ABO_B07DB92LG4",
+          "Toys4K_dog_046",
+          "Toys4K_cow_016",
+          "ABO_B075X4YDN6",
+          "ABO_B07F3Y9BSC",
+          "ABO_B07GFWF2GM",
+          "ABO_B073P3WGZZ",
+          "Toys4K_fox_024",
+          "Toys4K_frog_008",
+          "ABO_B0825CXG81",
+          "ABO_B07H8JN9KN",
+          "ABO_B07QF9Y23Z",
+          "ABO_B07H8VCM68",
+          "Toys4K_penguin_001",
+          "ABO_B075X12HWJ",
+          "Toys4K_giraffe_003",
+          "Toys4K_penguin_034",
+          "ABO_B0742D9X4R",
+          "DensiCrafter_21",
+          "Toys4K_dinosaur_048",
+          "Toys4K_deer_moose_027",
+          "ABO_B07HSMYNYF",
+          "DensiCrafter_173",
+          "ABO_B07QX2BYDH",
+          "Toys4K_panda_013",
+          "ABO_B07J1YW3YT"
+        ]
+      },
+      "measured_counts": {
+        "nsv": 33,
+        "N": 33
+      }
+    }
+  }
+}

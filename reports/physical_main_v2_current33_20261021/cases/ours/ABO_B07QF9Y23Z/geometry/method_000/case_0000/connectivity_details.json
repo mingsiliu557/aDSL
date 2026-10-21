@@ -1,0 +1,197 @@
+{
+  "protocol_id": "print_plan_structural_connectivity_v1",
+  "status": "UNAVAILABLE",
+  "overall_pass": null,
+  "internal_connected": true,
+  "interpart_connected": null,
+  "part_count": 5,
+  "part_components": [
+    {
+      "part_id": "carcass",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 0.00027509883908376166
+    },
+    {
+      "part_id": "leg_front_left",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 0.00012683868408203125
+    },
+    {
+      "part_id": "leg_front_right",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 0.00012683868408203125
+    },
+    {
+      "part_id": "leg_back_left",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 0.00012683868408203125
+    },
+    {
+      "part_id": "leg_back_right",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 0.00012683868408203125
+    }
+  ],
+  "interpart_graph_component_count": null,
+  "assembly_diagonal_mm": 218.52467862217975,
+  "delta_ratio": 0.005,
+  "delta_floor_mm": 0.0,
+  "delta_mm": 1.0926233931108988,
+  "reason_codes": [
+    "DISTANCE_UNAVAILABLE"
+  ],
+  "measurement_config_sha256": "099b3838d7fecf3b7cfe76414901bfbbb81727cb76540aabff24109d66337872",
+  "measurement_config": {
+    "protocol_id": "print_plan_structural_connectivity_v1",
+    "delta_ratio": 0.005,
+    "delta_floor_mm": 0.0,
+    "backend": {
+      "trimesh": "5.0.0",
+      "python-fcl": "0.7.0.11",
+      "manifold3d": "3.5.2"
+    },
+    "intersection": "checked full material union; positive volume => zero distance",
+    "distance": "FCL triangle distance <= delta; no added threshold tolerance",
+    "internal": "existing union_print_mesh positive-volume material components"
+  },
+  "asset_sha256": "6b4161ffe9fe5239131d2b085cc8c171185c7009333960e8c8f5842061d0c408",
+  "evidence_ref": null,
+  "details": {
+    "pairs": [
+      {
+        "part_ids": [
+          "carcass",
+          "leg_front_left"
+        ],
+        "status": "PASS",
+        "edge": true,
+        "distance_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "method": "FCL_SURFACE_COLLISION"
+      },
+      {
+        "part_ids": [
+          "carcass",
+          "leg_front_right"
+        ],
+        "status": "UNAVAILABLE",
+        "reason": "invalid material intersection volume"
+      },
+      {
+        "part_ids": [
+          "carcass",
+          "leg_back_left"
+        ],
+        "status": "PASS",
+        "edge": true,
+        "distance_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "method": "FCL_SURFACE_COLLISION"
+      },
+      {
+        "part_ids": [
+          "carcass",
+          "leg_back_right"
+        ],
+        "status": "PASS",
+        "edge": true,
+        "distance_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "method": "FCL_SURFACE_COLLISION"
+      },
+      {
+        "part_ids": [
+          "leg_front_left",
+          "leg_front_right"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 115.0,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "leg_front_left",
+          "leg_back_left"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 37.0,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "leg_front_left",
+          "leg_back_right"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 120.8056290079233,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "leg_front_right",
+          "leg_back_left"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 120.8056290079233,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "leg_front_right",
+          "leg_back_right"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 37.0,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "leg_back_left",
+          "leg_back_right"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 115.0,
+        "method": "AABB_EXCLUDED"
+      }
+    ],
+    "graph_groups": null,
+    "units": "mm",
+    "backend": {
+      "trimesh": "5.0.0",
+      "python-fcl": "0.7.0.11",
+      "manifold3d": "3.5.2",
+      "embreex": "4.4.0",
+      "rtree": "1.4.1"
+    },
+    "distance_tolerance_mm": 0.0,
+    "assembly_bounds_mm": [
+      [
+        -75.0,
+        -33.35583904918933,
+        0.0
+      ],
+      [
+        75.0,
+        33.35583904918933,
+        144.23102014554723
+      ]
+    ]
+  }
+}

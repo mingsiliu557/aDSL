@@ -1,0 +1,69 @@
+{
+  "protocol_id": "print_plan_structural_connectivity_v1",
+  "status": "PASS",
+  "overall_pass": false,
+  "internal_connected": false,
+  "interpart_connected": true,
+  "part_count": 1,
+  "part_components": [
+    {
+      "part_id": "whole",
+      "component_count": 3,
+      "internal_connected": false,
+      "kernel_length_bound_mm": 0.000286102294921875
+    }
+  ],
+  "interpart_graph_component_count": 1,
+  "assembly_diagonal_mm": 175.1621184698356,
+  "delta_ratio": 0.005,
+  "delta_floor_mm": 0.0,
+  "delta_mm": 0.875810592349178,
+  "reason_codes": [
+    "INTERNAL_PART_DISCONNECTED"
+  ],
+  "measurement_config_sha256": "099b3838d7fecf3b7cfe76414901bfbbb81727cb76540aabff24109d66337872",
+  "measurement_config": {
+    "protocol_id": "print_plan_structural_connectivity_v1",
+    "delta_ratio": 0.005,
+    "delta_floor_mm": 0.0,
+    "backend": {
+      "trimesh": "5.0.0",
+      "python-fcl": "0.7.0.11",
+      "manifold3d": "3.5.2"
+    },
+    "intersection": "checked full material union; positive volume => zero distance",
+    "distance": "FCL triangle distance <= delta; no added threshold tolerance",
+    "internal": "existing union_print_mesh positive-volume material components"
+  },
+  "asset_sha256": "22c4795c07883229550e27d46eb294c3c301772404d19d8fb7bf24688b7a173c",
+  "evidence_ref": null,
+  "details": {
+    "pairs": [],
+    "graph_groups": [
+      [
+        "whole"
+      ]
+    ],
+    "units": "mm",
+    "backend": {
+      "trimesh": "5.0.0",
+      "python-fcl": "0.7.0.11",
+      "manifold3d": "3.5.2",
+      "embreex": "4.4.0",
+      "rtree": "1.4.1"
+    },
+    "distance_tolerance_mm": 0.0,
+    "assembly_bounds_mm": [
+      [
+        -36.41778564453125,
+        -25.0,
+        0.0
+      ],
+      [
+        36.41779327392578,
+        28.63530731201172,
+        150.0
+      ]
+    ]
+  }
+}

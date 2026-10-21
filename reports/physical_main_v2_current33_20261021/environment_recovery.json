@@ -1,0 +1,18 @@
+{
+  "status": "COMPLETE",
+  "reason": "MuJoCo EGL import before simulation",
+  "fix": "MUJOCO_GL=disable; CPU dynamics, identical physics",
+  "affected": [
+    "ABO_B072ZK887F",
+    "ABO_B07S6WNZ7Y",
+    "ABO_B082XMFBY2",
+    "ABO_B07MNBYN11",
+    "Toys4K_dog_046",
+    "ABO_B07F3Y9BSC",
+    "Toys4K_frog_008",
+    "ABO_B07H8VCM68",
+    "ABO_B075X12HWJ"
+  ],
+  "elapsed_seconds": 48.590866565704346,
+  "geometry_remeasured": false
+}

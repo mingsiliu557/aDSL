@@ -103,14 +103,15 @@ def build(root):
     (output / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n")
     lines = ["# Physical method comparison", "",
         f"Batch status: {summary['status']}; physical summary: {physical['status']}.", "",
-        "| Method | Standing success rate ↑ | Raw IVR ↓ | NSV ↓ | N |",
+        "| Method | Standing success rate ↑ | Structural connectivity ↑ | NSV ↓ | N |",
         "|---|---:|---:|---:|---:|"]
     lines += ["| " + " | ".join(shown(row[k]) for k in
-        ('method','standing_success_rate','raw_ivr','nsv','N')) + " |" for row in physical['table']]
+        ('method','standing_success_rate','structural_connectivity_rate','nsv','N')) + " |" for row in physical['table']]
     lines += ["",
         "Standing uses the frozen applicable denominator, including terminal generation/simulation failures. Pending records mean the experiment is incomplete.",
-        "IVR, NSV and N means use the respective common measurable case lists in physical_metrics.json; those subsets are not all-task success rates.",
-        "Single-part IVR is not applicable. Missing measurements remain null. NSV is the existing ray S/V proxy at the G-selected 24-pose orientation, not slicer consumption.",
+        "Structural connectivity requires internal continuity of every predeclared print part AND a connected interpart distance graph. Missing offline measurements are terminal non-successes, not observed disconnections.",
+        "NSV24 and N use the same all-method, same-protocol common measurable case list in physical_metrics.json; those subsets are not all-task success rates.",
+        "Raw IVR remains a separate historical diagnostic. Legacy support without support_volume_min24_v1 is not measured NSV24. Missing measurements remain null. NSV uses the minimum ray S among the same 24 rotations for each final part, not a continuous global minimum or slicer consumption.",
         "Contact warnings do not change standing observations; topology failures still matter for final product acceptance.",
         "", "## Per-case evidence appendix", "",
         "Comparison images: left = official aDSL, right = ours; common native-material views, without independent crops or text overlays.", "",

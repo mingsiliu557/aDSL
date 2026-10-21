@@ -1,0 +1,289 @@
+{
+  "protocol_id": "print_plan_structural_connectivity_v1",
+  "status": "UNAVAILABLE",
+  "overall_pass": null,
+  "internal_connected": false,
+  "interpart_connected": null,
+  "part_count": 6,
+  "part_components": [
+    {
+      "part_id": "torso_core",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 0.0002643132282686845
+    },
+    {
+      "part_id": "head_unit",
+      "component_count": 2,
+      "internal_connected": false,
+      "kernel_length_bound_mm": 0.00027672576904296876
+    },
+    {
+      "part_id": "left_arm_unit",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 0.0002040863037109375
+    },
+    {
+      "part_id": "left_leg_unit",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 0.0001277923583984375
+    },
+    {
+      "part_id": "right_arm_unit",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 0.0002040863037109375
+    },
+    {
+      "part_id": "right_leg_unit",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 0.0001277923583984375
+    }
+  ],
+  "interpart_graph_component_count": null,
+  "assembly_diagonal_mm": 217.13904910155603,
+  "delta_ratio": 0.005,
+  "delta_floor_mm": 0.0,
+  "delta_mm": 1.0856952455077802,
+  "reason_codes": [
+    "INTERNAL_PART_DISCONNECTED",
+    "DISTANCE_UNAVAILABLE"
+  ],
+  "measurement_config_sha256": "099b3838d7fecf3b7cfe76414901bfbbb81727cb76540aabff24109d66337872",
+  "measurement_config": {
+    "protocol_id": "print_plan_structural_connectivity_v1",
+    "delta_ratio": 0.005,
+    "delta_floor_mm": 0.0,
+    "backend": {
+      "trimesh": "5.0.0",
+      "python-fcl": "0.7.0.11",
+      "manifold3d": "3.5.2"
+    },
+    "intersection": "checked full material union; positive volume => zero distance",
+    "distance": "FCL triangle distance <= delta; no added threshold tolerance",
+    "internal": "existing union_print_mesh positive-volume material components"
+  },
+  "asset_sha256": "3acdb81b6bd0c5ae219cadfd0e6b9105651537cd8fd90c422134291fa7aed4fa",
+  "evidence_ref": null,
+  "details": {
+    "pairs": [
+      {
+        "part_ids": [
+          "torso_core",
+          "head_unit"
+        ],
+        "status": "PASS",
+        "edge": true,
+        "distance_mm": 0.0,
+        "intersection_mm3": 0.0,
+        "method": "FCL_SURFACE_COLLISION"
+      },
+      {
+        "part_ids": [
+          "torso_core",
+          "left_arm_unit"
+        ],
+        "status": "PASS",
+        "edge": true,
+        "distance_mm": 0.0,
+        "intersection_mm3": 3.291811268013589e-14,
+        "method": "MANIFOLD_POSITIVE_INTERSECTION"
+      },
+      {
+        "part_ids": [
+          "torso_core",
+          "left_leg_unit"
+        ],
+        "status": "UNAVAILABLE",
+        "reason": "invalid material intersection volume"
+      },
+      {
+        "part_ids": [
+          "torso_core",
+          "right_arm_unit"
+        ],
+        "status": "UNAVAILABLE",
+        "reason": "invalid material intersection volume"
+      },
+      {
+        "part_ids": [
+          "torso_core",
+          "right_leg_unit"
+        ],
+        "status": "UNAVAILABLE",
+        "reason": "invalid material intersection volume"
+      },
+      {
+        "part_ids": [
+          "head_unit",
+          "left_arm_unit"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": 7.0,
+        "witness_points_mm": [
+          [
+            6.0,
+            -4.0,
+            98.0
+          ],
+          [
+            13.0,
+            -4.0,
+            98.0
+          ]
+        ],
+        "intersection_mm3": 0.0,
+        "method": "FCL_TRIANGLE_DISTANCE"
+      },
+      {
+        "part_ids": [
+          "head_unit",
+          "left_leg_unit"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 31.0,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "head_unit",
+          "right_arm_unit"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": 7.0,
+        "witness_points_mm": [
+          [
+            -6.0,
+            -4.0,
+            98.0
+          ],
+          [
+            -13.0,
+            -4.0,
+            98.0
+          ]
+        ],
+        "intersection_mm3": 0.0,
+        "method": "FCL_TRIANGLE_DISTANCE"
+      },
+      {
+        "part_ids": [
+          "head_unit",
+          "right_leg_unit"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 31.0,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "left_arm_unit",
+          "left_leg_unit"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 14.0,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "left_arm_unit",
+          "right_arm_unit"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 26.0,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "left_arm_unit",
+          "right_leg_unit"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 19.448650338776723,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "left_leg_unit",
+          "right_arm_unit"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 19.448650338776723,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "left_leg_unit",
+          "right_leg_unit"
+        ],
+        "status": "PASS",
+        "edge": true,
+        "distance_mm": 1.0,
+        "witness_points_mm": [
+          [
+            0.5,
+            -8.999999999999998,
+            3.0
+          ],
+          [
+            -0.5,
+            -9.0,
+            3.0
+          ]
+        ],
+        "intersection_mm3": 0.0,
+        "method": "FCL_TRIANGLE_DISTANCE"
+      },
+      {
+        "part_ids": [
+          "right_arm_unit",
+          "right_leg_unit"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 14.0,
+        "method": "AABB_EXCLUDED"
+      }
+    ],
+    "graph_groups": null,
+    "units": "mm",
+    "backend": {
+      "trimesh": "5.0.0",
+      "python-fcl": "0.7.0.11",
+      "manifold3d": "3.5.2",
+      "embreex": "4.4.0",
+      "rtree": "1.4.1"
+    },
+    "distance_tolerance_mm": 0.0,
+    "assembly_bounds_mm": [
+      [
+        -74.99999931454659,
+        -27.0,
+        0.0
+      ],
+      [
+        74.99999931454659,
+        33.0,
+        145.084
+      ]
+    ]
+  }
+}

@@ -1,0 +1,252 @@
+{
+  "protocol_id": "print_plan_structural_connectivity_v1",
+  "status": "UNAVAILABLE",
+  "overall_pass": null,
+  "internal_connected": true,
+  "interpart_connected": null,
+  "part_count": 6,
+  "part_components": [
+    {
+      "part_id": "cabinet_body",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 0.00028228759765625
+    },
+    {
+      "part_id": "top_slab",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 0.000286102294921875
+    },
+    {
+      "part_id": "caster_front_left",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 3.4332275390625e-05
+    },
+    {
+      "part_id": "caster_front_right",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 3.4332275390625e-05
+    },
+    {
+      "part_id": "caster_rear_left",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 3.4332275390625e-05
+    },
+    {
+      "part_id": "caster_rear_right",
+      "component_count": 1,
+      "internal_connected": true,
+      "kernel_length_bound_mm": 3.4332275390625e-05
+    }
+  ],
+  "interpart_graph_component_count": null,
+  "assembly_diagonal_mm": 206.0992068130506,
+  "delta_ratio": 0.005,
+  "delta_floor_mm": 0.0,
+  "delta_mm": 1.0304960340652531,
+  "reason_codes": [
+    "DISTANCE_UNAVAILABLE"
+  ],
+  "measurement_config_sha256": "099b3838d7fecf3b7cfe76414901bfbbb81727cb76540aabff24109d66337872",
+  "measurement_config": {
+    "protocol_id": "print_plan_structural_connectivity_v1",
+    "delta_ratio": 0.005,
+    "delta_floor_mm": 0.0,
+    "backend": {
+      "trimesh": "5.0.0",
+      "python-fcl": "0.7.0.11",
+      "manifold3d": "3.5.2"
+    },
+    "intersection": "checked full material union; positive volume => zero distance",
+    "distance": "FCL triangle distance <= delta; no added threshold tolerance",
+    "internal": "existing union_print_mesh positive-volume material components"
+  },
+  "asset_sha256": "38a6d448b63b7c9d63c0e8e2dd953ea9609ac84c75ee4617b29d3e22fb8143e3",
+  "evidence_ref": null,
+  "details": {
+    "pairs": [
+      {
+        "part_ids": [
+          "cabinet_body",
+          "top_slab"
+        ],
+        "status": "PASS",
+        "edge": true,
+        "distance_mm": 0.0,
+        "intersection_mm3": 1.0054179711005418e-12,
+        "method": "MANIFOLD_POSITIVE_INTERSECTION"
+      },
+      {
+        "part_ids": [
+          "cabinet_body",
+          "caster_front_left"
+        ],
+        "status": "UNAVAILABLE",
+        "reason": "invalid material intersection volume"
+      },
+      {
+        "part_ids": [
+          "cabinet_body",
+          "caster_front_right"
+        ],
+        "status": "UNAVAILABLE",
+        "reason": "invalid material intersection volume"
+      },
+      {
+        "part_ids": [
+          "cabinet_body",
+          "caster_rear_left"
+        ],
+        "status": "UNAVAILABLE",
+        "reason": "invalid material intersection volume"
+      },
+      {
+        "part_ids": [
+          "cabinet_body",
+          "caster_rear_right"
+        ],
+        "status": "PASS",
+        "edge": true,
+        "distance_mm": 0.0,
+        "intersection_mm3": 8.743006318923108e-16,
+        "method": "MANIFOLD_POSITIVE_INTERSECTION"
+      },
+      {
+        "part_ids": [
+          "top_slab",
+          "caster_front_left"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 128.0,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "top_slab",
+          "caster_front_right"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 128.0,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "top_slab",
+          "caster_rear_left"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 128.0,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "top_slab",
+          "caster_rear_right"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 128.0,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "caster_front_left",
+          "caster_front_right"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 69.0,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "caster_front_left",
+          "caster_rear_left"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 42.0,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "caster_front_left",
+          "caster_rear_right"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 80.77747210701756,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "caster_front_right",
+          "caster_rear_left"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 80.77747210701756,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "caster_front_right",
+          "caster_rear_right"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 42.0,
+        "method": "AABB_EXCLUDED"
+      },
+      {
+        "part_ids": [
+          "caster_rear_left",
+          "caster_rear_right"
+        ],
+        "status": "PASS",
+        "edge": false,
+        "distance_mm": null,
+        "aabb_lower_bound_mm": 69.0,
+        "method": "AABB_EXCLUDED"
+      }
+    ],
+    "graph_groups": null,
+    "units": "mm",
+    "backend": {
+      "trimesh": "5.0.0",
+      "python-fcl": "0.7.0.11",
+      "manifold3d": "3.5.2",
+      "embreex": "4.4.0",
+      "rtree": "1.4.1"
+    },
+    "distance_tolerance_mm": 0.0,
+    "assembly_bounds_mm": [
+      [
+        -52.0,
+        -38.38235278339949,
+        0.0
+      ],
+      [
+        66.67629514023123,
+        38.38235278339949,
+        150.0
+      ]
+    ]
+  }
+}

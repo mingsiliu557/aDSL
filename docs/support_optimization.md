@@ -1,6 +1,9 @@
 # Opt-in support-volume optimization
 
-Implementation status: code and tests written; tests and experiments have not been run.
+Validation status: targeted tests and related regressions have run, together
+with a saved snowman candidate remeasurement (no model calls or regeneration).
+See [the validation report](../reports/ivr_nsv_pose_validation_20261021.md)
+for scope, results and the unresolved partition-reference error.
 
 The fixed-assembly workflow reads two optional `physics.overhang` keys:
 `support_metric` (`area`, default, or `nsv`) and `shape_editable` (strict boolean,
@@ -74,9 +77,17 @@ not establish a pose; the first actual output must satisfy A. An actual initial
 multi-part/rotated output stops as a mode mismatch. Identity rotation assumes the
 generated aDSL use pose is upright; NSV_up must use the same upright convention.
 
-D uses the existing partition reference and 24-orientation machinery. S is
-measured at the pose chosen by the original G strategy, not an NSV-minimizing
-search. Authorized local shape changes may refresh the reference; semantic
+D searches the existing 24 axis-aligned rotations for minimum ray support S
+on each final connector-inclusive print part. Since each part's V is unchanged
+by rotation, this also minimizes NSV within that finite set. Ties use rotation
+ID; an unavailable pose invalidates the search rather than being skipped.
+The same selected pose supplies support evidence, regions and recommended STL.
+The legacy G value is measured at that pose for internal score/layout integrity;
+it does not choose the NSV rotation. A failed partition reference does not
+prevent independent support measurement, but still prevents a valid partition
+layout or candidate adoption. Mode A retains its fixed upright rotation, and
+the area/Dapper branch retains its original G search.
+Authorized local shape changes may refresh the reference; semantic
 ownership and root frame must remain intact. The refreshed measurement, reference
 and final STL pose must agree before adoption. Shape-only edits keep grouping;
 regroup edits retain the existing intent and realization checks. NSV prompts retain

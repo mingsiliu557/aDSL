@@ -1,0 +1,13 @@
+{
+  "standing_protocol": "independent_contact_warning_v1",
+  "connectivity": {
+    "protocol_id": "print_plan_structural_connectivity_v1",
+    "delta_ratio": 0.005,
+    "delta_floor_mm": 0.0
+  },
+  "support": {
+    "protocol_id": "support_volume_min24_v1",
+    "overhang_threshold_from_horizontal_deg": 45.0,
+    "bed_tolerance_mm": 0.2
+  }
+}

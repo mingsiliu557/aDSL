@@ -206,8 +206,8 @@ def print_measurements(manifest, source, output, voxel_pitch_mm):
     from adsl.agents.assembly_overhang import measure_part
     from adsl.agents.partition_score import best_print_pose, rotations24
     from adsl.agents.support_volume import (
-        support_volume, aggregate, SupportMeasurementError, ALGORITHM_VERSION,
-        SELF_HIT_RELATIVE_EPSILON)
+        best_support_pose, aggregate, SupportMeasurementError, ALGORITHM_VERSION,
+        SELF_HIT_RELATIVE_EPSILON, SUPPORT_POSE_POLICY)
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     args = SimpleNamespace(manifest=Path(manifest), source=Path(source), output=output,
@@ -249,20 +249,15 @@ def print_measurements(manifest, source, output, voxel_pitch_mm):
                 row["gap_volume_mm3"] = gap["gap_voxels"] * voxel_pitch_mm ** 3
             except (ValueError, RuntimeError, OSError, ImportError) as error:
                 row["gap_error"] = f"{type(error).__name__}: {str(error)[:240]}"
-            if row.get('gap_best_pose') is not None:
-                # Reuse the existing G-selected pose, not a new NSV search.
-                pose = row['gap_best_pose']['recommended_print_transform_mm']
-                printed = mesh.copy()
-                printed.apply_transform(np.asarray(pose))
-                row['support_print_transform_mm'] = pose
-                try:
-                    row['support'] = support_volume(printed,
-                        overhang_threshold_from_horizontal_deg=OVERHANG['overhang_threshold_from_horizontal_deg'],
-                        bed_tolerance_mm=OVERHANG['layer_height_mm'])
-                except SupportMeasurementError as error:
-                    row['support'] = dict(status='INDETERMINATE', reason=str(error))
-            else:
-                row['support'] = dict(status='INDETERMINATE', reason='print_pose_unavailable')
+            try:
+                pose = best_support_pose(mesh,
+                    overhang_threshold_from_horizontal_deg=OVERHANG['overhang_threshold_from_horizontal_deg'],
+                    bed_tolerance_mm=OVERHANG['layer_height_mm'])
+                row['support_best_pose'] = pose
+                row['support_print_transform_mm'] = pose['recommended_print_transform_mm']
+                row['support'] = pose['support']
+            except SupportMeasurementError as error:
+                row['support'] = dict(status='INDETERMINATE', reason=str(error))
             if row["gap_voxels"] is not None and row["min_overhang_area_mm2"] is not None:
                 row["status"] = "PASS"
         rows.append(row)
@@ -276,7 +271,7 @@ def print_measurements(manifest, source, output, voxel_pitch_mm):
     support = aggregate([r.get('support') for r in rows] if complete else [])
     support_contract = dict(algorithm=ALGORITHM_VERSION, self_hit_relative_epsilon=SELF_HIT_RELATIVE_EPSILON,
         mask_bed_epsilon_mm=1e-8,
-        overhang=OVERHANG, pose_policy='G_best_axis_aligned_24', longest_mm=LONGEST_MM,
+        overhang=OVERHANG, pose_policy=SUPPORT_POSE_POLICY, longest_mm=LONGEST_MM,
         ray_backends=sorted({r['support']['ray_backend'] for r in rows
                             if r.get('support', {}).get('status') == 'PASS'}))
     return {"status": "PASS" if area_complete and gap_complete and support['status'] == 'PASS' else "INDETERMINATE",
