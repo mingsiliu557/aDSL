@@ -130,3 +130,32 @@ standard-library imports and works in the official baseline environment without
 installing ours. Existing completed snapshots/fingerprints must not be rewritten.
 
 Frozen alpha=0.3 requests keep their original exponent and reference/configuration hashes on resume. Scores across the two configurations are not comparable.
+
+## GPU evaluator compatibility (2026-10-23)
+
+For an explicitly configured GPU batch, `gpu_render_adapter.gpu_evaluator_source`
+prepares the evaluator source before freezing it. Copy
+`gpu_render_environment/sitecustomize.py` into the batch's render-adapter directory
+and put that directory on the child `PYTHONPATH`. The existing batch environment
+sets `ADSL_CYCLES_BATCH_GPU=1`, `ADSL_RENDER_AUDIT_DIR` and exactly one allocated
+device in `CUDA_VISIBLE_DEVICES`. The adapter selects that CUDA device and records
+the renderer process observed by `nvidia-smi`. It does not allocate a GPU.
+
+The corrected launcher calls `from adsl.tools.render import main; main()` and
+preserves the assigned CUDA visibility. `runpy.run_module` is incompatible with
+this import wrapper, and the old CPU evaluator cleared CUDA visibility. Normal
+import also retains the rendering hooks for resolution, threads and GPU audit.
+Native/neutral materials, eight review views and 512-pixel/64-sample settings are
+unchanged. Both comparison arms use the same configured renderer.
+
+The default CPU evaluator is unchanged. Apply the adapter only when preparing a
+new isolated evaluator; do not rewrite a running or completed frozen runner.
+Existing failed evaluation records require a separately authorized backfill.
+
+Validation: `python -m pytest -q tests/test_benchmark_gpu_render.py` passed all
+three tests, including reproduction of the old import failure and preservation
+of both hooks. An isolated render of the saved `Toys4K_dinosaur_001` GLB produced
+eight native and eight neutral images in 28.83 seconds on an allocated H100.
+Both renderer processes were observed on the assigned GPU. The source GLB,
+job/evaluation records and frozen runner hashes remained unchanged. This check
+made no model calls, ran no physics and did not compute CLIP scores.
