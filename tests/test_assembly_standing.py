@@ -33,13 +33,43 @@ def test_flex_xml_rigid_vertices_contact_and_inertia(tmp_path):
         assert np.array_equal(np.fromstring(flex.get('vertex'),sep=' ').reshape(-1,3),mesh.vertices*.001)
         assert np.array_equal(np.fromstring(flex.get('element'),sep=' ',dtype=int).reshape(-1,3),mesh.faces)
         contact=flex.find('contact')
-        assert contact.get('selfcollide')=='none' and contact.get('internal')=='false'
+        assert contact.get('selfcollide')=='none'
+        assert contact.get('internal')==standing._legacy_flex_contact_options().get('internal')
         assert contact.get('contype')==contact.get('conaffinity')=='1'
         assert contact.get('margin')==contact.get('gap')=='0'
     for body in root.findall('worldbody/body'):
         mesh=meshes[body.get('name')].copy();mesh.apply_scale(.001)
         assert float(body.find('inertial').get('mass'))==pytest.approx(mesh.volume*MATERIAL['density_kg_m3'])
         assert body.find('geom').get('contype')==body.find('geom').get('conaffinity')=='0'
+
+
+@pytest.mark.parametrize('legacy_internal',[True,False])
+def test_flex_xml_internal_option_follows_solver_capability(tmp_path,monkeypatch,legacy_internal):
+    import sys
+    from types import SimpleNamespace
+    model=type('Model',(),{'flex_internal':object()} if legacy_internal else {})
+    monkeypatch.setitem(sys.modules,'mujoco',SimpleNamespace(MjModel=model))
+    args,report=fixture(tmp_path)
+    _,_,meshes=load_parts(args)
+    root=ET.fromstring(standing.xml_model(report,meshes,{},flex_config(),MATERIAL['density_kg_m3']))
+    for contact in root.findall('deformable/flex/contact'):
+        assert contact.get('internal')==('false' if legacy_internal else None)
+        assert contact.get('selfcollide')=='none'
+        assert contact.get('margin')==contact.get('gap')=='0'
+
+
+def test_real_solver_compiles_rigid_flex_xml(tmp_path):
+    mujoco=pytest.importorskip('mujoco')
+    args,report=fixture(tmp_path)
+    _,_,meshes=load_parts(args)
+    xml=standing.xml_model(report,meshes,{},flex_config(),MATERIAL['density_kg_m3'])
+    model=mujoco.MjModel.from_xml_string(xml)
+    assert model.nflex==len(meshes)
+    assert model.nq==7*len(meshes) and model.nv==6*len(meshes)
+    data=mujoco.MjData(model)
+    mujoco.mj_forward(model,data)
+    mujoco.mj_step(model,data)
+    assert data.time==pytest.approx(flex_config()['timestep_seconds'])
 
 
 def test_radius_budget_and_legacy_backend(tmp_path):

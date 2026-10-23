@@ -133,6 +133,19 @@ def flex_contact_settings(report, config):
         representation='rigid dim=2 surface flex; not volumetric FEM; no remeshing')
 
 
+def _legacy_flex_contact_options():
+    """Keep old collision defaults explicit without emitting a removed option."""
+    try:
+        import mujoco
+    except ModuleNotFoundError as error:
+        if error.name != 'mujoco':
+            raise
+        # Building diagnostic XML alone does not require the optional solver.
+        return {'internal':'false'}
+    # MuJoCo removed both this model field and its MJCF attribute together.
+    return {'internal':'false'} if hasattr(mujoco.MjModel,'flex_internal') else {}
+
+
 def xml_model(report,meshes,proxies,config,density):
     from adsl.core.assembly_topology import mm_matrix
     from scipy.spatial.transform import Rotation
@@ -145,6 +158,7 @@ def xml_model(report,meshes,proxies,config,density):
     ET.SubElement(world,'geom',name='floor',type='plane',size='10 10 .1',rgba='.8 .8 .8 1')
     rigid_flex=config.get('collision_backend','coacd')=='rigid_flex'
     contact=flex_contact_settings(report,config) if rigid_flex else None
+    legacy_contact=_legacy_flex_contact_options() if rigid_flex else {}
     deformable=ET.SubElement(root,'deformable') if rigid_flex else None
     parts={p['id']:p for p in report['parts']}
     transforms={n:mm_matrix(parts[n]['assembly_transform'],report['mm_per_unit']) for n in meshes}
@@ -178,7 +192,7 @@ def xml_model(report,meshes,proxies,config,density):
                 radius=str(contact['radius_mm']*.001),vertex=values(mesh.vertices*.001),
                 element=' '.join(map(str,np.asarray(mesh.faces).ravel())),rgba='0 0 0 0')
             ET.SubElement(flex,'contact',contype='1',conaffinity='1',condim='3',
-                internal='false',selfcollide='none',margin='0',gap='0',
+                **legacy_contact,selfcollide='none',margin='0',gap='0',
                 friction=values(config['friction']))
             continue
         for j,proxy in enumerate(proxies[name]):
