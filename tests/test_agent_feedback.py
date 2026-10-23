@@ -107,6 +107,143 @@ def test_standing_summary_at_actual_engineering_coder_code_critic_boundaries(tmp
     assert captured==['assembly_engineering','code_critic','repair']
 
 
+@pytest.mark.parametrize('reason_code', [None, 'INTERFACE_EXIT_FIRST',
+    'REFERENCE_UNAVAILABLE', 'NO_POSITIVE_CONTRIBUTION', 'legacy'])
+def test_tipping_localization_at_repair_boundaries_is_idempotent(tmp_path, monkeypatch, reason_code):
+    import asyncio
+    from types import SimpleNamespace
+    from adsl.agents import assembly_topology as topology, assembly_physics as physics, fixed_assembly as flow
+    from adsl.agents.agent_feedback import _tipping_localization_for_agent, feedback_size_report
+    from adsl.agents.models import FixedAssemblyPlan, EngineeringCriticDecision, CheckerResult
+    from adsl.agents.service import ObjectWorkflow, _checker_evidence
+    from adsl.agents.checkers import CheckerRun
+    from adsl.agents.tools.files import read_file
+    from test_fixed_assembly import mock_flow, plan_data
+    from test_assembly_feedback_recovery import payload as model_payload, tool
+
+    workflow, request, runtime, source, _ = mock_flow(tmp_path, monkeypatch, [('PASS', True)])
+    source_bytes = source.read_bytes()
+    source_hash = hashlib.sha256(source_bytes).hexdigest()
+    localization = dict(method='initial_directional_gravity_moment_v1', status='RANKED',
+        reason_code=None, reason=None, causal_claim=False, root_part_id='crossbar',
+        first_tipping_time_s=.24, direction_xy=[1., 0.], support_boundary_m=.1,
+        net_moment_nm=.03924, positive_moment_sum_nm=.07848,
+        candidates=[dict(part_id='stem', moment_nm=.07848, positive_share=1.)],
+        part_contributions=[dict(part_id='stem', mass_kg=.2, com_world_m=[.14, 0., .2],
+            lever_m=.04, moment_nm=.07848), dict(part_id='crossbar', mass_kg=.8,
+            com_world_m=[.095, 0., .1], lever_m=-.005, moment_nm=-.03924)])
+    if reason_code not in (None, 'legacy'):
+        localization.update(status='FALLBACK', reason_code=reason_code,
+            reason='Precise fallback detail. ' * 20, candidates=[])
+        if reason_code != 'NO_POSITIVE_CONTRIBUTION':
+            localization.update(direction_xy=None, support_boundary_m=None,
+                                net_moment_nm=None, positive_moment_sum_nm=None, part_contributions=[])
+        else:
+            localization.update(net_moment_nm=-.03924, positive_moment_sum_nm=0.)
+    domain = dict(tipped=True, contacts=[dict(position=[1., 2., 3.])] * 30)
+    if reason_code != 'legacy':
+        domain['tipping_localization'] = localization
+    finding = physics.finding('assembly_standing', 'SELF_WEIGHT_TIPPING', 'Observed root tilt exceeds limit.',
+        part_ids=['crossbar'], domain=domain)
+    if reason_code is None:
+        finding.region.part_names = ['stem']
+    result = CheckerResult(checker='assembly_standing', status='FAIL', summary='Root tipping observed',
+        findings=[finding], metrics=deepcopy(domain), assumptions={'source_sha256': source_hash})
+    output = tmp_path / 'standing'; output.mkdir()
+    report_path = output / 'result.json'; report_path.write_text(result.model_dump_json())
+    report_bytes = report_path.read_bytes()
+    check = CheckerRun(physics.checker_spec('assembly_standing'), result, output, ())
+    feedback = {**_checker_evidence([check], workspace=tmp_path), 'source_version': 'original'}
+    raw = {'feedback': feedback, 'source_version': 'original'}
+    before = deepcopy(raw)
+    view = payload_for_agent(raw, workspace=tmp_path, source_path=source,
+        source_version='original', role='coder')
+    assert raw == before
+    assert payload_for_agent(view, workspace=tmp_path, source_path=source,
+        source_version='original', role='coder') == view
+
+    expected = _tipping_localization_for_agent(localization) if reason_code != 'legacy' else None
+    if expected is not None:
+        assert set(expected) == set(localization) - {'part_contributions'}
+        assert expected['causal_claim'] is False and expected['reason_code'] == reason_code
+        assert expected['reason'] == (localization['reason'][:240] if localization['reason'] else None)
+        assert all(set(row) == {'part_id', 'moment_nm', 'positive_share'} for row in expected['candidates'])
+        # The raw domain wins only when valid; invalid/nonfinite values cannot
+        # erase the already projected diagnostic on a restored finding.
+        summary_finding = deepcopy(view['feedback']['typed_findings'][0])
+        valid_raw = deepcopy(localization)
+        valid_raw['first_tipping_time_s'] = .25
+        summary_finding['domain'] = {'tipping_localization': valid_raw}
+        pure = lambda f: finding_for_agent(f, result_ref='standing/result.json',
+            result_pointer='/findings/0', source_sha256=source_hash)
+        assert pure(summary_finding)['key_values']['tipping_localization']['first_tipping_time_s'] == .25
+        summary_finding['domain']['tipping_localization']['first_tipping_time_s'] = float('nan')
+        assert pure(summary_finding)['key_values']['tipping_localization'] == expected
+        assert _tipping_localization_for_agent({'status': ['invalid']}) is None
+        json.dumps(expected, allow_nan=False)
+        if reason_code is None:
+            many = deepcopy(localization)
+            many['candidates'] = [dict(part_id=str(i), moment_nm=4 - i,
+                positive_share=(4 - i) / 10, ignored='full evidence') for i in range(4)]
+            bounded = _tipping_localization_for_agent(many)
+            assert [row['part_id'] for row in bounded['candidates']] == ['0', '1', '2']
+            assert sum(row['positive_share'] for row in bounded['candidates']) == pytest.approx(.9)
+            assert all(set(row) == {'part_id', 'moment_nm', 'positive_share'} for row in bounded['candidates'])
+        without = deepcopy(view)
+        without['feedback']['typed_findings'][0]['key_values'].pop('tipping_localization')
+        assert feedback_size_report(view)['actual_bytes'] > feedback_size_report(without)['actual_bytes']
+
+    captures = []
+    def forbidden(*args, **kwargs):
+        raise AssertionError('Boundary-only test must not execute geometry or a checker')
+    monkeypatch.setattr(flow, 'execute_asset_source', forbidden)
+    monkeypatch.setattr(physics, 'run_assembly_checks', forbidden)
+    async def run(**kwargs):
+        data = model_payload(kwargs)
+        stage = kwargs['stage'].split(':')[0]
+        assert stage in {'assembly_engineering', 'repair'}
+        captures.append(stage)
+        rows = data['typed_findings'] if stage == 'assembly_engineering' else data['feedback']['typed_findings']
+        row = rows[0]
+        assert row['finding_id'] == 'assembly_standing:SELF_WEIGHT_TIPPING:crossbar'
+        assert row['required'] is True and row['repairability'] == 'geometry'
+        assert row['region']['part_names'] == (['stem'] if reason_code is None else ['crossbar'])
+        assert row['key_values'].get('tipping_localization') == expected
+        assert 'part_contributions' not in json.dumps(data)
+        assert 'contacts' not in json.dumps(data)
+        role = 'engineering' if stage == 'assembly_engineering' else 'coder'
+        copy_before = deepcopy(data)
+        assert payload_for_agent(data, workspace=tmp_path, source_path=source,
+            source_version='original', role=role) == data
+        assert data == copy_before
+        ref = row['detail_ref']
+        assert ref['json_pointer'] == '/findings/0/domain'
+        original = json.loads(await tool(read_file, kwargs['context'], stage + '_detail',
+            path=ref['path'], json_pointer=ref['json_pointer']))
+        assert original == domain
+        if expected is not None:
+            details = json.loads(await tool(read_file, kwargs['context'], stage + '_localization',
+                path=ref['path'], json_pointer=ref['json_pointer'] + '/tipping_localization'))
+            assert details == localization
+        if stage == 'assembly_engineering':
+            return SimpleNamespace(final_output=EngineeringCriticDecision(approved=False,
+                observations=['Diagnostic ranking is not a causal proof'], repair_proposals=[]))
+        return SimpleNamespace(final_output='{"edit_action":"NO_CHANGE","reason":"Stub: no edit"}')
+    runtime.run = run
+    root = tmp_path / 'review'; root.mkdir()
+    plan = FixedAssemblyPlan.model_validate(plan_data())
+    async def exercise():
+        await topology.engineer(workflow, runtime, request, plan, source, None, root, check, {}, feedback, 1)
+        outcome = await ObjectWorkflow._repair(workflow, runtime=runtime, repairer={}, workspace=tmp_path,
+            source_path=source, role='coder', stage='repair:1', allow_no_change=True,
+            payload={'feedback': feedback, 'source_version': 'original'})
+        assert outcome['status'] == 'NO_CHANGE'
+    asyncio.run(exercise())
+    assert captures == ['assembly_engineering', 'repair']
+    assert source.read_bytes() == source_bytes and report_path.read_bytes() == report_bytes
+    assert result.status == 'FAIL' and result.findings[0].finding_id == finding.finding_id
+
+
 class RequestFailure(Exception):
     def __init__(self, status, code=None, message='request rejected'):
         super().__init__(message)

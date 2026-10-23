@@ -190,3 +190,79 @@ def test_batch_calls_standing_independently_and_preserves_other_checkers(tmp_pat
         if run.spec.name!='assembly_standing':
             assert 'standing_protocol' not in run.result.assumptions
             assert 'standing_observation' not in run.result.metrics
+
+
+@pytest.mark.parametrize('variant', [
+    'legacy', 'ranked', 'reference_unavailable', 'no_positive',
+    'invalid_target', 'duplicate_target', 'too_many_targets',
+])
+def test_tipping_localization_preserves_identity_and_verdict(measured_run, monkeypatch, variant):
+    """Localization only changes valid target hints, including the CLI source path."""
+    from adsl.agents.feedback_schema import sha256_file
+    args, measurement = measured_run
+    measurement.update(tipped=True, peak_tilt_deg=26., initial_minimum_contact_distance_mm=-.04)
+    physics = {'standing':dict(STANDING, collision_backend='rigid_flex'), 'material':MATERIAL}
+    before = standing.analyze(args, physics)
+    original = before.findings[0].model_dump()
+    localization = dict(method='initial_directional_gravity_moment_v1', status='RANKED',
+        reason_code=None, reason=None, causal_claim=False, root_part_id='base',
+        first_tipping_time_s=.24, direction_xy=[1., 0.], support_boundary_m=.1,
+        net_moment_nm=.03924, positive_moment_sum_nm=.07848,
+        candidates=[dict(part_id='stem', moment_nm=.07848, positive_share=1.)],
+        part_contributions=[dict(part_id='stem', mass_kg=.2, com_world_m=[.14,0.,.1],
+                                 lever_m=.04, moment_nm=.07848)])
+    if variant in ('reference_unavailable', 'no_positive'):
+        reference = dict(root_part_id='base', initial_root_rotation=[[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]],
+            gravity_m_s2=9.81, parts=[dict(part_id='base', mass_kg=1., com_world_m=[0.,0.,.1])],
+            floor_contacts_world_m=[[.1,0.,0.]],
+            reference_error='No active initial floor contact was available.' if variant=='reference_unavailable' else None)
+        localization = standing._localize_tipping(reference=reference,
+            first_tipping=dict(time_seconds=.24,root_rotation=[[0.,0.,1.],[0.,1.,0.],[-1.,0.,0.]]), exits={})
+    elif variant == 'invalid_target':
+        localization['candidates'][0]['part_id'] = 'not_a_print_part'
+    elif variant == 'duplicate_target':
+        localization['candidates'] *= 2
+    elif variant == 'too_many_targets':
+        localization['candidates'] *= 4
+    if variant != 'legacy':
+        measurement['tipping_localization'] = deepcopy(localization)
+    result = standing.analyze(args, physics)
+    found = result.findings[0]
+    assert result.status == before.status == 'FAIL'
+    assert result.summary == before.summary
+    assert result.metrics['standing_observation'] == before.metrics['standing_observation']
+    assert result.metrics['contact_diagnostic']['status'] == 'WARNING'
+    assert found.finding_id == original['finding_id'] == 'assembly_standing:SELF_WEIGHT_TIPPING:base'
+    for key in ('rule_id','required','repairability','category','message'):
+        assert getattr(found,key) == original[key]
+    assert found.region.part_names == (['stem'] if variant=='ranked' else ['base'])
+    if variant == 'legacy':
+        assert 'tipping_localization' not in result.metrics
+        assert 'tipping_localization' not in found.domain
+    else:
+        diagnostic = result.metrics['tipping_localization']
+        assert diagnostic == found.domain['tipping_localization']
+        assert diagnostic['causal_claim'] is False
+        if variant == 'ranked':
+            assert diagnostic == localization
+        else:
+            assert diagnostic['status'] == 'FALLBACK' and diagnostic['candidates'] == []
+            assert diagnostic['reason_code'] == ('NO_POSITIVE_CONTRIBUTION' if variant=='no_positive'
+                                                  else 'REFERENCE_UNAVAILABLE')
+        json.dumps(diagnostic,allow_nan=False)
+    if variant == 'ranked':
+        # Synthetic SourceIndex data, consumed by the unchanged real CLI matcher.
+        index=args.output/'source_index.json'
+        index.write_text(json.dumps(dict(source_sha256=sha256_file(args.source),features=[
+            dict(feature_id='stem_hint',name='stem',source_ids=['stem:s0'],
+                 source_locations=['source.py:1'],resolution='complete')])))
+        configuration=args.output/'physics.json';configuration.write_text(json.dumps(physics))
+        monkeypatch.setattr(sys,'argv',['standing','--source',str(args.source),'--manifest',str(args.manifest),
+            '--output',str(args.output),'--physics',str(configuration),'--source-index',str(index)])
+        assembly_physics.cli(standing.NAME,standing.analyze)
+        saved=json.loads((args.output/'report.json').read_text())
+        tip=saved['findings'][0]
+        assert saved['status']=='FAIL' and tip['region']['part_names']==['stem']
+        assert tip['finding_id']==original['finding_id']
+        assert [c['feature_id'] for c in tip['source_candidates']]==['stem_hint']
+        assert tip['source_candidates'][0]['source_locations']==['source.py:1']

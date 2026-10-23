@@ -2,6 +2,7 @@
 from __future__ import annotations
 from dataclasses import asdict
 import importlib.metadata
+import json
 import math
 import time
 from pathlib import Path
@@ -203,6 +204,187 @@ def xml_model(report,meshes,proxies,config,density):
     return ET.tostring(root,encoding='unicode')
 
 
+def _initial_tipping_reference(model, data, *, part_body_ids, root_part_id,
+                               floor_geom_id, flex_part_ids):
+    """Copy the initial solver state without evaluating geometry or advancing it."""
+    reference = dict(root_part_id=root_part_id, initial_root_rotation=None,
+        gravity_m_s2=None, parts=[], floor_contacts_world_m=[], reference_error=None)
+    try:
+        if (not part_body_ids or root_part_id not in part_body_ids
+                or len(set(part_body_ids.values())) != len(part_body_ids)
+                or any(i <= 0 for i in part_body_ids.values())):
+            raise ValueError('Initial print-body IDs were incomplete or ambiguous.')
+        gravity = np.asarray(model.opt.gravity, dtype=float)
+        if (gravity.shape != (3,) or not np.isfinite(gravity).all()
+                or np.any(gravity[:2] != 0) or gravity[2] >= 0):
+            raise ValueError('Initial gravity was not finite, vertical and downward.')
+        reference['gravity_m_s2'] = float(-gravity[2])
+        rotation = np.asarray(data.xmat[part_body_ids[root_part_id]], dtype=float).reshape(3, 3).copy()
+        if not np.isfinite(rotation).all():
+            raise ValueError('Initial root rotation was not finite.')
+        reference['initial_root_rotation'] = rotation
+        for part_id, body_id in part_body_ids.items():
+            mass = float(model.body_mass[body_id])
+            com = np.asarray(data.xipos[body_id], dtype=float).copy()
+            if not isinstance(part_id, str) or not part_id or not math.isfinite(mass) or mass <= 0:
+                raise ValueError('Initial print-body identity or mass was invalid.')
+            if com.shape != (3,) or not np.isfinite(com).all():
+                raise ValueError(f'Initial world centre of mass was unavailable for {part_id}.')
+            reference['parts'].append(dict(part_id=part_id, mass_kg=mass, com_world_m=com))
+        if floor_geom_id < 0 or floor_geom_id >= len(model.geom_bodyid):
+            raise ValueError('The floor geom ID was unavailable.')
+        body_ids = set(part_body_ids.values())
+        for contact in data.contact:
+            if contact.efc_address < 0:
+                continue
+            geoms, flexes = contact.geom, contact.flex
+            for side in (0, 1):
+                if int(geoms[side]) != floor_geom_id or int(flexes[side]) >= 0:
+                    continue
+                other = 1 - side
+                flex_id, geom_id = int(flexes[other]), int(geoms[other])
+                is_part = (flex_part_ids.get(flex_id) in part_body_ids if flex_id >= 0 else
+                    0 <= geom_id < len(model.geom_bodyid)
+                    and int(model.geom_bodyid[geom_id]) in body_ids)
+                if is_part:
+                    point = np.asarray(contact.pos, dtype=float).copy()
+                    if point.shape != (3,) or not np.isfinite(point).all():
+                        raise ValueError('An active initial floor contact was not finite.')
+                    reference['floor_contacts_world_m'].append(point)
+                    break
+        if not reference['floor_contacts_world_m']:
+            raise ValueError('No active initial floor contact was available.')
+    except (AttributeError, IndexError, KeyError, TypeError, ValueError, OverflowError) as error:
+        # Only extraction of the new optional diagnostic is recoverable here.
+        reference['reference_error'] = str(error)[:240]
+    return reference
+
+
+def _localize_tipping(*, reference, first_tipping, exits):
+    """Initial gravity-moment ranking in the first observed tipping direction.
+
+    This is a diagnostic of the root-tilt event, not a causal or stability proof.
+    The full output contains only strict JSON values; no state is mutated.
+    """
+    result = dict(method='initial_directional_gravity_moment_v1', status='FALLBACK',
+        reason_code='REFERENCE_UNAVAILABLE', reason=None, causal_claim=False,
+        root_part_id=reference.get('root_part_id'), first_tipping_time_s=None,
+        direction_xy=None, support_boundary_m=None, net_moment_nm=None,
+        positive_moment_sum_nm=None, candidates=[], part_contributions=[])
+    try:
+        if not isinstance(result['root_part_id'], str) or not result['root_part_id']:
+            result['root_part_id'] = None
+            raise ValueError('The observed root part ID was unavailable.')
+        if first_tipping is None:
+            raise ValueError('The first tipping sample was unavailable.')
+        tip_time = float(first_tipping['time_seconds'])
+        if not math.isfinite(tip_time) or tip_time < 0:
+            raise ValueError('The first tipping sample time was invalid.')
+        result['first_tipping_time_s'] = tip_time
+        exit_times = [(float(t), str(name)) for name, t in exits.items()]
+        if any(not math.isfinite(t) or t < 0 for t, _ in exit_times):
+            raise ValueError('An interface exit time was invalid.')
+        if exit_times and min(exit_times)[0] <= tip_time:
+            exit_time, name = min(exit_times)
+            result.update(reason_code='INTERFACE_EXIT_FIRST',
+                reason=f'Interface {name} exited at {exit_time:g} s; first tipping sample is {tip_time:g} s.')
+            return result
+        if reference.get('reference_error'):
+            raise ValueError(str(reference['reference_error'])[:240])
+        initial = np.asarray(reference['initial_root_rotation'], dtype=float)
+        tipped = np.asarray(first_tipping['root_rotation'], dtype=float)
+        if (initial.shape != (3, 3) or tipped.shape != (3, 3)
+                or not np.isfinite(initial).all() or not np.isfinite(tipped).all()):
+            raise ValueError('Initial or first-tipping root rotation was unavailable.')
+        horizontal = (tipped @ initial.T)[:2, 2]
+        norm = float(np.linalg.norm(horizontal))
+        if not math.isfinite(norm) or norm <= np.finfo(float).eps:
+            raise ValueError('The observed tipping direction could not be normalized.')
+        direction = horizontal / norm
+        contacts = np.asarray(reference['floor_contacts_world_m'], dtype=float)
+        if contacts.ndim != 2 or contacts.shape[1:] != (3,) or not len(contacts) or not np.isfinite(contacts).all():
+            raise ValueError('No finite initial floor contacts were available.')
+        boundary = float(np.max(contacts[:, :2] @ direction))
+        gravity = float(reference['gravity_m_s2'])
+        if not math.isfinite(boundary) or not math.isfinite(gravity) or gravity <= 0:
+            raise ValueError('Initial gravity or support boundary was invalid.')
+        parts = reference['parts']
+        names = [p['part_id'] for p in parts]
+        if (not parts or any(not isinstance(n, str) or not n for n in names)
+                or len(set(names)) != len(names) or result['root_part_id'] not in names):
+            raise ValueError('Initial print-body contributions were incomplete or ambiguous.')
+        contributions = []
+        for part in parts:
+            mass = float(part['mass_kg'])
+            com = np.asarray(part['com_world_m'], dtype=float)
+            if not math.isfinite(mass) or mass <= 0 or com.shape != (3,) or not np.isfinite(com).all():
+                raise ValueError('An initial mass or world centre of mass was invalid.')
+            lever = float(direction @ com[:2] - boundary)
+            moment = mass * gravity * lever
+            if not math.isfinite(lever) or not math.isfinite(moment):
+                raise ValueError('An initial gravity-moment contribution was not finite.')
+            contributions.append(dict(part_id=part['part_id'], mass_kg=mass,
+                com_world_m=com.tolist(), lever_m=lever, moment_nm=moment))
+        positive = sorted((p for p in contributions if p['moment_nm'] > 0),
+                          key=lambda p: (-p['moment_nm'], p['part_id']))
+        net = math.fsum(p['moment_nm'] for p in contributions)
+        positive_sum = math.fsum(p['moment_nm'] for p in positive)
+        result.update(direction_xy=direction.tolist(), support_boundary_m=boundary,
+            net_moment_nm=net, positive_moment_sum_nm=positive_sum, part_contributions=contributions)
+        if not positive:
+            result.update(reason_code='NO_POSITIVE_CONTRIBUTION',
+                reason='No positive gravity-moment contribution was found in the observed direction.')
+            return result
+        result.update(status='RANKED', reason_code=None, reason=None,
+            candidates=[dict(part_id=p['part_id'], moment_nm=p['moment_nm'],
+                positive_share=p['moment_nm']/positive_sum) for p in positive[:3]])
+    except (AttributeError, IndexError, KeyError, TypeError, ValueError, OverflowError) as error:
+        result.update(reason=str(error)[:240], candidates=[], part_contributions=[])
+    return result
+
+
+def _normalized_tipping_localization(value, *, root_part_id, part_ids):
+    """Reject malformed optional diagnostics without changing the verdict."""
+    try:
+        # Also reject nonfinite/NumPy values in legacy mock or recovered results.
+        normalized = json.loads(json.dumps(value, allow_nan=False))
+        if (normalized['method'] != 'initial_directional_gravity_moment_v1'
+                or normalized['root_part_id'] != root_part_id or normalized['causal_claim'] is not False):
+            raise ValueError('The tipping localization identity was invalid.')
+        scalar_keys = ('first_tipping_time_s', 'support_boundary_m', 'net_moment_nm', 'positive_moment_sum_nm')
+        numeric = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+        scalars = [normalized[k] for k in scalar_keys]
+        direction = normalized['direction_xy']
+        if (any(v is not None and not numeric(v) for v in scalars)
+                or direction is not None and (not isinstance(direction, list) or len(direction) != 2
+                    or not all(numeric(v) for v in direction))):
+            raise ValueError('The tipping localization numeric summary was invalid.')
+        candidates = normalized['candidates']
+        if not isinstance(candidates, list):
+            raise ValueError('The tipping localization candidate list was invalid.')
+        if normalized['status'] == 'RANKED':
+            if (any(v is None for v in scalars) or direction is None
+                    or normalized['first_tipping_time_s'] < 0 or normalized['positive_moment_sum_nm'] <= 0):
+                raise ValueError('The ranked tipping summary was incomplete.')
+            names = [p['part_id'] for p in candidates]
+            if (not 1 <= len(names) <= 3 or len(set(names)) != len(names)
+                    or any(n not in part_ids for n in names)
+                    or normalized['reason_code'] is not None or normalized['reason'] is not None
+                    or any(not numeric(p['moment_nm']) or p['moment_nm'] <= 0
+                           or not numeric(p['positive_share'])
+                           or not 0 < p['positive_share'] <= 1 for p in candidates)):
+                raise ValueError('The ranked tipping targets were invalid.')
+        elif (normalized['status'] != 'FALLBACK' or candidates != []
+                or normalized['reason_code'] not in ('INTERFACE_EXIT_FIRST', 'REFERENCE_UNAVAILABLE', 'NO_POSITIVE_CONTRIBUTION')
+                or not isinstance(normalized['reason'], str) or not normalized['reason']):
+            raise ValueError('The tipping localization fallback was invalid.')
+        return normalized
+    except (KeyError, TypeError, ValueError, OverflowError) as error:
+        return _localize_tipping(reference=dict(root_part_id=root_part_id,
+            reference_error=str(error)[:240]), first_tipping=None, exits={}) | {
+                'reason': f'Invalid tipping localization: {str(error)[:200]}'}
+
+
 def simulate(xml,report,config,output):
     import mujoco
     import manifold3d as mf
@@ -228,6 +410,10 @@ def simulate(xml,report,config,output):
     max_contacts=int(data.ncon);max_flex_contacts=initial_contacts['flex_flex_count']
     ids={p['id']:mujoco.mj_name2id(model,mujoco.mjtObj.mjOBJ_BODY,p['id']) for p in report['parts']}
     root_id=ids[report['root_id']];initial=data.xmat[root_id].reshape(3,3).copy()
+    tipping_reference = _initial_tipping_reference(model, data, part_body_ids=ids,
+        root_part_id=report['root_id'],
+        floor_geom_id=mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, 'floor'),
+        flex_part_ids=flex_parts)
     frames={c['id']:(mm_matrix(c['tab_frame'],report['mm_per_unit']),
         mm_matrix(c['slot_frame'],report['mm_per_unit'])) for c in report['connections']}
     tabs={c['id']:query_solids(TabSlot(**c['parameters']))[0] for c in report['connections']}
@@ -238,7 +424,7 @@ def simulate(xml,report,config,output):
             p['thickness_mm']+2*p['fit_offset_mm'],p['slot_depth_mm']),True).translate((0,0,p['slot_depth_mm']/2))
     def pose(n):
         m=np.eye(4);m[:3,:3]=data.xmat[ids[n]].reshape(3,3);m[:3,3]=data.xpos[ids[n]]*1000;return m
-    trajectory=[]; exits={};peak=0.;last=[]
+    trajectory=[]; exits={};peak=0.;last=[];first_tipping=None
     steps=math.ceil(config['duration_seconds']/model.opt.timestep)
     stride=max(1,round(.02/model.opt.timestep))
     for k in range(steps+1):
@@ -255,6 +441,8 @@ def simulate(xml,report,config,output):
         max_flex_contacts=max(max_flex_contacts,sum(bool(np.all(c.flex>=0)) for c in data.contact))
         current=data.xmat[root_id].reshape(3,3)
         tilt=math.degrees(math.acos(np.clip((current@initial.T)[2,2],-1,1)))
+        if first_tipping is None and tilt > config['tilt_threshold_deg']:
+            first_tipping = dict(time_seconds=float(data.time), root_rotation=current.copy())
         peak=max(peak,tilt);joints=[]
         for c in report['connections']:
             tf,sf=frames[c['id']]
@@ -286,7 +474,7 @@ def simulate(xml,report,config,output):
     settled=bool(last) and max(v[0] for v in last)<=config['settle_linear_m_s'] and max(v[1] for v in last)<=config['settle_angular_rad_s']
     final=trajectory[-1]
     write_json(output/'final_contacts.json',contacts())
-    return dict(observation_duration_seconds=config['duration_seconds'],
+    result = dict(observation_duration_seconds=config['duration_seconds'],
         simulation_wall_seconds=time.monotonic()-started,initial_contact_count=initial_contacts['count'],
         initial_minimum_contact_distance_mm=initial_contacts['minimum_distance_mm'],
         max_contact_count=max_contacts,max_interpart_flex_contacts=max_flex_contacts,
@@ -299,7 +487,11 @@ def simulate(xml,report,config,output):
         exits=exits,settled=settled,final_interfaces=trajectory[-1]['interfaces'],
         final_linear_speed_m_s=last[-1][0],final_angular_speed_rad_s=last[-1][1],
         interface_retention_verified=True,
-        interface_method='TabSlot solid intersection with declared insertion region at sampled simulated relative poses; no pullout-force claim'),trajectory
+        interface_method='TabSlot solid intersection with declared insertion region at sampled simulated relative poses; no pullout-force claim')
+    if result['tipped']:
+        result['tipping_localization'] = _localize_tipping(
+            reference=tipping_reference, first_tipping=first_tipping, exits=exits)
+    return result, trajectory
 
 
 def save_frames(report,meshes,trajectory,output):
@@ -388,10 +580,18 @@ def _analyze(args,physics):
                                      'simulation':str(args.output/'model.xml')})
     findings=[]
     if result['tipped']:
-        findings.append(finding(NAME,'SELF_WEIGHT_TIPPING',
+        localization = result.get('tipping_localization')
+        if 'tipping_localization' in result:
+            localization = _normalized_tipping_localization(localization,
+                root_part_id=report['root_id'], part_ids=set(meshes))
+            result['tipping_localization'] = localization
+        tipping = finding(NAME,'SELF_WEIGHT_TIPPING',
             f"At {result['assessment_time_seconds']:g} s: root tilt {result['final_tilt_deg']:.4g} deg; "
             f"observation peak {result['peak_tilt_deg']:.4g} deg; limit {config['tilt_threshold_deg']}",
-            part_ids=[report['root_id']],domain=result))
+            part_ids=[report['root_id']],domain=result)
+        if localization is not None and localization['status'] == 'RANKED':
+            tipping.region.part_names = [p['part_id'] for p in localization['candidates']]
+        findings.append(tipping)
     for cid,t in result['exits'].items():
         c=next(c for c in report['connections'] if c['id']==cid)
         findings.append(finding(NAME,'SELF_WEIGHT_INTERFACE_EXIT',

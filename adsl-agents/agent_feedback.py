@@ -219,6 +219,63 @@ _DOMAIN_FIELDS = ('failure_kind', 'geometry_repair_allowed', 'physical_verdict',
     'optimization_opportunity', 'partition_optimization', 'print_partition_editable')
 
 
+def _tipping_localization_for_agent(value) -> dict | None:
+    """Keep the diagnostic ranking, never the full per-part or contact arrays."""
+    if not isinstance(value, Mapping):
+        return None
+    names = ('method', 'status', 'reason_code', 'reason', 'causal_claim',
+             'root_part_id', 'first_tipping_time_s', 'direction_xy',
+             'support_boundary_m', 'net_moment_nm', 'positive_moment_sum_nm', 'candidates')
+    if (any(name not in value for name in names)
+            or value['method'] != 'initial_directional_gravity_moment_v1'
+            or value['status'] not in ('RANKED', 'FALLBACK')
+            or value['causal_claim'] is not False
+            or not isinstance(value['root_part_id'], str) or not value['root_part_id']):
+        return None
+    if value['status'] == 'RANKED':
+        if value['reason_code'] is not None or value['reason'] is not None:
+            return None
+    elif (value['reason_code'] not in ('INTERFACE_EXIT_FIRST', 'REFERENCE_UNAVAILABLE',
+                                       'NO_POSITIVE_CONTRIBUTION')
+          or not isinstance(value['reason'], str)):
+        return None
+
+    def finite(number):
+        return type(number) is int or type(number) is float and math.isfinite(number)
+
+    numbers = ('first_tipping_time_s', 'support_boundary_m',
+               'net_moment_nm', 'positive_moment_sum_nm')
+    if any(value[key] is not None and not finite(value[key]) for key in numbers):
+        return None
+    direction = value['direction_xy']
+    if direction is not None and (not isinstance(direction, (list, tuple))
+            or len(direction) != 2 or not all(finite(number) for number in direction)):
+        return None
+    candidates = value['candidates']
+    if not isinstance(candidates, list):
+        return None
+    if value['status'] == 'FALLBACK' and candidates:
+        return None
+    if value['status'] == 'RANKED' and (not candidates or direction is None
+            or any(value[key] is None for key in numbers)):
+        return None
+    selected = []
+    for candidate in candidates[:3]:
+        if (not isinstance(candidate, Mapping)
+                or not isinstance(candidate.get('part_id'), str) or not candidate['part_id']
+                or not finite(candidate.get('moment_nm')) or candidate['moment_nm'] <= 0
+                or not finite(candidate.get('positive_share'))
+                or not 0 < candidate['positive_share'] <= 1):
+            return None
+        selected.append({key: candidate[key] for key in ('part_id', 'moment_nm', 'positive_share')})
+    if len({candidate['part_id'] for candidate in selected}) != len(selected):
+        return None
+    out = {key: value[key] for key in names if key not in {'reason', 'direction_xy', 'candidates'}}
+    out.update(reason=_short(value['reason']), direction_xy=list(direction) if direction is not None else None,
+               candidates=selected)
+    return out
+
+
 def finding_for_agent(finding, *, result_ref, result_pointer, source_sha256):
     raw = finding.model_dump() if hasattr(finding, 'model_dump') else finding
     if not isinstance(raw, Mapping):
@@ -288,6 +345,14 @@ def finding_for_agent(finding, *, result_ref, result_pointer, source_sha256):
     out['key_values'] = _fields(domain, _DOMAIN_FIELDS)
     if raw.get('key_values'):
         out['key_values'].update(_fields(raw['key_values'], _DOMAIN_FIELDS))
+    # Prefer a valid raw diagnostic. A projected finding only has key_values;
+    # malformed raw data must not replace an already valid bounded summary.
+    for container in (raw.get('domain'), raw.get('key_values')):
+        localization = _tipping_localization_for_agent(
+            container.get('tipping_localization') if isinstance(container, Mapping) else None)
+        if localization is not None:
+            out['key_values']['tipping_localization'] = localization
+            break
     out['detail_ref'] = _ref_fields(raw['detail_ref']) if raw.get('detail_ref') else {'path': result_ref,
         'json_pointer': _pointer(result_pointer, 'domain')}
     _preview(out, 'evidence_refs', [_ref_fields(r) for r in raw.get('evidence_refs') or []], 6,
