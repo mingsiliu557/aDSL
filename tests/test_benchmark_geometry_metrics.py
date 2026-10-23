@@ -32,32 +32,46 @@ def connectivity(parts, floor=0., ratio=.005):
 def test_one_part_success_and_empty_unavailable():
     p=part('whole',box()); before=p['mesh_mm'].vertices.copy()
     r=connectivity([p]);assert r['status']=='PASS' and r['overall_pass'] is True
-    assert r['internal_connected'] is r['interpart_connected'] is True
+    assert r['internal_connected'] is True
+    assert r['part_count']==r['material_component_count']==r['graph_component_count']==1
+    assert r['protocol_id']=='geometric_facing_contact_connectivity_v1'
+    assert 'interpart_connected' not in r and 'interpart_graph_component_count' not in r
     assert r['reason_codes']==[]
     assert np.array_equal(before,p['mesh_mm'].vertices)
     r=connectivity([]);assert r['status']=='UNAVAILABLE' and r['overall_pass'] is None
 
 
 @FCL
-def test_small_gap_internal_failure_but_predeclared_parts_contact():
-    a,b=box(),box((1.001,0,0))
+@pytest.mark.parametrize('gap,expected',[(.001,True),(.1,False)])
+def test_same_gap_uses_same_rule_with_one_or_two_print_parts(gap,expected):
+    a,b=box(),box((1+gap,0,0))
     r=connectivity([part('whole',a,b)])
     assert r['status']=='PASS' and r['internal_connected'] is False
-    assert r['interpart_connected'] is True and not r['overall_pass']
     s=connectivity([part('A',a),part('B',b)])
-    assert s['overall_pass'] is True
-    assert s['delta_mm']>s['details']['pairs'][0]['distance_mm']
+    assert r['overall_pass'] is s['overall_pass'] is expected
+    assert r['part_count']==1 and s['part_count']==2
+    assert r['material_component_count']==s['material_component_count']==2
+    assert r['delta_mm']==s['delta_mm']
+    assert r['details']['pairs'][0]['distance_mm']==s['details']['pairs'][0]['distance_mm']
+    assert r['reason_codes']==s['reason_codes']==([] if expected else ['GEOMETRIC_GRAPH_DISCONNECTED'])
 
 
 @FCL
-def test_other_part_cannot_bridge_internal_failure_and_joint_reasons():
+def test_other_part_bridges_material_islands_without_internal_veto():
     p=part('A',box((-1,0,0)),box((1,0,0)))
     bridge=part('B',box(size=(1,1,1)))
     r=connectivity([p,bridge],floor=.01)
-    assert r['internal_connected'] is False and r['interpart_connected'] is True
-    assert r['reason_codes']==['INTERNAL_PART_DISCONNECTED']
+    assert r['internal_connected'] is False and r['overall_pass'] is True
+    # Exact shared faces form one material island in the assembled union;
+    # A's disconnected source grouping remains diagnostic, not a veto.
+    assert r['part_count']==2
+    assert r['material_component_count']==1 and r['graph_component_count']==1
+    assert r['details']['nodes'][0]['part_ids']==['A','B']
+    assert r['reason_codes']==[]
     r=connectivity([p,part('far',box((10,0,0)))])
-    assert set(r['reason_codes'])=={'INTERNAL_PART_DISCONNECTED','INTERPART_GRAPH_DISCONNECTED'}
+    assert r['internal_connected'] is False and r['overall_pass'] is False
+    assert r['graph_component_count']==3
+    assert r['reason_codes']==['GEOMETRIC_GRAPH_DISCONNECTED']
 
 
 @FCL
@@ -67,7 +81,7 @@ def test_chain_connected_not_clique_and_ground_is_not_a_node():
     assert r['overall_pass']
     assert len([x for x in r['details']['pairs'] if x['edge']])==2
     r=connectivity([parts[0],part('distant',box((20,0,0)))])
-    assert r['interpart_connected'] is False
+    assert r['overall_pass'] is False and r['graph_component_count']==2
 
 
 @FCL
@@ -85,15 +99,64 @@ def test_delta_below_equal_above_uses_backend_distance_no_extra_tolerance():
 def test_overlap_containment_contact_and_cavity_are_full_material_queries():
     from adsl.core.assembly_topology import mesh_solid, solid_mesh
     for center in [(0,0,0),(.2,0,0),(1,0,0)]:
-        assert connectivity([part('a',box()),part('b',box(center))])['overall_pass']
+        contact=connectivity([part('a',box()),part('b',box(center))])
+        assert contact['overall_pass'] and contact['part_count']==2
+        assert contact['material_component_count']==1
+        assert contact['details']['nodes'][0]['part_ids']==['a','b']
     r=connectivity([part('a',box(size=(3,3,3))),part('inside',box())])
-    assert r['details']['pairs'][0]['method']=='MANIFOLD_POSITIVE_INTERSECTION'
+    assert r['material_component_count']==1 and r['part_count']==2
+    assert r['details']['nodes'][0]['part_ids']==['a','inside']
+    assert r['details']['nodes'][0]['volume_mm3']==pytest.approx(27.)
+    # The underlying distance query must still recognize containment rather
+    # than measuring the positive separation between the boundary surfaces.
+    pair=g._distance(mesh_solid(box(size=(3,3,3))),mesh_solid(box()),delta=.01)
+    assert pair['method']=='MANIFOLD_POSITIVE_INTERSECTION' and pair['distance_mm']==0
     hollow=solid_mesh(mesh_solid(box(size=(4,4,4)))-mesh_solid(box(size=(3,3,3))))
     assert connectivity([part('hollow',hollow)])['part_components'][0]['component_count']==1
     r=connectivity([part('hollow',hollow),part('inside_cavity',box())],floor=2.)
     pair=r['details']['pairs'][0]
     assert pair['intersection_mm3']==0 and pair['distance_mm']==pytest.approx(1.)
     assert connectivity([part('union',box(),box((.5,0,0)))])['internal_connected']
+
+
+@FCL
+def test_same_part_cavity_island_preserves_void_and_material_count():
+    from adsl.core.assembly_topology import mesh_solid, solid_mesh
+    hollow=solid_mesh(mesh_solid(box(size=(4,4,4)))-mesh_solid(box(size=(3,3,3))))
+    whole=part('whole',hollow,box())
+    r=connectivity([whole])
+    assert r['status']=='PASS' and r['overall_pass'] is False
+    assert r['part_count']==1 and r['material_component_count']==2
+    assert r['graph_component_count']==2
+    pair=connectivity([whole],floor=2.)['details']['pairs'][0]
+    assert pair['intersection_mm3']==0 and pair['distance_mm']==pytest.approx(1.)
+    assert pair['method']=='FCL_TRIANGLE_DISTANCE'
+    assert sorted(n['volume_mm3'] for n in r['details']['nodes'])==pytest.approx([1.,37.])
+    assert connectivity([whole],floor=1.,ratio=0.)['overall_pass'] is True
+    assert [n['component_id'] for n in r['details']['nodes']]==[
+        n['component_id'] for n in connectivity([whole])['details']['nodes']]
+
+
+@FCL
+def test_nested_cavities_belong_to_their_own_material_islands():
+    from adsl.core.assembly_topology import mesh_solid, solid_mesh
+    outer=mesh_solid(box(size=(10,10,10)))-mesh_solid(box(size=(8,8,8)))
+    inner=mesh_solid(box(size=(6,6,6)))-mesh_solid(box(size=(4,4,4)))
+    r=connectivity([part('whole',solid_mesh(outer+inner))],floor=2.)
+    assert r['status']=='PASS' and r['material_component_count']==2
+    assert sorted(n['volume_mm3'] for n in r['details']['nodes'])==pytest.approx([152.,488.])
+    pair=r['details']['pairs'][0]
+    assert pair['intersection_mm3']==0 and pair['distance_mm']==pytest.approx(1.)
+    assert r['overall_pass'] is True
+
+
+def test_multiple_cavities_remain_one_material_component():
+    from adsl.core.assembly_topology import mesh_solid, solid_mesh
+    solid=(mesh_solid(box(size=(10,10,10)))-mesh_solid(box((-3,0,0),size=(2,2,2)))
+           -mesh_solid(box((3,0,0),size=(2,2,2))))
+    r=connectivity([part('whole',solid_mesh(solid))])
+    assert r['overall_pass'] is True and r['material_component_count']==1
+    assert r['details']['nodes'][0]['volume_mm3']==pytest.approx(984.)
 
 
 @FCL
@@ -114,15 +177,18 @@ def test_missing_or_broken_fcl_is_unavailable_not_sampling_fallback(monkeypatch)
     monkeypatch.setattr(trimesh.collision,'CollisionManager',fail)
     r=connectivity([part('a',box()),part('b',box((1.001,0,0)))])
     assert r['status']=='UNAVAILABLE' and r['overall_pass'] is None
-    assert r['internal_connected'] is True and r['interpart_connected'] is None
+    assert r['internal_connected'] is True and r['graph_component_count'] is None
+    assert r['material_component_count']==2
     assert 'DISTANCE_UNAVAILABLE' in r['reason_codes']
 
 
-def test_open_material_is_unavailable_and_observed_internal_failure_remains():
+def test_open_material_is_unavailable_and_internal_diagnostic_is_not_failure_reason():
     broken=box();broken.update_faces(np.arange(len(broken.faces)-1))
     r=connectivity([part('split',box(),box((3,0,0))),part('open',broken)])
     assert r['status']=='UNAVAILABLE' and r['overall_pass'] is None
-    assert r['internal_connected'] is False and 'INTERNAL_PART_DISCONNECTED' in r['reason_codes']
+    assert r['internal_connected'] is False
+    assert r['material_component_count'] is None and r['graph_component_count'] is None
+    assert r['reason_codes']==['PART_MATERIAL_UNAVAILABLE']
 
 
 def fixed_input(tmp_path):
@@ -165,6 +231,28 @@ def test_scene_adapter_includes_all_nodes_applies_units_once(tmp_path):
     assert g.load_evaluation_parts(changed)['asset_sha256']!=r['asset_sha256']
     changed['geometry_input']['length_unit_to_mm']=0
     assert g.load_evaluation_parts(changed)['status']=='UNAVAILABLE'
+
+
+@FCL
+def test_multinode_glb_and_equivalent_merged_mesh_have_same_material_graph(tmp_path):
+    scene=trimesh.Scene()
+    for name,x in [('a',0.),('b',1.001)]:
+        transform=np.eye(4);transform[0,3]=x
+        scene.add_geometry(box(),node_name=name,transform=transform)
+    split=tmp_path/'nodes.glb';scene.export(split)
+    merged=tmp_path/'merged.glb'
+    trimesh.Scene(trimesh.util.concatenate([box(),box((1.001,0,0))])).export(merged)
+    rows=[]
+    for path in (split,merged):
+        record=dict(geometry_input=dict(kind='single_print_mesh',mesh_path=str(path),
+            mesh_sha256=g.file_hash(path),length_unit_to_mm=1.,file_to_assembly_mm=np.eye(4).tolist()))
+        loaded=g.load_evaluation_parts(record);assert loaded['status']=='PASS'
+        rows.append(connectivity(loaded['parts']))
+    assert all(r['status']=='PASS' and r['overall_pass'] for r in rows)
+    assert [r['part_count'] for r in rows]==[1,1]
+    assert [r['material_component_count'] for r in rows]==[2,2]
+    assert [r['graph_component_count'] for r in rows]==[1,1]
+    assert rows[0]['delta_mm']==pytest.approx(rows[1]['delta_mm'],abs=1e-8)
 
 
 def test_support24_prefers_s_over_fake_g_ties_and_records_failed_pose(monkeypatch):

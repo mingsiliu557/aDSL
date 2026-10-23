@@ -222,9 +222,13 @@ def test_pending_generation_is_not_evaluated_or_counted_failed(tmp_path,monkeypa
     evaluation.write_json(tmp_path/'jobs/pending/official/job.json',job)
     monkeypatch.setattr(evaluation,'physical_checks',lambda *a:pytest.fail('pending task measured'))
     monkeypatch.setattr(evaluation,'render_final',lambda *a:pytest.fail('pending task rendered'))
+    monkeypatch.setattr(evaluation.geometry_metrics,'load_evaluation_parts',
+                        lambda *a:pytest.fail('pending task loaded for connectivity'))
     result=evaluation.evaluate(tmp_path,'pending','official')
     assert result['standing_evaluation']['evaluation_outcome']=='PENDING'
     assert result['main_table_metrics']['N'] is None
+    assert result['dataset_eligibility']['status']=='PENDING'
+    assert result['dataset_eligibility']['eligible'] is False
 
 
 def test_terminal_generation_failure_counts_without_observed_tipping(tmp_path):
@@ -234,6 +238,9 @@ def test_terminal_generation_failure_counts_without_observed_tipping(tmp_path):
     assert row['evaluation_outcome']=='FAIL' and 'GENERATION_FAILED' in row['reason_codes']
     assert row['observation'] is None
     assert result['main_table_metrics']['nsv'] is None
+    assert result['dataset_eligibility']['status']=='EXCLUDED'
+    assert result['dataset_eligibility']['eligible'] is False
+    assert result['connectivity']['reason_codes']==['GENERATION_FAILED']
 
 
 def test_standing_pass_is_independent_in_evaluation_record():
@@ -368,3 +375,155 @@ def test_area_and_gap_optima_are_independent_with_stub_parts(tmp_path,monkeypatc
     assert out['min_overhang_area_mm2']==(None if missing else 4)
     assert out['G']==(None if missing else 14)
     assert out['support']['nsv_total']==(None if missing else pytest.approx(1/3))
+
+
+def _stub_final_connectivity_flow(tmp_path, monkeypatch, arm, *, error_stage=None,
+                                  measurable=True, binding_conflict=False):
+    """Drive the actual final evaluator without models, simulation or geometry."""
+    from copy import deepcopy
+    from test_physical_metrics import record
+    case_id = 'final_asset'
+    _, job = prepare_job(tmp_path, case_id, arm, failed=False)
+    directory = tmp_path / 'jobs' / case_id / arm
+    source, glb = directory / 'source.py', directory / 'selected.glb'
+    source.write_text('# frozen final source; never execute\n')
+    glb.write_bytes(b'frozen native output; never render')
+    original = directory / 'original_manifest.json'
+    evaluation.write_json(original, dict(parts=[dict(id='body')]))
+    job.update(source=str(source), selected_glb=str(glb), selected_manifest=str(original), approved=True)
+    evaluation.write_json(directory / 'job.json', job)
+    before = (directory / 'job.json').read_bytes()
+    calls = []
+    def manifest(*args):
+        if error_stage == 'manifest':
+            raise ValueError('manifest cannot be adapted')
+        folder = Path(args[-1])
+        folder.mkdir(parents=True, exist_ok=True)
+        path = folder / 'assembly_manifest.json'
+        stl = folder / 'body.stl'
+        stl.write_bytes(b'hash-bound fixture mesh; loader is stubbed')
+        evaluation.write_json(path, dict(parts=[dict(id='body', stl=stl.name)],
+            source_sha256=evaluation.sha256(source), files_sha256={stl.name:evaluation.sha256(stl)}))
+        return path
+    monkeypatch.setattr(evaluation, 'official_manifest', manifest)
+    monkeypatch.setattr(evaluation, 'ours_manifest', manifest)
+    monkeypatch.setattr(evaluation, 'render_final', lambda *a:
+        dict(status='PASS', native_views=['frozen.png']*8, neutral_views=[]))
+    physics = dict(assembly_topology=dict(status='FAIL', metrics=dict(items=[])),
+                   assembly_standing=record()['checker'])
+    def check(*args):
+        if error_stage == 'physics':
+            raise ValueError('existing physical check unavailable')
+        return deepcopy(physics), {}
+    monkeypatch.setattr(evaluation, 'physical_checks', check)
+    def printing(*args):
+        if error_stage == 'printing':
+            raise ValueError('existing printing measure unavailable')
+        return dict(status='PASS', N=1, parts=[dict(part_id='body', material_volume_mm3=1.)])
+    monkeypatch.setattr(evaluation, 'print_measurements', printing)
+    monkeypatch.setattr(evaluation, 'native_dapper', lambda *a: dict(status='NA'))
+    loaded_parts = [dict(part_id='body')]
+    def load(record):
+        calls.append(('load', record))
+        data = record['geometry_input']
+        assert data['kind']=='fixed_assembly' and data['source_path']==str(source)
+        assert data['manifest_sha256']==evaluation.sha256(data['manifest_path'])
+        return dict(status='PASS', asset_sha256='a'*64, parts=loaded_parts)
+    monkeypatch.setattr(evaluation.geometry_metrics, 'load_evaluation_parts', load)
+    def measure(parts, **kwargs):
+        assert parts is loaded_parts
+        calls.append(('measure', kwargs))
+        return dict(protocol_id=evaluation.geometry_metrics.CONNECTIVITY_PROTOCOL,
+            status='PASS' if measurable else 'UNAVAILABLE', overall_pass=False if measurable else None,
+            part_count=1, material_component_count=2 if measurable else None,
+            graph_component_count=2 if measurable else None, internal_connected=False,
+            asset_sha256=('b' if binding_conflict else 'a')*64,
+            measurement_config_sha256='c'*64, evidence_ref=None,
+            reason_codes=['GEOMETRIC_GRAPH_DISCONNECTED' if measurable else 'GLOBAL_MATERIAL_UNAVAILABLE'],
+            details=dict(measured=measurable), measurement_config=dict(protocol='stub'))
+    monkeypatch.setattr(evaluation.geometry_metrics, 'measure_connectivity', measure)
+    return case_id, directory, calls, physics, before
+
+
+@pytest.mark.parametrize('arm', ['official', 'ours'])
+def test_final_evaluator_uses_same_connectivity_and_keeps_measured_failures(tmp_path, monkeypatch, arm):
+    cid, folder, calls, physics, before = _stub_final_connectivity_flow(tmp_path, monkeypatch, arm)
+    result = evaluation.evaluate(tmp_path, cid, arm)
+    assert [c[0] for c in calls]==['load','measure']
+    assert calls[1][1]==dict(delta_ratio=.005, delta_floor_mm=0.)
+    assert result['connectivity']['status']=='PASS' and result['connectivity']['overall_pass'] is False
+    assert result['dataset_eligibility']['status']=='ELIGIBLE'
+    assert result['dataset_eligibility']['eligible'] is True
+    assert result['status']=='FAIL' and result['topology']==physics['assembly_topology']
+    assert result['standing']==physics['assembly_standing']
+    assert result['standing_evaluation']['evaluation_outcome']=='PASS'
+    assert result['physical_evaluation_record']['asset_sha256']==evaluation.sha256(folder/'selected.glb')
+    assert result['connectivity_asset_sha256']=='a'*64
+    assert result['admission_record']['asset_sha256']=='a'*64
+    ref = result['connectivity']['evidence_ref']
+    evidence = folder/'evaluation'/ref['path']
+    assert ref['file_sha256']==evaluation.sha256(evidence)
+    assert evaluation.read_json(evidence)['asset_sha256']==ref['asset_sha256']=='a'*64
+    assert (folder/'job.json').read_bytes()==before
+
+
+@pytest.mark.parametrize('stage', ['physics', 'printing'])
+def test_final_connectivity_still_runs_after_other_measurement_error(tmp_path, monkeypatch, stage):
+    cid, _, calls, _, _ = _stub_final_connectivity_flow(tmp_path, monkeypatch, 'ours', error_stage=stage)
+    result = evaluation.evaluate(tmp_path, cid, 'ours')
+    assert result['failure_stage']=='geometry_or_physics'
+    assert [c[0] for c in calls]==['load','measure']
+    assert result['dataset_eligibility']['eligible'] is True
+
+
+@pytest.mark.parametrize('missing_manifest', [False, True])
+def test_final_connectivity_unavailable_does_not_enter_dataset(tmp_path, monkeypatch, missing_manifest):
+    cid, _, calls, _, _ = _stub_final_connectivity_flow(tmp_path, monkeypatch, 'ours',
+        error_stage='manifest' if missing_manifest else None, measurable=False)
+    result = evaluation.evaluate(tmp_path, cid, 'ours')
+    assert result['connectivity']['status']=='UNAVAILABLE'
+    assert result['connectivity']['overall_pass'] is None
+    assert result['dataset_eligibility']['status']=='EXCLUDED'
+    assert result['dataset_eligibility']['eligible'] is False
+    assert len(calls)==(0 if missing_manifest else 2)
+
+
+def test_final_connectivity_binding_conflict_is_not_admitted(tmp_path, monkeypatch):
+    cid, _, _, _, _ = _stub_final_connectivity_flow(tmp_path, monkeypatch, 'ours', binding_conflict=True)
+    with pytest.raises(ValueError, match='connectivity asset/protocol/print-part count mismatch'):
+        evaluation.evaluate(tmp_path, cid, 'ours')
+
+
+@pytest.mark.parametrize('changed,match', [
+    ('manifest', 'final connectivity manifest hash mismatch'),
+    ('source', 'final connectivity source hash mismatch'),
+    ('stl', 'print mesh hash missing/mismatched'),
+])
+def test_final_connectivity_loading_hash_conflict_is_a_hard_error(tmp_path, monkeypatch, changed, match):
+    cid, folder, calls, _, _ = _stub_final_connectivity_flow(tmp_path, monkeypatch, 'ours')
+    original_check = evaluation.physical_checks
+    def change_bound_file(manifest, source, *args):
+        checked = original_check(manifest, source, *args)
+        target = {'manifest':Path(manifest), 'source':Path(source),
+                  'stl':Path(manifest).parent/'body.stl'}[changed]
+        target.write_bytes(target.read_bytes()+b'\n')
+        return checked
+    monkeypatch.setattr(evaluation, 'physical_checks', change_bound_file)
+    with pytest.raises(ValueError, match=match):
+        evaluation.evaluate(tmp_path, cid, 'ours')
+    assert calls==[]  # No softened loader result and no geometry query.
+    saved = evaluation.read_json(folder/'evaluation/result.json')
+    assert 'dataset_eligibility' not in saved
+
+
+def test_final_connectivity_bound_but_invalid_geometry_remains_unavailable(tmp_path, monkeypatch):
+    cid, _, _, _, _ = _stub_final_connectivity_flow(tmp_path, monkeypatch, 'ours')
+    monkeypatch.setattr(evaluation.geometry_metrics, 'load_evaluation_parts', lambda *a:
+        dict(status='UNAVAILABLE', reason_codes=['GEOMETRY_INPUT_UNAVAILABLE'],
+             reason='invalid coordinate transform', asset_sha256=None, parts=[]))
+    monkeypatch.setattr(evaluation.geometry_metrics, 'measure_connectivity',
+        lambda *a, **k:pytest.fail('unavailable loaded geometry measured'))
+    result = evaluation.evaluate(tmp_path, cid, 'ours')
+    assert result['connectivity']['status']=='UNAVAILABLE'
+    assert result['dataset_eligibility']['status']=='EXCLUDED'
+    assert result['dataset_eligibility']['eligible'] is False

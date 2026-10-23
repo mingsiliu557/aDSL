@@ -166,19 +166,24 @@ def _measurement(record, key, expected_protocol):
 
 
 def _connectivity_record(record):
-    value = _measurement(record, 'connectivity', 'print_plan_structural_connectivity_v1')
+    value = _measurement(record, 'connectivity', 'geometric_facing_contact_connectivity_v1')
     applicable = record.get('connectivity_applicable', True)
     if type(applicable) is not bool:
         raise ValueError('frozen connectivity applicability must be boolean')
     out = dict(case_id=record['case_id'], applicable=applicable, evaluation_outcome=None,
-        reason_codes=[], internal_connected=None, interpart_connected=None, status='UNAVAILABLE')
+        reason_codes=[], internal_connected=None, material_component_count=None,
+        graph_component_count=None, status='UNAVAILABLE')
     if value:
-        out.update({k:deepcopy(value.get(k)) for k in ('status','internal_connected','interpart_connected','reason_codes')})
+        out.update({k:deepcopy(value.get(k)) for k in ('status','internal_connected',
+            'material_component_count','graph_component_count','reason_codes')})
         if value['status'] == 'PASS':
-            a, b, overall = (value.get(k) for k in ('internal_connected','interpart_connected','overall_pass'))
-            if any(type(x) is not bool for x in (a,b,overall)) or overall != (a and b):
+            total, groups, overall = (value.get(k) for k in (
+                'material_component_count','graph_component_count','overall_pass'))
+            if (type(total) is not int or total <= 0 or type(groups) is not int
+                    or not 1 <= groups <= total or type(overall) is not bool
+                    or overall != (groups == 1)):
                 raise ValueError('inconsistent connectivity success evidence')
-            reasons = ([] if a else ['INTERNAL_PART_DISCONNECTED']) + ([] if b else ['INTERPART_GRAPH_DISCONNECTED'])
+            reasons = [] if overall else ['GEOMETRIC_GRAPH_DISCONNECTED']
             if set(value.get('reason_codes', [])) != set(reasons):
                 raise ValueError('inconsistent connectivity reason codes')
         elif value.get('overall_pass') is not None:
@@ -223,6 +228,93 @@ def physical_table_row(record, *, protocol_id):
             N=None if count else 'PART_COUNT_UNAVAILABLE'))
 
 
+def _summarize_connectivity_rows(rows):
+    """Aggregate bound connectivity rows without reclassifying other metrics."""
+    rows = list(rows)
+    active = [r for r in rows if r['applicable']]
+    terminal = [r for r in active if r['evaluation_outcome']!='PENDING']
+    pending = len(active)-len(terminal)
+    success = sum(r['evaluation_outcome']=='PASS' for r in terminal)
+    return dict(planned_total=len(active), success_count=success,
+        terminal_failure_count=len(terminal)-success, pending_count=pending,
+        success_rate=success/len(active) if active and not pending else None,
+        graph_disconnected_count=sum(r['status']=='PASS' and
+            'GEOMETRIC_GRAPH_DISCONNECTED' in r['reason_codes'] for r in terminal),
+        # Diagnostic only: nearby materials in one declared print part may
+        # still belong to one connected facing-contact graph under this protocol.
+        internal_multicomponent_case_count=sum(r['internal_connected'] is False for r in terminal),
+        unavailable_count=sum(r['status']=='UNAVAILABLE' for r in terminal), cases=rows)
+
+
+def connectivity_dataset_eligibility(record):
+    """Dataset membership only; measured failures remain eligible.
+
+    This does not alter generation approval or any checker result. The producer
+    verifies the files; this pure boundary checks the recorded identity/contract.
+    """
+    if not record.get('case_id') or record.get('state') not in {'PENDING','RUNNING','TERMINAL'}:
+        raise ValueError('dataset eligibility requires case_id and explicit state')
+    out = dict(case_id=record['case_id'], status='EXCLUDED', eligible=False,
+        reason_codes=[], asset_sha256=record.get('asset_sha256'),
+        protocol_id='geometric_facing_contact_connectivity_v1', measurement_config_sha256=None)
+    if record['state'] != 'TERMINAL':
+        out.update(status='PENDING', reason_codes=['NOT_FINISHED'])
+        return out
+    value = _measurement(record, 'connectivity', out['protocol_id'])
+    if value is None:
+        out['reason_codes'] = ['CONNECTIVITY_NOT_MEASURED']
+        return out
+    out['measurement_config_sha256'] = value.get('measurement_config_sha256')
+    _connectivity_record(record)  # Keep the existing graph/identity checks.
+    if value['status'] != 'PASS':
+        out['reason_codes'] = deepcopy(value.get('reason_codes') or ['CONNECTIVITY_UNAVAILABLE'])
+        return out
+    count = record.get('part_count')
+    if type(count) is not int or count <= 0 or type(value.get('part_count')) is not int or value['part_count'] != count:
+        raise ValueError('dataset connectivity print-part count mismatch')
+    ref = value.get('evidence_ref')
+    if (not isinstance(ref,dict) or not isinstance(ref.get('path'),str) or not ref['path']
+            or not isinstance(ref.get('json_pointer'),str)
+            or not isinstance(ref.get('file_sha256'),str) or not ref['file_sha256']):
+        out['reason_codes'] = ['CONNECTIVITY_EVIDENCE_UNAVAILABLE']
+        return out
+    if ref.get('asset_sha256') != record['asset_sha256']:
+        raise ValueError('dataset connectivity evidence asset binding mismatch')
+    out.update(status='ELIGIBLE', eligible=True)
+    return out
+
+
+def select_measurable_pairs(method_records):
+    """Use one case list for every method, never a success-only selection."""
+    if not method_records:
+        raise ValueError('dataset selection requires comparison methods')
+    decisions, expected_ids, configs = {}, None, set()
+    for method, records in method_records.items():
+        rows = list(records)
+        ids = [r['case_id'] for r in rows]
+        if len(ids) != len(set(ids)) or (expected_ids is not None and ids != expected_ids):
+            raise ValueError('dataset methods must share the ordered case list')
+        expected_ids = ids
+        decisions[method] = [connectivity_dataset_eligibility(r) for r in rows]
+        configs.update(r['measurement_config_sha256'] for r in decisions[method]
+                       if r['measurement_config_sha256'])
+    if len(configs) > 1:
+        raise ValueError('dataset connectivity measurement configuration mismatch')
+    included, excluded, pending = [], [], []
+    for index, case_id in enumerate(expected_ids):
+        per_method = {method:rows[index] for method,rows in decisions.items()}
+        if all(row['eligible'] for row in per_method.values()):
+            included.append(case_id)
+        else:
+            item = dict(case_id=case_id, methods=deepcopy(per_method))
+            # An unfinished counterpart is pending, not an observed failure.
+            (pending if any(r['status']=='PENDING' for r in per_method.values()) else excluded).append(item)
+    return dict(policy_id='paired_connectivity_measurability_v1',
+        status='PENDING' if pending else 'COMPLETE',
+        included_case_ids=included, excluded_cases=excluded, pending_cases=pending,
+        method_eligibility=decisions)
+
+
 def summarize_physical_methods(method_records, *, protocol_id):
     """Fixed success denominators, and one common NSV24/N measurement subset."""
     indexed, details, expected = {}, {}, None
@@ -247,17 +339,7 @@ def summarize_physical_methods(method_records, *, protocol_id):
     for method, records in indexed.items():
         standing = summarize_standing(records.values(),protocol_id=protocol_id)
         connectivity_rows = [row['connectivity'] for row in details[method].values()]
-        active = [r for r in connectivity_rows if r['applicable']]
-        terminal = [r for r in active if r['evaluation_outcome']!='PENDING']
-        pending = len(active)-len(terminal)
-        success = sum(r['evaluation_outcome']=='PASS' for r in terminal)
-        connectivity = dict(planned_total=len(active), success_count=success,
-            terminal_failure_count=len(terminal)-success, pending_count=pending,
-            success_rate=success/len(active) if active and not pending else None,
-            internal_disconnected_count=sum(r['internal_connected'] is False for r in terminal),
-            interpart_disconnected_count=sum(r['interpart_connected'] is False for r in terminal),
-            both_failure_count=sum(r['internal_connected'] is False and r['interpart_connected'] is False for r in terminal),
-            unavailable_count=sum(r['status']=='UNAVAILABLE' for r in terminal), cases=connectivity_rows)
+        connectivity = _summarize_connectivity_rows(connectivity_rows)
         means = {key:sum(details[method][cid][key] for cid in common)/len(common) if common else None for key in ('nsv','N')}
         table.append(dict(method=method, standing_success_rate=standing['success_rate'],
             structural_connectivity_rate=connectivity['success_rate'], **means))

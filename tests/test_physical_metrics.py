@@ -98,11 +98,12 @@ def test_raw_ivr_uses_all_raw_pairs_and_no_interference_allowance():
     assert bounded['raw_intersection_mm3']==-1e-17
 
 
-def measured(case_id='one', *, count=1, internal=True, interpart=True):
+def measured(case_id='one', *, count=1, internal=True, materials=None, groups=1):
     r=record(case_id);r['part_count']=count
-    reasons=([] if internal else ['INTERNAL_PART_DISCONNECTED'])+([] if interpart else ['INTERPART_GRAPH_DISCONNECTED'])
-    r['connectivity']=dict(protocol_id='print_plan_structural_connectivity_v1',status='PASS',
-        overall_pass=internal and interpart,internal_connected=internal,interpart_connected=interpart,
+    reasons=[] if groups==1 else ['GEOMETRIC_GRAPH_DISCONNECTED']
+    r['connectivity']=dict(protocol_id='geometric_facing_contact_connectivity_v1',status='PASS',
+        overall_pass=groups==1,internal_connected=internal,
+        material_component_count=count if materials is None else materials,graph_component_count=groups,
         part_count=count,reason_codes=reasons,asset_sha256='asset',measurement_config_sha256='connectivity-config')
     r['support_evaluation']=dict(protocol_id='support_volume_min24_v1',status='PASS',
         total_support_volume_mm3=3.,total_volume_mm3=30.,nsv_total=.1,part_count=count,
@@ -157,21 +158,23 @@ def test_single_baseline_multi_ours_ivr_na_does_not_affect_main_table():
     assert [a,b]==before
 
 
-def test_joint_failure_counts_overlap_unavailable_and_standing_na():
-    a=measured('both',internal=False,interpart=False);a['applicable']=False
-    b=measured('internal',internal=False)
+def test_graph_failure_and_internal_multicomponent_diagnostics_are_separate():
+    a=measured('disconnected',internal=False,materials=2,groups=2);a['applicable']=False
+    b=measured('nearby_materials',internal=False,materials=2)
     c=measured('unknown');c['connectivity'].update(status='UNAVAILABLE',overall_pass=None,
-        internal_connected=None,interpart_connected=None,reason_codes=['DISTANCE_UNAVAILABLE'])
+        internal_connected=None,graph_component_count=None,reason_codes=['DISTANCE_UNAVAILABLE'])
     d=measured('good')
     out=summarize_physical_methods({'ours':[a,b,c,d]},protocol_id=PROTOCOL)
     con=out['samples']['ours']['connectivity']
-    assert con['planned_total']==4 and con['success_rate']==.25
-    assert con['internal_disconnected_count']==2 and con['interpart_disconnected_count']==1
-    assert con['both_failure_count']==1 and con['unavailable_count']==1
-    assert con['terminal_failure_count']==3
+    assert con['planned_total']==4 and con['success_rate']==.5
+    assert con['graph_disconnected_count']==1 and con['internal_multicomponent_case_count']==2
+    assert con['unavailable_count']==1 and con['terminal_failure_count']==2
     assert out['samples']['ours']['standing']['planned_total']==3
+    assert con['cases'][1]['evaluation_outcome']=='PASS'
+    assert con['cases'][1]['reason_codes']==[]
     assert con['cases'][3]['reason_codes']==[]
-    assert con['cases'][3]['internal_connected'] is con['cases'][3]['interpart_connected'] is True
+    assert con['cases'][3]['graph_component_count']==1
+    assert con['cases'][3]['internal_connected'] is True
 
 
 def test_pending_invalidates_rate_and_ns_samples_even_if_stale_measurements_present():
@@ -192,9 +195,46 @@ def test_online_failures_do_not_remove_measured_geometry():
 
 
 def test_invalid_success_reason_or_count_is_rejected():
-    r=measured();r['connectivity']['reason_codes']=['INTERNAL_PART_DISCONNECTED']
+    r=measured();r['connectivity']['reason_codes']=['GEOMETRIC_GRAPH_DISCONNECTED']
     with pytest.raises(ValueError,match='reason'):
         physical_table_row(r,protocol_id=PROTOCOL)
     r=measured();r['support_evaluation']['part_count']=2
     with pytest.raises(ValueError,match='count'):
         physical_table_row(r,protocol_id=PROTOCOL)
+
+
+@pytest.mark.parametrize('field,value', [
+    ('material_component_count',0), ('material_component_count',True),
+    ('material_component_count',1.5), ('material_component_count',None),
+    ('graph_component_count',0), ('graph_component_count',True),
+    ('graph_component_count',2), ('graph_component_count',None),
+    ('overall_pass',False),
+])
+def test_invalid_graph_success_evidence_is_rejected(field,value):
+    r=measured();r['connectivity'][field]=value
+    with pytest.raises(ValueError,match='success evidence'):
+        physical_table_row(r,protocol_id=PROTOCOL)
+
+
+def test_material_count_does_not_replace_print_part_count_or_nsv_sample():
+    whole=measured(internal=False,materials=2)
+    split=measured(count=2,materials=2)
+    before=deepcopy([whole,split])
+    out=summarize_physical_methods({'whole':[whole],'split':[split]},protocol_id=PROTOCOL)
+    assert [r['N'] for r in out['table']]==[1,2]
+    assert all(r['structural_connectivity_rate']==1 for r in out['table'])
+    assert out['common_measurable_case_ids']=={'nsv':['one'],'N':['one']}
+    assert all(r['standing_success_rate']==1 and r['nsv']==.1 for r in out['table'])
+    assert [whole,split]==before
+    whole['connectivity']['part_count']=2
+    with pytest.raises(ValueError,match='print-part count mismatch'):
+        physical_table_row(whole,protocol_id=PROTOCOL)
+
+
+@pytest.mark.parametrize('old_protocol',[
+    'print_plan_structural_connectivity_v1','geometric_proximity_connectivity_v1'])
+def test_old_connectivity_protocol_cannot_be_relabelled_by_summary(old_protocol):
+    r=measured()
+    r['connectivity']['protocol_id']=old_protocol
+    with pytest.raises(ValueError,match='protocol mismatch'):
+        summarize_physical_methods({'old':[r]},protocol_id=PROTOCOL)

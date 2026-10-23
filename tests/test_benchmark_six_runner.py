@@ -701,12 +701,30 @@ def test_serial_twelve_jobs_and_completed_resume_make_no_new_generation(tmp_path
     assert len(generations) == 12
 
 
-def test_evaluation_timeout_retains_partial_numbers_and_case_denominator(tmp_path, monkeypatch):
+@pytest.mark.parametrize('completed_connectivity', [False, True])
+def test_evaluation_timeout_retains_partial_numbers_and_case_denominator(tmp_path, monkeypatch, completed_connectivity):
+    from benchmark.metrics import geometry
     folder = tmp_path / 'jobs' / run.CASE_ORDER[0] / 'ours'
     folder.mkdir(parents=True)
     result = folder / 'evaluation/result.json'
-    run.write_json(result, {'status': 'INDETERMINATE', 'included_in_denominator': True,
-        'denominators':{'standing':True}, 'metrics': {'N': 4, 'G': None}})
+    original = {'status': 'INDETERMINATE', 'included_in_denominator': True,
+        'denominators':{'standing':True}, 'metrics': {'N': 4, 'G': None}}
+    if completed_connectivity:
+        connection = dict(protocol_id=geometry.CONNECTIVITY_PROTOCOL,
+            status='PASS', overall_pass=True, part_count=4,
+            material_component_count=2, graph_component_count=1,
+            asset_sha256='a'*64, measurement_config_sha256='c'*64,
+            reason_codes=[])
+        evidence = folder / 'evaluation' / 'connectivity_details.json'
+        run.write_json(evidence, connection)
+        connection['evidence_ref'] = dict(path=evidence.name, json_pointer='',
+            file_sha256=run.sha256(evidence), asset_sha256='a'*64)
+        original.update(connectivity=connection, connectivity_asset_sha256='a'*64)
+    run.write_json(result, original)
+    monkeypatch.setattr(geometry, 'load_evaluation_parts',
+        lambda *a, **k:pytest.fail('timeout must not load geometry again'))
+    monkeypatch.setattr(geometry, 'measure_connectivity',
+        lambda *a, **k:pytest.fail('timeout must not repeat connectivity'))
     class TimedOut:
         pid = 12345
         def __init__(self, *args, **kwargs):
@@ -728,6 +746,13 @@ def test_evaluation_timeout_retains_partial_numbers_and_case_denominator(tmp_pat
     assert saved['standing_evaluation']['evaluation_outcome'] == 'FAIL'
     assert 'TIMEOUT' in saved['standing_evaluation']['reason_codes']
     assert saved['standing_evaluation']['observation'] is None
+    assert saved['dataset_eligibility']['eligible'] is completed_connectivity
+    if completed_connectivity:
+        assert saved['connectivity']==original['connectivity']
+        assert saved['dataset_eligibility']['status']=='ELIGIBLE'
+    else:
+        assert saved['dataset_eligibility']['status']=='EXCLUDED'
+        assert saved['connectivity']['reason_codes']==['CONNECTIVITY_EVALUATION_TIMEOUT']
     assert killed == [(12345, run.signal.SIGTERM)]
 
 

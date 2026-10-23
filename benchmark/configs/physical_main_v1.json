@@ -1,9 +1,12 @@
 {
   "standing_protocol": "independent_contact_warning_v1",
   "connectivity": {
-    "protocol_id": "print_plan_structural_connectivity_v1",
+    "protocol_id": "geometric_facing_contact_connectivity_v1",
     "delta_ratio": 0.005,
-    "delta_floor_mm": 0.0
+    "delta_floor_mm": 0.0,
+    "min_facing_area_ratio": 1.5e-5,
+    "facing_normal_dot_max": 0.0,
+    "facing_area_reduction": "min"
   },
   "support": {
     "protocol_id": "support_volume_min24_v1",

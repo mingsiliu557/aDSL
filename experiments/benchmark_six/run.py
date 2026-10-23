@@ -767,6 +767,12 @@ def evaluate_child(root, case_id, arm, arms, common):
         saved['denominators'] = dict(standing=bool(case.get('standing_applicable', True))
             and case_id not in ('dragon_007','Toys4K_dragon_007'))
     evaluator.attach_physical_evaluation(saved, state='TERMINAL')
+    if saved.get('connectivity') is not None:
+        # A completed final measurement remains usable even if a later step
+        # timed out; this only classifies the saved evidence, never reruns it.
+        evaluator.attach_connectivity_admission(saved, state='TERMINAL')
+    else:
+        evaluator.attach_connectivity_evaluation(saved, output=folder / 'evaluation', state='TERMINAL')
     write_json(path, saved)
     write_json(folder / 'evaluation/image_critic_request.json',
                dict(status='INDETERMINATE', rendered_images=[], read_only=True, no_candidate_selection=True))

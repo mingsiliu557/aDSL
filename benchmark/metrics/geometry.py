@@ -11,7 +11,9 @@ from pathlib import Path
 import numpy as np
 import trimesh
 
-CONNECTIVITY_PROTOCOL = 'print_plan_structural_connectivity_v1'
+from .contact_area import CONTACT_AREA_CONFIG, facing_area
+
+CONNECTIVITY_PROTOCOL = 'geometric_facing_contact_connectivity_v1'
 SUPPORT_PROTOCOL = 'support_volume_min24_v1'
 
 
@@ -194,24 +196,69 @@ def assembly_bounds(parts):
     return bounds, float(np.linalg.norm(bounds[1] - bounds[0]))
 
 
-def _distance(a, b, delta):
+def _intersection_measurement(a, b):
+    """Preserve valid volume, resolving negative summation only from its mesh.
+
+    A nonempty Boolean contact boundary can integrate to a tiny negative value
+    in Manifold. Re-sum its closed, consistently oriented float64 boundary using
+    exact rational arithmetic before interpreting that value. This introduces
+    no volume/distance tolerance and does not repair or round the geometry.
+    A genuinely negative signed boundary volume is still unavailable.
+    """
+    from fractions import Fraction
     from adsl.core.assembly_topology import checked, solid_mesh
+    intersection = checked(a ^ b)
+    raw = float(intersection.volume())
+    if not math.isfinite(raw):
+        raise ValueError('invalid material intersection volume')
+    evidence = dict(raw_volume_mm3=raw, volume_mm3=raw, method='MANIFOLD_VOLUME')
+    if intersection.is_empty():
+        if raw != 0:
+            raise ValueError('empty material intersection has nonzero volume')
+        evidence['method'] = 'MANIFOLD_EMPTY'
+        return evidence
+    if raw >= 0:
+        return evidence
+    mesh = solid_mesh(intersection)
+    if (not len(mesh.faces) or not np.isfinite(mesh.vertices).all()
+            or not mesh.is_watertight or not mesh.is_winding_consistent):
+        raise ValueError('negative intersection volume has invalid boundary evidence')
+    points = [[Fraction(float(c)) for c in point] for point in mesh.vertices]
+    origin = points[0]
+    points = [[c-o for c,o in zip(point, origin)] for point in points]
+    total = Fraction(0)
+    for face in mesh.faces:
+        u,v,w = (points[i] for i in face)
+        total += (u[0]*(v[1]*w[2]-v[2]*w[1]) + u[1]*(v[2]*w[0]-v[0]*w[2])
+                  + u[2]*(v[0]*w[1]-v[1]*w[0]))
+    exact = total/6
+    volume = float(exact)
+    if exact < 0 or not math.isfinite(volume) or (exact > 0 and volume == 0):
+        raise ValueError('invalid material intersection volume after exact boundary sum')
+    evidence.update(volume_mm3=volume, method='EXACT_FLOAT64_BOUNDARY_VOLUME',
+        boundary_face_count=len(mesh.faces), exact_volume_sign=0 if exact == 0 else 1)
+    return evidence
+
+
+def _distance(a, b, delta):
+    from adsl.core.assembly_topology import solid_mesh
     boxes = [np.asarray(s.bounding_box()).reshape(2, 3) for s in (a, b)]
     lower = float(np.linalg.norm(np.maximum(0, np.maximum(boxes[0][0]-boxes[1][1], boxes[1][0]-boxes[0][1]))))
     if lower > delta:
         return dict(edge=False, distance_mm=None, aabb_lower_bound_mm=lower, method='AABB_EXCLUDED')
-    overlap = float(checked(a ^ b).volume())
-    if not math.isfinite(overlap) or overlap < 0:
-        raise ValueError('invalid material intersection volume')
+    intersection = _intersection_measurement(a, b)
+    overlap = intersection['volume_mm3']
     if overlap > 0:
-        return dict(edge=True, distance_mm=0., intersection_mm3=overlap, method='MANIFOLD_POSITIVE_INTERSECTION')
+        return dict(edge=True, distance_mm=0., intersection_mm3=overlap,
+            intersection_diagnostic=intersection, method='MANIFOLD_POSITIVE_INTERSECTION')
     manager = trimesh.collision.CollisionManager()
     manager.add_object('first', solid_mesh(a))
     other = solid_mesh(b)
     # FCL reports negative signed distances for collision; confirm collision
     # explicitly rather than blindly clamping a negative/error value to zero.
     if manager.in_collision_single(other):
-        return dict(edge=True, distance_mm=0., intersection_mm3=overlap, method='FCL_SURFACE_COLLISION')
+        return dict(edge=True, distance_mm=0., intersection_mm3=overlap,
+            intersection_diagnostic=intersection, method='FCL_SURFACE_COLLISION')
     distance, data = manager.min_distance_single(other, return_data=True)
     distance = float(distance)
     if not math.isfinite(distance) or distance < 0:
@@ -220,7 +267,7 @@ def _distance(a, b, delta):
     if not np.isfinite(points).all():
         raise ValueError('nonfinite FCL witness')
     return dict(edge=distance <= delta, distance_mm=distance, witness_points_mm=points,
-        intersection_mm3=overlap, method='FCL_TRIANGLE_DISTANCE')
+        intersection_mm3=overlap, intersection_diagnostic=intersection, method='FCL_TRIANGLE_DISTANCE')
 
 
 def _groups(ids, edges):
@@ -239,41 +286,101 @@ def _groups(ids, edges):
     return groups
 
 
+def _material_components(solid):
+    """Recover material islands while retaining their owned cavity boundaries.
+
+    Manifold decompose() separates signed boundary shells, not filled material
+    islands. A nested positive shell may be an independent island inside a
+    cavity, so intersecting every positive shell with the whole solid is also
+    insufficient. Assign each cavity to its smallest containing positive shell
+    before reconstructing the islands. No proximity tolerance is used here.
+    """
+    import manifold3d as mf
+    from adsl.core.assembly_topology import checked, solid_mesh, mesh_solid
+    positive, cavities = [], []
+    for shell in checked(solid).decompose():
+        volume = float(checked(shell).volume())
+        if not math.isfinite(volume) or volume == 0:
+            raise ValueError('invalid signed material boundary volume')
+        if volume > 0:
+            positive.append(shell)
+        else:
+            mesh = solid_mesh(shell)
+            mesh.invert()
+            cavities.append(mesh_solid(mesh))
+    if not positive:
+        raise ValueError('no positive material component')
+    holes = {i: [] for i in range(len(positive))}
+    for cavity in cavities:
+        containers = [i for i, shell in enumerate(positive)
+                      if checked(cavity-shell).is_empty()]
+        if not containers:
+            raise ValueError('material cavity has no containing positive boundary')
+        parent = min(containers, key=lambda i: positive[i].volume())
+        if any(not checked(positive[parent]-positive[i]).is_empty() for i in containers):
+            raise ValueError('ambiguous material cavity ownership')
+        holes[parent].append(cavity)
+    components = []
+    for i, shell in enumerate(positive):
+        for cavity in holes[i]:
+            shell = checked(shell-cavity)
+        volume = float(shell.volume())
+        if (not math.isfinite(volume) or volume <= 0 or
+                sum(s.volume() > 0 for s in shell.decompose()) != 1):
+            raise ValueError('unavailable reconstructed material component')
+        components.append(shell)
+    if cavities:
+        reconstructed = checked(mf.Manifold.batch_boolean(components, mf.OpType.Add))
+        if (not checked(solid-reconstructed).is_empty() or
+                not checked(reconstructed-solid).is_empty()):
+            raise ValueError('material component reconstruction changed the solid')
+    # Deterministic component IDs for identical frozen geometry, independent of
+    # the native decomposition's order for spatially distinct islands.
+    return sorted(components, key=lambda s: (tuple(s.bounding_box()), float(s.volume())))
+
+
 def measure_connectivity(parts: list[dict], *, delta_ratio: float, delta_floor_mm: float) -> dict:
+    import manifold3d as mf
+    from adsl.core.assembly_topology import checked, solid_mesh
     ratio, floor = _number(delta_ratio), _number(delta_floor_mm)
     versions = backend_versions()
     config = dict(protocol_id=CONNECTIVITY_PROTOCOL, delta_ratio=ratio, delta_floor_mm=floor,
         backend={k:versions[k] for k in ('trimesh','python-fcl','manifold3d')},
-        intersection='checked full material union; positive volume => zero distance',
+        intersection='checked material intersection; negative integral verified by exact float64 boundary sum',
         distance='FCL triangle distance <= delta; no added threshold tolerance',
-        internal='existing union_print_mesh positive-volume material components')
+        nodes='material components of final assembly union; retain cavity ownership',
+        cavity_ownership='smallest containing positive boundary; Manifold difference; no added tolerance',
+        graph='distance AND bidirectional facing area; print grouping is provenance only',
+        contact_area=dict(CONTACT_AREA_CONFIG))
     out = dict(protocol_id=CONNECTIVITY_PROTOCOL, status='UNAVAILABLE', overall_pass=None,
-        internal_connected=None, interpart_connected=None, part_count=len(parts), part_components=[],
-        interpart_graph_component_count=None, assembly_diagonal_mm=None, delta_ratio=ratio,
-        delta_floor_mm=floor, delta_mm=None, reason_codes=[],
+        internal_connected=None, part_count=len(parts), part_components=[],
+        material_component_count=None, graph_component_count=None, assembly_diagonal_mm=None, delta_ratio=ratio,
+        delta_floor_mm=floor, delta_mm=None, minimum_facing_area_mm2=None, reason_codes=[],
         measurement_config_sha256=digest(config), measurement_config=config,
         asset_sha256=None, evidence_ref=None,
-        details=dict(pairs=[], graph_groups=None, units='mm', backend=versions, distance_tolerance_mm=0.))
+        details=dict(nodes=[], pairs=[], graph_groups=None, units='mm', backend=versions, distance_tolerance_mm=0.))
     ids = [p.get('part_id') for p in parts]
     if not ids or any(not isinstance(i,str) or not i for i in ids) or len(ids) != len(set(ids)):
         out['reason_codes'] = ['EMPTY_OR_DUPLICATE_PRINT_PARTS']; return out
     try:
         out['asset_sha256'] = _asset(parts)
         bounds, diagonal = assembly_bounds(parts)
+        if diagonal <= 0:
+            raise ValueError('nonpositive assembly scale')
     except (ValueError, KeyError) as error:
         out['reason_codes'] = ['INVALID_GEOMETRY_INPUT']
         out['details']['input_error'] = str(error)
         return out
     delta = max(ratio*diagonal, floor)
-    out.update(assembly_diagonal_mm=diagonal, delta_mm=delta)
+    minimum_area = CONTACT_AREA_CONFIG['min_facing_area_ratio'] * diagonal**2
+    out.update(assembly_diagonal_mm=diagonal, delta_mm=delta, minimum_facing_area_mm2=minimum_area)
     out['details']['assembly_bounds_mm'] = bounds.tolist()
-    worlds, failures = {}, []
+    part_worlds, failures = {}, []
     for part in parts:
         name = part['part_id']
         try:
             solid, mesh, count, bound = _material(part)
-            from adsl.core.assembly_topology import checked
-            worlds[name] = checked(solid.transform(_matrix(part['assembly_transform_mm'])[:3]))
+            part_worlds[name] = checked(solid.transform(_matrix(part['assembly_transform_mm'])[:3]))
             out['part_components'].append(dict(part_id=name, component_count=count,
                 internal_connected=count == 1, kernel_length_bound_mm=bound))
         except (ValueError, RuntimeError, ImportError) as error:
@@ -282,28 +389,66 @@ def measure_connectivity(parts: list[dict], *, delta_ratio: float, delta_floor_m
                 internal_connected=None, reason=str(error)))
     disconnected = any(p['internal_connected'] is False for p in out['part_components'])
     out['internal_connected'] = False if disconnected else (True if not failures else None)
-    if disconnected:
-        out['reason_codes'].append('INTERNAL_PART_DISCONNECTED')
+    if failures:
+        out['reason_codes'] = list(dict.fromkeys(failures)); return out
+    # A union in memory is a representation query, not a saved-mesh repair or
+    # changed print grouping. Already shared material must be the same node
+    # whether exported as one body or declared as several print parts.
+    worlds, contributors = {}, {}
+    try:
+        union = checked(mf.Manifold.batch_boolean(list(part_worlds.values()), mf.OpType.Add))
+        components = _material_components(union)
+        for index, component in enumerate(components):
+            component_id = f'material_{index:04d}'
+            origins = [name for name, solid in part_worlds.items()
+                       if _intersection_measurement(component,solid)['volume_mm3'] > 0]
+            if not origins:
+                raise ValueError('global material component has no verified source part')
+            worlds[component_id] = component
+            contributors[component_id] = origins
+            out['details']['nodes'].append(dict(component_id=component_id, part_ids=origins,
+                volume_mm3=float(component.volume()),
+                bounds_mm=np.asarray(component.bounding_box()).reshape(2,3).tolist()))
+        out['material_component_count'] = len(worlds)
+    except (ValueError, RuntimeError, ImportError) as error:
+        out['reason_codes'] = ['GLOBAL_MATERIAL_UNAVAILABLE']
+        out['details']['material_error'] = str(error)
+        return out
+    meshes = {name: solid_mesh(solid) for name,solid in worlds.items()}
     edges = []
-    for a, b in itertools.combinations(ids, 2):
-        if a not in worlds or b not in worlds:
-            continue
+    for a, b in itertools.combinations(worlds, 2):
         try:
             row = _distance(worlds[a], worlds[b], delta)
-            out['details']['pairs'].append(dict(part_ids=[a,b], status='PASS', **row))
-            if row['edge']:
-                edges.append((a,b))
         except (ValueError, RuntimeError, OSError, ImportError) as error:
             failures.append('DISTANCE_UNAVAILABLE')
-            out['details']['pairs'].append(dict(part_ids=[a,b], status='UNAVAILABLE', reason=str(error)))
+            out['details']['pairs'].append(dict(component_ids=[a,b],part_ids=[contributors[a],contributors[b]],
+                status='UNAVAILABLE',reason=str(error)))
+            continue
+        pair = dict(component_ids=[a,b],part_ids=[contributors[a],contributors[b]],status='PASS',
+                    distance_edge=row['edge'], **row)
+        if row['edge']:
+            try:
+                area = facing_area(meshes[a],meshes[b],delta_mm=delta,minimum_area_mm2=minimum_area)
+                pair['facing_area'] = area
+                pair['edge'] = area['edge']
+                if area['status'] != 'PASS':
+                    pair.update(status='UNAVAILABLE',reason=area['reason'])
+                    failures.append('FACING_AREA_UNAVAILABLE')
+            except (ValueError, RuntimeError, OSError, ImportError) as error:
+                failures.append('FACING_AREA_UNAVAILABLE')
+                pair.update(status='UNAVAILABLE',edge=None,reason=str(error))
+        else:
+            pair['facing_area'] = dict(status='NOT_REQUIRED_DISTANCE_EXCLUDED')
+        out['details']['pairs'].append(pair)
+        if pair['edge']:
+            edges.append((a,b))
     if not failures:
-        groups = _groups(ids, edges)
+        groups = _groups(worlds, edges)
         connected = len(groups) == 1
-        out.update(status='PASS', interpart_connected=connected,
-            interpart_graph_component_count=len(groups), overall_pass=not disconnected and connected)
+        out.update(status='PASS', graph_component_count=len(groups), overall_pass=connected)
         out['details']['graph_groups'] = groups
         if not connected:
-            out['reason_codes'].append('INTERPART_GRAPH_DISCONNECTED')
+            out['reason_codes'].append('GEOMETRIC_GRAPH_DISCONNECTED')
     out['reason_codes'] = list(dict.fromkeys(out['reason_codes'] + failures))
     return out
 

@@ -22,6 +22,7 @@ import trimesh
 from importlib.util import find_spec
 sys.path.insert(0, str(Path(find_spec('adsl.agents').origin).resolve().parents[1]))
 from benchmark.metrics.physical import STANDING_PROTOCOL, classify_standing_record, physical_table_row
+from benchmark.metrics import geometry as geometry_metrics
 
 LONGEST_MM = 150.0
 OVERHANG = {"overhang_threshold_from_horizontal_deg": 45.0, "layer_height_mm": 0.2}
@@ -385,6 +386,95 @@ def attach_physical_evaluation(result, *, state):
     result['main_table_metrics'] = physical_table_row(record, protocol_id=STANDING_PROTOCOL)
 
 
+def attach_connectivity_admission(result, *, state):
+    """Classify only saved final measurements, including an evaluation timeout."""
+    from benchmark.metrics.physical import connectivity_dataset_eligibility
+
+    connectivity = result.get('connectivity')
+    record = dict(case_id=result['case_id'], state=state,
+        asset_sha256=result.get('connectivity_asset_sha256'),
+        part_count=connectivity.get('part_count') if isinstance(connectivity, dict) else None,
+        connectivity=connectivity, source_sha256=result.get('selected_source_sha256'))
+    result['admission_record'] = record
+    result['dataset_eligibility'] = connectivity_dataset_eligibility(record)
+
+
+def attach_connectivity_evaluation(result, *, output, state, manifest=None, source=None):
+    """Measure the frozen final asset for dataset admission, independently of critics.
+
+    Both methods use the same offline protocol. A measured disconnected graph is
+    still measurable; this result never changes native approval or online checks.
+    The composite geometry identity is separate from the legacy GLB identity.
+    """
+    config_path = Path(geometry_metrics.__file__).resolve().parents[1] / 'configs' / 'physical_main_v1.json'
+    config = read_json(config_path)['connectivity']
+    if (config['protocol_id'] != geometry_metrics.CONNECTIVITY_PROTOCOL or any(
+            isinstance(config[key], bool) or config[key] != geometry_metrics.CONTACT_AREA_CONFIG[key]
+            for key in ('min_facing_area_ratio', 'facing_normal_dot_max', 'facing_area_reduction'))):
+        raise ValueError('final connectivity protocol/configuration mismatch')
+    for key in ('delta_ratio', 'delta_floor_mm'):
+        value = config[key]
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not np.isfinite(value) or value < 0:
+            raise ValueError('invalid final connectivity configuration: ' + key)
+    output = Path(output)
+    output.mkdir(parents=True, exist_ok=True)
+    record = dict(case_id=result['case_id'], state=state, asset_sha256=None,
+                  part_count=None, connectivity=None,
+                  source_sha256=result.get('selected_source_sha256'))
+    reason = ('FINAL_OUTPUT_PENDING' if state != 'TERMINAL' else
+              'CONNECTIVITY_EVALUATION_TIMEOUT' if result.get('failure_stage') == 'evaluation_timeout' else
+              'GENERATION_FAILED' if result.get('failure_stage') in
+              {'generation', 'generation_api_interruption'} else 'FINAL_MANIFEST_UNAVAILABLE')
+    measured = dict(protocol_id=geometry_metrics.CONNECTIVITY_PROTOCOL,
+        status='UNAVAILABLE', overall_pass=None, part_count=None,
+        material_component_count=None, graph_component_count=None,
+        asset_sha256=None, measurement_config_sha256=None, evidence_ref=None,
+        reason_codes=[reason], details=dict(measured=False))
+    if state == 'TERMINAL' and manifest is not None and source is not None:
+        from adsl.agents.assembly_topology import _input, _part_file
+        manifest, source = Path(manifest), Path(source)
+        # Identity failures are hard errors, not ordinary geometry exclusions.
+        # Check them before the shared loader's intentionally broad conversion
+        # to UNAVAILABLE; leave that loader's public behavior unchanged.
+        if sha256(manifest) != result.get('evaluation_manifest_sha256'):
+            raise ValueError('final connectivity manifest hash mismatch')
+        if sha256(source) != result.get('selected_source_sha256'):
+            raise ValueError('final connectivity source hash mismatch')
+        bound_manifest = _input(manifest, source)
+        for part in bound_manifest['parts']:
+            _part_file(manifest, bound_manifest, part)
+        geometry_input = dict(kind='fixed_assembly', manifest_path=str(manifest),
+            source_path=str(source), manifest_sha256=sha256(manifest))
+        loaded = geometry_metrics.load_evaluation_parts(dict(geometry_input=geometry_input))
+        if loaded['status'] != 'PASS':
+            measured.update(reason_codes=loaded['reason_codes'],
+                details=dict(measured=False, reason=loaded.get('reason')))
+        else:
+            record.update(asset_sha256=loaded['asset_sha256'], part_count=len(loaded['parts']))
+            try:
+                measured = geometry_metrics.measure_connectivity(loaded['parts'],
+                    delta_ratio=config['delta_ratio'], delta_floor_mm=config['delta_floor_mm'])
+            except (ValueError, RuntimeError, OSError, ImportError) as error:
+                measured.update(asset_sha256=record['asset_sha256'], part_count=record['part_count'],
+                    reason_codes=['CONNECTIVITY_MEASUREMENT_UNAVAILABLE'],
+                    details=dict(measured=False, reason=f'{type(error).__name__}: {str(error)[:800]}'))
+            if (measured.get('protocol_id') != config['protocol_id'] or
+                    measured.get('asset_sha256') != record['asset_sha256'] or
+                    measured.get('part_count') != record['part_count']):
+                raise ValueError('final connectivity asset/protocol/print-part count mismatch')
+    path = output / 'connectivity_details.json'
+    write_json(path, measured)
+    brief = {key: value for key, value in measured.items()
+             if key not in ('details', 'measurement_config')}
+    brief['evidence_ref'] = dict(path=path.name, json_pointer='', file_sha256=sha256(path),
+                                 asset_sha256=record['asset_sha256'])
+    record['connectivity'] = brief
+    result['connectivity'] = brief
+    result['connectivity_asset_sha256'] = record['asset_sha256']
+    result['connectivity_config'] = dict(config, file_sha256=sha256(config_path))
+    attach_connectivity_admission(result, state=state)
+
+
 def evaluate(run_root, case_id, arm, *, render_python=None, skip_render=False):
     root = Path(run_root).resolve()
     case = case_config(root, case_id)
@@ -410,10 +500,13 @@ def evaluate(run_root, case_id, arm, *, render_python=None, skip_render=False):
               "appearance": unavailable("common read-only image critic pending", "PENDING"),
               "render_paths": {"status": "INDETERMINATE", "native_views": [], "neutral_views": []}}
     write_json(output / "result.json", result)
+    manifest, source = None, None
     status = str(job.get("generation", {}).get("status", "")).lower()
     if status in ('', 'pending', 'prepared', 'running', 'queued', 'not_started'):
         result['status'] = 'PENDING'
         attach_physical_evaluation(result, state='PENDING' if status != 'running' else 'RUNNING')
+        attach_connectivity_evaluation(result, output=output,
+            state='PENDING' if status != 'running' else 'RUNNING')
         write_json(output / 'result.json', result)
         return result
     published = job.get("selected_glb") and resolve_path(job["selected_glb"], directory).is_file()
@@ -445,6 +538,7 @@ def evaluate(run_root, case_id, arm, *, render_python=None, skip_render=False):
                 result["metrics"]["N"] = len(native.get("part_declarations", native["parts"]))
                 manifest = ours_manifest(original, source, output / "material")
             result["evaluation_manifest"] = str(manifest)
+            result['evaluation_manifest_sha256'] = sha256(manifest)
             physics, paths = physical_checks(manifest, source, output, standing_applicable)
             result["physics_result"] = paths
             result["topology"] = physics["assembly_topology"]
@@ -474,6 +568,10 @@ def evaluate(run_root, case_id, arm, *, render_python=None, skip_render=False):
                "rendered_images": views if ready else [], "read_only": True, "no_candidate_selection": True}
     write_json(output / "image_critic_request.json", request)
     attach_physical_evaluation(result, state='TERMINAL')
+    # This final independent measurement also runs when a previous physical or
+    # print measurement failed after the final manifest was successfully built.
+    attach_connectivity_evaluation(result, output=output, state='TERMINAL',
+                                   manifest=manifest, source=source)
     write_json(output / "result.json", result)
     return result
 
