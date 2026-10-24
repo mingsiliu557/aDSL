@@ -18,14 +18,24 @@ def measured_run(tmp_path, monkeypatch):
     monkeypatch.setattr(standing, 'collision_proxies', lambda mesh, config: [mesh.copy()])
     monkeypatch.setattr(standing, 'verify_proxies',
                         lambda mesh, proxies, clearance: ({'accepted': True}, mesh_solid(mesh)))
-    monkeypatch.setattr(standing, 'save_frames', lambda *args: [])
+    monkeypatch.setattr(standing, 'save_frames', lambda *args, **kwargs: [])
     monkeypatch.setattr(standing.importlib.metadata, 'version', lambda name: 'mock-verdict-test')
     result = dict(tipped=False, exits={}, settled=False, interface_retention_verified=True,
                   assessment_time_seconds=5., final_tilt_deg=.005, peak_tilt_deg=.16,
                   final_exited_interfaces=[],
                   final_interfaces=[{'connection_id': 'joint', 'exited': False}],
                   final_linear_speed_m_s=.003, final_angular_speed_rad_s=.02)
-    monkeypatch.setattr(standing, 'simulate', lambda *args: (deepcopy(result), []))
+    def simulated(*args, body_layout):
+        output=deepcopy(result)
+        output.setdefault('component_tilt_verified',True)
+        output.setdefault('first_tipping_seconds',.4 if output['tipped'] else None)
+        output.setdefault('component_tilts',[dict(component_id=name,part_id=body['part_id'],
+            peak_tilt_deg=output['peak_tilt_deg'] if name==body_layout['root_component_id'] else 0.,
+            final_tilt_deg=output['final_tilt_deg'] if name==body_layout['root_component_id'] else 0.,
+            first_tipping_seconds=output['first_tipping_seconds'] if name==body_layout['root_component_id'] else None)
+            for name,body in body_layout['bodies'].items()])
+        return output, []
+    monkeypatch.setattr(standing,'simulate',simulated)
     return args, result
 
 
@@ -48,7 +58,11 @@ def test_standing_uses_full_observation_not_settling(measured_run, changes, expe
     if expected == 'INDETERMINATE':
         observation = result.metrics['standing_observation']
         assert observation['status'] == 'UNAVAILABLE'
-        assert all(v is None for k,v in observation.items() if k != 'status')
+        assert observation['observed_tipping'] is None
+        assert observation['observed_interface_exit'] is None
+        assert observation['component_tilt_verified'] is True
+        assert observation['observed_component_tipping'] is False
+        assert observation['peak_tilt_deg']==measurement['peak_tilt_deg']
     else:
         assert 'settling diagnostic:' in result.summary
         assert 'not a pass requirement' in result.summary
@@ -62,7 +76,7 @@ def test_unverified_collision_proxy_still_blocks_pass(measured_run, monkeypatch)
     args, _ = measured_run
     monkeypatch.setattr(standing, 'verify_proxies',
                         lambda mesh, proxies, clearance: ({'accepted': False}, mesh_solid(mesh)))
-    monkeypatch.setattr(standing, 'simulate', lambda *args: pytest.fail('invalid proxy simulated'))
+    monkeypatch.setattr(standing, 'simulate', lambda *args, **kwargs: pytest.fail('invalid proxy simulated'))
     result = standing.analyze(args, {'standing': STANDING, 'material': MATERIAL})
     assert result.status == 'INDETERMINATE'
     assert result.summary == 'COLLISION_PROXY_UNVERIFIED'
@@ -70,7 +84,7 @@ def test_unverified_collision_proxy_still_blocks_pass(measured_run, monkeypatch)
 
 def test_simulation_error_remains_unverified_through_cli(measured_run, monkeypatch, tmp_path):
     args, _ = measured_run
-    def failed_simulation(*args):
+    def failed_simulation(*args, **kwargs):
         raise ValueError('SIMULATION_UNVERIFIED: diagnostic failure')
     monkeypatch.setattr(standing, 'simulate', failed_simulation)
     physics = tmp_path / 'physics.json'
@@ -112,17 +126,18 @@ def test_partial_observation_is_not_a_standing_pass(measured_run):
     measurement['assessment_time_seconds'] = 2.
     result = standing.analyze(args, {'standing':STANDING, 'material':MATERIAL})
     assert result.status == 'INDETERMINATE'
-    assert result.metrics['standing_observation']['duration_s'] is None
+    assert result.metrics['standing_observation']['duration_s'] == 2.
+    assert result.metrics['standing_observation']['component_tilt_verified'] is False
     assert result.metrics['standing_observation']['observed_interface_exit'] is None
 
 
 def test_invalid_body_input_keeps_unavailable_without_simulating(measured_run, monkeypatch):
     args, _ = measured_run
     monkeypatch.setattr(standing, 'load_parts', lambda args: ({},[{'status':'FAIL'}],{}))
-    monkeypatch.setattr(standing, 'simulate', lambda *args: pytest.fail('disconnected body simulated'))
+    monkeypatch.setattr(standing, 'simulate', lambda *args, **kwargs: pytest.fail('disconnected body simulated'))
     result = standing.analyze(args, {'standing':STANDING, 'material':MATERIAL})
     assert result.status == 'INDETERMINATE'
-    assert 'one connected volume' in result.summary
+    assert 'valid material input' in result.summary
     assert result.metrics['standing_observation']['status'] == 'UNAVAILABLE'
 
 
@@ -138,8 +153,10 @@ def test_nonpositive_inertia_rejected_before_simulation(measured_run, monkeypatc
             return SimpleNamespace(apply_scale=lambda scale:None, mass=1.,
                 center_mass=np.zeros(3), moment_inertia=np.zeros((3,3)))
     invalid={name:InvalidMass(mesh) for name,mesh in meshes.items()}
+    layout=standing._prepare_simulation_bodies(report,meshes)
+    for body in layout['bodies'].values(): body['mesh']=invalid[body['part_id']]
     with pytest.raises(ValueError,match='INVALID_PHYSICAL_INPUT: invalid mass/inertia'):
-        standing.xml_model(report,invalid,{},dict(STANDING,collision_backend='rigid_flex'),1240.)
+        standing.xml_model(report,invalid,{},dict(STANDING,collision_backend='rigid_flex'),1240.,body_layout=layout)
 
 
 def test_standing_timeout_has_unknown_observation_and_preserves_reason(tmp_path, monkeypatch):
@@ -266,3 +283,83 @@ def test_tipping_localization_preserves_identity_and_verdict(measured_run, monke
         assert tip['finding_id']==original['finding_id']
         assert [c['feature_id'] for c in tip['source_candidates']]==['stem_hint']
         assert tip['source_candidates'][0]['source_locations']==['source.py:1']
+
+
+@pytest.mark.parametrize('root_tip,component_tip,interface_complete,expected',[
+    (False,True,True,'FAIL'),(False,True,False,'FAIL'),
+    (True,True,False,'FAIL'),(False,False,False,'INDETERMINATE'),
+])
+def test_component_verdict_precedes_incomplete_interface_observation(measured_run,root_tip,component_tip,interface_complete,expected):
+    args,measurement=measured_run
+    measurement.update(tipped=root_tip,peak_tilt_deg=45. if root_tip else .16,
+        interface_retention_verified=interface_complete,component_tilt_verified=True,
+        first_tipping_seconds=.04 if root_tip else None,component_tilts=[
+            dict(component_id='base',part_id='base',peak_tilt_deg=45. if root_tip else .16,
+                final_tilt_deg=.005,first_tipping_seconds=.04 if root_tip else None),
+            dict(component_id='stem',part_id='stem',peak_tilt_deg=90. if component_tip else 0.,
+                final_tilt_deg=0.,first_tipping_seconds=.02 if component_tip else None)])
+    result=standing.analyze(args,{'standing':STANDING,'material':MATERIAL})
+    assert result.status==expected
+    assert result.metrics['standing_observation']['observed_component_tipping'] is (root_tip or component_tip)
+    rules={r.rule_id for r in result.findings}
+    assert ('SELF_WEIGHT_COMPONENT_TIPPING' in rules) is component_tip
+    assert ('SELF_WEIGHT_TIPPING' in rules) is root_tip
+    if component_tip:
+        component=next(r for r in result.findings if r.rule_id=='SELF_WEIGHT_COMPONENT_TIPPING')
+        assert component.region.part_names==['stem']
+        assert component.category=='physical_violation' and component.repairability=='geometry'
+    assert result.assumptions['configuration']['tilt_threshold_deg']==STANDING['tilt_threshold_deg']
+
+
+def test_disconnected_valid_material_is_simulated_without_rewriting_topology(measured_run,monkeypatch):
+    import manifold3d as mf
+    from copy import deepcopy
+    from adsl.core.assembly_topology import solid_mesh
+    args,_=measured_run
+    report,_,meshes=standing.load_parts(args)
+    report['connections']=[]
+    meshes['stem']=solid_mesh(mf.Manifold.cube((1,1,1)).translate((0,0,10)) + mf.Manifold.cube((1,1,1)).translate((5,0,10)))
+    rows=[dict(part_id='base',status='PASS',code='CONNECTED_PRINT_PART'),
+        dict(part_id='stem',status='FAIL',code='INTERNAL_PART_DISCONNECTED')]
+    before=deepcopy(rows)
+    monkeypatch.setattr(standing,'load_parts',lambda _: (report,rows,meshes))
+    result=standing.analyze(args,{'standing':STANDING,'material':MATERIAL})
+    assert result.status=='PASS'
+    assert rows==before
+    mapping=json.loads((args.output/'body_mapping.json').read_text())
+    assert len(mapping['part_to_components']['stem'])==2
+    assert len(mapping['bodies'])==3
+
+
+def test_mixed_material_failure_is_still_unavailable(measured_run,monkeypatch):
+    args,_=measured_run
+    report,rows,meshes=standing.load_parts(args)
+    rows[0].update(status='FAIL',code='INTERNAL_PART_DISCONNECTED',failures=['OTHER_FAILURE'])
+    monkeypatch.setattr(standing,'load_parts',lambda _: (report,rows,meshes))
+    monkeypatch.setattr(standing,'simulate',lambda *a,**kw:pytest.fail('mixed failure simulated'))
+    assert standing.analyze(args,{'standing':STANDING,'material':MATERIAL}).status=='INDETERMINATE'
+
+
+@pytest.mark.parametrize('peak,expected',[(25.,'PASS'),(25.000001,'FAIL')])
+def test_exact_component_threshold_boundary_uses_strict_greater(measured_run,peak,expected):
+    args,measurement=measured_run
+    measurement['component_tilts']=[
+        dict(component_id='base',part_id='base',peak_tilt_deg=0.,final_tilt_deg=0.,first_tipping_seconds=None),
+        dict(component_id='stem',part_id='stem',peak_tilt_deg=peak,final_tilt_deg=0.,first_tipping_seconds=.02 if peak>25. else None)]
+    result=standing.analyze(args,{'standing':STANDING,'material':MATERIAL})
+    assert result.status==expected
+    assert result.metrics['standing_observation']['observed_component_tipping'] is (peak>25.)
+
+
+def test_known_failure_keeps_later_solver_error_reason(measured_run):
+    from benchmark.metrics.physical import classify_standing_record
+    args,measurement=measured_run
+    measurement.update(tipped=True,peak_tilt_deg=40.,component_tilt_verified=False,
+        assessment_time_seconds=1.,observation_errors=[dict(reason='SIMULATION_UNVERIFIED',detail='solver stopped')])
+    result=standing.analyze(args,{'standing':STANDING,'material':MATERIAL})
+    assert result.status=='FAIL'
+    assert result.violations==[dict(code='SIMULATION_UNVERIFIED',message='solver stopped')]
+    record=dict(case_id='partial',applicable=True,state='TERMINAL',protocol_id=standing.STANDING_PROTOCOL,checker=result.model_dump())
+    row=classify_standing_record(record,protocol_id=standing.STANDING_PROTOCOL)
+    assert row['evaluation_outcome']=='FAIL'
+    assert {'TIPPING','SIMULATION_ERROR','OBSERVATION_UNAVAILABLE'}<=set(row['reason_codes'])

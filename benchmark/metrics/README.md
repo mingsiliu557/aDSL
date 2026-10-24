@@ -148,8 +148,8 @@ dataset volume ratio. Table note:
 
 ## Standing and denominators
 
-`classify_standing_record()` and `summarize_standing()` are unchanged. The
-Standing protocol is `independent_contact_warning_v1`. Terminal generation,
+The current Standing protocol is `material_component_standing_v1`; classification
+requires complete component-tilt evidence as well as the original observations. Terminal generation,
 input or simulation failures count as unsuccessful, not observed tipping.
 Pending tasks prevent a completed success rate. Standing applicability and
 structural applicability are separate frozen booleans; the latter defaults to
@@ -160,21 +160,22 @@ Missing NSV remains null. Protocol, measurement configuration and asset binding
 conflicts raise errors rather than pruning samples. Online Topology/Standing
 failures do not remove an otherwise measurable offline geometry result.
 
-Static verification of the current common evaluator:
+Current shared evaluator wiring (real simulations have not been rerun under this protocol):
 
-- `assembly_standing.analyze()` requires one connected material volume per
-  rigid print body. `simulate()` builds one free-joint body per print part.
+- `assembly_standing.analyze()` splits each valid print part into cavity-aware
+  material components and `simulate()` builds one independent free-joint body per
+  component. Print-part count N remains distinct from simulated body count.
 - `experiments/benchmark_six/evaluate.py:official_manifest()` transforms and
   combines every object scene node into one declared print part, then its
-  `physical_checks()` uses the same assembly Standing path. Disconnected material
-  therefore remains unsupported in that path; it is not silently welded into
-  one simulated rigid body.
+  `physical_checks()` uses the same component Standing path. Its disconnected
+  material components therefore move independently under the same protocol as
+  Ours; they are not rigidly bound together.
 - Older/native official-aDSL simulation paths outside this common evaluator
   have **not been confirmed here**. Their rigid-body semantics must be recorded
   separately before mixing results. In any implementation that fixes disconnected
-  material as one body, Standing cannot establish material continuity; this new
-  metric supplies that separate observation. This change does not alter any
-  rigid-body partition or simulate an existing case.
+  material as one body, Standing cannot establish material continuity. The
+  material-component protocol above changes the shared evaluator body partition;
+  existing case outputs have not been rerun or relabeled by this implementation.
 
 ## Inputs, identity and units
 
@@ -219,7 +220,7 @@ Example frozen input (`<...>` hashes must be replaced with actual SHA-256 values
     "ours": [{
       "case_id": "example", "applicable": true,
       "connectivity_applicable": true, "state": "TERMINAL",
-      "protocol_id": "independent_contact_warning_v1",
+      "protocol_id": "material_component_standing_v1",
       "checker": {}, "generation_status": "COMPLETED",
       "geometry_input": {
         "kind": "fixed_assembly", "manifest_path": "final/assembly_manifest.json",
@@ -229,7 +230,7 @@ Example frozen input (`<...>` hashes must be replaced with actual SHA-256 values
     }],
     "baseline": [{
       "case_id": "example", "applicable": true,
-      "state": "TERMINAL", "protocol_id": "independent_contact_warning_v1",
+      "state": "TERMINAL", "protocol_id": "material_component_standing_v1",
       "checker": {}, "generation_status": "COMPLETED",
       "geometry_input": {
         "kind": "single_print_mesh", "mesh_path": "final/baseline.glb",

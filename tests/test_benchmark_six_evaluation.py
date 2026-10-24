@@ -468,6 +468,30 @@ def test_final_evaluator_uses_same_connectivity_and_keeps_measured_failures(tmp_
     assert (folder/'job.json').read_bytes()==before
 
 
+@pytest.mark.parametrize('root,verified,kept,expected', [
+    (False,True,['SELF_WEIGHT_COMPONENT_TIPPING'],['COMPONENT_TIPPING']),
+    (True,True,['SELF_WEIGHT_TIPPING'],['TIPPING']),
+    (True,True,['SELF_WEIGHT_COMPONENT_TIPPING','SELF_WEIGHT_TIPPING'],['COMPONENT_TIPPING','TIPPING']),
+    (False,False,['SELF_WEIGHT_COMPONENT_TIPPING'],['COMPONENT_TIPPING','OBSERVATION_UNAVAILABLE']),
+])
+def test_final_evaluator_keeps_filtered_standing_findings_and_component_observation(
+        tmp_path,monkeypatch,root,verified,kept,expected):
+    cid,_,_,physics,_=_stub_final_connectivity_flow(tmp_path,monkeypatch,'ours')
+    standing=physics['assembly_standing']
+    standing['status']='FAIL'
+    standing['findings']=[{'rule_id':rule} for rule in kept]
+    standing['metrics']['standing_observation'].update(status='FAIL',
+        observed_tipping=root,peak_tilt_deg=35. if root else .001,
+        component_tilt_verified=verified,observed_component_tipping=True,max_component_tilt_deg=90.)
+    result=evaluation.evaluate(tmp_path,cid,'ours')
+    classified=result['standing_evaluation']
+    assert classified['protocol_id']=='material_component_standing_v1'
+    assert classified['evaluation_outcome']=='FAIL' and classified['reason_codes']==expected
+    assert classified['observation']==standing['metrics']['standing_observation']
+    assert classified['observation']['observed_tipping'] is root
+    assert result['standing']==standing
+
+
 @pytest.mark.parametrize('stage', ['physics', 'printing'])
 def test_final_connectivity_still_runs_after_other_measurement_error(tmp_path, monkeypatch, stage):
     cid, _, calls, _, _ = _stub_final_connectivity_flow(tmp_path, monkeypatch, 'ours', error_stage=stage)

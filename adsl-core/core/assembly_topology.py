@@ -7,6 +7,7 @@ existing checker subprocess boundary (see agents.assembly_topology).
 from __future__ import annotations
 
 import itertools
+import math
 import numpy as np
 import trimesh
 import manifold3d as mf
@@ -23,6 +24,58 @@ def checked(solid):
     if solid.status() != mf.Error.NoError:
         raise ValueError(f'Manifold query failed: {solid.status()}')
     return solid
+
+
+def material_components(solid):
+    """Recover material islands while retaining their owned cavity boundaries.
+
+    Manifold decompose() separates signed boundary shells, not filled material
+    islands. A nested positive shell may be an independent island inside a
+    cavity, so intersecting every positive shell with the whole solid is also
+    insufficient. Assign each cavity to its smallest containing positive shell
+    before reconstructing the islands. No proximity tolerance is used here.
+    """
+    import manifold3d as mf
+    positive, cavities = [], []
+    for shell in checked(solid).decompose():
+        volume = float(checked(shell).volume())
+        if not math.isfinite(volume) or volume == 0:
+            raise ValueError('invalid signed material boundary volume')
+        if volume > 0:
+            positive.append(shell)
+        else:
+            mesh = solid_mesh(shell)
+            mesh.invert()
+            cavities.append(mesh_solid(mesh))
+    if not positive:
+        raise ValueError('no positive material component')
+    holes = {i: [] for i in range(len(positive))}
+    for cavity in cavities:
+        containers = [i for i, shell in enumerate(positive)
+                      if checked(cavity-shell).is_empty()]
+        if not containers:
+            raise ValueError('material cavity has no containing positive boundary')
+        parent = min(containers, key=lambda i: positive[i].volume())
+        if any(not checked(positive[parent]-positive[i]).is_empty() for i in containers):
+            raise ValueError('ambiguous material cavity ownership')
+        holes[parent].append(cavity)
+    components = []
+    for i, shell in enumerate(positive):
+        for cavity in holes[i]:
+            shell = checked(shell-cavity)
+        volume = float(shell.volume())
+        if (not math.isfinite(volume) or volume <= 0 or
+                sum(s.volume() > 0 for s in shell.decompose()) != 1):
+            raise ValueError('unavailable reconstructed material component')
+        components.append(shell)
+    if cavities:
+        reconstructed = checked(mf.Manifold.batch_boolean(components, mf.OpType.Add))
+        if (not checked(solid-reconstructed).is_empty() or
+                not checked(reconstructed-solid).is_empty()):
+            raise ValueError('material component reconstruction changed the solid')
+    # Deterministic component IDs for identical frozen geometry, independent of
+    # the native decomposition's order for spatially distinct islands.
+    return sorted(components, key=lambda s: (tuple(s.bounding_box()), float(s.volume())))
 
 
 class OpenPrintMeshError(ValueError):

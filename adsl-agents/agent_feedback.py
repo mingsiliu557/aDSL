@@ -125,7 +125,9 @@ def standing_summary_for_agent(result):
                   ('standing_protocol', 'source_sha256', 'manifest_sha256'))
     for field, keys in (
         ('standing_observation', ('status', 'observed_tipping', 'observed_interface_exit',
-                                  'peak_tilt_deg', 'final_tilt_deg', 'duration_s')),
+                                  'peak_tilt_deg', 'final_tilt_deg', 'duration_s',
+                                  'component_tilt_verified', 'observed_component_tipping',
+                                  'max_component_tilt_deg')),
         ('contact_diagnostic', ('status', 'code', 'maximum_penetration_mm',
                                 'reference_bound_mm', 'affects_standing_verdict')),
     ):
@@ -216,7 +218,9 @@ _DOMAIN_FIELDS = ('failure_kind', 'geometry_repair_allowed', 'physical_verdict',
     'length_tolerance_mm', 'volume_tolerance_mm3', 'undeclared_interference_mm3',
     'raw_intersection_mm3', 'boundary_edge_count', 'component_count', 'kind',
     'part_id', 'pair_id', 'connection_id', 'part_local', 'overhang_only',
-    'optimization_opportunity', 'partition_optimization', 'print_partition_editable')
+    'optimization_opportunity', 'partition_optimization', 'print_partition_editable',
+    'component_id', 'peak_tilt_deg', 'first_tipping_seconds', 'tilt_threshold_deg',
+    'root_first_tipping_seconds', 'event_order')
 
 
 def _tipping_localization_for_agent(value) -> dict | None:

@@ -1,4 +1,4 @@
-"""Pure record fixtures for the independent standing evaluation protocol."""
+"""Pure record fixtures for the material-component standing protocol."""
 from copy import deepcopy
 import json
 
@@ -13,12 +13,16 @@ def record(case_id='one', *, status='PASS', state='TERMINAL'):
     complete = status in {'PASS','FAIL'}
     return dict(case_id=case_id, applicable=True, state=state, protocol_id=PROTOCOL,
         generation_status='COMPLETED', source_sha256='source',asset_sha256='asset',
-        checker=dict(status=status, assumptions={'standing_protocol':PROTOCOL},
+        checker=dict(status=status, assumptions={'standing_protocol':PROTOCOL,
+                'configuration':{'tilt_threshold_deg':25.}},
             metrics={'standing_observation':dict(status=status if complete else 'UNAVAILABLE',
                 observed_tipping=False if complete else None,
                 observed_interface_exit=False if complete else None,
                 peak_tilt_deg=.001 if complete else None, final_tilt_deg=.001 if complete else None,
-                duration_s=5. if complete else None),
+                duration_s=5. if complete else None,
+                component_tilt_verified=complete,
+                observed_component_tipping=False if complete else None,
+                max_component_tilt_deg=.001 if complete else None),
                 'contact_diagnostic':{'status':'WARNING','affects_standing_verdict':False}}))
 
 
@@ -85,6 +89,112 @@ def test_pending_observation_is_not_counted_as_measured_tipping():
     pending['checker']['metrics']['standing_observation']['observed_tipping']=True
     result=summarize_standing([pending],protocol_id=PROTOCOL)
     assert result['pending_count']==1 and result['observed_tipping_count']==0
+
+
+@pytest.mark.parametrize('field', [
+    'component_tilt_verified', 'observed_component_tipping', 'max_component_tilt_deg'])
+def test_new_protocol_requires_all_component_observation_scalars(field):
+    r=record()
+    del r['checker']['metrics']['standing_observation'][field]
+    out=classify_standing_record(r,protocol_id=PROTOCOL)
+    assert out['evaluation_outcome']=='FAIL'
+    assert out['reason_codes']==['OBSERVATION_UNAVAILABLE']
+
+
+@pytest.mark.parametrize('value', [None, True, -1., float('nan'), float('inf')])
+@pytest.mark.parametrize('field', ['max_component_tilt_deg', 'tilt_threshold_deg'])
+def test_component_peak_and_recorded_threshold_must_be_finite_nonnegative(field,value):
+    r=record()
+    owner=(r['checker']['assumptions']['configuration'] if field=='tilt_threshold_deg'
+           else r['checker']['metrics']['standing_observation'])
+    owner[field]=value
+    out=classify_standing_record(r,protocol_id=PROTOCOL)
+    assert out['evaluation_outcome']=='FAIL'
+    assert out['reason_codes']==['OBSERVATION_UNAVAILABLE']
+
+
+def test_component_pass_uses_actual_recorded_threshold_and_includes_boundary():
+    r=record()
+    r['checker']['assumptions']['configuration']['tilt_threshold_deg']=61.
+    obs=r['checker']['metrics']['standing_observation']
+    obs['max_component_tilt_deg']=61.
+    assert classify_standing_record(r,protocol_id=PROTOCOL)['evaluation_outcome']=='PASS'
+    r['checker']['assumptions']['configuration']={}
+    assert classify_standing_record(r,protocol_id=PROTOCOL)['reason_codes']==['OBSERVATION_UNAVAILABLE']
+
+
+@pytest.mark.parametrize('verified', [True, False])
+@pytest.mark.parametrize('flag,peak', [(False,25.01),(True,25.),(True,0.)])
+def test_component_flag_and_measured_peak_contradictions_are_rejected(verified,flag,peak):
+    r=record(status='FAIL')
+    r['checker']['metrics']['standing_observation'].update(
+        component_tilt_verified=verified,observed_component_tipping=flag,max_component_tilt_deg=peak)
+    with pytest.raises(ValueError,match='component tipping flag and peak'):
+        classify_standing_record(r,protocol_id=PROTOCOL)
+
+
+@pytest.mark.parametrize('root,kept,expected', [
+    (False,['SELF_WEIGHT_COMPONENT_TIPPING'],['COMPONENT_TIPPING']),
+    (True,['SELF_WEIGHT_TIPPING'],['TIPPING']),  # root first or same sampled frame
+    (True,['SELF_WEIGHT_COMPONENT_TIPPING','SELF_WEIGHT_TIPPING'],['COMPONENT_TIPPING','TIPPING']),
+])
+def test_component_reasons_follow_retained_findings_and_root_count_keeps_its_meaning(root,kept,expected):
+    r=record(status='FAIL')
+    r['checker']['metrics']['standing_observation'].update(
+        observed_tipping=root,peak_tilt_deg=35. if root else .001,
+        observed_component_tipping=True,max_component_tilt_deg=90.)
+    r['checker']['findings']=[{'rule_id':code} for code in kept]
+    out=summarize_standing([r],protocol_id=PROTOCOL)
+    assert out['cases'][0]['reason_codes']==expected
+    assert out['observed_tipping_count']==int(root)
+    assert out['success_count']==0 and out['terminal_failure_count']==1
+
+
+@pytest.mark.parametrize('status', ['FAIL','ERROR'])
+@pytest.mark.parametrize('rule,expected', [
+    ('SELF_WEIGHT_COMPONENT_TIPPING','COMPONENT_TIPPING'),('SELF_WEIGHT_TIPPING','TIPPING')])
+def test_incomplete_component_observation_keeps_confirmed_failure(status,rule,expected):
+    r=record(status=status)
+    r['checker']['metrics']['standing_observation'].update(component_tilt_verified=False,
+        observed_component_tipping=True,max_component_tilt_deg=90.,duration_s=None)
+    r['checker']['findings']=[{'rule_id':rule}]
+    out=classify_standing_record(r,protocol_id=PROTOCOL)
+    assert out['evaluation_outcome']=='FAIL'
+    assert out['reason_codes']==[expected,'OBSERVATION_UNAVAILABLE']
+
+
+@pytest.mark.parametrize('field,reason', [
+    ('observed_tipping','TIPPING'),('observed_interface_exit','INTERFACE_EXIT')])
+def test_incomplete_observation_preserves_confirmed_root_or_interface_fact(field,reason):
+    r=record(status='FAIL')
+    r['checker']['assumptions']['configuration']={}
+    r['checker']['metrics']['standing_observation'].update(
+        component_tilt_verified=False,duration_s=None,**{field:True})
+    out=classify_standing_record(r,protocol_id=PROTOCOL)
+    assert out['evaluation_outcome']=='FAIL'
+    assert out['reason_codes']==[reason,'OBSERVATION_UNAVAILABLE']
+
+
+@pytest.mark.parametrize('evidence', [
+    {'summary':'SELF_WEIGHT_COMPONENT_TIPPING: raw any-component diagnostic'},
+    {'violations':[{'code':'SELF_WEIGHT_COMPONENT_TIPPING'}]},
+    {'findings':[{'reason':'SELF_WEIGHT_COMPONENT_TIPPING: prose without rule'}]},
+    {'summary':'ANALYSIS_UNAVAILABLE: SELF_WEIGHT_COMPONENT_TIPPING: raw diagnostic'},
+])
+def test_raw_component_flags_or_unretained_codes_do_not_create_component_reason(evidence):
+    r=record(status='FAIL')
+    r['checker']['metrics']['standing_observation'].update(
+        observed_component_tipping=True,max_component_tilt_deg=90.)
+    r['checker'].update(evidence)
+    assert 'COMPONENT_TIPPING' not in classify_standing_record(r,protocol_id=PROTOCOL)['reason_codes']
+
+
+def test_root_only_protocol_cannot_be_relabelled_as_material_component_result():
+    assert PROTOCOL=='material_component_standing_v1'
+    r=record()
+    r['checker']['assumptions']['standing_protocol']='independent_contact_warning_v1'
+    with pytest.raises(ValueError,match='protocol'):
+        classify_standing_record(r,protocol_id=PROTOCOL)
 
 
 def test_raw_ivr_uses_all_raw_pairs_and_no_interference_allowance():

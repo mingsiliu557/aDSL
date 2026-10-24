@@ -260,7 +260,7 @@ def test_real_standing_seated_and_exit(tmp_path):
 def test_real_mujoco_with_exact_fixture_proxies_only(tmp_path):
     """Isolate contact semantics while CoACD is blocked. NOT a production fallback."""
     from adsl.agents.assembly_physics import load_parts
-    from adsl.agents.assembly_standing import verify_proxies,xml_model,simulate,save_frames
+    from adsl.agents.assembly_standing import verify_proxies,xml_model,simulate,save_frames,_prepare_simulation_bodies
     from adsl.core.assembly_topology import interface_measurement
     def box(size,centre):return solid_mesh(mf.Manifold.cube(size,True).translate(centre))
     def bounded_box(lo,hi):
@@ -284,10 +284,11 @@ def test_real_mujoco_with_exact_fixture_proxies_only(tmp_path):
             assert validation[n]['accepted'],validation[n]
         parts={p['id']:p for p in report['parts']}
         assert interface_measurement(report['connections'][0],parts,solids,1.)['status']=='PASS'
-        xml=xml_model(report,meshes,proxies,STANDING,MATERIAL['density_kg_m3'])
+        body_layout=_prepare_simulation_bodies(report,meshes)
+        xml=xml_model(report,meshes,proxies,STANDING,MATERIAL['density_kg_m3'],body_layout=body_layout)
         (args.output/'model.xml').write_text(xml)
-        result,trajectory=simulate(xml,report,STANDING,args.output)
-        result['frames']=save_frames(report,meshes,trajectory,args.output)
+        result,trajectory=simulate(xml,report,STANDING,args.output,body_layout=body_layout)
+        result['frames']=save_frames(report,meshes,trajectory,args.output,body_layout=body_layout)
         result['proxy_scope']='Exact test-fixture boxes; CoACD NOT validated; not a production alternative'
         write_json(args.output/'test_result.json',result);results.append(result)
     # This isolated test validates time/event semantics, NOT end-to-end stable
@@ -305,10 +306,11 @@ def test_real_mujoco_with_exact_fixture_proxies_only(tmp_path):
     from scipy.spatial.transform import Rotation
     tf=np.eye(4);tf[:3,:3]=Rotation.from_euler('y',20,degrees=True).as_matrix()
     report['parts'][0]['assembly_transform']=tf.tolist()
-    xml=xml_model(report,{'base':mesh},{'base':[mesh]},STANDING,MATERIAL['density_kg_m3'])
+    body_layout=_prepare_simulation_bodies(report,{'base':mesh})
+    xml=xml_model(report,{'base':mesh},{'base':[mesh]},STANDING,MATERIAL['density_kg_m3'],body_layout=body_layout)
     (args.output/'model.xml').write_text(xml)
-    result,trajectory=simulate(xml,report,STANDING,args.output)
-    result['frames']=save_frames(report,{'base':mesh},trajectory,args.output)
+    result,trajectory=simulate(xml,report,STANDING,args.output,body_layout=body_layout)
+    result['frames']=save_frames(report,{'base':mesh},trajectory,args.output,body_layout=body_layout)
     write_json(args.output/'test_result.json',result)
     assert result['tipped'] and result['peak_tilt_deg']>25
 

@@ -230,14 +230,15 @@ def test_standing_xml_consumes_four_parts_as_independent_bodies():
     # simple box proxies do not certify physical collision geometry or stability.
     import xml.etree.ElementTree as ET
     import trimesh
-    from adsl.agents.assembly_standing import xml_model
+    from adsl.agents.assembly_standing import xml_model, _prepare_simulation_bodies
     a = shelves()
     report = dict(mm_per_unit=1, root_id=a.root_id,
         parts=[dict(id=n, assembly_transform=a.transforms[n].tolist()) for n in PARTS],
         connections=[{k:v for k,v in c.items() if k not in ('tab_solid','slot_cutter')} for c in a.connections])
     meshes = {n:trimesh.creation.box((12,60,100) if n.endswith('side') else (108,50,8)) for n in PARTS}
     xml = xml_model(report, meshes, {n:[m] for n,m in meshes.items()},
-        dict(timestep_seconds=.002, friction=[.5,.005,.0001]), 700)
+        dict(timestep_seconds=.002, friction=[.5,.005,.0001]), 700,
+        body_layout=_prepare_simulation_bodies(report,meshes))
     model = ET.fromstring(xml)
     assert {b.get('name') for b in model.findall('./worldbody/body')} == set(PARTS)
     assert {j.get('name') for j in model.findall('./worldbody/body/freejoint')} == {f'free_{n}' for n in PARTS}

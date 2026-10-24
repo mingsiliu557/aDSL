@@ -23,12 +23,15 @@ def test_standing_observation_is_bounded_nonactionable_and_idempotent(tmp_path, 
     source_hash=hashlib.sha256(source.read_bytes()).hexdigest()
     output=tmp_path/'standing';output.mkdir()
     observation=dict(status='PASS',observed_tipping=False,observed_interface_exit=False,
-        peak_tilt_deg=.0012,final_tilt_deg=.0011,duration_s=5.)
+        peak_tilt_deg=.0012,final_tilt_deg=.0011,duration_s=5.,component_tilt_verified=True,
+        observed_component_tipping=False,max_component_tilt_deg=.0012)
     warning=dict(status='WARNING',code='INITIAL_CONTACT_DEPTH_EXCEEDS_REFERENCE',
         maximum_penetration_mm=.031309,reference_bound_mm=.020572,affects_standing_verdict=False)
     result=CheckerResult(checker='assembly_standing',status='PASS',summary='observation complete',
         metrics=dict(standing_observation=observation,contact_diagnostic=warning,
-                     contacts=[{'vertices':[1,2,3]}]*1000),
+                     contacts=[{'vertices':[1,2,3]}]*1000,
+                     component_tilts=[{'component_id':'full-component-evidence'}]*1000,
+                     trajectory=[{'body':'full-body-trajectory'}]*1000),
         assumptions=dict(standing_protocol=STANDING_PROTOCOL,source_sha256=source_hash))
     (output/'result.json').write_text(result.model_dump_json())
     run=CheckerRun(CheckerSpec(name='assembly_standing',command=['stub']),result,output,())
@@ -43,19 +46,23 @@ def test_standing_observation_is_bounded_nonactionable_and_idempotent(tmp_path, 
     assert row['result_pointer']=='/metrics' and row['result_ref']=='standing/result.json'
     assert out['feedback']['typed_findings']==[]
     assert 'vertices' not in json.dumps(out) and 'contacts' not in json.dumps(out)
+    assert 'full-component-evidence' not in json.dumps(out)
+    assert 'full-body-trajectory' not in json.dumps(out)
     assert payload_for_agent(out,workspace=tmp_path,source_path=source,
         source_version='original',role=role)==out
     assert raw==before
     assert feedback_size_report(out)['actual_bytes']>len(json.dumps(warning))
 
 
-def test_standing_summary_at_actual_engineering_coder_code_critic_boundaries(tmp_path,monkeypatch):
+@pytest.mark.parametrize('component_failure', [False, True])
+def test_standing_summary_at_actual_engineering_coder_code_critic_boundaries(tmp_path,monkeypatch,component_failure):
     import asyncio
     from types import SimpleNamespace
     from adsl.agents import assembly_topology as topology, assembly_physics as physics
     from adsl.agents.assembly_standing import STANDING_PROTOCOL
     from adsl.agents.models import FixedAssemblyPlan, EngineeringCriticDecision, GradedCodeCriticDecision, CheckerResult
-    from adsl.agents.service import ObjectWorkflow, _checker_evidence
+    from adsl.agents.service import ObjectWorkflow, _checker_evidence, _actionable_findings
+    from adsl.agents.actions import review_physics
     from adsl.agents.checkers import CheckerRun
     from test_fixed_assembly import mock_flow, plan_data
     from test_assembly_feedback_recovery import payload as model_payload, tool
@@ -66,12 +73,38 @@ def test_standing_summary_at_actual_engineering_coder_code_critic_boundaries(tmp
         maximum_penetration_mm=.031309,reference_bound_mm=.020572,affects_standing_verdict=False)
     result=CheckerResult(checker='assembly_standing',status='PASS',summary='complete',
         metrics={'standing_observation':dict(status='PASS',observed_tipping=False,
-            observed_interface_exit=False,peak_tilt_deg=.0012,final_tilt_deg=.0011,duration_s=5.),
+            observed_interface_exit=False,peak_tilt_deg=.0012,final_tilt_deg=.0011,duration_s=5.,
+            component_tilt_verified=True,observed_component_tipping=False,max_component_tilt_deg=.0012),
             'contact_diagnostic':warning}, assumptions={'standing_protocol':STANDING_PROTOCOL,
-                'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest()})
+                'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),
+                'configuration':{'tilt_threshold_deg':25.}})
+    component_domain=dict(part_id='stem',component_id='stem.material_001',peak_tilt_deg=90.,
+        first_tipping_seconds=.2,tilt_threshold_deg=25.,root_first_tipping_seconds=None,
+        event_order='ROOT_NOT_OBSERVED')
+    if component_failure:
+        result.status='FAIL'
+        result.metrics['standing_observation'].update(status='FAIL',
+            observed_component_tipping=True,max_component_tilt_deg=90.)
+        result.metrics.update(component_tilts=[{'component_id':'PRIVATE_COMPONENT_ARRAY'}]*1000,
+            trajectory=[{'body_id':'PRIVATE_BODY_TRAJECTORY'}]*1000)
+        result.findings=[physics.finding('assembly_standing','SELF_WEIGHT_COMPONENT_TIPPING',
+            'Observed material component tilt exceeds the configured limit.',part_ids=['stem'],
+            domain={**component_domain,'component_tilts':['PRIVATE_COMPONENT_ARRAY'],
+                'trajectory':['PRIVATE_BODY_TRAJECTORY']})]
     (out/'result.json').write_text(result.model_dump_json())
-    check=CheckerRun(physics.checker_spec('assembly_standing'),result,out,())
+    spec=physics.checker_spec('assembly_standing')
+    monkeypatch.setattr(physics,'run_checker',lambda *a,**kw:CheckerRun(spec,result,out,()))
+    check=review_physics([spec],domains=('standing',),
+        execution=SimpleNamespace(output_root=tmp_path,glb_path=None,source_index_path=None),
+        source=source,root=tmp_path,physics={})[0]
+    if component_failure:
+        assert [f.rule_id for f in _actionable_findings(check)]==['SELF_WEIGHT_COMPONENT_TIPPING']
     feedback={**_checker_evidence([check],workspace=tmp_path),'source_version':'original'}
+    bounded=payload_for_agent({'feedback':feedback},workspace=tmp_path,source_path=source,
+        source_version='original',role='coder')
+    assert payload_for_agent(bounded,workspace=tmp_path,source_path=source,
+        source_version='original',role='coder')==bounded
+    assert FEEDBACK_LIMIT_BYTES==96*1024
     captured=[]
     async def run(**kw):
         data=model_payload(kw);stage=kw['stage'].split(':')[0];captured.append(stage)
@@ -79,6 +112,15 @@ def test_standing_summary_at_actual_engineering_coder_code_critic_boundaries(tmp
                  else data['assembly_context']['pending_reviews'])
         row=context['checker_summary'][0]
         assert row['contact_diagnostic']==warning
+        assert row['standing_observation']==result.metrics['standing_observation']
+        if component_failure:
+            finding=context['typed_findings'][0]
+            assert finding['rule_id']=='SELF_WEIGHT_COMPONENT_TIPPING'
+            assert finding['required'] is True and finding['repairability']=='geometry'
+            assert finding['region']['part_names']==['stem']
+            assert finding['key_values']==component_domain
+            assert 'PRIVATE_COMPONENT_ARRAY' not in json.dumps(data)
+            assert 'PRIVATE_BODY_TRAJECTORY' not in json.dumps(data)
         contents=await tool(read_file,kw['context'],'contact',path=row['result_ref'],
             json_pointer=row['result_pointer']+'/contact_diagnostic')
         assert json.loads(contents)==warning
@@ -98,6 +140,7 @@ def test_standing_summary_at_actual_engineering_coder_code_critic_boundaries(tmp
             plan=plan,execution=None,workspace=tmp_path,source_path=source,round_number=1,max_rounds=2,
             round_root=root,code_critic={},image_decision=None,code_history=[],
             assembly_context={'pending_reviews':{'checker_summary':feedback['checker_summary'],
+                'typed_findings':feedback['typed_findings'],
                 'evidence_role':'previous_candidate_physical_observation'}})
         result=await ObjectWorkflow._repair(workflow,runtime=runtime,repairer={},workspace=tmp_path,
             source_path=source,role='coder',stage='repair:1',allow_no_change=True,
@@ -140,7 +183,7 @@ def test_tipping_localization_at_repair_boundaries_is_idempotent(tmp_path, monke
                                 net_moment_nm=None, positive_moment_sum_nm=None, part_contributions=[])
         else:
             localization.update(net_moment_nm=-.03924, positive_moment_sum_nm=0.)
-    domain = dict(tipped=True, contacts=[dict(position=[1., 2., 3.])] * 30)
+    domain = dict(tipped=True, peak_tilt_deg=33.5, contacts=[dict(position=[1., 2., 3.])] * 30)
     if reason_code != 'legacy':
         domain['tipping_localization'] = localization
     finding = physics.finding('assembly_standing', 'SELF_WEIGHT_TIPPING', 'Observed root tilt exceeds limit.',
@@ -161,6 +204,7 @@ def test_tipping_localization_at_repair_boundaries_is_idempotent(tmp_path, monke
     assert raw == before
     assert payload_for_agent(view, workspace=tmp_path, source_path=source,
         source_version='original', role='coder') == view
+    assert view['feedback']['typed_findings'][0]['key_values']['peak_tilt_deg']==33.5
 
     expected = _tipping_localization_for_agent(localization) if reason_code != 'legacy' else None
     if expected is not None:
@@ -209,6 +253,7 @@ def test_tipping_localization_at_repair_boundaries_is_idempotent(tmp_path, monke
         assert row['required'] is True and row['repairability'] == 'geometry'
         assert row['region']['part_names'] == (['stem'] if reason_code is None else ['crossbar'])
         assert row['key_values'].get('tipping_localization') == expected
+        assert row['key_values']['peak_tilt_deg']==domain['peak_tilt_deg']==33.5
         assert 'part_contributions' not in json.dumps(data)
         assert 'contacts' not in json.dumps(data)
         role = 'engineering' if stage == 'assembly_engineering' else 'coder'

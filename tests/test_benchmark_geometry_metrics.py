@@ -372,3 +372,29 @@ def test_connectivity_config_hash_excludes_case_size_and_asset():
     assert first['measurement_config_sha256']==second['measurement_config_sha256']
     assert first['asset_sha256']!=second['asset_sha256']
     assert first['delta_mm']!=second['delta_mm']
+
+
+def test_material_components_shared_helper_preserves_cavities_order_and_source():
+    from adsl.core.assembly_topology import checked, material_components, mesh_solid
+    hollow = mesh_solid(box(size=(4,4,4)))-mesh_solid(box(size=(3,3,3)))
+    solid = hollow+mesh_solid(box())+mesh_solid(box((5,0,0)))
+    shared = material_components(solid)
+    compatibility = g._material_components(solid)
+    assert [float(s.volume()) for s in shared] == pytest.approx([37.,1.,1.])
+    assert [tuple(s.bounding_box()) for s in shared] == [tuple(s.bounding_box()) for s in compatibility]
+    for actual, expected in zip(shared, compatibility):
+        assert checked(actual-expected).is_empty() and checked(expected-actual).is_empty()
+    assert checked(shared[0] ^ mesh_solid(box())).is_empty()
+    assert float(solid.volume()) == pytest.approx(39.)
+    assert len(material_components(solid)) == 3
+
+
+def test_material_components_compatibility_wrapper_delegates(monkeypatch):
+    from adsl.core import assembly_topology
+    source, expected, calls = object(), object(), []
+    def shared(value):
+        calls.append(value)
+        return expected
+    monkeypatch.setattr(assembly_topology, 'material_components', shared)
+    assert g._material_components(source) is expected
+    assert calls == [source]

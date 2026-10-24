@@ -1,122 +1,115 @@
-# Independent Standing observation and physical reporting
+# Material-component Standing observation and physical reporting
 
-Protocol: `independent_contact_warning_v1`.
+Current protocol: `material_component_standing_v1`. This upgrades the former
+`independent_contact_warning_v1` root-only observations. Historical results keep
+their original protocol and cannot be relabeled or mixed with new measurements.
 
-This protocol changes Standing verdicts; it is not equivalent to the previous
-initial-depth gate. Implementation and test text are provided; validation has
-not been executed for this change.
+## Bodies, units and interface tracking
 
-## Online results
+Each original print part is evaluated as material and split into independent,
+cavity-aware connected components. The shared core `material_components(solid)`
+preserves owned cavity boundaries; it does not fill holes or join small gaps.
+No union is performed across print parts. Every component receives its own free
+body, mass, inertia and collision representation. N remains the original print
+part count, not the number of bodies. Invalid material, missing input, invalid
+mass/inertia or unsupported collision proxies still prevent a successful
+observation. Negative-fit elastic press fits remain unsupported.
 
-Topology and Standing run independently in the existing sequential checker
-batch. Topology's source/manifest-bound cached solids remain reusable, but its
-overall status and interface acceptance do not authorize or prevent simulation.
+`_prepare_simulation_bodies(report, meshes)` provides a single `body_layout` to
+`xml_model`, `simulate` and `save_frames` through a required keyword argument.
+Meshes retain their original part-local millimetre coordinates and assembly
+transforms. Single components retain the original part ID. Component IDs are
+unique and deterministic. `artifacts.body_mapping` records original ownership,
+net volume, transforms, root selection, interface ownership and actual joint
+addresses without embedding meshes. It does not modify the original manifest.
 
-Standing still requires one connected material volume per rigid print body,
-complete declared bodies, valid mass/inertia, finite rigid transforms and
-connection parameters, and a supported collision representation. Negative-fit
-elastic press fits remain unsupported. CoACD proxy quality validation remains.
-Removing interface acceptance does not weld disconnected material or waive
-collision representation checks.
+The root component is the largest net-volume material component of the declared
+root part; deterministic component order breaks ties. Initial masses and world
+centres of mass are first aggregated per original print part before applying
+the existing initial directional gravity-moment diagnostic. That diagnostic,
+root finding ID and source-index entry points retain their meanings. Component
+findings map directly back to their original print part, not to a newly invented
+semantic ID or a claimed global tipping cause.
 
-| Observation | Standing status |
-| --- | --- |
-| Complete observation, no tipping or interface exit | PASS |
-| Complete observation with tipping and/or an exit at any time | FAIL |
-| Missing input, unsupported representation or incomplete observation | Existing INDETERMINATE/ERROR |
-| Only initial depth exceeds shell-plus-precision reference | No status change; WARNING |
+Singleton interface endpoints retain existing tracking. Multipart endpoints
+bind only on unique material-query evidence: the tab query intersects actual
+material, and the slot receiver uses the existing four outside wall precision
+bands. Zero or multiple owners are unavailable or ambiguous; no nearest-body
+substitution is made. Other components continue to be observed. This ownership
+only identifies which body is tracked; it does not certify interface geometry,
+mechanical locking or load bearing.
 
-The existing thresholds, observation duration, timestep, friction, collision
-radius and gravity remain unchanged. Peak tilt and final tilt are different
-measurements. An interface that exits then returns still counts as an exit.
+## Observation and verdict
 
-New `metrics.standing_observation` contains `status` (PASS/FAIL/UNAVAILABLE),
-`observed_tipping`, `observed_interface_exit`, `peak_tilt_deg`,
-`final_tilt_deg`, and `duration_s`. Unavailable observations use null for all
-these measurements, not zero/false. Partial trajectories remain artifacts.
+Every body uses its own initial rotation and the existing sampled tilt formula:
+`degrees(acos(clip((R_current @ R_initial.T)[2,2], -1, 1)))`.
+All bodies share the original sampling times, including initial and final frames.
+Only a peak strictly greater than `configuration.tilt_threshold_deg` is tipping;
+the configured threshold is not replaced by another constant. Pure yaw is not
+tilt. Existing duration, timestep, gravity, friction, contact radii, settling
+policy and interface-exit queries are retained. Ground-contact bodies are free.
 
-New `metrics.contact_diagnostic` contains `status` (OK/WARNING/UNAVAILABLE),
-`code`, `maximum_penetration_mm`, `reference_bound_mm`, and
-`affects_standing_verdict=false`. The compatibility field
-`initial_contact_check.verified` only means that the old depth reference was
-met. It no longer gates the dynamic observation. CoACD does not fabricate the
-rigid-flex shell depth diagnostic; it retains its proxy checks.
+- Any confirmed root/component tipping or declared interface exit gives FAIL.
+  Later incomplete observation or a known solver error cannot erase that event.
+- PASS requires the complete configured observation of all expected components
+  and required interfaces, without any confirmed failure.
+- Otherwise the original error/unavailable status and reason are retained. No
+  missing observation is replaced with zero tilt or a fabricated negative flag.
 
-Every newly executed Standing result, including early failures and transport
-timeouts, carries the protocol in `assumptions.standing_protocol`. Existing
-historical reports are not upgraded or relabeled.
+`standing_observation.observed_tipping`, root peak/final tilt and duration keep
+their original root meanings. Three scalars are added:
 
-Declared TabSlot query geometry and relative poses are used to observe exits;
-this does not prove the actual tab exists. A model may pass Standing and fail
-Topology. Interpenetration may artificially stabilize contact. A Standing pass
-does not validate the collision model, prove printability, or override the
-required-checker gate on final publication.
+- `component_tilt_verified`: all expected bodies completed tilt observation.
+- `observed_component_tipping`: true for any confirmed body tilt; false only
+  after complete negative observation, otherwise null. This includes the root.
+- `max_component_tilt_deg`: the maximum measured body peak, or null if unknown.
 
-## Agent input
+Full measurements remain in `metrics.component_tilts` and trajectory artifacts.
+Event filtering never changes these measurements or the verdict. Root tipping
+keeps `SELF_WEIGHT_TIPPING`. Non-root events produce
+`SELF_WEIGHT_COMPONENT_TIPPING` only if earlier than an observed root event;
+same-frame/later events are omitted from additional findings. Missing times are
+retained as `UNORDERED`. If no root tip was observed, confirmed non-root events
+remain. Filtering occurs before selecting the highest retained peak per original
+print part, with deterministic time/ID tie breaks. Earlier events do not imply
+causation. Interface exits retain `SELF_WEIGHT_INTERFACE_EXIT`.
 
-`checker_summary` carries the bounded observation/contact blocks, protocol,
-original source/manifest hashes, and `result_ref` with `/metrics`.
-Contacts and trajectories remain in the report. This summary is counted in the
-existing feedback budget and survives the normal projection.
+Initial contact depth remains a nonblocking warning. Topology is independent;
+Standing PASS does not override required Topology failures or prove collision
+model correctness, manufacturability or structural continuity. A loose component
+that only translates/falls without exceeding the tilt threshold or triggering a
+declared interface exit is not detected as a failure by this protocol.
 
-Engineering receives current checker evidence; Coder receives saved feedback.
-Code Critic runs before the current round's physics: any available observation
-is explicitly previous-candidate evidence with its original source binding.
-Warnings introduce no new finding or repair permission. Topology failures,
-observed tipping and exits retain their existing repair routes.
+## Feedback and reporting
 
-## Evaluation interfaces and records
+Engineering, Coder and Code Critic receive the same bounded three-scalar summary
+and retained finding scalars through the existing feedback adapter. Component
+lists, contact arrays and trajectories remain in source-bound report files; the
+feedback budget is unchanged. Adding peak tilt to the shared domain whitelist
+also preserves the existing root finding's measured peak in `key_values`.
 
-Pure functions are in `benchmark/metrics/physical.py` (the repository uses
-`benchmark/`, not `benchmarks/`). They do not invoke a checker or modify reports.
+`classify_standing_record` requires the new protocol and complete component
+evidence for PASS, checks finite nonnegative peaks against the recorded actual
+configuration, and rejects contradictory flags/peaks. `COMPONENT_TIPPING` comes
+only from retained component findings. Root tipping and interface-exit reason
+counts keep their meanings. Terminal failures remain in the frozen denominator;
+pending work remains incomplete. Statistics never introduce a new repair finding.
 
-- `classify_standing_record(record, *, protocol_id)`
-- `summarize_standing(records, *, protocol_id)`
-- `raw_ivr(part_volumes, pair_intersections)`
-- `physical_table_row(record, *, protocol_id)`
-- `summarize_physical_methods(method_records, *, protocol_id)`
+New automatic reports consume `admission_record.connectivity`; historical
+connectivity-only outputs remain a separate path. Standing, connectivity, NSV24
+and N retain their own protocol/identity bindings. The existing required-checker
+publication and candidate acceptance rules are not relaxed.
 
-Records contain `case_id`, frozen boolean `applicable`, explicit state
-PENDING/RUNNING/TERMINAL, `protocol_id`, raw `checker`, generation status,
-source/asset identity, and available physical measurements. Source bindings
-must agree when present. A supplied checker without the matching protocol is
-rejected rather than interpreted under new rules.
+## Validation and subsequent experiments
 
-Complete Standing PASS maps to evaluation PASS. A completed failure, terminal
-generation failure, timeout, unsupported input, solver error or unavailable
-observation maps to evaluation FAIL, with its original observation retained.
-Failure reasons include GENERATION_FAILED, INVALID_INPUT, UNSUPPORTED_INPUT,
-SIMULATION_ERROR, TIMEOUT, OBSERVATION_UNAVAILABLE, TIPPING, INTERFACE_EXIT and
-UNKNOWN. Multiple reasons may coexist. Errors are not counted as observed
-tipping. Pending work is PENDING; a summary containing pending work is
-INCOMPLETE and does not publish a completed success rate.
+This change is verified with deterministic fake solver trajectories, report
+stubs and artificial CPU geometry only. Real MuJoCo, model calls, rendering,
+GPU experiments and benchmark remeasurement have not been executed for the new
+protocol. Earlier physical validation reports describe their historical protocol.
 
-An outer evaluation timeout does not erase a Standing observation already
-completed before a later rendering/printing measurement timeout. If Standing
-has not completed, the terminal record reports failure with the known reason.
-This statistical classification never becomes a new Agent finding.
-
-## Main table
-
-The current offline main table uses **Standing success rate, structural
-connectivity rate, NSV24 and N**. The full definitions, fixed-denominator rules,
-geometry adapters, configuration identities, input examples and exact NSV/N
-common-sample note are in [benchmark metrics](../benchmark/metrics/README.md).
-
-Raw IVR and its original evidence remain available for separate multipart
-analysis; single-part IVR N/A no longer filters any main-table metric. Existing
-`record.support` is not promoted into `support_evaluation`: the new
-`support_volume_min24_v1` protocol requires a complete offline 24-orientation
-S search. Missing geometry measurements stay null/unsuccessful as appropriate.
-
-Standing classification and the online final acceptance gate are unchanged.
-The new geometry interface does not run Standing or alter its body partition.
-New offline outputs must be written separately from historical records.
-
-## Validation state
-
-定向测试和相关回归已运行；已有雪人候选已在隔离副本中完成真实物理复测。
-具体测试范围、结果、支撑朝向协议变化及仍存在的参考网格错误见
-[验证报告](../reports/ivr_nsv_pose_validation_20261021.md)。
-未调用模型、重新生成源码或运行整批 benchmark。
-新协议输出的是规定仿真条件下的站立观察，不证明接触模型或实际制造完全正确。
+A future comparison must rerun Standing for all methods over the same frozen
+cases and assets under this protocol, writing independent outputs. Unchanged
+connectivity/NSV24/N may then be reused with matching identity. A SNAP3D-style
+fixed-ground assembly-retention experiment requires separate authorization,
+conditions and displacement/rotation definitions; this implementation does not
+claim to reproduce it or run a second simulation.

@@ -3,7 +3,7 @@ from copy import deepcopy
 import math
 
 
-STANDING_PROTOCOL = 'independent_contact_warning_v1'
+STANDING_PROTOCOL = 'material_component_standing_v1'
 _REASONS = {
     'GENERATED_SOURCE_EXECUTION_FAILED': 'GENERATION_FAILED',
     'GENERATION_FAILED': 'GENERATION_FAILED',
@@ -21,6 +21,7 @@ _REASONS = {
     'TIMEOUT': 'TIMEOUT',
     'OBSERVATION_UNAVAILABLE': 'OBSERVATION_UNAVAILABLE',
     'SELF_WEIGHT_TIPPING': 'TIPPING',
+    'SELF_WEIGHT_COMPONENT_TIPPING': 'COMPONENT_TIPPING',
     'SELF_WEIGHT_INTERFACE_EXIT': 'INTERFACE_EXIT',
 }
 
@@ -70,36 +71,50 @@ def classify_standing_record(record, *, protocol_id):
     if record.get('generation_status', '').upper() in {
             'FAIL', 'FAILED', 'ERROR', 'GENERATION_FAILED', 'TIMEOUT', 'API_INTERRUPTED'}:
         reasons.append('GENERATION_FAILED')
-    for row in [checker, *checker.get('violations', []), *checker.get('findings', [])]:
+    evidence = [(checker, False)]
+    evidence.extend((row, False) for row in checker.get('violations', []))
+    evidence.extend((row, True) for row in checker.get('findings', []))
+    for row, retained_finding in evidence:
         for key in ('code', 'rule_id', 'summary', 'reason'):
             text = row.get(key)
             if isinstance(text, str):
                 # Explicit producer prefixes only, not arbitrary prose inference.
                 code = text.split(':', 1)[0]
-                if code in _REASONS:
+                if code in _REASONS and (code != 'SELF_WEIGHT_COMPONENT_TIPPING'
+                        or retained_finding and key in {'code', 'rule_id'}):
                     reasons.append(_REASONS[code])
                 if code == 'ANALYSIS_UNAVAILABLE' and ':' in text:
                     inner = text.split(':', 1)[1].strip().split(':', 1)[0]
-                    if inner in _REASONS:
+                    if inner in _REASONS and inner != 'SELF_WEIGHT_COMPONENT_TIPPING':
                         reasons.append(_REASONS[inner])
     obs = observation or {}
+    threshold = checker.get('assumptions', {}).get('configuration', {}).get('tilt_threshold_deg')
+    component_flag = obs.get('observed_component_tipping')
+    component_peak = obs.get('max_component_tilt_deg')
+    if (type(component_flag) is bool and _number(component_peak) and _number(threshold)
+            and component_flag != (component_peak > threshold)):
+        raise ValueError('inconsistent component tipping flag and peak tilt')
     complete = (obs.get('status') in {'PASS', 'FAIL'}
         and type(obs.get('observed_tipping')) is bool
         and type(obs.get('observed_interface_exit')) is bool
         and all(_number(obs.get(k)) for k in ('peak_tilt_deg', 'final_tilt_deg'))
-        and _number(obs.get('duration_s'), positive=True))
-    if complete:
-        if obs['observed_tipping']:
-            reasons.append('TIPPING')
-        if obs['observed_interface_exit']:
-            reasons.append('INTERFACE_EXIT')
-    if checker.get('status') == 'PASS' and complete and obs['status'] == 'PASS' and not reasons:
+        and _number(obs.get('duration_s'), positive=True)
+        and obs.get('component_tilt_verified') is True
+        and type(component_flag) is bool
+        and _number(component_peak) and _number(threshold))
+    if obs.get('observed_tipping') is True:
+        reasons.append('TIPPING')
+    if obs.get('observed_interface_exit') is True:
+        reasons.append('INTERFACE_EXIT')
+    if (checker.get('status') == 'PASS' and complete and obs['status'] == 'PASS'
+            and component_flag is False and component_peak <= threshold and not reasons):
         out['evaluation_outcome'] = 'PASS'
     else:
         if not complete:
             reasons.append('OBSERVATION_UNAVAILABLE')
         if checker.get('status') == 'ERROR' and not any(r in reasons for r in (
-                'TIMEOUT', 'INVALID_INPUT', 'UNSUPPORTED_INPUT', 'SIMULATION_ERROR')):
+                'TIMEOUT', 'INVALID_INPUT', 'UNSUPPORTED_INPUT', 'SIMULATION_ERROR',
+                'TIPPING', 'COMPONENT_TIPPING', 'INTERFACE_EXIT')):
             reasons.append('UNKNOWN')
         out.update(evaluation_outcome='FAIL', reason_codes=list(dict.fromkeys(reasons or ['UNKNOWN'])))
     return out
