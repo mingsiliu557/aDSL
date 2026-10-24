@@ -263,7 +263,8 @@ def test_reporting_uses_all_cases_and_lists_metric_samples(tmp_path):
     for arm in ('official','ours'):
         folder=tmp_path/'jobs/one'/arm
         evaluation.write_json(folder/'job.json',{'generation':{'status':'COMPLETED'}})
-        evaluation.write_json(folder/'evaluation/result.json',{'physical_evaluation_record':record()})
+        evaluation.write_json(folder/'evaluation/result.json',{'case_id':'one', 'arm':arm, 'selected_source_sha256':'source',
+            'physical_evaluation_record':record()})
     result=build(tmp_path)
     assert result['physical']['status']=='INCOMPLETE'
     for row in result['physical']['table']:
