@@ -606,15 +606,32 @@ def simulate(xml,report,config,output, *, body_layout):
         root_part_id=report['root_id'],root_component_id=root_name,component_to_part=component_to_part,
         floor_geom_id=mujoco.mj_name2id(model,mujoco.mjtObj.mjOBJ_GEOM,'floor'),flex_part_ids=flex_parts)
     frames={};tabs={};cavities={};observation_errors=[]
+    object_observation_errors={}
+    def record_observation_error(*,reason,connection_id=None,component_id=None,detail=None) -> None:
+        kind,object_id=('interface',connection_id) if connection_id is not None else ('component',component_id)
+        key=(kind,object_id,reason)
+        if key in object_observation_errors:
+            object_observation_errors[key]['occurrences']+=1
+            return
+        row=dict(reason=reason,occurrences=1)
+        row['connection_id' if kind=='interface' else 'component_id']=object_id
+        if detail is not None: row['detail']=str(detail)[:240]
+        object_observation_errors[key]=row
+        observation_errors.append(row)
     for c in report['connections']:
         if body_layout['interfaces'][c['id']]['status'] != 'BOUND':
-            observation_errors.append(dict(connection_id=c['id'],reason='INTERFACE_COMPONENT_UNAVAILABLE'))
+            record_observation_error(connection_id=c['id'],reason='INTERFACE_COMPONENT_UNAVAILABLE')
             continue
-        frames[c['id']]=(mm_matrix(c['tab_frame'],report['mm_per_unit']),mm_matrix(c['slot_frame'],report['mm_per_unit']))
-        tabs[c['id']]=query_solids(TabSlot(**c['parameters']))[0]
-        p=c['parameters']
-        cavities[c['id']]=mf.Manifold.cube((p['width_mm']+2*p['fit_offset_mm'],
-            p['thickness_mm']+2*p['fit_offset_mm'],p['slot_depth_mm']),True).translate((0,0,p['slot_depth_mm']/2))
+        try:
+            interface_frames=(mm_matrix(c['tab_frame'],report['mm_per_unit']),mm_matrix(c['slot_frame'],report['mm_per_unit']))
+            interface_tab=query_solids(TabSlot(**c['parameters']))[0]
+            p=c['parameters']
+            interface_cavity=mf.Manifold.cube((p['width_mm']+2*p['fit_offset_mm'],
+                p['thickness_mm']+2*p['fit_offset_mm'],p['slot_depth_mm']),True).translate((0,0,p['slot_depth_mm']/2))
+        except (ValueError,RuntimeError,np.linalg.LinAlgError) as error:
+            record_observation_error(connection_id=c['id'],reason='INTERFACE_OBSERVATION_UNAVAILABLE',detail=error)
+            continue
+        frames[c['id']]=interface_frames;tabs[c['id']]=interface_tab;cavities[c['id']]=interface_cavity
     def pose(n):
         m=np.eye(4);m[:3,:3]=data.xmat[ids[n]].reshape(3,3);m[:3,3]=data.xpos[ids[n]]*1000;return m
     measurements={n:dict(component_id=n,part_id=component_to_part[n],peak_tilt_deg=None,
@@ -642,7 +659,7 @@ def simulate(xml,report,config,output, *, body_layout):
         for name,body_id in ids.items():
             current=data.xmat[body_id].reshape(3,3)
             if not np.isfinite(current).all() or not np.isfinite(initial[name]).all():
-                observation_errors.append(dict(component_id=name,reason='COMPONENT_ROTATION_UNAVAILABLE'))
+                record_observation_error(component_id=name,reason='COMPONENT_ROTATION_UNAVAILABLE')
                 simulation_complete=False;sample[name]=None;continue
             tilt=math.degrees(math.acos(np.clip((current@initial[name].T)[2,2],-1,1)))
             sample[name]=tilt;entry=measurements[name]
@@ -669,8 +686,8 @@ def simulate(xml,report,config,output, *, body_layout):
                     relative_angle_deg=math.degrees(math.acos(np.clip((np.trace(rel[:3,:3])-1)/2,-1,1))),
                     insertion_volume_mm3=occupied,volume_uncertainty_mm3=bound,
                     effective_insertion_interval_mm=interval,slot_frame_world_mm=(pose(binding['slot_component_id'])@sf).tolist()))
-            except (ValueError, np.linalg.LinAlgError) as error:
-                observation_errors.append(dict(connection_id=cid,reason='INTERFACE_OBSERVATION_UNAVAILABLE',detail=str(error)[:240]))
+            except (ValueError,RuntimeError,np.linalg.LinAlgError) as error:
+                record_observation_error(connection_id=cid,reason='INTERFACE_OBSERVATION_UNAVAILABLE',detail=error)
                 joints.append(dict(connection_id=cid,status='UNAVAILABLE',exited=None))
         linear=max((float(np.linalg.norm(data.qvel[a['dof_address']:a['dof_address']+3])) for a in addresses.values()),default=0.)
         angular=max((float(np.linalg.norm(data.qvel[a['dof_address']+3:a['dof_address']+6])) for a in addresses.values()),default=0.)

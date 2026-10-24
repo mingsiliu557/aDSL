@@ -197,8 +197,9 @@ def test_interface_exit_fallback(exit_time, ranked):
     json.dumps(result, allow_nan=False)
 
 
-def _material_trajectory(tmp_path, monkeypatch, angles, *, fail_after=None, time_bias=0., reordered_joints=False):
-    """A fake MuJoCo driver: no solver, geometry execution or GPU work."""
+def _material_trajectory(tmp_path, monkeypatch, angles, *, fail_after=None, time_bias=0., reordered_joints=False,
+                         connections=(), unbound=(), update_step=None):
+    """A fake MuJoCo driver; optional interface probes use small CPU geometry."""
     from adsl.core import assembly_topology  # Load before substituting the solver.
     model,data=fake_model_data()
     data.ncon=1;data.contact=[contact((0,1))]
@@ -214,15 +215,20 @@ def _material_trajectory(tmp_path, monkeypatch, angles, *, fail_after=None, time
             raise RuntimeError('deliberate solver failure after observed event')
         data.time=calls['step']*.02+time_bias
         for i,value in enumerate(angles[calls['step']],1): data.xmat[i]=rotation(value).ravel()
+        if update_step is not None: update_step(calls['step'],data)
     fake=SimpleNamespace(MjModel=SimpleNamespace(from_xml_string=lambda _:model),
         MjData=lambda _:data,mj_forward=lambda *a:None,mj_step=step,FatalError=RuntimeError,
         mjtObj=SimpleNamespace(mjOBJ_BODY='body',mjOBJ_GEOM='geom'),
         mj_name2id=lambda _m,kind,name:0 if kind=='geom' else {'body':1,'head':2}[name],
         mj_id2name=lambda _m,_kind,body_id:{1:'body',2:'head'}[body_id])
     monkeypatch.setitem(sys.modules,'mujoco',fake)
-    report=dict(root_id='whole',parts=[dict(id='whole')],connections=[],mm_per_unit=1.)
-    layout=dict(bodies={n:dict(part_id='whole') for n in ('body','head')},
-        part_to_components={'whole':['body','head']},root_part_id='whole',root_component_id='body',interfaces={},D_mm=1.)
+    groups={n:[n] for n in ('body','head')} if connections else {'whole':['body','head']}
+    root_part='body' if connections else 'whole'
+    report=dict(root_id=root_part,parts=[dict(id=n) for n in groups],connections=list(connections),mm_per_unit=1.)
+    layout=dict(bodies={n:dict(part_id=p) for p,names in groups.items() for n in names},
+        part_to_components=groups,root_part_id=root_part,root_component_id='body',
+        interfaces={c['id']:dict(status='UNAVAILABLE' if c['id'] in unbound else 'BOUND',
+            tab_component_id='head',slot_component_id='body') for c in connections},D_mm=1.)
     config=dict(duration_seconds=.02*(len(angles)-1),tilt_threshold_deg=25.,
         settle_window_seconds=.02,settle_linear_m_s=.001,settle_angular_rad_s=.001)
     result,trajectory=standing.simulate('<fake/>',report,config,tmp_path,body_layout=layout)
@@ -318,3 +324,183 @@ def test_material_joint_addresses_do_not_follow_body_iteration_order(tmp_path,mo
     assert layout['bodies']['head']['dof_address']==0
     assert result['peak_tilt_deg']==0.
     assert result['observed_component_tipping'] is True
+
+
+
+def _observation_connection(connection_id='joint'):
+    return dict(id=connection_id,tab_part='head',slot_part='body',
+        tab_frame=np.eye(4).tolist(),slot_frame=np.eye(4).tolist(),
+        parameters=dict(width_mm=1.,thickness_mm=1.,insertion_mm=1.,slot_depth_mm=2.,fit_offset_mm=.1))
+
+
+def _consume_fake_observation(result,trajectory,layout,connections,tmp_path,monkeypatch):
+    """Use the actual verdict consumer for measurements from the fake solver loop."""
+    from test_assembly_physics import STANDING, MATERIAL
+    report=dict(root_id=layout['root_part_id'],mm_per_unit=1.,
+        parts=[dict(id=p) for p in layout['part_to_components']],connections=connections)
+    meshes={p:object() for p in layout['part_to_components']}
+    monkeypatch.setattr(standing,'load_parts',lambda args:(report,
+        [dict(part_id=p,status='PASS') for p in meshes],meshes))
+    monkeypatch.setattr(standing,'_validate_physical_inputs',lambda *a:None)
+    monkeypatch.setattr(standing,'_prepare_simulation_bodies',lambda *a:layout)
+    monkeypatch.setattr(standing,'flex_contact_settings',lambda *a:None)
+    monkeypatch.setattr(standing,'xml_model',lambda *a,**kw:'<fake/>')
+    monkeypatch.setattr(standing,'simulate',lambda *a,**kw:(result,trajectory))
+    monkeypatch.setattr(standing,'save_frames',lambda *a,**kw:[])
+    monkeypatch.setattr(standing.importlib.metadata,'version',lambda name:'fake-observation-test')
+    config=dict(STANDING,collision_backend='rigid_flex',
+        duration_seconds=result['observation_duration_seconds'],settle_window_seconds=.02)
+    return standing.analyze(SimpleNamespace(output=tmp_path),{'standing':config,'material':MATERIAL})
+
+
+@pytest.mark.parametrize('error_type',[ValueError,RuntimeError,np.linalg.LinAlgError])
+@pytest.mark.parametrize('tipped',[False,True])
+def test_interface_initial_query_failure_keeps_other_observations(tmp_path,monkeypatch,error_type,tipped):
+    from adsl.core import assembly_topology
+    original=assembly_topology.query_solids
+    calls=[]
+    def query(parameters):
+        calls.append(parameters)
+        if len(calls)==1: raise error_type('first interface initialization unavailable')
+        return original(parameters)
+    monkeypatch.setattr(assembly_topology,'query_solids',query)
+    connections=[_observation_connection('broken'),_observation_connection('working')]
+    result,trajectory,layout=_material_trajectory(tmp_path,monkeypatch,
+        [(0,0),(0,90 if tipped else 0),(0,0)],connections=connections)
+    assert len(calls)==2
+    assert len(trajectory)==3
+    assert result['component_tilt_verified'] is True
+    assert result['interface_retention_verified'] is False
+    assert result['observation_errors']==[dict(connection_id='broken',
+        reason='INTERFACE_OBSERVATION_UNAVAILABLE',occurrences=1,
+        detail='first interface initialization unavailable')]
+    for row in trajectory:
+        assert row['interfaces'][0]==dict(connection_id='broken',status='UNAVAILABLE',exited=None)
+        assert row['interfaces'][1]['status']=='PASS'
+        assert row['component_tilts']['body']==0.
+    checked=_consume_fake_observation(result,trajectory,layout,connections,tmp_path,monkeypatch)
+    if tipped:
+        assert checked.status=='FAIL'
+        assert 'SELF_WEIGHT_COMPONENT_TIPPING' in [f.rule_id for f in checked.findings]
+    else:
+        assert checked.status=='INDETERMINATE'
+        assert checked.findings==[]
+
+
+def test_interface_initial_cavity_failure_does_not_register_partial_query(tmp_path,monkeypatch):
+    from adsl.core import assembly_topology
+    # simulate() imports this local factory; the topology query helper retains
+    # its real module, so failure occurs after frames and the tab were built.
+    actual=assembly_topology.mf.Manifold
+    calls=[]
+    def cube(*args,**kwargs):
+        calls.append(args)
+        if len(calls)==1: raise RuntimeError('cavity construction unavailable')
+        return actual.cube(*args,**kwargs)
+    monkeypatch.setitem(sys.modules,'manifold3d',SimpleNamespace(**(vars(assembly_topology.mf) |
+        {'Manifold':SimpleNamespace(cube=cube)})))
+    connections=[_observation_connection('broken'),_observation_connection('working')]
+    result,trajectory,_=_material_trajectory(tmp_path,monkeypatch,[(0,0),(0,0)],connections=connections)
+    assert len(calls)==2
+    assert len(trajectory)==2
+    assert result['observation_errors']==[dict(connection_id='broken',
+        reason='INTERFACE_OBSERVATION_UNAVAILABLE',occurrences=1,detail='cavity construction unavailable')]
+    assert all(row['interfaces'][0]['status']=='UNAVAILABLE' for row in trajectory)
+    assert all(row['interfaces'][1]['status']=='PASS' for row in trajectory)
+    assert result['interface_retention_verified'] is False
+
+
+def test_mid_observation_error_preserves_known_events_and_recovery(tmp_path,monkeypatch):
+    from adsl.core import assembly_topology
+    original=assembly_topology.solid_mesh
+    state={'step':0}
+    def update(step,data):
+        state['step']=step
+        if step==1: data.xpos[2,2]+=.1  # A real declared query exits before the missing sample.
+        if step==3: data.xpos[2,2]-=.1
+    def solid_mesh(value):
+        if state['step']==2: raise RuntimeError('mid-observation query unavailable')
+        return original(value)
+    monkeypatch.setattr(assembly_topology,'solid_mesh',solid_mesh)
+    connections=[_observation_connection()]
+    result,trajectory,layout=_material_trajectory(tmp_path,monkeypatch,
+        [(0,0),(0,90),(0,0),(0,0)],connections=connections,update_step=update)
+    assert len(trajectory)==4
+    assert result['exits']=={'joint':.02}
+    assert result['max_component_tilt_deg']==pytest.approx(90.)
+    assert trajectory[1]['interfaces'][0]['exited'] is True
+    assert trajectory[2]['interfaces'][0]['status']=='UNAVAILABLE'
+    assert trajectory[3]['interfaces'][0]['status']=='PASS'
+    assert trajectory[3]['interfaces'][0]['exited'] is False
+    assert result['final_exited_interfaces']==[]
+    assert result['interface_retention_verified'] is False
+    assert result['observation_errors']==[dict(connection_id='joint',
+        reason='INTERFACE_OBSERVATION_UNAVAILABLE',occurrences=1,detail='mid-observation query unavailable')]
+    stored=json.loads((tmp_path/'trajectory.json').read_text())
+    assert stored==trajectory
+    checked=_consume_fake_observation(result,trajectory,layout,connections,tmp_path,monkeypatch)
+    assert checked.status=='FAIL'
+    assert {f.rule_id for f in checked.findings}=={'SELF_WEIGHT_COMPONENT_TIPPING','SELF_WEIGHT_INTERFACE_EXIT'}
+
+
+@pytest.mark.parametrize('error_type',[ValueError,RuntimeError,np.linalg.LinAlgError])
+def test_repeated_interface_errors_are_counted_and_never_verify_recovered_observation(tmp_path,monkeypatch,error_type):
+    from adsl.core import assembly_topology
+    original=assembly_topology.solid_mesh
+    state={'step':0,'errors':0}
+    first='first detail '+('x'*300)
+    def update(step,data): state['step']=step
+    def solid_mesh(value):
+        if state['step'] in (1,2):
+            state['errors']+=1
+            raise error_type(first if state['errors']==1 else 'later detail must not replace first')
+        return original(value)
+    monkeypatch.setattr(assembly_topology,'solid_mesh',solid_mesh)
+    connections=[_observation_connection()]
+    result,trajectory,layout=_material_trajectory(tmp_path,monkeypatch,
+        [(0,0)]*4,connections=connections,update_step=update)
+    assert state['errors']==2
+    assert [row['interfaces'][0]['status'] for row in trajectory]==['PASS','UNAVAILABLE','UNAVAILABLE','PASS']
+    assert result['observation_errors']==[dict(connection_id='joint',
+        reason='INTERFACE_OBSERVATION_UNAVAILABLE',occurrences=2,detail=first[:240])]
+    assert result['interface_retention_verified'] is False
+    assert result['component_tilt_verified'] is True
+    assert result['final_interfaces'][0]['status']=='PASS'
+    checked=_consume_fake_observation(result,trajectory,layout,connections,tmp_path,monkeypatch)
+    assert checked.status=='INDETERMINATE'
+    assert checked.findings==[]
+
+
+def test_repeated_component_rotation_unavailable_is_counted_and_stays_incomplete(tmp_path,monkeypatch):
+    invalid=np.full((3,3),np.nan)
+    result,trajectory,_=_material_trajectory(tmp_path,monkeypatch,
+        [(0,0),(0,invalid),(0,invalid),(0,0)])
+    assert result['observation_errors']==[dict(component_id='head',
+        reason='COMPONENT_ROTATION_UNAVAILABLE',occurrences=2)]
+    assert [row['component_tilts']['head'] for row in trajectory]==[0.,None,None,0.]
+    assert result['component_tilt_verified'] is False
+    assert result['observed_component_tipping'] is None
+    assert result['interface_retention_verified'] is False
+    assert result['component_tilts'][1]['final_tilt_deg']==0.
+
+
+def test_unbound_interface_and_same_named_component_have_separate_error_counts(tmp_path,monkeypatch):
+    invalid=np.full((3,3),np.nan)
+    result,trajectory,_=_material_trajectory(tmp_path,monkeypatch,
+        [(0,0),(0,invalid),(0,invalid)],connections=[_observation_connection('head')],unbound=('head',))
+    assert result['observation_errors']==[
+        dict(connection_id='head',reason='INTERFACE_COMPONENT_UNAVAILABLE',occurrences=1),
+        dict(component_id='head',reason='COMPONENT_ROTATION_UNAVAILABLE',occurrences=2)]
+    assert all(row['interfaces'][0]['status']=='UNAVAILABLE' for row in trajectory)
+    assert result['interface_retention_verified'] is False
+    assert result['component_tilt_verified'] is False
+
+
+@pytest.mark.parametrize('stage',['initial','frame'])
+@pytest.mark.parametrize('error_type',[TypeError,KeyError])
+def test_interface_query_program_errors_propagate(tmp_path,monkeypatch,stage,error_type):
+    from adsl.core import assembly_topology
+    def error(*args): raise error_type('deliberate program error')
+    monkeypatch.setattr(assembly_topology,'query_solids' if stage=='initial' else 'solid_mesh',error)
+    with pytest.raises(error_type,match='deliberate program error'):
+        _material_trajectory(tmp_path,monkeypatch,[(0,0),(0,0)],connections=[_observation_connection()])
