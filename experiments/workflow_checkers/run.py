@@ -170,7 +170,7 @@ def enrich_result(
                 name="peak_tilt_deg",
                 value=violation.get("peak_tilt_deg"),
                 unit="deg",
-                threshold=25.0,
+                threshold=20.0,
                 comparator="le",
             )
             region = RegionEvidence(
@@ -183,7 +183,7 @@ def enrich_result(
                 name="peak_tilt_deg",
                 value=violation.get("peak_tilt_deg"),
                 unit="deg",
-                threshold=25.0,
+                threshold=20.0,
                 comparator="le",
             )
             fraction = violation.get("height_fraction")
@@ -541,7 +541,7 @@ def standing_result(raw: dict[str, Any], raw_path: Path) -> CheckerResult:
     state_metrics = {
         str(state["state"]): {
             "tipped": bool(state["mujoco"]["settle"].get("tipped", False)),
-            "topple_threshold_deg": state["mujoco"].get("topple_threshold_deg", 25.0),
+            "topple_threshold_deg": state["mujoco"].get("topple_threshold_deg", 20.0),
             "peak_tilt_deg": state["mujoco"]["settle"].get("peak_tilt_deg"),
             "final_tilt_deg": state["mujoco"]["settle"].get("final_tilt_deg"),
             "minimum_force_over_weight": state["mujoco"]
@@ -552,11 +552,11 @@ def standing_result(raw: dict[str, Any], raw_path: Path) -> CheckerResult:
     }
     violations = [
         {
-            "code": "NATURAL_SETTLE_TILT_GT_25_DEG",
+            "code": "NATURAL_SETTLE_TILT_GT_20_DEG",
             "state": state["state"],
             "peak_tilt_deg": state["mujoco"]["settle"].get("peak_tilt_deg"),
             "final_tilt_deg": state["mujoco"]["settle"].get("final_tilt_deg"),
-            "message": "MuJoCo natural settling exceeded the fixed 25 degree topple threshold.",
+            "message": "MuJoCo natural settling exceeded the fixed 20 degree topple threshold.",
         }
         for state in tipped
     ]
@@ -566,12 +566,12 @@ def standing_result(raw: dict[str, Any], raw_path: Path) -> CheckerResult:
         summary=(
             f"{len(tipped)} of {len(states)} active states tipped during natural settling"
             if tipped
-            else f"All {len(states)} active states stayed within 25 degrees during natural settling"
+            else f"All {len(states)} active states stayed within 20 degrees during natural settling"
         ),
         metrics={"states": state_metrics},
         violations=violations,
         assumptions={
-            "criterion": "natural-settle tilt strictly greater than 25 degrees is a fall",
+            "criterion": "natural-settle tilt strictly greater than 20 degrees is a fall",
             "physics": "MuJoCo rigid-body convex collision proxy",
         },
         artifacts={"raw_result": str(raw_path)},
@@ -652,13 +652,13 @@ def progressive_result(raw: dict[str, Any], raw_path: Path) -> CheckerResult:
     violations: list[dict[str, Any]] = []
     if tipped:
         violations.append({
-            "code": "FIRST_PARTIAL_TILT_GT_25_DEG",
-            "message": "The earliest failing partial build exceeded the fixed 25 degree threshold.",
+            "code": "FIRST_PARTIAL_TILT_GT_20_DEG",
+            "message": "The earliest failing partial build exceeded the fixed 20 degree threshold.",
             **evidence(tipped[0]),
         })
         if worst is not None and worst is not tipped[0]:
             violations.append({
-                "code": "WORST_PARTIAL_TILT_GT_25_DEG",
+                "code": "WORST_PARTIAL_TILT_GT_20_DEG",
                 "message": "This build height produced the largest measured tilt.",
                 **evidence(worst),
             })
@@ -667,9 +667,9 @@ def progressive_result(raw: dict[str, Any], raw_path: Path) -> CheckerResult:
         checker="progressive",
         status="FAIL" if tipped else "PASS",
         summary=(
-            f"{len(tipped)} of {len(samples)} sampled partial builds exceeded 25 degrees"
+            f"{len(tipped)} of {len(samples)} sampled partial builds exceeded 20 degrees"
             if tipped else
-            f"All {len(samples)} sampled partial builds stayed within 25 degrees"
+            f"All {len(samples)} sampled partial builds stayed within 20 degrees"
         ),
         metrics={
             "sample_count": len(samples),
@@ -683,7 +683,7 @@ def progressive_result(raw: dict[str, Any], raw_path: Path) -> CheckerResult:
         },
         violations=violations,
         assumptions={
-            "criterion": "partial-build natural-settle peak tilt strictly greater than 25 degrees is a fall",
+            "criterion": "partial-build natural-settle peak tilt strictly greater than 20 degrees is a fall",
             "height_step_fraction": raw.get("checker_assumptions", {}).get("height_step_fraction"),
             "event_height_policy": "geometry birth and completion heights are added to uniform delta-h samples",
             "build_orientation": "authored URDF Z-up",

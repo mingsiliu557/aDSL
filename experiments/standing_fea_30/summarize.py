@@ -223,7 +223,7 @@ FEA `INDETERMINATE` is retained separately and is never relabeled as structural 
 - Sample: {len(manifest['cases'])} unique objects, five categories, two independently generated arms.
 - Same code/model/render settings and four-round cap; only Ours enables topology + standing + FEA checking and source repair.
 - The model API exposes no formal seed, so generation is not bitwise reproducible.
-- Standing fails only when natural-settle tilt is strictly greater than 25 degrees.
+- Standing fails only when natural-settle tilt is strictly greater than 20 degrees.
 - FEA is linear static/eigenvalue-buckling PLA screening defined by the category config.
 - This subset is not an exact reproduction of the paper's undisclosed 200 prompt IDs.
 - Provenance: manifest, frozen batch config, invocation log, per-arm state, source, logs, and checker artifacts.

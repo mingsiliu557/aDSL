@@ -65,7 +65,7 @@ def markdown(payload: dict[str, Any]) -> str:
         ),
         (
             f"- 已生成 aDSL cases：{summary['generated_case_count']}；自然沉降最大倾角严格 "
-            f">25° 的 case：{summary['generated_natural_falls']}。"
+            f">20° 的 case：{summary['generated_natural_falls']}。"
         ),
         f"- 几何/综合 verdict：{summary['generated_verdict_counts']}。",
         f"- Reserve trigger：{summary['reserve_triggered']}。",
@@ -82,7 +82,7 @@ def markdown(payload: dict[str, Any]) -> str:
         "",
         "## aDSL 初始姿态结果",
         "",
-        "| Case | Source | Group | Verdict | Natural >25° | Settle peak | Impulse dirs >25° | Min F/W |",
+        "| Case | Source | Group | Verdict | Natural >20° | Settle peak | Impulse dirs >20° | Min F/W |",
         "|---|---|---|---|---|---:|---:|---:|",
     ]
     for row in payload["generated_cases"]:
@@ -98,7 +98,7 @@ def markdown(payload: dict[str, Any]) -> str:
             "",
             "## Control 结果",
             "",
-            "| Control | Verdict | Natural >25° | Settle peak |",
+            "| Control | Verdict | Natural >20° | Settle peak |",
             "|---|---|---|---:|",
         ]
     )

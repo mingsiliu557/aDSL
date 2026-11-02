@@ -99,6 +99,6 @@ def test_mujoco_builder_drops_two_face_numerical_sliver(tmp_path):
     assert proxy["mesh_component_count"] == 1
 
 
-def test_user_topple_rule_is_strictly_greater_than_25_degrees():
-    assert MODULE.exceeds_topple_threshold(25.0) is False
-    assert MODULE.exceeds_topple_threshold(np.nextafter(25.0, np.inf)) is True
+def test_user_topple_rule_is_strictly_greater_than_20_degrees():
+    assert MODULE.exceeds_topple_threshold(20.0) is False
+    assert MODULE.exceeds_topple_threshold(np.nextafter(20.0, np.inf)) is True

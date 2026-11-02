@@ -28,7 +28,7 @@ import trimesh
 
 
 G = 9.81
-TOPPLE_TILT_THRESHOLD_DEG = 25.0
+TOPPLE_TILT_THRESHOLD_DEG = 20.0
 SETTLE_DURATION_SECONDS = 5.0
 IMPULSE_OBSERVATION_SECONDS = 5.0
 MOVABLE_JOINT_TYPES = {"continuous", "prismatic", "revolute"}
@@ -624,7 +624,7 @@ def build_mujoco_xml(
 
 
 def exceeds_topple_threshold(angle_deg: float) -> bool:
-    """The user-defined fall rule is strictly greater than 25 degrees."""
+    """The user-defined fall rule is strictly greater than 20 degrees."""
     return bool(angle_deg > TOPPLE_TILT_THRESHOLD_DEG)
 
 def body_tilt_deg(data: Any, body_id: int) -> float:
@@ -862,12 +862,12 @@ def report_markdown(payload: dict[str, Any]) -> str:
         f"- Generated (UTC): {payload['generated_at_utc']}",
         f"- Input root: `{payload['input_root']}`",
         f"- MuJoCo coverage: {physics_covered}/{len(active_states)} non-excluded states",
-        f"- Free-settle falls (>25°): {natural_fall_count}/{len(active_states)} non-excluded states",
+        f"- Free-settle falls (>20°): {natural_fall_count}/{len(active_states)} non-excluded states",
         "",
         "## 结论边界",
         "",
         "本报告是均匀密度假设下的几何预筛与 MuJoCo 刚体代理实验，不是工程认证。原始 URDF 没有质量、密度和惯性；未建模材料分布、装配间隙、柔性、地面不平、制造误差或锚固。`STABLE_CANDIDATE` 仅表示在这些假设下未发现致命站立问题。",
-        "`Verdict` 是支撑区、质心与 MuJoCo 的综合结构筛查；是否在仿真中实际倒下单独看 `Natural fall >25°`，两者不能混写。",
+        "`Verdict` 是支撑区、质心与 MuJoCo 的综合结构筛查；是否在仿真中实际倒下单独看 `Natural fall >20°`，两者不能混写。",
         "",
         "## 方法与规则",
         "",
@@ -877,9 +877,9 @@ def report_markdown(payload: dict[str, Any]) -> str:
         "- 分析对象：稳定性计算采用 URDF collision geometry；`scene.glb` 仅冻结并记录哈希。碰撞代理与视觉网格不同的 case，结论只适用于代理。",
         "- 裕度：质心投影到支撑凸包边界的带符号最短距离；正数在内、负数在外。归一化裕度除以模型水平包围盒对角线。",
         "- 倾倒角：`atan(max(0, margin) / COM_height)`；16 个水平角度另算静态临界加速度。",
-        "- MuJoCo：密度 1000 kg/m³、摩擦系数 2.0；自由沉降和小冲量各观察 5 秒，并进行 16 向水平力阶梯；任一时刻最大倾斜角严格大于 25° 即记为倒下。primitive collision 保留；每个有体积的 mesh 连通分量由 MuJoCo 凸包碰撞代理；少于 4 顶点或共面的零体积碎片被丢弃并计数。",
+        "- MuJoCo：密度 1000 kg/m³、摩擦系数 2.0；自由沉降和小冲量各观察 5 秒，并进行 16 向水平力阶梯；任一时刻最大倾斜角严格大于 20° 即记为倒下。primitive collision 保留；每个有体积的 mesh 连通分量由 MuJoCo 凸包碰撞代理；少于 4 顶点或共面的零体积碎片被丢弃并计数。",
         "- 判定：退化支撑或两种质心均在外→`UNSTABLE`；质量模型冲突/实体质心不可得/纯 mesh 接触→`INDETERMINATE`；归一化裕度 <1% 或 ≤0.1 倍自重力倾倒→`MARGINAL`。",
-        "- 是否倒下：只采用用户指定规则——5 秒自由沉降期间最大倾斜角严格大于 25°；恰好 25° 不算倒下。水平力结果单独报告达到 >25° 的最小 F/W。",
+        "- 是否倒下：只采用用户指定规则——5 秒自由沉降期间最大倾斜角严格大于 20°；恰好 20° 不算倒下。水平力结果单独报告达到 >20° 的最小 F/W。",
         "",
         "## 工具依据",
         "",
@@ -888,7 +888,7 @@ def report_markdown(payload: dict[str, Any]) -> str:
         "",
         "## 初始姿态汇总",
         "",
-        "| Case | Verdict | Confidence | Support area | Solid margin | Shell margin | Geometric tip angle | Natural fall >25° | Settle max tilt | Min F/W to >25° |",
+        "| Case | Verdict | Confidence | Support area | Solid margin | Shell margin | Geometric tip angle | Natural fall >20° | Settle max tilt | Min F/W to >20° |",
         "|---|---|---:|---:|---:|---:|---:|---|---:|---:|",
     ]
     for case in payload["cases"]:
@@ -950,7 +950,7 @@ def report_markdown(payload: dict[str, Any]) -> str:
             )
             if physics.get("available"):
                 lines.append(
-                    f"- MuJoCo: natural fall (>25°)={physics['settle']['tipped']}, settle max tilt={fmt(physics['settle']['peak_tilt_deg'], 2)}°, settle final tilt={fmt(physics['settle']['final_tilt_deg'], 2)}°, contacts={physics['settle']['contact_count_final']}, min observed F/W={fmt(physics['force_probe']['minimum_observed_force_over_weight'], 2)}, impulse tipped directions={physics['impulse_probe']['tipped_direction_count']}/16, dropped degenerate mesh fragments={state.get('mujoco_proxy', {}).get('dropped_degenerate_mesh_component_count', 0)}."
+                    f"- MuJoCo: natural fall (>20°)={physics['settle']['tipped']}, settle max tilt={fmt(physics['settle']['peak_tilt_deg'], 2)}°, settle final tilt={fmt(physics['settle']['final_tilt_deg'], 2)}°, contacts={physics['settle']['contact_count_final']}, min observed F/W={fmt(physics['force_probe']['minimum_observed_force_over_weight'], 2)}, impulse tipped directions={physics['impulse_probe']['tipped_direction_count']}/16, dropped degenerate mesh fragments={state.get('mujoco_proxy', {}).get('dropped_degenerate_mesh_component_count', 0)}."
                 )
             elif physics:
                 lines.append(f"- MuJoCo failed: `{physics.get('error')}`.")
@@ -1086,7 +1086,7 @@ def main() -> int:
             "ground": "rigid, flat, horizontal",
             "anchoring": "none",
             "physics_enabled": args.physics == "on",
-            "topple_rule": "maximum tilt strictly greater than 25 degrees",
+            "topple_rule": "maximum tilt strictly greater than 20 degrees",
             "topple_threshold_deg": TOPPLE_TILT_THRESHOLD_DEG,
             "settle_duration_s": SETTLE_DURATION_SECONDS,
             "impulse_observation_duration_s": IMPULSE_OBSERVATION_SECONDS,

@@ -121,7 +121,7 @@ or require re-simulation. Task applicability and GT diagnostics are counted sepa
 
 Standing: single connected material union as an overall free rigid body, density
 1240 kg/m³, gravity -9.81 m/s², existing rigid_flex surface contacts, 5 s, dt .002 s,
-friction [.5,.005,.0001], 25 degree tipping threshold. The current implementation
+friction [.5,.005,.0001], 20 degree tipping threshold. The current implementation
 checks sampled peak tilt throughout the observation; settling is diagnostic only.
 This measures overall standing, not connection retention. Faults are unknown,
 not physical FAIL. Pose uncertainty is recorded for manual confirmation.
