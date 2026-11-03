@@ -398,3 +398,104 @@ def test_material_components_compatibility_wrapper_delegates(monkeypatch):
     monkeypatch.setattr(assembly_topology, 'material_components', shared)
     assert g._material_components(source) is expected
     assert calls == [source]
+
+
+@pytest.mark.parametrize('competing_owner', [False, True])
+def test_material_components_skips_self_difference_but_checks_other_owners(monkeypatch, competing_owner):
+    """Native Boolean noise in P-P is irrelevant; P-Q still guards ambiguity."""
+    from types import SimpleNamespace
+    import manifold3d as mf
+    from adsl.core import assembly_topology as t
+    calls = []
+    class Solid:
+        def __init__(self, name, volume=1., shells=None, empty=False):
+            self.name, self.v, self.shells, self.empty = name, volume, shells, empty
+        def status(self): return mf.Error.NoError
+        def volume(self): return self.v
+        def is_empty(self): return self.empty
+        def bounding_box(self): return (0.,0.,0.,1.,1.,1.)
+        def decompose(self): return self.shells if self.shells is not None else [self]
+        def __sub__(self, other):
+            calls.append((self.name, other.name))
+            assert self is not other, 'Identity subtraction must not query the native backend'
+            if self.name == 'parent' and other.name == 'outer':
+                return Solid('competing_residual', empty=False)
+            if self.name == 'parent' and other.name == 'cavity':
+                return Solid('material')
+            return Solid('empty', empty=True)
+    parent, negative, outer = Solid('parent'), Solid('negative', -0.1), Solid('outer', 2.)
+    source = Solid('source', shells=[parent, negative] + ([outer] if competing_owner else []))
+    monkeypatch.setattr(t, 'solid_mesh', lambda shell: SimpleNamespace(invert=lambda: None))
+    monkeypatch.setattr(t, 'mesh_solid', lambda mesh: Solid('cavity', .1))
+    monkeypatch.setattr(mf, 'Manifold', SimpleNamespace(batch_boolean=lambda rows, op: Solid('reconstructed')))
+    if competing_owner:
+        with pytest.raises(ValueError, match='ambiguous material cavity ownership'):
+            t.material_components(source)
+        assert ('parent','outer') in calls
+    else:
+        assert len(t.material_components(source)) == 1
+    assert ('parent','parent') not in calls
+
+
+def test_single_material_island_returns_exact_original_with_all_cavities():
+    from adsl.core.assembly_topology import material_components, mesh_solid
+    outer = mesh_solid(box(size=(10,10,10)))
+    a = mesh_solid(box((-2,0,0), size=(1,2,3)))
+    b = mesh_solid(box((2,0,0), size=(2,1,1)))
+    solid = outer-a-b
+    before = solid.to_mesh64()
+    result = material_components(solid)
+    assert len(result) == 1 and result[0] is solid
+    assert result[0].volume() == pytest.approx(992.)
+    assert np.array_equal(result[0].to_mesh64().vert_properties,before.vert_properties)
+    assert np.array_equal(result[0].to_mesh64().tri_verts,before.tri_verts)
+    # Probe strictly inside the cavities, excluding their shared boundary.
+    assert (result[0] ^ mesh_solid(box((-2,0,0), size=(.5,1,1.5)))).is_empty()
+    assert (result[0] ^ mesh_solid(box((2,0,0), size=(1,.5,.5)))).is_empty()
+
+
+def test_single_positive_boundary_does_not_skip_cavity_containment(monkeypatch):
+    from types import SimpleNamespace
+    import manifold3d as mf
+    from adsl.core import assembly_topology as t
+    class Solid:
+        def __init__(self,volume,shells=None):self.v,self.shells=volume,shells
+        def status(self):return mf.Error.NoError
+        def volume(self):return self.v
+        def decompose(self):return self.shells
+        def __sub__(self,other):return SimpleNamespace(status=lambda:mf.Error.NoError,is_empty=lambda:False)
+    source=Solid(1.,[Solid(2.),Solid(-1.)])
+    monkeypatch.setattr(t,'solid_mesh',lambda s:SimpleNamespace(invert=lambda:None))
+    monkeypatch.setattr(t,'mesh_solid',lambda m:Solid(1.))
+    with pytest.raises(ValueError,match='no containing positive boundary'):
+        t.material_components(source)
+
+
+def test_union_cavity_not_assigned_to_unrelated_tiny_positive_shell():
+    from adsl.core.assembly_topology import union_print_mesh, mesh_solid
+    outer=box(size=(100,100,100));cavity=box();cavity.invert()
+    tiny=box((60,0,0),size=(.01,.01,.01))
+    solid,components,_=union_print_mesh(trimesh.util.concatenate([outer,cavity,tiny]))
+    assert len(components)==2
+    assert solid.volume()==pytest.approx(999999.000001)
+    assert (solid ^ mesh_solid(box(size=(.5,.5,.5)))).is_empty()
+    assert (solid ^ mesh_solid(box((60,0,0),size=(.005,.005,.005)))).volume()>0
+
+
+def test_union_cavity_distinct_overlapping_owners_remain_ambiguous():
+    from adsl.core.assembly_topology import union_print_mesh
+    a=box((-1,0,0),size=(4,4,4));b=box((1,0,0),size=(4,4,4));cavity=box(size=(.5,.5,.5));cavity.invert()
+    with pytest.raises(ValueError,match='ambiguous cavity ownership'):
+        union_print_mesh(trimesh.util.concatenate([a,b,cavity]),face_groups=[[0,12],[12,24],[24,36]])
+
+
+@pytest.mark.parametrize('size',[(.001,.001,.001),(1.,1.,.00001)])
+def test_material_components_preserves_small_positive_island_inside_cavity(size):
+    from adsl.core.assembly_topology import material_components, mesh_solid
+    shell=mesh_solid(box(size=(4,4,4)))-mesh_solid(box(size=(3,3,3)))
+    island=mesh_solid(box(size=size))
+    components=material_components(shell+island)
+    assert len(components)==2
+    small=min(components,key=lambda s:s.volume())
+    assert small.volume()==pytest.approx(float(np.prod(size)),rel=1e-10,abs=0.)
+    assert np.asarray(small.bounding_box()).reshape(2,3)[1,2]-np.asarray(small.bounding_box()).reshape(2,3)[0,2]==size[2]

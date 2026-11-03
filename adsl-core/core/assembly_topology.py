@@ -56,9 +56,21 @@ def material_components(solid):
         if not containers:
             raise ValueError('material cavity has no containing positive boundary')
         parent = min(containers, key=lambda i: positive[i].volume())
-        if any(not checked(positive[parent]-positive[i]).is_empty() for i in containers):
+        # A shell contains itself by identity. Native self-subtraction can leave
+        # numerical boundary fragments; it cannot establish competing ownership.
+        if any(not checked(positive[parent]-positive[i]).is_empty()
+               for i in containers if i != parent):
             raise ValueError('ambiguous material cavity ownership')
         holes[parent].append(cavity)
+    if len(positive) == 1:
+        # Containment/ownership above has verified every cavity. With one
+        # positive boundary, the input already IS the complete material island;
+        # subtracting and re-unioning its own boundaries only introduces native
+        # Boolean roundoff. Retain the exact original solid, including cavities.
+        volume = float(solid.volume())
+        if not math.isfinite(volume) or volume <= 0:
+            raise ValueError('unavailable reconstructed material component')
+        return [solid]
     components = []
     for i, shell in enumerate(positive):
         for cavity in holes[i]:
@@ -142,14 +154,16 @@ def union_print_mesh(mesh, face_groups=None):
             positive.append(mesh_solid(shell))
     if not positive:
         raise ValueError('no positive oriented material shell')
-    tol = length_bound(mesh) * mesh.area
     holes = {i: [] for i in range(len(positive))}
     for cavity in negative:
-        containers = [i for i, s in enumerate(positive) if checked(cavity-s).volume() <= tol]
+        # A small disjoint cavity is not contained just because its volume is
+        # below a tolerance derived from the entire model's surface area.
+        containers = [i for i, s in enumerate(positive) if checked(cavity-s).is_empty()]
         if not containers:
             raise ValueError('negative cavity shell has no containing material')
         parent = min(containers, key=lambda i: positive[i].volume())
-        if any(checked(positive[parent]-positive[i]).volume() > tol for i in containers):
+        if any(not checked(positive[parent]-positive[i]).is_empty()
+               for i in containers if i != parent):
             raise ValueError('ambiguous cavity ownership among overlapping shells')
         holes[parent].append(cavity)
     materials = []
