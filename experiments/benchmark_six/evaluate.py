@@ -27,7 +27,7 @@ from benchmark.metrics import geometry as geometry_metrics
 LONGEST_MM = 150.0
 OVERHANG = {"overhang_threshold_from_horizontal_deg": 45.0, "layer_height_mm": 0.2}
 STANDING = {"duration_seconds": 5.0, "timestep_seconds": 0.002,
-            "friction": [0.5, 0.005, 0.0001], "tilt_threshold_deg": 25.0,
+            "friction": [0.5, 0.005, 0.0001], "tilt_threshold_deg": 20.0,
             "settle_window_seconds": 0.5, "settle_linear_m_s": 0.001,
             "settle_angular_rad_s": 0.01, "collision_backend": "rigid_flex"}
 MATERIAL = {"density_kg_m3": 1240.0}

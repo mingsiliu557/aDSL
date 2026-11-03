@@ -52,7 +52,7 @@ def worker(root,cid):
     except Exception as error:
         from adsl.agents.utils.request_errors import classify_model_request_error
         info=classify_model_request_error(error)
-        pause=bool(info and info.get('kind')=='shared_fault') or getattr(error,'status_code',None) in (401,403,429)
+        pause=bool(info and (info.get('kind')=='shared_fault' or info.get('code')=='upstream_transport_error')) or getattr(error,'status_code',None) in (401,403,429)
         state.update(status='PAUSED_API' if pause else 'FAILED',error_type=type(error).__name__,error=str(error),request_error=info)
         (out/'error.log').write_text(traceback.format_exc());code=75 if pause else 1
     state['elapsed_seconds']=time.time()-started

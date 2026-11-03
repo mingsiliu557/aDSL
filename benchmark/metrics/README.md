@@ -5,6 +5,15 @@ and print-part count N**. These are offline evaluation interfaces, not additiona
 Agent checkers or publication permissions. Raw IVR remains available through
 `physical.raw_ivr()` and historical evidence, but is not a main-table column.
 
+Current Standing threshold (2026-11-02): **20 degrees**, with failure strictly
+above the limit; exactly 20 degrees is not tipping. New online review/checker
+requests and offline Standing runs use `physics.standing.tilt_threshold_deg=20`.
+Component observation and interface-exit rules are unchanged. The classifier
+continues to read the threshold recorded in each report, rather than silently
+relabeling historical 25-degree results. Existing frozen runs retain their
+configuration. A 20-degree sensitivity table may reuse their recorded sampled
+peak tilts without rerunning simulation, retaining all other failure conditions.
+
 ## Geometric facing-contact connectivity
 
 Protocol: `geometric_facing_contact_connectivity_v1`. The JSON table field remains

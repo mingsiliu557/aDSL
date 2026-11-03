@@ -116,7 +116,7 @@ def test_other_adapters_emit_domain_metric_and_region_evidence() -> None:
             status="FAIL",
             summary="partial tipped",
             violations=[{
-                "code": "FIRST_PARTIAL_TILT_GT_25_DEG",
+                "code": "FIRST_PARTIAL_TILT_GT_20_DEG",
                 "height_fraction": 0.4,
                 "peak_tilt_deg": 33.0,
                 "active_geometry_names": ["stem", "shelf"],

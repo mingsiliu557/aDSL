@@ -188,7 +188,7 @@ def build_manifest(metadata_root: Path) -> dict[str, object]:
             "prompt_engineering_for_stability": False,
             "initial_cases": 8,
             "reserve_cases": 8,
-            "reserve_trigger": "run only if all initial generated cases have natural_settle <= 25 degrees",
+            "reserve_trigger": "run only if all initial generated cases have natural_settle <= 20 degrees",
         },
         "sources": {
             "cap3d_revision": CAP3D_REVISION,

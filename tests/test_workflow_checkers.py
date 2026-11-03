@@ -138,7 +138,7 @@ def test_engineering_decision_is_fail_closed() -> None:
     assert normalized.approved is False
 
 
-def test_standing_adapter_uses_fixed_25_degree_natural_settle_rule(
+def test_standing_adapter_uses_fixed_20_degree_natural_settle_rule(
     tmp_path: Path,
 ) -> None:
     raw_path = tmp_path / "raw.json"
@@ -149,10 +149,10 @@ def test_standing_adapter_uses_fixed_25_degree_natural_settle_rule(
                 "geometric_verdict": "UNSTABLE",
                 "mujoco": {
                     "available": True,
-                    "topple_threshold_deg": 25.0,
+                    "topple_threshold_deg": 20.0,
                     "settle": {
                         "tipped": False,
-                        "peak_tilt_deg": 24.9,
+                        "peak_tilt_deg": 19.9,
                         "final_tilt_deg": 2.0,
                     },
                     "force_probe": {"minimum_observed_force_over_weight": 0.1},
@@ -162,7 +162,7 @@ def test_standing_adapter_uses_fixed_25_degree_natural_settle_rule(
     }
     assert standing_result(raw, raw_path).status == "PASS"
     raw["states"][0]["mujoco"]["settle"]["tipped"] = True
-    raw["states"][0]["mujoco"]["settle"]["peak_tilt_deg"] = 25.1
+    raw["states"][0]["mujoco"]["settle"]["peak_tilt_deg"] = 20.1
     assert standing_result(raw, raw_path).status == "FAIL"
 
 

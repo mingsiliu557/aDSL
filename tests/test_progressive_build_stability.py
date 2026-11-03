@@ -53,6 +53,6 @@ def test_top_heavy_geometry_needs_adhesion():
     assert MODULE.adhesion_demand(support, models)["normalized_gravity_overturning_demand"] > 0
 
 
-def test_topple_threshold_is_strictly_greater_than_25_degrees():
-    assert MODULE.FINAL.exceeds_topple_threshold(25.0) is False
-    assert MODULE.FINAL.exceeds_topple_threshold(np.nextafter(25.0, np.inf)) is True
+def test_topple_threshold_is_strictly_greater_than_20_degrees():
+    assert MODULE.FINAL.exceeds_topple_threshold(20.0) is False
+    assert MODULE.FINAL.exceeds_topple_threshold(np.nextafter(20.0, np.inf)) is True

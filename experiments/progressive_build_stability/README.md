@@ -6,7 +6,7 @@ It does not modify source models or integrate a production checker.
 
 It reports both an unbonded partial resting freely on the build plane and the
 gravity overturning resistance that finite bed adhesion must provide. A MuJoCo
-peak tilt strictly greater than 25 degrees is a fall.
+peak tilt strictly greater than 20 degrees is a fall.
 
 ```bash
 /vepfs_default/chanxueyan/lhp/lms/envs/adsl/bin/python \

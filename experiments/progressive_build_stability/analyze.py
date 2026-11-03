@@ -182,7 +182,7 @@ def analyze_partial(items: list[Any], height: float, ground: float, top: float,
             row["mujoco_proxy"], row["mujoco"] = proxy, settle_only(xml)
             if row["mujoco"]["tipped"]:
                 row["verdict"] = "UNSTABLE"
-                row["reasons"].append("MUJOCO_TILT_GT_25_DEG")
+                row["reasons"].append("MUJOCO_TILT_GT_20_DEG")
         except Exception as error:
             row["mujoco"] = {"available": False, "error": f"{type(error).__name__}: {error}"}
             row["reasons"].append("MUJOCO_PARTIAL_PROXY_FAILED")
@@ -203,7 +203,7 @@ def summarize(samples: list[dict[str, Any]]) -> dict[str, Any]:
                 key=lambda row: row["bed_adhesion"]["normalized_gravity_overturning_demand"],
                 default=None)
     return {"sample_count": len(samples), "dynamic_sample_count": len(dynamic),
-            "dynamic_failure_count": len(tipped), "any_dynamic_tilt_gt_25_deg": bool(tipped),
+            "dynamic_failure_count": len(tipped), "any_dynamic_tilt_gt_20_deg": bool(tipped),
             "first_dynamic_failure_fraction": None if not tipped else tipped[0]["height_fraction"],
             "peak_dynamic_tilt_deg": None if peak is None else peak["mujoco"]["peak_tilt_deg"],
             "peak_dynamic_tilt_fraction": None if peak is None else peak["height_fraction"],
@@ -244,22 +244,22 @@ def analyze_case(case_dir: Path, step: float, physics: bool, scratch_root: Path,
 
 def report_markdown(payload: dict[str, Any]) -> str:
     active = [case for case in payload["cases"] if not case.get("excluded")]
-    dynamic_bad = sum(case["summary"]["any_dynamic_tilt_gt_25_deg"] for case in active)
+    dynamic_bad = sum(case["summary"]["any_dynamic_tilt_gt_20_deg"] for case in active)
     geometry_bad = sum(bool(case["summary"]["geometric_unstable_sample_count"]) for case in active)
     lines = ["# 02 Progressive Build Stability：当前案例验证", "",
              f"生成时间：{payload['generated_at_utc']}", "", "## 结论摘要", "",
              f"- 分析 {len(active)} 个 initial-pose 模型；排除 {len(payload['cases']) - len(active)} 个带整块房间地板的场景。",
-             f"- 无粘附 MuJoCo 逐高度扫描：{dynamic_bad}/{len(active)} 个模型至少一个 partial 超过 25°。",
+             f"- 无粘附 MuJoCo 逐高度扫描：{dynamic_bad}/{len(active)} 个模型至少一个 partial 超过 20°。",
              f"- 质心—支撑区扫描：{geometry_bad}/{len(active)} 个模型至少一个 partial 不稳定。",
              "- 同时报告无粘附自立与底板粘附需求；没有实测粘附强度时不虚构 pass/fail。",
              "- 本阶段只判断整体倾倒；弯曲、屈曲与 FEA 明确不进入本次判定。",
              "", "## 方法", "",
              f"- Δh 为总高度的 {payload['assumptions']['height_step_fraction']:.1%}，并加入 geometry 出现/完成事件点。",
              "- 每层与 `z <= h` 半空间求交并优先封口；实体质心不可用时降级到薄壳代理。",
-             "- partial 是放在平面上的无粘附刚体，沉降 5 秒内最大倾角严格大于 25°才算倒下。不是从高处自由落体，只保留 0.002 场景单位接触间隙。",
+             "- partial 是放在平面上的无粘附刚体，沉降 5 秒内最大倾角严格大于 20°才算倒下。不是从高处自由落体，只保留 0.002 场景单位接触间隙。",
              "- 粘附轨只附加报告重力倾覆力矩/自重，不改变逐 Δh 的倒/不倒主结论。",
              "", "## 逐案例", "",
-             "| Case | samples | Δh physics | >25° layers | peak tilt | geometric unstable | max normalized adhesion |",
+             "| Case | samples | Δh physics | >20° layers | peak tilt | geometric unstable | max normalized adhesion |",
              "|---|---:|---:|---:|---:|---:|---:|"]
     for case in payload["cases"]:
         if case.get("excluded"):
