@@ -65,6 +65,8 @@ def analyze(args,physics):
     config=physics.get('overhang',{})
     from .support_volume import support_options
     support_metric, _ = support_options(config)
+    from .fixed_assembly import print_mode
+    single = print_mode(config) == 'single'
     partition = config.get('partition_objective')
     area_available = all(k in config for k in ('overhang_threshold_from_horizontal_deg','layer_height_mm'))
     if (partition is None or support_metric == 'nsv') and not area_available:
@@ -87,7 +89,7 @@ def analyze(args,physics):
         regions=[{k:v for k,v in r.items() if k!='global_face_ids'} for r in measured.pop('regions')[:3]]
         rows.append(dict(part_id=name,status='PASS',**measured,largest_regions=regions,
                          display_overlay=overlay))
-        if support_metric == 'area' and partition is None and config.get('orientation_editable',False) and measured['area_mm2']>measured['uncertainty']['bound_mm2']:
+        if not single and support_metric == 'area' and partition is None and config.get('orientation_editable',False) and measured['area_mm2']>measured['uncertainty']['bound_mm2']:
             findings.append(finding(NAME,'PRINT_ORIENTATION_OPPORTUNITY',
                 f'{name}: geometric overhang remains; consider print rotation only, not assembly/shape edits.',
                 part_ids=[name],frame=f'print:{name}',category='optimization_opportunity',
@@ -107,8 +109,72 @@ def analyze(args,physics):
 
     if partition is not None:
         return partition_measurement(args,physics,report,meshes,result,area_available)
+    if single and support_metric == 'nsv' and config.get('orientation_editable', False):
+        return single_orientation_measurement(args, config, report, meshes, result)
     if support_metric == 'nsv':
         _support_measurements(args, config, report, meshes, result, recommended=False)
+    return result
+
+
+
+def _recommended_print(args, name, mesh, measured, row, config, area_available):
+    printed = mesh.copy()
+    printed.apply_transform(measured['recommended_print_transform_mm'])
+    path = args.output/f'{name}.recommended.stl'
+    printed.export(path, file_type='stl_ascii')
+    print_validation = _verify_recommended_stl(path, printed)
+    row['recommended_print_validation'] = print_validation
+    if area_available:
+        area,colored = measure_part(mesh, measured['recommended_print_transform_mm'], config)
+        row['recommended_pose_area_mm2'] = area['area_mm2']
+        row['recommended_pose_display_overlay'] = _display_overlay(
+            colored, args.output/f'{name}.recommended_pose.overhang.glb')
+        regions_path = args.output/f'{name}.recommended_pose.regions.json'
+        write_json(regions_path, area)
+        row['recommended_pose_regions'] = dict(frame=f'recommended_print:{name}', length_unit='mm',
+            part_local_to_print_mm=measured['recommended_print_transform_mm'],
+            regions=[{k:r[k] for k in ('area_mm2','bounds_mm','centroid_mm') if k in r}
+                     for r in area['regions'][:3]],
+            evidence_ref={'path':str(regions_path.resolve()),'json_pointer':'/regions'})
+    return path, print_validation
+
+
+def single_orientation_measurement(args, config, report, meshes, result):
+    from .support_volume import best_support_pose
+    from .feedback_schema import sha256_file
+    parts = report.get('parts', [])
+    declarations = report.get('part_declarations', [])
+    layouts = []
+    if len(parts) != 1 or len(declarations) != 1:
+        result.status = 'INDETERMINATE'
+        result.summary = f'single_mode_part_count={len(declarations) if declarations else len(parts)}'
+        result.metrics['support'] = dict(status='INDETERMINATE', reason=result.summary)
+        result.findings = []
+    else:
+        rows = result.metrics['items']
+        name = parts[0]['id']
+        row = next((r for r in rows if r.get('part_id') == name), None)
+        try:
+            if row is None or row.get('status') != 'PASS' or name not in meshes:
+                raise ValueError('single_print_mesh_unavailable')
+            measured = best_support_pose(meshes[name],
+                overhang_threshold_from_horizontal_deg=config['overhang_threshold_from_horizontal_deg'],
+                bed_tolerance_mm=config['layer_height_mm'])
+            row.update(measured)
+            row['support_search_measurement'] = measured['support']
+            path, _ = _recommended_print(args, name, meshes[name], measured, row, config, True)
+            layouts.append(dict(part_id=name, recommended_print_transform_mm=measured['recommended_print_transform_mm'],
+                                stl=path.name, stl_sha256=sha256_file(path)))
+            _support_measurements(args, config, report, meshes, result, recommended=True)
+        except (ValueError, RuntimeError, OSError) as error:
+            result.status = 'INDETERMINATE'
+            result.summary = 'Single print orientation unavailable: ' + str(error)[:240]
+            result.metrics['support'] = dict(status='INDETERMINATE', reason=result.summary)
+            result.findings = []
+    layout = dict(mode='single', status=result.status, source_sha256=report['source_sha256'],
+                  manifest_sha256=sha256_file(args.manifest), parts=layouts)
+    write_json(args.output/'print_layout.json', layout)
+    result.artifacts['print_layout'] = str((args.output/'print_layout.json').resolve())
     return result
 
 
@@ -157,24 +223,7 @@ def partition_measurement(args, physics, report, meshes, result, area_available)
             else:
                 measured = best_print_pose(meshes[name], reference)
             row.update(measured)
-            printed = meshes[name].copy()
-            printed.apply_transform(measured['recommended_print_transform_mm'])
-            path = args.output/f'{name}.recommended.stl'
-            printed.export(path, file_type='stl_ascii')
-            print_validation = _verify_recommended_stl(path, printed)
-            row['recommended_print_validation'] = print_validation
-            if area_available:
-                area,colored = measure_part(meshes[name], measured['recommended_print_transform_mm'], config)
-                row['recommended_pose_area_mm2'] = area['area_mm2']
-                row['recommended_pose_display_overlay'] = _display_overlay(
-                    colored, args.output/f'{name}.recommended_pose.overhang.glb')
-                regions_path = args.output/f'{name}.recommended_pose.regions.json'
-                write_json(regions_path, area)
-                row['recommended_pose_regions'] = dict(frame=f'recommended_print:{name}', length_unit='mm',
-                    part_local_to_print_mm=measured['recommended_print_transform_mm'],
-                    regions=[{k:r[k] for k in ('area_mm2','bounds_mm','centroid_mm') if k in r}
-                             for r in area['regions'][:3]],
-                    evidence_ref={'path':str(regions_path.resolve()),'json_pointer':'/regions'})
+            path, print_validation = _recommended_print(args, name, meshes[name], measured, row, config, area_available)
             layouts.append(dict(part_id=name, stl=str(path.resolve()), stl_sha256=sha256_file(path),
                 mesh_sha256=sha256_file(args.output/f'{name}.solid.npz'),
                 file_validation=print_validation,
@@ -299,7 +348,8 @@ def _support_measurements(args, config, report, meshes, result, *, recommended):
                 f'{row["part_id"]}: support proxy exceeds one baseline layer; consider an authorized local shape hypothesis without global shrinking.',
                 part_ids=[row['part_id']], frame=row['support_frame'], category='optimization_opportunity',
                 repairability='design_variable', required=False, domain=domain))
-        if not recommended and config.get('orientation_editable',False) and support['support_volume_mm3'] > 0:
+        from .fixed_assembly import print_mode
+        if print_mode(config) != 'single' and not recommended and config.get('orientation_editable',False) and support['support_volume_mm3'] > 0:
             result.findings.append(finding(NAME,'PRINT_ORIENTATION_OPPORTUNITY',
                 f'{row["part_id"]}: consider an authorized print rotation; adoption requires support-volume gain.',
                 part_ids=[row['part_id']], frame=row['support_frame'], category='optimization_opportunity',

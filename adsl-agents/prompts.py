@@ -37,7 +37,7 @@ _STANDING_EVALUATION = (
 
 
 def object_prompt(role: str, *, articulation: bool, fixed_assembly: bool = False,
-                  support_metric: str = 'area', shape_editable: bool = False) -> str:
+                  support_metric: str = 'area', shape_editable: bool = False, print_mode: str = 'split') -> str:
     try:
         filename = ROLE_PROMPTS[role]
     except KeyError as exc:
@@ -52,11 +52,13 @@ def object_prompt(role: str, *, articulation: bool, fixed_assembly: bool = False
     elif fixed_assembly and role not in {'image_critic', 'image_critic_review'}:
         prompt += '\n' + (PROMPT_ROOT / 'fixed_assembly.md').read_text(encoding='utf-8')
     if fixed_assembly and support_metric == 'nsv':
-        prompt = _support_prompt(prompt, shape_editable=shape_editable)
+        prompt = _support_prompt(prompt, shape_editable=shape_editable, print_mode=print_mode)
     if fixed_assembly and role in {'coder', 'engineering_critic', 'code_critic', 'code_critic_review'}:
         prompt += '\n' + _SOURCE_CANDIDATE_READING
         prompt += '\n' + _STANDING_EVALUATION
-    if fixed_assembly and support_metric == 'nsv' and role == 'planner':
+    if fixed_assembly and print_mode == 'single':
+        prompt = _single_prompt(prompt)
+    if fixed_assembly and print_mode != 'single' and support_metric == 'nsv' and role == 'planner':
         prompt += '\n' + (PROMPT_ROOT / 'support_grouping.md').read_text(encoding='utf-8')
     return prompt
 
@@ -68,10 +70,14 @@ def support_prompt_options(fixed_assembly):
     from .support_volume import support_options
     metric, shape = support_options((fixed_assembly or {}).get('physics',{}).get('overhang',{}))
     # Keep default callers' argument sets and serialized configuration unchanged.
-    return {'support_metric':metric, 'shape_editable':shape} if metric == 'nsv' else {}
+    from .fixed_assembly import print_mode
+    options = {'support_metric':metric, 'shape_editable':shape} if metric == 'nsv' else {}
+    if print_mode(fixed_assembly) == 'single':
+        options['print_mode'] = 'single'
+    return options
 
 
-def _support_prompt(prompt, *, shape_editable):
+def _support_prompt(prompt, *, shape_editable, print_mode='split'):
     # Replace only known policy paragraphs, retaining all modelling API material.
     spans = [
         ('When partition_objective is enabled, the checker searches 24 print rotations and',
@@ -102,12 +108,16 @@ def _support_prompt(prompt, *, shape_editable):
                   'do not alter grouping unless a separate regroup is authorized.' if shape_editable else
                   'Optional shape changes for support reduction are disabled. Preserve pre-connector body shape '
                   'for optional regroup/rotation. Necessary repairs keep their original evidence-based permissions.')
+    if print_mode == 'single':
+        policy = policy[:policy.index('With a partition objective,')]
+        policy = policy.replace('A split or same-count edit requires', 'A same-count edit requires').replace('; a merge requires\ndelta_S <= tau AND delta_S_hat <= tau_hat.', '.')
+        permission = 'Authorized actions: resize, reshape, relayout, add_local_structure; preserve the single print-part identity.'
     return prompt + '\n' + policy + '\n' + permission
 
 
 def fixed_assembly_for_agent(config):
     """Remove the alternate score objective from NSV model inputs only."""
-    if not support_prompt_options(config):
+    if support_prompt_options(config).get('support_metric') != 'nsv':
         return config
     from copy import deepcopy
     result = deepcopy(config)
@@ -115,3 +125,39 @@ def fixed_assembly_for_agent(config):
     if 'partition_objective' in overhang:
         overhang['partition_objective_enabled'] = overhang.pop('partition_objective') is not None
     return result
+
+
+_SINGLE_PRINT_INSTRUCTION = (
+    'print_mode=single: put ALL semantic components in exactly one print part whose ID is plan.root_part; '
+    'declare no connections. Keep the program-declared print rotation identity. '
+    'Never propose regroup_print_parts or change_print_orientation. If orientation editing is enabled, '
+    'the checker automatically chooses the minimum-support pose among 24 rotations; otherwise printing stays upright. '
+    'The Agent may only resize, reshape, relayout or add_local_structure within the same print part. '
+    'Preserve semantic features, fixed scale, root frame and all checker requirements.')
+
+
+def _single_prompt(prompt):
+    # Remove only policy sections that authorize regrouping or source rotations.
+    # General API documentation remains reference material, not permission.
+    spans = [
+        ('Planner:\n', 'Copy mm_per_unit'),
+        ('- `assembly.set_print_orientation', '\n\nRead the connection list'),
+        ('During repair, the initial print_parts', 'MATE_FRAME_MISMATCH'),
+        ('When partition_objective is enabled,', 'Appearance API limits for generated source and repair:'),
+        ('Partition scoring uses the Dapper-form', 'When partition_intent is present,'),
+        ('## Optional partition objective', '### Appearance controls'),
+    ]
+    for start, end in spans:
+        if start in prompt:
+            begin = prompt.index(start)
+            if end not in prompt[begin:]:
+                raise ValueError('single prompt policy boundary unavailable: ' + start)
+            prompt = prompt[:begin] + prompt[prompt.index(end, begin):]
+    for start in ('### Implementing a regroup proposal', 'When partition_intent is present,'):
+        if start in prompt:
+            # These terminal API-reference sections describe unavailable split operations.
+            begin = prompt.index(start)
+            ends = [prompt.find(marker, begin) for marker in ('Support optimization uses', _SOURCE_CANDIDATE_READING, _STANDING_EVALUATION)]
+            end = min((i for i in ends if i >= 0), default=-1)
+            prompt = prompt[:begin] + (prompt[end:] if end >= 0 else '')
+    return prompt + '\n' + _SINGLE_PRINT_INSTRUCTION

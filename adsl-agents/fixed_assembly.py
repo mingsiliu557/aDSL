@@ -30,6 +30,94 @@ from .utils.request_errors import (classify_model_request_error, terminal_stop_r
                                    propagate_request_error, safe_request_reason)
 
 
+def print_mode(config: dict) -> str:
+    value = (config or {}).get('print_mode')
+    if value is None:
+        return 'split'
+    if value not in ('single', 'split'):
+        raise ValueError('print_mode must be single or split')
+    return value
+
+
+def check_single_plan(plan) -> None:
+    if len(plan.print_parts) != 1 or plan.connections or plan.print_parts[0].id != plan.root_part:
+        raise ValueError('SINGLE_PLAN_INVALID: require one root print part and no connections')
+
+
+def _check_single_action(proposal, config, orientation_editable):
+    if print_mode(config) != 'single':
+        return
+    if proposal.action == 'regroup_print_parts' or proposal.grouping_change is not None:
+        raise ValueError('print_mode=single forbids regroup_print_parts and grouping_change')
+    if proposal.action == 'change_print_orientation':
+        raise ValueError('print_mode=single: ' + ('orientation is determined by automatic search'
+            if orientation_editable else 'print orientation is fixed upright'))
+
+
+def single_part_check(report, manifest, single_id) -> dict:
+    result = dict(conclusion='REJECT', rule='single_evidence_unavailable')
+    if not report or not manifest or not report.get('source_sha256') or report.get('source_sha256') != manifest.get('source_sha256'):
+        return result
+    declarations = manifest.get('part_declarations')
+    parts = manifest.get('parts')
+    if not isinstance(parts, list) or not isinstance(declarations, list):
+        return result
+    if len(parts) != 1 or len(declarations) != 1:
+        return dict(result, rule='single_part_count')
+    if any(p.get('id') != single_id for p in parts + declarations):
+        return dict(result, rule='single_part_identity')
+    if not isinstance(manifest.get('connections'), list):
+        return result
+    if manifest['connections']:
+        return dict(result, rule='single_connections')
+    pose = print_pose_postcheck(parts, parts)
+    if pose['conclusion'] != 'ACCEPT':
+        return dict(result, rule=pose['rule'])
+    return dict(conclusion='ACCEPT', rule='single_part_preserved')
+
+
+def publish_single_print(review, workspace, source_sha256, version_id, single_id):
+    """Publish a retained version's bound layout; never borrow a candidate bundle."""
+    path = review.get('artifacts', {}).get('print_layout')
+    if review.get('status') != 'PASS' or not path or not Path(path).is_file():
+        return None, []
+    layout = read_json(path)
+    if layout.get('status') != 'PASS':
+        return None, []
+    workspace = Path(workspace)
+    book = read_json(workspace/'assembly_versions.json')
+    selected = book['versions'][version_id]
+    assert_version(selected)
+    _, execution, _ = version_assets(selected)
+    if execution is None:
+        raise ValueError('single print layout has no retained execution')
+    manifest_path = execution.output_root/'assembly/assembly_manifest.json'
+    manifest = read_json(manifest_path)
+    expected = selected['reviews'].get('assembly_overhang', {}).get('artifacts', {}).get('print_layout')
+    parts = layout.get('parts', [])
+    if (book['retained'] != version_id or not expected or Path(expected).resolve() != Path(path).resolve()
+            or layout.get('mode') != 'single' or layout.get('source_sha256') != source_sha256
+            or file_hash(Path(selected['source'])) != source_sha256
+            or manifest.get('source_sha256') != source_sha256
+            or layout.get('manifest_sha256') != file_hash(manifest_path)
+            or len(parts) != 1 or parts[0].get('part_id') != single_id
+            or single_part_check(manifest, manifest, single_id)['conclusion'] != 'ACCEPT'):
+        raise ValueError('single print layout/source/manifest/identity mismatch')
+    row = parts[0]
+    relative = Path(row['stl'])
+    stl = (Path(path).parent/relative).resolve()
+    if relative.is_absolute() or not stl.is_relative_to(Path(path).parent.resolve()) or file_hash(stl) != row.get('stl_sha256'):
+        raise ValueError('single recommended STL hash/path mismatch')
+    directory = workspace/'print_parts'/version_id
+    directory.mkdir(parents=True, exist_ok=True)
+    dest = directory/'single.stl'
+    shutil.copy2(stl, dest)
+    row['stl'] = str(dest.resolve())
+    target = directory/'print_layout.json'
+    write_json(target, layout)
+    return str(target.resolve()), parts
+
+
 def _failure_feedback(report, *, source_sha256=None):
     """Classify saved evidence, not the physical cause of an export exception."""
     rows = []
@@ -477,13 +565,20 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
     if sum(s.name == NAME for s in request.checker_specs) > 1:
         raise ValueError('only one assembly_topology specification is allowed')
     config = {**request.fixed_assembly, 'assembly_plan':plan.model_dump()}
+    single = print_mode(config) == 'single'
+    single_id = plan.root_part
+    if single:
+        check_single_plan(plan)
+    else:
+        config.pop('print_mode', None)
     overhang_config = config.get('physics',{}).get('overhang',{})
     from .support_volume import support_options
     support_metric, shape_editable = support_options(overhang_config)
     nsv = support_metric == 'nsv'
     partition = overhang_config.get('partition_objective')
-    mode_a = bool(nsv and shape_editable and partition is None and not request.repair_policy.print_orientation_editable)
+    mode_a = bool(not single and nsv and shape_editable and partition is None and not request.repair_policy.print_orientation_editable)
     prompt_options = support_prompt_options(config)
+    runtime.usage.update_manifest(print_mode=print_mode(config))
     if nsv:
         import math
         layer = overhang_config.get('layer_height_mm')
@@ -505,7 +600,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         if not any(s.name=='assembly_overhang' for s in specs):
             raise ValueError('partition objective requires selected assembly_overhang')
     physics = json.loads(json.dumps(config.get('physics',{})))
-    if nsv:
+    if single:
+        physics.setdefault('overhang', {})['print_mode'] = 'single'
+    if nsv or single:
         physics['overhang']['orientation_editable'] = request.repair_policy.print_orientation_editable
     if partition is not None:
         physics['overhang']['partition_editable'] = request.repair_policy.print_partition_editable
@@ -618,6 +715,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 try:
                     if intent and proposal.grouping_change and proposal.grouping_change.model_dump() != intent['grouping_change']:
                         raise ValueError('INVALID_PROPOSAL: active partition target cannot be replaced')
+                    _check_single_action(proposal, config, request.repair_policy.print_orientation_editable)
                     regroup_precheck(proposal,purpose=edit_purpose,
                         continuing=bool(comparison_baseline and comparison_baseline != parent_id and
                             working['reviews'].get('edit_purpose') == 'partition_optimization'),
@@ -632,7 +730,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     break
                 policy = request.repair_policy.model_copy(update={'max_total_candidates':book['max_rounds']-1})
                 controller = RepairController(workspace=workspace, round_root=root, baseline_source=parent,
-                    source_index=None, findings=[], checker_specs_sha256=config_hash, policy=policy)
+                    source_index=None, findings=[], checker_specs_sha256=config_hash, policy=policy, fixed_assembly=config)
                 controller.started_at = book['started_at']
                 if controller.budget_error():
                     stop = controller.budget_error()
@@ -1028,6 +1126,17 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     'source_sha256':file_hash(current),
                     'reason':'Support candidate must preserve semantic ownership and root frame'}
             repairable_implementation_issue = bool(source_failure or realization and realization['status']=='MISMATCH')
+            single_check = None
+            if single:
+                manifest_path = candidate_root/'asset/assembly/assembly_manifest.json'
+                manifest = read_json(manifest_path) if manifest_path.is_file() else None
+                single_check = single_part_check(report, manifest, single_id)
+                reviews['single_part_check'] = single_check
+                if single_check['conclusion'] != 'ACCEPT':
+                    accepted = False
+                    reason = single_check['rule']
+                    repairable_implementation_issue = True
+
             implementation_complete = (realization is None if intent is None else False) or (realization is not None and realization['status']=='MATCH')
             if not implementation_complete:
                 accepted = False
@@ -1198,7 +1307,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                         all(r.result.status=='PASS' for r in runs if r.spec.required and r.spec.name!='assembly_overhang') and
                         not any(spec.required and spec.name not in NAMES for spec in request.checker_specs) and
                         _geometry_visual_ready(reviews,display_available) and
-                        (not mode_a or pose_check['conclusion']=='ACCEPT'))
+                        (not mode_a or pose_check['conclusion']=='ACCEPT') and
+                        (not single or single_check['conclusion']=='ACCEPT'))
                     if required_ready:
                         support_check = _compare_support(base_evidence,support_evidence)
                         body_ok = bool(partition is None or shape_comparison and shape_comparison['status']=='MATCH')
@@ -1298,6 +1408,8 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     feedback.update(support_baseline_version=support_baseline_id,support_round=False)
                 elif support_baseline_id and (accepted or partition_adopted):
                     support_baseline_id = None
+            if single:
+                feedback['single_part_check'] = single_check
             feedback['repair_history'] = _repair_history(book,specs)
             if partition is not None and not nsv:
                 feedback['partition_change_vs_baseline']=reviews.get('partition_change_vs_baseline')
@@ -1400,7 +1512,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                         and not repairable_implementation_issue and reason != 'FLOW_ERROR' and actionable and remaining > 0):
                     budget = RepairController(workspace=workspace,round_root=root,baseline_source=current,
                         source_index=None,findings=[],checker_specs_sha256=config_hash,
-                        policy=request.repair_policy.model_copy(update={'max_total_candidates':book['max_rounds']-1}))
+                        policy=request.repair_policy.model_copy(update={'max_total_candidates':book['max_rounds']-1}), fixed_assembly=config)
                     budget.started_at=book['started_at']
                     if not budget.budget_error():
                         next_proposal=None
@@ -1411,6 +1523,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                     report_ref=reviews.get('geometry_report_ref')),
                                 feedback,remaining)
                             if next_proposal:
+                                _check_single_action(next_proposal, config, request.repair_policy.print_orientation_editable)
                                 regroup_precheck(next_proposal,purpose=feedback.get('next_edit_purpose'),
                                     continuing=feedback.get('partition_candidate_in_progress',False),
                                     assembly=_assembly_context(current,report,version_role='current_candidate')['current_assembly'],
@@ -1457,6 +1570,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 feedback.update(next_edit_purpose=edit_purpose, comparison_baseline_version=comparison_baseline,
                     partition_candidate_in_progress=bool(intent), partition_intent=intent, grouping_realization=realization)
                 feedback['primary_objective'] = ('Restore mode A single-part identity print rotation; keep its baseline part ID. ' if mode_a and pose_check and pose_check['conclusion']!='ACCEPT' and not source_failure else '') + ('Fix the bound generated-source API/runtime error first. No appearance task without current render. ' if source_failure else 'Implement the authorized print-group declarations before proposing further physical changes. ') + 'Preserve partition_intent, independent bodies, edit purpose and comparison baseline; do not modify mesh backends.'
+            if single and single_check and single_check['conclusion'] != 'ACCEPT' and not source_failure:
+                feedback['primary_objective'] = (f'Implement exactly one print part {single_id}; preserve all semantic components in its body, '
+                    'remove all connections and keep the declared print rotation identity. Do not edit measurement backends.')
             # Export unavailability alone is not a reason to change shape. Keep
             # independent visual/topology defects repairable, in the same loop.
             image_pending = bool(reviews.get('appearance_approved') is False
@@ -1556,7 +1672,18 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         'note':'Working candidate may be invalid; not a certified final assembly'})
     selected = book['versions'][book['retained']]
     assert_version(selected)
-    if mode_a:
+    if single:
+        manifest_path = Path(selected['source']).parent/'asset/assembly/assembly_manifest.json'
+        if selected['execution']:
+            _, selected_execution, _ = version_assets(selected)
+            manifest_path = selected_execution.output_root/'assembly/assembly_manifest.json'
+        manifest = read_json(manifest_path) if manifest_path.is_file() else None
+        final_check = single_part_check(selected['reviews'].get('geometry', {}), manifest, single_id)
+        selected['reviews']['single_part_check'] = final_check
+        if final_check['conclusion'] != 'ACCEPT':
+            selected['reviews']['accepted'] = False
+        write_json(book_path, book)
+    elif mode_a:
         initial = next((v for v in book['versions'].values() if
             (v['reviews'].get('mode_a_pose_check') or {}).get('conclusion')=='ACCEPT'),book['versions'][book['original']])
         final_pose = _mode_a_pose(initial['reviews'].get('geometry',{}),selected['reviews'].get('geometry',{}),
@@ -1613,9 +1740,12 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
     if partition is not None:
         print_layout,print_parts=publish_print_layout(selected['reviews'].get('assembly_overhang',{}),
             workspace,file_hash(source_path),book['retained'])
-    write_json(workspace/'assembly_result.json', {'version_id':book['retained'], 'source_sha256':file_hash(source_path),
+    elif single and request.repair_policy.print_orientation_editable:
+        print_layout, print_parts = publish_single_print(selected['reviews'].get('assembly_overhang', {}),
+            workspace, file_hash(source_path), book['retained'], single_id)
+    write_json(workspace/'assembly_result.json', {'print_mode':print_mode(config), 'version_id':book['retained'], 'source_sha256':file_hash(source_path),
         'working_version':book['working'], 'qualified_version':book['qualified'],
-        **({'print_layout':print_layout,'print_parts':print_parts} if partition is not None else {}),
+        **({'print_layout':print_layout,'print_parts':print_parts} if partition is not None or single else {}),
         'approved':approved, 'verification_scope':verification_scope,
         'manufacturing_status':selected['reviews'].get('geometry',{}).get('manufacturing_status'),
         'display_status':selected['reviews'].get('geometry',{}).get('display_status'),
@@ -1627,7 +1757,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
         'physical_validation':('SELECTED_SCOPE_PASSED' if required_passed else
             'NO_REQUIRED_PHYSICAL_CHECKS' if not any(s.required for s in specs) else 'NOT_FULLY_VERIFIED') if specs else 'NOT_EVALUATED',
         'checker_statuses':{r['checker']:r['status'] for r in final_checks},'requested_unsupported':statuses})
-    runtime.usage.update_manifest(status='completed', mode='generate', approved=approved,
+    runtime.usage.update_manifest(status='completed', mode='generate', print_mode=print_mode(config), approved=approved,
         source_path=str(source_path), glb_path=str(glb) if glb else None, urdf_path=None,
         render_paths=[str(p) for p in renders], selected_round=1 if book['retained']=='original' else int(book['retained'].split('_')[1])+1,
         finalization_reason=stop, verification_scope=verification_scope, physical_checks_passed=required_passed)

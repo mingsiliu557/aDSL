@@ -81,6 +81,7 @@ class FixedAssemblyPlan(ObjectPlan):
 
 class FixedAssemblyConfig(BaseModel):
     # The request, not the generated program, freezes scale and required size.
+    print_mode: Literal['single', 'split'] | None = None
     validation_mode: Literal['geometry', 'visual_only'] = 'geometry'
     require_multiple_parts: bool = Field(default=False, strict=True,
         description='Task requires at least two print parts and one connector; not a geometry check.')
@@ -91,6 +92,8 @@ class FixedAssemblyConfig(BaseModel):
     @model_validator(mode='after')
     def valid_size(self):
         import math
+        if self.print_mode == 'single' and self.require_multiple_parts:
+            raise ValueError('print_mode=single conflicts with require_multiple_parts')
         if not all(math.isfinite(v) and v > 0 for v in self.final_size_mm):
             raise ValueError('final_size_mm must contain three finite positive dimensions')
         return self

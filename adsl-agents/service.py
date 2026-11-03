@@ -427,6 +427,10 @@ class ObjectWorkflow:
         if plan_path.is_file():
             plan_type = (FixedAssemblyPlan if request.fixed_assembly else ObjectPlan) if mode == "generate" else EditPlan
             plan = plan_type.model_validate(read_json(plan_path))
+            if mode == 'generate' and request.fixed_assembly:
+                from .fixed_assembly import print_mode, check_single_plan
+                if print_mode(request.fixed_assembly) == 'single':
+                    check_single_plan(plan)
         elif mode == "generate":
             plan = await self._plan_generation(runtime, request)
             write_json(plan_path, plan.model_dump())
@@ -546,12 +550,17 @@ class ObjectWorkflow:
             mode=mode,
             **fields,
         )
+        assembly_fields = {}
+        if request.fixed_assembly:
+            from .fixed_assembly import print_mode
+            assembly_fields['print_mode'] = print_mode(request.fixed_assembly)
         runtime.usage.update_manifest(
             task_id=request.task_id,
             mode=mode,
             requirement=request.requirement,
             context_policy=_CONTEXT_POLICY,
             status="running",
+            **assembly_fields,
             **fields,
         )
         return runtime
@@ -567,17 +576,26 @@ class ObjectWorkflow:
                 **support_prompt_options(request.fixed_assembly)),
             output_type=FixedAssemblyPlan if request.fixed_assembly else ObjectPlan,
         )
-        result = await runtime.run(
-            agent=planner,
-            input=user_input(json.dumps({'requirement':request.requirement, 'fixed_assembly':fixed_assembly_for_agent(request.fixed_assembly)})
-                             if request.fixed_assembly else request.requirement, request.image_paths),
-            role="planner",
-            stage="plan",
-        )
-        plan = self._typed_output(result.final_output, FixedAssemblyPlan if request.fixed_assembly else ObjectPlan)
-        if request.fixed_assembly and (plan.mm_per_unit != request.fixed_assembly['mm_per_unit']
-                                       or plan.final_size_mm != request.fixed_assembly['final_size_mm']):
-            raise ValueError('assembly plan changed frozen scale or final dimensions')
+        from .fixed_assembly import print_mode, check_single_plan
+        single = bool(request.fixed_assembly and print_mode(request.fixed_assembly) == 'single')
+        content = (json.dumps({'requirement':request.requirement, 'fixed_assembly':fixed_assembly_for_agent(request.fixed_assembly)})
+                   if request.fixed_assembly else request.requirement)
+        for attempt in range(2 if single else 1):
+            result = await runtime.run(agent=planner, input=user_input(content, request.image_paths),
+                                       role='planner', stage='plan')
+            plan = self._typed_output(result.final_output, FixedAssemblyPlan if request.fixed_assembly else ObjectPlan)
+            if request.fixed_assembly and (plan.mm_per_unit != request.fixed_assembly['mm_per_unit']
+                                           or plan.final_size_mm != request.fixed_assembly['final_size_mm']):
+                raise ValueError('assembly plan changed frozen scale or final dimensions')
+            if single:
+                try:
+                    check_single_plan(plan)
+                except ValueError as error:
+                    if attempt:
+                        raise
+                    content += '\n' + str(error)
+                    continue
+            break
         return plan
 
     async def _plan_edit(
@@ -2467,6 +2485,18 @@ class ObjectWorkflow:
         if request.fixed_assembly:
             FixedAssemblyConfig.model_validate(request.fixed_assembly)
             support_prompt_options(request.fixed_assembly)  # validate explicit mode values before model calls
+            from .fixed_assembly import print_mode
+            if print_mode(request.fixed_assembly) == 'single':
+                overhang = request.fixed_assembly.get('physics', {}).get('overhang', {})
+                if request.repair_policy.print_partition_editable:
+                    raise ValueError('print_mode=single forbids print_partition_editable')
+                if overhang.get('partition_objective') is not None:
+                    raise ValueError('print_mode=single forbids partition_objective')
+                if overhang.get('support_metric', 'area') == 'nsv':
+                    if overhang.get('shape_editable') is not True:
+                        raise ValueError('print_mode=single with NSV requires shape_editable=True')
+                elif request.repair_policy.print_orientation_editable:
+                    raise ValueError('print_mode=single automatic orientation requires NSV')
             if request.articulation or request.overhang_experiment:
                 raise ValueError('fixed assembly cannot reuse articulation or overhang/planned-checks modes')
         names = [spec.name for spec in request.checker_specs]

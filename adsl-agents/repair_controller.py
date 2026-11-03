@@ -23,6 +23,7 @@ class RepairController:
         findings: Iterable[CheckerFinding],
         checker_specs_sha256: str,
         policy: RepairPolicy,
+        fixed_assembly: dict | None = None,
     ) -> None:
         self.workspace = workspace
         self.round_root = round_root
@@ -31,6 +32,7 @@ class RepairController:
         self.findings = {finding.finding_id: finding for finding in findings}
         self.checker_specs_sha256 = checker_specs_sha256
         self.policy = policy
+        self.fixed_assembly = fixed_assembly
         self.history_path = workspace / "repair_history.jsonl"
         self.tried_fingerprints = self._load_fingerprints()
         self.started_at = self._history_started_at()
@@ -76,6 +78,12 @@ class RepairController:
         self, proposal: RepairProposal
     ) -> tuple[RepairProposal | None, list[str]]:
         errors: list[str] = []
+        if self.fixed_assembly is not None:
+            from .fixed_assembly import _check_single_action
+            try:
+                _check_single_action(proposal, self.fixed_assembly, self.policy.print_orientation_editable)
+            except ValueError as error:
+                return None, [str(error)]
         unknown_findings = sorted(set(proposal.finding_ids) - set(self.findings))
         if unknown_findings:
             errors.append(f"unknown finding ids: {unknown_findings}")

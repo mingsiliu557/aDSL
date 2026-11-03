@@ -72,13 +72,26 @@ class ImageOnlyWorkflow(ObjectWorkflow):
         payload = dict(requirement=request.requirement,
                        fixed_assembly=fixed_assembly_for_agent(request.fixed_assembly))
         assert 'final_size_mm' not in payload['fixed_assembly']
-        result = await runtime.run(agent=planner, input=user_input(json.dumps(payload), request.image_paths),
-                                   role='planner', stage='plan')
-        plan = self._typed_output(result.final_output, FixedAssemblyPlan)
-        if plan.mm_per_unit != request.fixed_assembly['mm_per_unit']:
-            raise ValueError('Planner changed frozen units')
-        raw_size = list(plan.final_size_mm)
-        plan = plan.model_copy(update={'final_size_mm': normalize_size(raw_size)})
+        from adsl.agents.fixed_assembly import print_mode, check_single_plan
+        single = print_mode(request.fixed_assembly) == 'single'
+        content = json.dumps(payload)
+        for attempt in range(2 if single else 1):
+            result = await runtime.run(agent=planner, input=user_input(content, request.image_paths),
+                                       role='planner', stage='plan')
+            plan = self._typed_output(result.final_output, FixedAssemblyPlan)
+            if plan.mm_per_unit != request.fixed_assembly['mm_per_unit']:
+                raise ValueError('Planner changed frozen units')
+            raw_size = list(plan.final_size_mm)
+            plan = plan.model_copy(update={'final_size_mm': normalize_size(raw_size)})
+            if single:
+                try:
+                    check_single_plan(plan)
+                except ValueError as error:
+                    if attempt:
+                        raise
+                    content += '\n' + str(error)
+                    continue
+            break
         request.fixed_assembly['final_size_mm'] = list(plan.final_size_mm)
         write_json(request.workspace/'image_only_size_freeze.json', dict(
             protocol='image_only_planner_size_v1', input_binding=input_binding(request),

@@ -542,6 +542,10 @@ visual failures remain necessary repairs; a high score cannot excuse them.
 '''
     if nsv:
         instruction = ENGINEERING_INSTRUCTION + '\nUse support_evidence and the NSV rules in the API instructions. Necessary repairs retain priority; a candidate internal repair keeps its original support baseline.'
+    from .fixed_assembly import print_mode, _check_single_action
+    if print_mode(request.fixed_assembly) == 'single':
+        from .prompts import _SINGLE_PRINT_INSTRUCTION
+        instruction = ENGINEERING_INSTRUCTION + '\n' + _SINGLE_PRINT_INSTRUCTION
     agent=runtime.agent(name='object-engineering-critic',tools=READ_TOOLS,
         instructions=object_prompt('engineering_critic',articulation=False,fixed_assembly=True, **support_prompt_options(request.fixed_assembly))+ '\n'+instruction,
         output_type=EngineeringCriticDecision,strict_json_schema=False)
@@ -598,6 +602,7 @@ visual failures remain necessary repairs; a high score cannot excuse them.
         'report_path':str((root/'engineering_critique.json').resolve())}
     if proposal:
         try:
+            _check_single_action(proposal, request.fixed_assembly, request.repair_policy.print_orientation_editable)
             validate_partition_proposal(proposal,purpose=feedback.get('next_edit_purpose'),
                 continuing=feedback.get('partition_candidate_in_progress',False),
                 assembly=context.get('current_assembly'), editable=request.repair_policy.print_partition_editable,
