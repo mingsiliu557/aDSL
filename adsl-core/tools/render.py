@@ -228,10 +228,14 @@ def _normalize_scene(normalize_range: float = 0.8) -> None:
 
 
 def _smooth_scene() -> None:
-    for obj in _mesh_objects():
-        bpy.ops.object.select_all(action="DESELECT")
+    meshes = _mesh_objects()
+    bpy.ops.object.select_all(action="DESELECT")
+    for obj in meshes:
         obj.select_set(True)
-        bpy.context.view_layer.objects.active = obj
+    if meshes:
+        # One operator call avoids a full dependency-graph update per mesh.
+        # shade_smooth applies to all selected mesh objects.
+        bpy.context.view_layer.objects.active = meshes[-1]
         bpy.ops.object.shade_smooth()
     bpy.ops.object.select_all(action="DESELECT")
 
