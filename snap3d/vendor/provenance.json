@@ -1,0 +1,44 @@
+[
+  {
+    "file": "geometry.py",
+    "source": "adsl-core/core/export/export_assembly.py",
+    "commit": "f65b0dbb9c0e3a48d45f870cdb7091949aa2472a",
+    "functions": [
+      "mesh_solid",
+      "solid_mesh"
+    ],
+    "upstream_sha256": "da0c69b3a73e6088e5aa50cda16f5e642c3eeedd660e7a84d8c0165a6146091e"
+  },
+  {
+    "file": "checked.py",
+    "source": "adsl-core/core/assembly_topology.py",
+    "commit": "f65b0dbb9c0e3a48d45f870cdb7091949aa2472a",
+    "functions": [
+      "checked"
+    ],
+    "upstream_sha256": "7c8d28ddc04ddf33c375ae6052a745a694a0189ac4278c9654b70ecafca82bf1"
+  },
+  {
+    "file": "collision.py",
+    "source": "adsl-agents/assembly_standing.py",
+    "commit": "f65b0dbb9c0e3a48d45f870cdb7091949aa2472a",
+    "functions": [
+      "collision_proxies"
+    ],
+    "upstream_sha256": "3c016c8017e7dc8ce5c4ce6b5dc9ac6ee730188fffd2a5a665766e760f3aa9e8"
+  },
+  {
+    "file": "contact_area.py",
+    "source": "benchmark/metrics/contact_area.py",
+    "commit": "f65b0dbb9c0e3a48d45f870cdb7091949aa2472a",
+    "functions": null,
+    "upstream_sha256": "1402c34f1b4a6cd8de41843b4a78dc2664b79d792ae45dbd90b66b7e04ccf5c4"
+  },
+  {
+    "file": "mesh_validity.py",
+    "source": "adsl-core/core/export/mesh_validity.py",
+    "commit": "f65b0dbb9c0e3a48d45f870cdb7091949aa2472a",
+    "functions": null,
+    "upstream_sha256": "0b3d989f43f1c49cdeaccde5fa6e85659027d4dd29bfd931d1f7203011bbd3a8"
+  }
+]

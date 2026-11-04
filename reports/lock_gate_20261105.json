@@ -1,0 +1,19 @@
+{
+  "status": "FAIL",
+  "tests": [
+    {
+      "test": "zero_gravity",
+      "pass_": false,
+      "elapsed_s": 301.0592791540548,
+      "status": "UNAVAILABLE",
+      "reason": "RuntimeError"
+    }
+  ],
+  "config_sha256": "4b8f3b0e4e11789b376f32d305830e2db62d0dabf7ccead9d6d6f51efe81daa9",
+  "next_stage_allowed": false,
+  "not_run": [
+    "no_head",
+    "headed"
+  ],
+  "coacd_timeout_s_per_part": 300
+}

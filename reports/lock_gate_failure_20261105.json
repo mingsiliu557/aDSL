@@ -1,0 +1,22 @@
+{
+  "result": {
+    "status": "UNAVAILABLE",
+    "reason": "RuntimeError",
+    "detail": "COACD_TIMEOUT: 300s per part; precision unchanged",
+    "gate_pass": false
+  },
+  "fixture_diagonal_mm": 34.9857113690718,
+  "clearance_mm": 0.03416573375885918,
+  "coacd_threshold_mm": 0.008541433439714795,
+  "allocated_cpus": 8,
+  "assets": [
+    {
+      "path": "runs/lock_gate_v2/zero_gravity/peg.stl",
+      "sha256": "11e4384cc78634d31397af70fd164c94e72a8578323036a60cbbc165d9cc031d"
+    },
+    {
+      "path": "runs/lock_gate_v2/zero_gravity/receiver.stl",
+      "sha256": "8fcabf59c5d8a2ad42a649e0a81afd92f82d7dd6caf5f834809b91adb0fc7704"
+    }
+  ]
+}
