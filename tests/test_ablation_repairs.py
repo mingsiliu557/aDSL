@@ -169,7 +169,10 @@ def test_tracing_keeps_internal_candidate_verification(tmp_path,monkeypatch):
     out=a.payload_for_agent(payload,**opts,ablation='tracing')
     assert seen==full and payload==original
     assert all('ablation_evidence' not in json.dumps(ref) for ref in seen)
-    assert a.payload_for_agent(out,**opts,ablation='tracing')==out
+    from adsl.agents.tools.context import AgentToolContext
+    fresh=AgentToolContext(tmp_path,source,ablation='tracing')
+    assert a.payload_for_agent(payload,**opts,ablation='tracing',tool_context=fresh)==out
+    assert all(path.is_file() for path in fresh.sanitized_evidence_paths)
 
 
 @pytest.mark.parametrize('change',['group','orientation'])

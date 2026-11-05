@@ -106,7 +106,9 @@ def test_tracing_payload_and_permissions(tmp_path,role):
     assert raw==before
     assert out['feedback']['part_id']=='head' and out['feedback']['metric']==.125
     for token in ('source_candidates','source_locations','feature_id','secret.json'):assert token not in json.dumps(out)
-    assert payload_for_agent(out,**kw)==out
+    fresh=AgentToolContext(tmp_path,source,ablation='tracing')
+    assert payload_for_agent(raw,**{**kw,'tool_context':fresh})==out
+    assert all(path.is_file() for path in fresh.sanitized_evidence_paths)
     logs=list((tmp_path/'ablation_private').glob('*.json'));assert logs and 'line' in logs[0].read_text()
     for path in ['secret.json','source_index.json',str(logs[0])]:
         result=asyncio.run(tool(read_file,ctx,'denied',path=path))
@@ -274,7 +276,9 @@ def test_tracing_structured_findings_and_symlink(tmp_path):
     out=payload_for_agent(payload,**kw)
     assert 'source_candidates' not in json.dumps(out)
     assert out['typed_findings'][0]['finding_id']==payload['typed_findings'][0]['finding_id']
-    assert payload_for_agent(out,**kw)==out
+    fresh=AgentToolContext(tmp_path,source,ablation='tracing')
+    assert payload_for_agent(payload,**{**kw,'tool_context':fresh})==out
+    assert all(path.is_file() for path in fresh.sanitized_evidence_paths)
     alias=tmp_path/'alias.json';alias.symlink_to(tmp_path/ref['path'])
     assert 'ABLATION_READ_DENIED' in asyncio.run(tool(read_file,ctx,'alias',path='alias.json'))
 

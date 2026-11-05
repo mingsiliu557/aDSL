@@ -84,6 +84,7 @@ def sanitized_evidence(payload, *, workspace, source_path=None, context=None, wr
     """Plan references entirely in memory; commit files only for final output."""
     workspace=Path(workspace).resolve()
     source=Path(source_path).resolve() if source_path else None
+    current_hash=hashlib.sha256(source.read_bytes()).hexdigest() if source and source.is_file() else None
     pending={}; cache={}; active=set(); registered=set()
     def hidden(ref):
         return {**ref,'path':None,'availability':'UNAVAILABLE','reason':'hidden_by_ablation'}
@@ -99,6 +100,9 @@ def sanitized_evidence(payload, *, workspace, source_path=None, context=None, wr
         if not isinstance(value,dict): return deepcopy(value)
         result={k:visit(v) for k,v in value.items() if k!='path'}
         if 'path' not in value:return result
+        if value.get('source_sha256') and current_hash:
+            current=value['source_sha256']==current_hash
+            result.update(matches_current_source=current,source_binding='CURRENT' if current else 'STALE')
         path=value['path']
         if not path:result['path']=path;return result
         target=Path(path)
@@ -112,15 +116,21 @@ def sanitized_evidence(payload, *, workspace, source_path=None, context=None, wr
             # Validate content-address identity, including nested references.
             raw=target.read_bytes()
             if target.stem!='sanitized_'+hashlib.sha256(raw).hexdigest():return hidden(result)
-            registered.add(target)
             doc=json.loads(raw)
+            original=deepcopy(doc)
             for row in paths(doc):
                 other=(workspace/row['path']).resolve()
                 if other!=source:
                     if other.parent!=workspace/'ablation_evidence' or not other.is_file():return hidden(result)
-                    validated=visit(row)
-                    if not validated.get('path'):return hidden(result)
-                    registered.add(other)
+                validated=visit(row)
+                if not validated.get('path'):return hidden(result)
+                row.clear();row.update(validated)
+            if doc != original:
+                text=json.dumps(doc,sort_keys=True,ensure_ascii=False,allow_nan=False)
+                target=workspace/'ablation_evidence'/('sanitized_'+hashlib.sha256(text.encode()).hexdigest()+'.json')
+                pending[target]=text
+                raw=text.encode()
+            registered.add(target)
             result['path']=target.relative_to(workspace).as_posix()
             result['file_sha256']=hashlib.sha256(raw).hexdigest()
         else:

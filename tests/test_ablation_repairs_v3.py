@@ -102,7 +102,7 @@ def test_nonfinite_nested_evidence_and_memory_measurement(tmp_path,monkeypatch):
     projected=sanitized_evidence(raw,workspace=tmp_path,source_path=source)
     assert set(tmp_path.rglob('*'))==paths
     ctx=AgentToolContext(tmp_path,source,ablation='tracing')
-    kw=dict(workspace=tmp_path,source_path=source,source_version='original',role='coder',ablation='tracing',tool_context=ctx)
+    kw=dict(workspace=tmp_path,source_path=source,source_version='original',role='coder',ablation='tracing')
     from adsl.agents import ablation_views
     helper=ablation_views.sanitized_evidence;measures=[]
     def checked(*args,**kwargs):
@@ -111,7 +111,7 @@ def test_nonfinite_nested_evidence_and_memory_measurement(tmp_path,monkeypatch):
             measures.append(True);assert set(tmp_path.rglob('*'))==before
         return result
     monkeypatch.setattr(ablation_views,'sanitized_evidence',checked)
-    first=adapter.payload_for_agent(raw,**kw)
+    first=adapter.payload_for_agent(raw,**kw,tool_context=ctx)
     assert measures
     ref=first['feedback']['report_ref'];doc=json.loads((tmp_path/ref['path']).read_text())
     assert doc['scalar'] is None and doc['value_status']=='NONFINITE'
@@ -121,27 +121,11 @@ def test_nonfinite_nested_evidence_and_memory_measurement(tmp_path,monkeypatch):
     result=asyncio.run(tool(read_file,ctx,'evidence',path=ref['path'],json_pointer=ref['json_pointer']))
     assert 'ABLATION_READ_DENIED' not in result
     files=set(tmp_path.rglob('*'))
-    assert adapter.payload_for_agent(raw,**kw)==first
-    assert adapter.payload_for_agent(first,**kw)==first
+    assert_paths_current(first,ctx,source)
+    other=AgentToolContext(tmp_path,source,ablation='tracing')
+    assert adapter.payload_for_agent(raw,**kw,tool_context=other)==first
+    assert_paths_current(first,other,source)
     assert set(tmp_path.rglob('*'))==files
-
-
-def test_explicit_marker_is_required_and_invalidated_by_new_feedback(tmp_path,monkeypatch):
-    source,path,raw=evidence(tmp_path)
-    kw=dict(workspace=tmp_path,source_path=source,source_version='original',role='coder',ablation='tracing')
-    first=adapter.payload_for_agent(raw,**kw)
-    assert first['ablation_view']==dict(variant='tracing',sha256=hashlib.sha256(adapter._encoded({k:v for k,v in first.items() if k!='ablation_view'})).hexdigest())
-    constructor=adapter._Projection.__init__;calls=[]
-    def init(self,*a,**kw):calls.append(1);constructor(self,*a,**kw)
-    monkeypatch.setattr(adapter._Projection,'__init__',init)
-    assert adapter.payload_for_agent(first,**kw)==first and not calls
-    modified=deepcopy(first);modified['feedback']['repair_history']=[{'action':'reshape','reason':'new '+str(i)} for i in range(20)]
-    after=adapter.payload_for_agent(modified,**kw)
-    assert len(calls)==1 and len(after['feedback']['repair_history'])<=3
-    assert after['ablation_view']!=first['ablation_view']
-    unmarked=deepcopy(first);unmarked.pop('ablation_view')
-    adapter.payload_for_agent(unmarked,**kw)
-    assert len(calls)==2 and 'ablation_view' not in raw and 'ablation_view' not in raw['feedback']
 
 
 def test_support_restore_keeps_structure_baseline(tmp_path,monkeypatch):
@@ -180,3 +164,73 @@ def test_source_failure_instruction_precedes_structure_restore(tmp_path,monkeypa
     assert objective.startswith('Fix the bound generated-source API/runtime error first.')
     assert 'Restore print-part grouping' in objective and 'original' in objective
     assert 'Implement the authorized print-group declarations' not in objective
+
+
+
+def references(value):
+    if isinstance(value,dict):
+        if 'path' in value:yield value
+        for item in value.values():yield from references(item)
+    elif isinstance(value,list):
+        for item in value:yield from references(item)
+
+
+def assert_paths_current(payload,context,source):
+    pending=list(references(payload));seen=set()
+    while pending:
+        ref=pending.pop()
+        if not ref.get('path'):continue
+        path=context.resolve(ref['path'])
+        if path==source.resolve():continue
+        assert path in context.sanitized_evidence_paths and path.is_file()
+        if path not in seen:
+            seen.add(path);pending.extend(references(json.loads(path.read_text())))
+    assert all(path.is_file() for path in context.sanitized_evidence_paths)
+
+
+def bound_evidence(tmp_path):
+    source=tmp_path/'source.py';source.write_text('original')
+    digest=hashlib.sha256(source.read_bytes()).hexdigest()
+    inner=tmp_path/'inner.json';inner.write_text('{"metric":0.2}')
+    binding={'source_sha256':digest,'source_version':'original','matches_current_source':True,'source_binding':'CURRENT'}
+    path=tmp_path/'evidence.json';path.write_text(json.dumps({'metric':.2,'nested_ref':{'path':'inner.json',**binding},'source_ref':{'path':'source.py',**binding}}))
+    raw={'feedback':{'report_ref':{'path':'evidence.json',**binding}}}
+    return source,digest,raw
+
+
+def project_fresh(tmp_path,source,payload):
+    context=AgentToolContext(tmp_path,source,ablation='tracing')
+    out=adapter.payload_for_agent(payload,workspace=tmp_path,source_path=source,
+        source_version='original',role='coder',ablation='tracing',tool_context=context)
+    assert_paths_current(out,context,source)
+    return out,context
+
+
+def test_tracing_reprojection_rebinds_changed_source(tmp_path):
+    source,digest,raw=bound_evidence(tmp_path)
+    first,_=project_fresh(tmp_path,source,raw)
+    ref=first['feedback']['report_ref']
+    assert ref['matches_current_source'] is True and ref['source_binding']=='CURRENT'
+    source.write_text('changed')
+    out,context=project_fresh(tmp_path,source,first)
+    ref=out['feedback']['report_ref']
+    assert ref['source_sha256']==digest and ref['source_version']=='original'
+    assert ref['matches_current_source'] is False and ref['source_binding']=='STALE'
+    for row in references(out):
+        if row.get('source_sha256')==digest:assert row.get('matches_current_source') is not True
+    for path in context.sanitized_evidence_paths:
+        for row in references(json.loads(path.read_text())):
+            if row.get('source_sha256')==digest:assert row.get('matches_current_source') is not True
+
+
+def test_tracing_reprojection_hides_deleted_copy(tmp_path):
+    source,digest,raw=bound_evidence(tmp_path)
+    keep=tmp_path/'keep.json';keep.write_text('{"metric":0.3}')
+    raw['feedback']['evidence_files']=[{'path':'keep.json','source_sha256':digest}]
+    first,_=project_fresh(tmp_path,source,raw)
+    removed=tmp_path/first['feedback']['report_ref']['path'];removed.unlink()
+    out,context=project_fresh(tmp_path,source,first)
+    ref=out['feedback']['report_ref']
+    assert ref['path'] is None and ref['availability']=='UNAVAILABLE' and ref['reason']=='hidden_by_ablation'
+    assert removed.resolve() not in context.sanitized_evidence_paths
+    assert out['feedback']['evidence_files'][0]['path']

@@ -148,3 +148,22 @@ tracing 的 measure 只规划内存结果，不写脱敏文件；最终输出阶
 - 使用前文同一进程内 worktree 导入方法，回归文件列表增加 `tests/test_ablation_repairs_v3.py`。定向参数为 `tests/test_ablation_repairs_v3.py -q --tb=short`，其余回归文件与原生测试排除表达式不变。
 
 **没有运行模型调用、真实生成、仿真或评测。**
+
+## 删除 tracing 摘要捷径（基准 30fb093）
+
+删除 payload_for_agent 开头的 tracing 正文摘要捷径、正常路径移除旧标记的代码，以及最终输出写标记的代码。摘要只能说明 payload 本文未变，不能证明当前源码和证据文件仍未变；调用脱敏函数后忽略返回结果会返回陈旧绑定或已删除的路径。现在每次调用都执行原投影、压缩及 tracing 输出边界处理。代码与测试不再使用该标记。
+
+**条件性第 3 条已触发。** 删除捷径后，新增的源码绑定回归未通过（报告引用缺少派生绑定信息）。因此在 sanitized_evidence 的引用处理中按当前源码哈希重新计算 matches_current_source 和 source_binding，保留引用原来的 source_sha256/source_version。嵌套副本内的引用同样重新计算；若内容改变，生成新的内容寻址副本，保留旧文件。没有 source_sha256 的引用不添加绑定字段。不设消融时不经过这段代码。
+
+测试更新位于 `tests/test_ablation_repairs_v3.py`：
+
+- `test_tracing_reprojection_rebinds_changed_source`：从 CURRENT 引用开始，修改源码后用新上下文再次投影，顶层及嵌套引用均为 STALE，原证据哈希／版本保留，包含指向 assigned source 的嵌套引用。
+- `test_tracing_reprojection_hides_deleted_copy`：删除一个副本后用新上下文再投影，path 为空、UNAVAILABLE/hidden_by_ablation；已删除路径不在白名单；其他引用可解析且文件存在。
+- `test_nonfinite_nested_evidence_and_memory_measurement`：保留同一内部反馈重复投影的输出、文件名和副本内容稳定，以及无写入的内存测量断言；重复调用改为使用新的 AgentToolContext。
+- `assert_paths_current`/`project_fresh`：递归核对输出及副本中的所有非空 path，仅允许 assigned source 或本次上下文登记的存在文件，不借用上次白名单。
+
+删除标记／摘要捷径测试；`test_ablation.py` 和 `test_ablation_repairs.py` 中两处原 Agent 输出再次投影必须完全相等的断言，改为同一内部反馈重复投影稳定。仍保留内部候选完整性核验及符号链接读取限制。
+
+相关单元／stub 回归：**508 passed，12 deselected**，40.10 秒。覆盖三个消融测试文件，以及 Action、Agent feedback、fixed-assembly recovery、single、support、partition selection/feedback；排除项仍是既有原生几何执行／测量测试。使用前文相同导入与回归命令；git diff --check 通过，既有 anyio assertion-rewrite 提示不影响结果。
+
+**未运行生成、模型调用、仿真或评测。** 未修改其他已验收的消融逻辑、core、提示词或续跑 hash。

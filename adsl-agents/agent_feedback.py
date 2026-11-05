@@ -1042,20 +1042,8 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
     if role not in {'engineering', 'code_critic', 'image_critic', 'coder', 'debugger'}:
         raise AgentFeedbackError('AGENT_FEEDBACK_INVALID', {'reason': 'invalid_role'})
     try:
-        if ablation == 'tracing':
-            from .ablation_views import sanitized_evidence
-            marker = payload.get('ablation_view')
-            body = {k:v for k,v in payload.items() if k != 'ablation_view'}
-            if (isinstance(marker,dict) and marker.get('variant') == 'tracing'
-                    and marker.get('sha256') == hashlib.sha256(_encoded(body)).hexdigest()):
-                sanitized_evidence(body,workspace=workspace,source_path=source_path,context=tool_context,write=True)
-                if len(_encoded(_feedback_view(payload))) > FEEDBACK_LIMIT_BYTES:
-                    raise AgentFeedbackError('AGENT_FEEDBACK_TOO_LARGE',feedback_size_report(payload))
-                return deepcopy(payload)
         view = _Projection(workspace, source_path, source_version, report_ref, evidence_files)
         out = deepcopy(dict(payload))
-        if ablation == 'tracing':
-            out.pop('ablation_view', None)
         if ablation == 'tracing':
             from .ablation_views import record_hidden_tracing, sanitized_evidence
 
@@ -1342,7 +1330,6 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
         if ablation == 'tracing':
             record_hidden_tracing(out, workspace=workspace, source_path=source_path, source_version=source_version, role=role)
             out = sanitized_evidence(out, workspace=workspace, source_path=source_path, context=tool_context, write=True)
-            out['ablation_view'] = {'variant':'tracing','sha256':hashlib.sha256(_encoded(out)).hexdigest()}
         if actual > FEEDBACK_LIMIT_BYTES:
             raise AgentFeedbackError('AGENT_FEEDBACK_TOO_LARGE', feedback_size_report(out))
         # Feedback only is strict JSON. Images and task/source fields remain as
