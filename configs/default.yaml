@@ -20,6 +20,11 @@ rollout:
   ground_ratio: 0.000001
   displacement_ratio: 0.05859375
   rotation_deg: 10.0
+gate:
+  # SNAP3D arXiv:2609.13146v1, Appendix A (Validity check): <0.5 cells.
+  # Appendix B (Scale and fixed settings): one cell = D/256.
+  # https://arxiv.org/html/2609.13146 (Appendices A and B)
+  zero_gravity_displacement_ratio: 0.001953125  # 0.5/256; fixed-body bound remains 1e-4 D.
 coacd:
   far_threshold_ratio: 0.01
   seed: 42

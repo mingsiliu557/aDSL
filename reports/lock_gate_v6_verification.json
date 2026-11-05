@@ -1,0 +1,68 @@
+{
+  "base_commit": "43ef1ca192766a8b615f32795771e9921cbcc68d",
+  "old_runs": {
+    "runs/lock_gate_v1": {
+      "file_count": 3,
+      "sha256": "ecfc582dc6f3aa7080e9c4317c40d2e67917ad0c1175a1fd4a0e855ed47479b0",
+      "unchanged": true
+    },
+    "runs/lock_gate_v2": {
+      "file_count": 4,
+      "sha256": "a0b921dc5f3bddbec9e80ad1f1d3cee870c1637c20c023e66920180d00c00e1d",
+      "unchanged": true
+    },
+    "runs/lock_gate_v3": {
+      "file_count": 530,
+      "sha256": "6e51df9a4bb73a3bf1de4ca1c37ffc359b13812dbade39cb512c5cd5d0fbe40c",
+      "unchanged": true
+    },
+    "runs/lock_gate_v4": {
+      "file_count": 10,
+      "sha256": "fc9873a75e341595594cdb9ec7f9052f32a1ac3721514bef13418a20e301823e",
+      "unchanged": true
+    },
+    "runs/lock_gate_v5": {
+      "file_count": 14,
+      "unchanged": true,
+      "identity_ref": "reports/lock_gate_v6_reuse_identity.json"
+    }
+  },
+  "simulation_files_unchanged": true,
+  "zero_gravity_simulation_rerun": false,
+  "box_control_rerun": false,
+  "new_simulations": [
+    "no_head",
+    "headed"
+  ],
+  "fixture_diagonal_mm": 150.0,
+  "zero_gravity_bound_mm": 0.29296875,
+  "fixed_body_bound_mm": 0.015000000000000001,
+  "config_sha256": "3680a5dc6848223c1112f44628708b650bb6807e88d1f02ba8e9eb24951fa992",
+  "files": {
+    "runs/lock_gate_v6/gate.json": "9f8f29e3fc68d95c08a8e1492f59e9ea30def0d4aab02972f7b5157ca038e036",
+    "runs/lock_gate_v6/headed/connector.json": "1b7b92d3e06538a16a675bea416778e0709ee4aaed3377c9d52307de08bea36f",
+    "runs/lock_gate_v6/headed/model.xml": "87fb47f50e22e0b9c2ef70ba71ab8dc23eabf4c540485907ed81cb46ba339572",
+    "runs/lock_gate_v6/headed/peg.stl": "122faf784f1b3abc70a52e7eaf83d949a7657333b085d4251bf4ff12d052216b",
+    "runs/lock_gate_v6/headed/receiver.stl": "9cdd3985b6773996dc5b9d843f826317a026650509c429ff5ad2bd9381694bc9",
+    "runs/lock_gate_v6/headed/result.json": "586b13f04ea71fe0b4007c853a6b45fe440bd1d88024fb33884d79205e8d7c09",
+    "runs/lock_gate_v6/no_head/connector.json": "3cce48525e89bd19d11dba20fd0b06de292eab93fef2b481ffb2919776dc0a61",
+    "runs/lock_gate_v6/no_head/model.xml": "6f080db3adb8f1781a74c9511b617cebad15433524de83e06478c095576e00f0",
+    "runs/lock_gate_v6/no_head/peg.stl": "de8a6f7ef518dd8d58c6ecec087c453e3f0e1a617c8c1e855be6ed52d60305d8",
+    "runs/lock_gate_v6/no_head/receiver.stl": "5c37d8e5ae2b5e65e56507904fc3f56728963ccc1e988c851af7706bcfc3915d",
+    "runs/lock_gate_v6/no_head/result.json": "3fd9a92e899d8f40caf12c4797358eb744106180ac728cb66bea50aec0b2291a",
+    "runs/lock_gate_v6/zero_gravity/connector.json": "1b7b92d3e06538a16a675bea416778e0709ee4aaed3377c9d52307de08bea36f",
+    "runs/lock_gate_v6/zero_gravity/result.json": "072cfba2fe8ab2976555b44a4e493c8165be9fee313d0b8aa59d0a9a6a04b2f7",
+    "runs/lock_gate_v6/zero_gravity/reused.json": "f0b1740a255b2eb7732f794cae91a3fc2bf78800df7bc51ee3ef8c04d698955a"
+  },
+  "tests": {
+    "passed": 72,
+    "existing": 63,
+    "new": 9,
+    "wall_seconds": 9.88
+  },
+  "real_cases_run": 0,
+  "model_calls": 0,
+  "cem_runs": 0,
+  "weights_downloaded": false,
+  "uses_ipc": false
+}

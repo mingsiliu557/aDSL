@@ -1,0 +1,12 @@
+{
+  "paper": "SNAP3D: Physically Grounded 3D Parts for Assembly from a Single Image",
+  "version": "arXiv:2609.13146v1",
+  "url": "https://arxiv.org/html/2609.13146",
+  "threshold_location": "Appendix A, Validity check for the physics-based evaluation protocol",
+  "threshold_text": "move less than 0.5 cells",
+  "cell_definition_location": "Appendix B, Scale and fixed settings",
+  "cell_definition": "one grid cell equals D/256",
+  "derived_zero_gravity_displacement_ratio": 0.001953125,
+  "numeric_value_verified": true,
+  "clarification": "The zero-gravity threshold is stated in Appendix A; Appendix B defines its units."
+}
