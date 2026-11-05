@@ -4,7 +4,7 @@ import time
 import xml.etree.ElementTree as ET
 import numpy as np
 from scipy.spatial.transform import Rotation
-from .vendor.rigid_flex import flex_contact_settings, add_rigid_flex
+from .vendor.rigid_flex import flex_contact_settings, xml_model
 
 PROTOCOL='snap3d_fixed_ground_mujoco_coacd_v1'
 RIGID_FLEX_PROTOCOL='snap3d_fixed_ground_mujoco_rigid_flex_v1'
@@ -28,11 +28,41 @@ def _initial_contacts(model, data, flex_bodies):
                 contact_count=len(rows),total_contact_count=int(data.ncon) if hasattr(data,'ncon') else len(data.contact),
                 flex_flex_count=sum(all(int(i)>=0 for i in getattr(c,'flex',[-1,-1])) for c in rows))
 
+def _rigid_flex_xml(parts, ids, fixed_ids, config, clearance_mm, gravity=None, *, normal_only_diagnostic=False):
+    # Body-local material and millimetre assembly transform keep the existing
+    # SNAP3D COM origin while delegating all XML/inertia construction to aDSL.
+    bodies={}
+    for k,part in enumerate(ids):
+        mesh=parts[part]
+        if not mesh.is_volume:raise ValueError('INVALID_INPUT')
+        com=np.asarray(mesh.center_mass,dtype=float)
+        local=mesh.copy();local.apply_translation(-com)
+        matrix=np.eye(4);matrix[:3,3]=com
+        bodies[f'part_{k}']=dict(mesh=local,assembly_transform_mm=matrix.tolist())
+    report=dict(connections=[dict(parameters=dict(fit_offset_mm=clearance_mm))])
+    source_config=dict(config,timestep_seconds=config['dt'],collision_backend='rigid_flex')
+    contact=flex_contact_settings(report,source_config)
+    root=ET.fromstring(xml_model(report,parts,{},source_config,config['density'],body_layout=dict(bodies=bodies)))
+    for k,part in enumerate(ids):
+        if part in fixed_ids:
+            body=root.find(f"./worldbody/body[@name='part_{k}']")
+            for joint in list(body.findall('freejoint')):body.remove(joint)
+    g=config['gravity'] if gravity is None else gravity
+    root.find('option').set('gravity',f'0 0 {-g}')
+    # The only extra collision override is the explicitly authorized diagnostic.
+    # Its caller supplies zero friction; production model settings stay intact.
+    if normal_only_diagnostic:
+        if list(config['friction'])!=[0.,0.,0.]:
+            raise ValueError('NORMAL_CONTACT_DIAGNOSTIC_REQUIRES_ZERO_FRICTION')
+        for node in root.findall('./deformable/flex/contact'):node.set('condim','1')
+    return ET.tostring(root,encoding='unicode'),contact
+
+
 def angle(matrix):
     return float(np.linalg.norm(Rotation.from_matrix(matrix).as_rotvec()))
 
 def rollout(parts, *, D, config, coacd_config, clearance_mm, fixed_ids=None,
-            gravity=None, proxy_cache=None, retain_frames=True, initial_only=False):
+            gravity=None, proxy_cache=None, retain_frames=True, initial_only=False, normal_only_diagnostic=False):
     import mujoco
     started=time.monotonic()
     backend=config.get('collision_backend','rigid_flex')
@@ -41,7 +71,8 @@ def rollout(parts, *, D, config, coacd_config, clearance_mm, fixed_ids=None,
         fixed_ids=[i for i in ids if abs(parts[i].bounds[0,2])<=D*config['ground_ratio']]
     fixed_ids=list(fixed_ids)
     base=dict(protocol_id=RIGID_FLEX_PROTOCOL if backend=='rigid_flex' else PROTOCOL,
-              collision_backend=backend,fixed_ids=fixed_ids,status='UNAVAILABLE',reason=None)
+              collision_backend=backend,normal_only_diagnostic=normal_only_diagnostic,
+              fixed_ids=fixed_ids,status='UNAVAILABLE',reason=None)
     if not fixed_ids: return dict(base,reason='NO_GROUND_PARTS')
     if not set(fixed_ids)<=set(ids): return dict(base,reason='FIXED_ID_MISSING')
     free=[i for i in ids if i not in fixed_ids]
@@ -51,48 +82,42 @@ def rollout(parts, *, D, config, coacd_config, clearance_mm, fixed_ids=None,
     if backend=='zone_proxy' and (proxy_cache is None or any(not proxy_cache.get(i) for i in ids)):
         return dict(base,reason='PROXY_MISSING')
     contact=None
+    proxies_count={}
     if backend=='rigid_flex':
-        # This compatibility report conveys the nominal SNAP3D clearance only;
-        # it creates no connector, constraint, weld or declared material geometry.
         try:
-            contact=flex_contact_settings(dict(connections=[dict(parameters=dict(fit_offset_mm=clearance_mm))]),config)
+            xml,contact=_rigid_flex_xml(parts,ids,fixed_ids,config,clearance_mm,gravity,
+                                       normal_only_diagnostic=normal_only_diagnostic)
         except ValueError as error:
-            return dict(base,reason='RIGID_FLEX_CONTACT_UNVERIFIED',detail=str(error))
-    root=ET.Element('mujoco',model='snap3d')
-    ET.SubElement(root,'compiler',angle='radian',inertiafromgeom='false')
-    g=config['gravity'] if gravity is None else gravity
-    ET.SubElement(root,'option',timestep=str(config['dt']),gravity=f'0 0 {-g}',
-                  integrator=config['integrator'],iterations=str(config['iterations']))
-    asset=ET.SubElement(root,'asset'); world=ET.SubElement(root,'worldbody')
-    deformable=ET.SubElement(root,'deformable') if backend=='rigid_flex' else None
-    ET.SubElement(world,'geom',name='ground',type='plane',size='1 1 .01',friction=' '.join(map(str,config['friction'])))
-    proxies_by_id={}; proxies_count={}
-    for k,i in enumerate(ids):
-        mesh=parts[i]
-        if not mesh.is_volume: return dict(base,reason='INVALID_INPUT',part_id=i)
-        com=np.asarray(mesh.center_mass)*.001
-        mass=float(mesh.volume)*1e-9*config['density']
-        inertia=np.asarray(mesh.moment_inertia)*1e-15*config['density']
-        if not np.isfinite(inertia).all() or np.linalg.eigvalsh(inertia).min()<=0:
-            return dict(base,reason='INVALID_INERTIA',part_id=i)
-        body=ET.SubElement(world,'body',name=f'part_{k}',pos=' '.join(map(str,com)))
-        if i in free: ET.SubElement(body,'freejoint')
-        ET.SubElement(body,'inertial',pos='0 0 0',mass=str(mass),
-                      fullinertia=' '.join(map(str,[inertia[0,0],inertia[1,1],inertia[2,2],inertia[0,1],inertia[0,2],inertia[1,2]])))
-        if backend=='rigid_flex':
-            # Upstream branch consumes body-local mm vertices. Our body origin
-            # remains the unchanged true COM, so translate only the view fed to it.
-            local_mesh=mesh.copy();local_mesh.apply_translation(-com*1000)
-            add_rigid_flex(asset,body,deformable,local_mesh,i=k,name=f'part_{k}',contact=contact,config=config)
-            continue
-        proxies=proxy_cache[i]
-        proxies_by_id[i]=proxies; proxies_count[i]=len(proxies)
-        for p,proxy in enumerate(proxies):
-            name=f'mesh_{k}_{p}'
-            ET.SubElement(asset,'mesh',name=name,vertex=' '.join(map(str,(np.asarray(proxy.vertices)*.001-com).ravel())),face=' '.join(map(str,np.asarray(proxy.faces).ravel())))
-            ET.SubElement(body,'geom',name=f'geom_{k}_{p}',type='mesh',mesh=name,mass='0',
-                          friction=' '.join(map(str,config['friction'])),margin='0',gap='0')
-    xml=ET.tostring(root,encoding='unicode')
+            return dict(base,reason=str(error).split(':',1)[0],detail=str(error))
+    else:
+        root=ET.Element('mujoco',model='snap3d')
+        ET.SubElement(root,'compiler',angle='radian',inertiafromgeom='false')
+        g=config['gravity'] if gravity is None else gravity
+        ET.SubElement(root,'option',timestep=str(config['dt']),gravity=f'0 0 {-g}',
+                      integrator=config['integrator'])
+        asset=ET.SubElement(root,'asset'); world=ET.SubElement(root,'worldbody')
+        ET.SubElement(world,'geom',name='ground',type='plane',size='1 1 .01',friction=' '.join(map(str,config['friction'])))
+        proxies_by_id={}; proxies_count={}
+        for k,i in enumerate(ids):
+            mesh=parts[i]
+            if not mesh.is_volume: return dict(base,reason='INVALID_INPUT',part_id=i)
+            com=np.asarray(mesh.center_mass)*.001
+            mass=float(mesh.volume)*1e-9*config['density']
+            inertia=np.asarray(mesh.moment_inertia)*1e-15*config['density']
+            if not np.isfinite(inertia).all() or np.linalg.eigvalsh(inertia).min()<=0:
+                return dict(base,reason='INVALID_INERTIA',part_id=i)
+            body=ET.SubElement(world,'body',name=f'part_{k}',pos=' '.join(map(str,com)))
+            if i in free: ET.SubElement(body,'freejoint')
+            ET.SubElement(body,'inertial',pos='0 0 0',mass=str(mass),
+                          fullinertia=' '.join(map(str,[inertia[0,0],inertia[1,1],inertia[2,2],inertia[0,1],inertia[0,2],inertia[1,2]])))
+            proxies=proxy_cache[i]
+            proxies_by_id[i]=proxies; proxies_count[i]=len(proxies)
+            for p,proxy in enumerate(proxies):
+                name=f'mesh_{k}_{p}'
+                ET.SubElement(asset,'mesh',name=name,vertex=' '.join(map(str,(np.asarray(proxy.vertices)*.001-com).ravel())),face=' '.join(map(str,np.asarray(proxy.faces).ravel())))
+                ET.SubElement(body,'geom',name=f'geom_{k}_{p}',type='mesh',mesh=name,mass='0',
+                              friction=' '.join(map(str,config['friction'])),margin='0',gap='0')
+        xml=ET.tostring(root,encoding='unicode')
     try:
         model=mujoco.MjModel.from_xml_string(xml); data=mujoco.MjData(model); mujoco.mj_forward(model,data)
         flex_bodies={i:int(model.flex_vertbodyid[int(model.flex_vertadr[i])]) for i in range(getattr(model,'nflex',0))}
@@ -115,7 +140,13 @@ def rollout(parts, *, D, config, coacd_config, clearance_mm, fixed_ids=None,
         bodies={i:mujoco.mj_name2id(model,mujoco.mjtObj.mjOBJ_BODY,f'part_{k}') for k,i in enumerate(ids)}
         reverse={v:k for k,v in bodies.items()}
         def snapshot():
-            return {i:dict(position_mm=(data.xpos[b]*1000).tolist(),rotation=data.xmat[b].reshape(3,3).tolist()) for i,b in bodies.items()}
+            out={}
+            for i,b in bodies.items():
+                velocity=np.zeros(6)
+                mujoco.mj_objectVelocity(model,data,mujoco.mjtObj.mjOBJ_BODY,b,velocity,0)
+                out[i]=dict(position_mm=(data.xpos[b]*1000).tolist(),rotation=data.xmat[b].reshape(3,3).tolist(),
+                            linear_velocity_world_m_s=velocity[3:].tolist())
+            return out
         frames=[snapshot()]; max_depth=0.;max_contacts=int(data.ncon)
         steps=int(round(config['duration']/config['dt']))
         for _ in range(steps):
@@ -139,16 +170,19 @@ def rollout(parts, *, D, config, coacd_config, clearance_mm, fixed_ids=None,
         for i in ids:
             p0=np.array(frames[0][i]['position_mm']); r0=np.array(frames[0][i]['rotation'])
             metrics[i]=dict(max_displacement_mm=max(float(np.linalg.norm(np.array(f[i]['position_mm'])-p0)) for f in frames),
-                           max_rotation_rad=max(angle(np.array(f[i]['rotation'])@r0.T) for f in frames))
+                           max_rotation_rad=max(angle(np.array(f[i]['rotation'])@r0.T) for f in frames),
+                           max_linear_speed_m_s=max(float(np.linalg.norm(f[i]['linear_velocity_world_m_s'])) for f in frames))
         score=max(max(metrics[i]['max_displacement_mm']/(D*config['displacement_ratio']),
                       metrics[i]['max_rotation_rad']/np.deg2rad(config['rotation_deg'])) for i in free)
+        score=float(score)
         return dict(base,status='PASS',reason=None,stable=score<=1.,global_score=score,
                     metrics=metrics,frames=frames if retain_frames else [],last_contact_pairs=[list(p) for p in sorted(contacts)],
                     peak_penetration_mm=max_depth,**backend_info,xml=xml,
                     initial_contact=initial_contact,final_contact=_initial_contacts(model,data,flex_bodies),
                     initial_contact_count=int(initial_contact['total_contact_count']),
                     max_contact_count=max_contacts,final_contact_count=int(data.ncon),
-                    simulated_seconds=float(data.time),wall_seconds=time.monotonic()-started)
+                    simulated_seconds=float(data.time),wall_seconds=time.monotonic()-started,
+                    max_linear_speed_m_s=max(metrics[i]['max_linear_speed_m_s'] for i in free))
     except (ValueError,RuntimeError) as error:
         return dict(base,reason='SIMULATION_ERROR',detail=str(error))
 

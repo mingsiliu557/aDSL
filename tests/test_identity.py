@@ -17,7 +17,8 @@ def test_standalone_import():
     subprocess.run([sys.executable,'-c','import sys; import snap3d.vendor; import snap3d.vendor.rigid_flex; assert not any(k == "core" or k.startswith("core.") or k == "adsl" or k.startswith("adsl.") for k in sys.modules)'],env=env,check=True)
 
 def test_vendor_function_ast_matches_recorded_origin():
-    # Hashes of ASTs generated from frozen source, not from the vendor copy.
+    # Source-derived ASTs, including the explicitly recorded dependency import
+    # relocation in xml_model; its original full AST is verified separately.
     record=json.loads(Path('snap3d/vendor/function_ast.json').read_text())
     import hashlib
     for filename,functions in record.items():

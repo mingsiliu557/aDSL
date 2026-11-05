@@ -47,25 +47,24 @@
     "commit": "9e1f01dc32812bf649dc2f58fdc027c7c3dd8d7d",
     "functions": [
       "flex_contact_settings",
-      "_legacy_flex_contact_options"
+      "_legacy_flex_contact_options",
+      "xml_model"
     ],
-    "nested_helpers": [
-      "xml_model.values"
-    ],
-    "extracted_block": {
-      "commit": "9e1f01dc32812bf649dc2f58fdc027c7c3dd8d7d",
-      "source": "adsl-agents/assembly_standing.py",
-      "source_function": "xml_model",
-      "selector": "if rigid_flex",
-      "source_lines": [
-        352,
-        366
-      ],
-      "excluded_statement": "trailing loop-control continue only",
-      "helper": "add_rigid_flex",
-      "helper_prefix_statements": 1,
-      "block_ast_sha256": "c74858ba959510174acb42f2b72f4313cf4ef1919d684d6d7035f6a3eb5d18bf"
+    "upstream_sha256": "3c016c8017e7dc8ce5c4ce6b5dc9ac6ee730188fffd2a5a665766e760f3aa9e8",
+    "source_original_xml_ast_sha256": "dc5a5bd01468ef51efac5c4965fda07d2274e367526522be7029dbb05ce23611",
+    "dependency_import_relocation": {
+      "original": "from adsl.core.assembly_topology import mm_matrix",
+      "vendored": "from .assembly_topology import mm_matrix"
     },
-    "upstream_sha256": "3c016c8017e7dc8ce5c4ce6b5dc9ac6ee730188fffd2a5a665766e760f3aa9e8"
+    "vendored_xml_ast_sha256": "c1e6d996771fc18e12b0a2c78bf84837299a7f89504967ea0b7029f8c910764c"
+  },
+  {
+    "file": "assembly_topology.py",
+    "source": "adsl-core/core/assembly_topology.py",
+    "commit": "9e1f01dc32812bf649dc2f58fdc027c7c3dd8d7d",
+    "functions": [
+      "mm_matrix"
+    ],
+    "upstream_sha256": "7c8d28ddc04ddf33c375ae6052a745a694a0189ac4278c9654b70ecafca82bf1"
   }
 ]

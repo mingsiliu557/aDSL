@@ -1,0 +1,124 @@
+{
+  "source_commit": "9e1f01dc32812bf649dc2f58fdc027c7c3dd8d7d",
+  "source_path": "adsl-agents/assembly_standing.py",
+  "source_sha256": "3c016c8017e7dc8ce5c4ce6b5dc9ac6ee730188fffd2a5a665766e760f3aa9e8",
+  "checks": {
+    "flex_contact_settings": true,
+    "_legacy_flex_contact_options": true,
+    "complete_xml_model_except_dependency_import": true,
+    "mm_matrix_dependency": true,
+    "standing_reference": true
+  },
+  "only_xml_ast_difference": "dependency import redirected to vendored mm_matrix",
+  "config_reference": {
+    "source_commit": "9e1f01dc32812bf649dc2f58fdc027c7c3dd8d7d",
+    "source_path": "benchmark/configs/selection_v1.json",
+    "source_sha256": "d5448693c81a9e744eafc2baa10b58341ead0b0e2fc5e940b7a7218c5c6196d7",
+    "standing": {
+      "duration_seconds": 5,
+      "timestep_seconds": 0.002,
+      "friction": [
+        0.5,
+        0.005,
+        0.0001
+      ],
+      "tilt_threshold_deg": 20,
+      "settle_window_seconds": 0.5,
+      "settle_linear_m_s": 0.001,
+      "settle_angular_rad_s": 0.01,
+      "collision_backend": "rigid_flex"
+    },
+    "material": {
+      "density_kg_m3": 1240
+    },
+    "xml_model_settings": {
+      "integrator": "implicitfast",
+      "option_attributes": [
+        "timestep",
+        "gravity",
+        "integrator"
+      ],
+      "solver_overrides": {}
+    }
+  },
+  "parameters_before": {
+    "collision_backend": "rigid_flex",
+    "duration": 2.0,
+    "dt": 0.001,
+    "gravity": 9.81,
+    "density": 1240.0,
+    "friction": [
+      0.5,
+      0.005,
+      0.0001
+    ],
+    "integrator": "implicitfast",
+    "iterations": 100,
+    "ground_ratio": 1e-06,
+    "displacement_ratio": 0.05859375,
+    "rotation_deg": 10.0
+  },
+  "parameters_after": {
+    "collision_backend": "rigid_flex",
+    "duration": 2.0,
+    "dt": 0.002,
+    "gravity": 9.81,
+    "density": 1240.0,
+    "friction": [
+      0.5,
+      0.005,
+      0.0001
+    ],
+    "integrator": "implicitfast",
+    "ground_ratio": 1e-06,
+    "displacement_ratio": 0.05859375,
+    "rotation_deg": 10.0
+  },
+  "runtime_mujoco_defaults": {
+    "iterations": 100,
+    "solver": 2,
+    "cone": 0,
+    "tolerance": 1e-08
+  },
+  "no_ipc": true,
+  "actual_control_meshes_identical": true,
+  "actual_control_xml_differences": [
+    {
+      "tag": "geom",
+      "attribute": "friction",
+      "before": "0.5 0.005 0.0001",
+      "after": "0.0 0.0 0.0"
+    },
+    {
+      "tag": "contact",
+      "attribute": "condim",
+      "before": "3",
+      "after": "1"
+    },
+    {
+      "tag": "contact",
+      "attribute": "friction",
+      "before": "0.5 0.0050000000000000001 0.0001",
+      "after": "0 0 0"
+    },
+    {
+      "tag": "contact",
+      "attribute": "condim",
+      "before": "3",
+      "after": "1"
+    },
+    {
+      "tag": "contact",
+      "attribute": "friction",
+      "before": "0.5 0.0050000000000000001 0.0001",
+      "after": "0 0 0"
+    }
+  ],
+  "retained_snap_contract_checks": {
+    "angle": true,
+    "relative_score": true,
+    "select_edges": true,
+    "fixture": true,
+    "coplanar_boxes": true
+  }
+}

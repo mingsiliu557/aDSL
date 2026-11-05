@@ -1,0 +1,31 @@
+{
+  "source_commit": "9e1f01dc32812bf649dc2f58fdc027c7c3dd8d7d",
+  "source_path": "benchmark/configs/selection_v1.json",
+  "source_sha256": "d5448693c81a9e744eafc2baa10b58341ead0b0e2fc5e940b7a7218c5c6196d7",
+  "standing": {
+    "duration_seconds": 5,
+    "timestep_seconds": 0.002,
+    "friction": [
+      0.5,
+      0.005,
+      0.0001
+    ],
+    "tilt_threshold_deg": 20,
+    "settle_window_seconds": 0.5,
+    "settle_linear_m_s": 0.001,
+    "settle_angular_rad_s": 0.01,
+    "collision_backend": "rigid_flex"
+  },
+  "material": {
+    "density_kg_m3": 1240
+  },
+  "xml_model_settings": {
+    "integrator": "implicitfast",
+    "option_attributes": [
+      "timestep",
+      "gravity",
+      "integrator"
+    ],
+    "solver_overrides": {}
+  }
+}

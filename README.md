@@ -4,9 +4,11 @@ Independent research implementation. Not official SNAP3D code. No dependency on 
 installed aDSL checkout. No formal benchmark metrics or training are implemented.
 
 The current default is `rollout.collision_backend: rigid_flex`; `zone_proxy`
-remains available explicitly. The v4 artificial lock gate and its coplanar-box
-control both eject the free body at zero gravity. No real cases are authorized
-by that failed gate. See `reports/rigid_flex_implementation_20261105.md`.
+remains available explicitly. The current v5 uses the complete aDSL XML model
+and standing simulation settings, retaining SNAP3D fixed-ground/motion rules.
+The zero-gravity gate still fails its 0.015 mm motion limit, with 0.14224 mm
+observed motion. Real cases remain blocked. See
+`reports/adsl_rollout_implementation_20261105.md`.
 
 ## Frozen provenance
 
@@ -17,9 +19,10 @@ included. Resolve ancillary model checkpoints (including background removal and
 Sonata if required) before inference; offline mode must not fetch unpinned assets.
 
 Vendor source is aDSL `f65b0dbb9c0e3a48d45f870cdb7091949aa2472a`.
-The additional rigid-flex settings, compatibility options, value formatter and
-XML construction statements are copied from `fabrication_ablation@9e1f01d`,
-with separate function/block AST and original-source hash verification.
+The additional rigid-flex settings, compatibility options and complete
+`xml_model` are copied from `fabrication_ablation@9e1f01d`. Its unused mm_matrix
+dependency is copied locally too: only that import path is relocated. Source,
+original/relocated function AST and dependency hashes are recorded separately.
 `vendor/provenance.json` records source hashes; `function_ast.json` tests copied
 functions against the frozen source. No license file was found at that aDSL
 revision: provenance is retained, no new license is assigned to that code.
@@ -119,7 +122,7 @@ https://github.com/Tencent-Hunyuan/Hunyuan3D-Part .
 ## Zoned proxies: implemented, dynamic gate still blocked
 
 This section describes the historical v3 optional `zone_proxy` backend; the
-current v4 rigid-flex results are recorded below and in the new report.
+historical v4 and current v5 rigid-flex results are recorded below.
 
 The new adapter caches CoACD proxies of each immutable PGE base at
 `far_threshold_ratio=0.01` of the frozen D. All connector exclusion prisms are
@@ -159,7 +162,7 @@ This remains SNAP3D formula reimplementation (Manifold / MuJoCo-CoACD), using
 analytic lock-zone collisions instead of the paper's IPC mesh collisions.
 Static proxy acceptance is not evidence of stable dynamic contact.
 
-## Rigid-flex v4 artificial validation
+## Rigid-flex v4 artificial validation (historical)
 
 55 CPU unit tests passed, including original zone-proxy coverage, exact vendored
 AST checks, XML masks/radius/body-local coordinates, shell-clearance rejection,
@@ -174,3 +177,30 @@ triangles, 14 initial contacts, 0.7858 s wall time). The no-head and headed load
 gates were not run. No parameters were tuned. The 96-call extrapolation from
 the observed lock rollout is about 99.63 seconds/edge, not a validated optimization
 cost or bound for real cases. No models, weights, real cases or CEM were run.
+
+## Complete aDSL model and aligned settings: v5
+
+The default rollout delegates XML, true material inertia and flex construction
+to the complete source `xml_model`. SNAP3D builds one COM-local material/body
+layout per part and removes only fixed bodies' free joints afterwards. Zero
+gravity is an explicit postconstruction option for the original gate.
+
+Simulation settings follow `selection_v1.json` standing/material: dt=0.002,
+friction [0.5,0.005,0.0001], density 1240, rigid_flex; implicitfast and unspecified
+solver defaults come from source XML. The custom iterations override is removed.
+Both gates and the ordinary coplanar control now use formal rollout friction.
+The 2 s duration, pinned ground, tau_p=15D/256 and tau_r=10 degrees remain SNAP3D
+protocol choices. IPC is not used.
+
+63 CPU tests passed. The valid v5 zero-gravity lock rollout has 0.142241 mm
+maximum donor motion, exceeding 0.015 mm, so no-head/headed load gates are NOT_RUN.
+This is dramatically smaller than the v4 ejection, but the acceptance rule is
+unchanged. The ordinary coplanar boxes drift 0.878672 mm. The sole conditional
+diagnostic (same boxes, condim=1, zero friction) drifts 0.618611 mm. The first ten
+steps and measured velocities are recorded. No additional parameter search,
+models, weights, real cases or CEM followed.
+
+Artifacts are in `runs/lock_gate_v5`; a first technical JSON serialization failure
+is retained as `runs/lock_gate_v5_serialization_attempt_01`. Its fix converts the
+already-computed score to a Python float without changing the score or verdict.
+The complete parameter table and results are in the v5 implementation report.

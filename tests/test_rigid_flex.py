@@ -32,19 +32,22 @@ def run(meshes=None,*,clearance=.1,config=None,**kwargs):
         coacd_config=CFG['coacd'],clearance_mm=clearance,fixed_ids=['receiver'],**kwargs)
 
 
-def test_vendor_source_provenance_and_exact_xml_block_ast():
+def test_vendor_source_provenance_and_complete_xml_ast():
     directory=Path('snap3d/vendor')
-    record=json.loads((directory/'rigid_flex_block_ast.json').read_text())
     provenance=next(r for r in json.loads((directory/'provenance.json').read_text()) if r['file']=='rigid_flex.py')
-    assert provenance['commit']==record['commit']=='9e1f01dc32812bf649dc2f58fdc027c7c3dd8d7d'
-    assert provenance['source']==record['source']=='adsl-agents/assembly_standing.py'
+    assert provenance['commit']=='9e1f01dc32812bf649dc2f58fdc027c7c3dd8d7d'
+    assert provenance['source']=='adsl-agents/assembly_standing.py'
     assert len(provenance['upstream_sha256'])==64
     tree=ast.parse((directory/'rigid_flex.py').read_text())
-    helper=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name==record['helper'])
-    block=ast.Module(body=helper.body[record['helper_prefix_statements']:],type_ignores=[])
-    assert hashlib.sha256(ast.dump(block,include_attributes=False).encode()).hexdigest()==record['block_ast_sha256']
-    # Exact copied settings/legacy/values functions are also covered by the
-    # existing vendor-function AST test and its source-generated hash record.
+    function=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='xml_model')
+    assert not any(isinstance(n,ast.FunctionDef) and n.name=='add_rigid_flex' for n in tree.body)
+    actual=hashlib.sha256(ast.dump(function,include_attributes=False).encode()).hexdigest()
+    assert actual==provenance['vendored_xml_ast_sha256']
+    original=copy.deepcopy(function)
+    statement=original.body[0]
+    assert isinstance(statement,ast.ImportFrom) and statement.module=='assembly_topology' and statement.level==1
+    statement.module='adsl.core.assembly_topology';statement.level=0
+    assert hashlib.sha256(ast.dump(original,include_attributes=False).encode()).hexdigest()==provenance['source_original_xml_ast_sha256']
 
 
 @pytest.mark.parametrize('clearance,expected',[(.1,.005),(.4,.01)])
@@ -132,14 +135,16 @@ def test_rigid_flex_pipeline_skips_every_proxy_builder(tmp_path,monkeypatch):
     assert evidence['collision_backend']=='rigid_flex' and evidence['proxy_construction'] is False
 
 
-def test_rigid_flex_gate_stops_and_runs_only_coplanar_control(tmp_path,monkeypatch):
+@pytest.mark.parametrize('zero_status',['PASS','UNAVAILABLE'])
+def test_rigid_flex_gate_stops_and_runs_only_coplanar_control(tmp_path,monkeypatch,zero_status):
     spec=importlib.util.spec_from_file_location('rigid_flex_gate',Path('scripts/lock_gate.py'))
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     calls=[]
     def fake(meshes,**kwargs):
         calls.append(kwargs)
         pose={n:dict(position_mm=[0.,0.,0.],rotation=np.eye(3).tolist()) for n in meshes}
-        return dict(status='PASS',reason=None,frames=[copy.deepcopy(pose),copy.deepcopy(pose)],
+        status=zero_status if len(calls)==1 else 'PASS'
+        return dict(status=status,reason='SIMULATION_ERROR' if status=='UNAVAILABLE' else None,frames=[copy.deepcopy(pose),copy.deepcopy(pose)],
             metrics={'receiver':{'max_displacement_mm':0.},'peg':{'max_displacement_mm':1.}},
             flex_element_count=24,flex_element_counts={'peg':12,'receiver':12},
             initial_contact={'affects_verdict':False},initial_contact_count=1,max_contact_count=1,final_contact_count=1)
@@ -148,10 +153,13 @@ def test_rigid_flex_gate_stops_and_runs_only_coplanar_control(tmp_path,monkeypat
     monkeypatch.setattr(module,'build_zone_proxies',forbidden)
     report=module.rigid_flex_gate(tmp_path,CFG)
     assert report['status']=='FAIL' and report['not_run']==['no_head','headed']
-    assert len(calls)==2 and report['coplanar_control']['diagnostic_only']
+    assert len(calls)==3 and report['coplanar_control']['diagnostic_only']
     assert report['coplanar_control']['connector_count']==0
     assert calls[0]['config']==calls[1]['config']
     assert calls[0]['clearance_mm']==calls[1]['clearance_mm']
+    assert calls[0]['config']['friction']==CFG['rollout']['friction']
+    assert calls[2]['config']['friction']==[0.,0.,0.] and calls[2]['normal_only_diagnostic'] is True
+    assert report['normal_only_control']['condim']==1
 
 
 def test_default_backend_and_real_rigid_flex_free_fall():
@@ -175,3 +183,13 @@ def test_solver_warning_retains_available_contact_and_flex_metadata(monkeypatch)
     assert result['initial_contact']['affects_verdict'] is False
     assert result['initial_contact_count']>=0 and result['max_contact_count']>=0
     assert result['simulated_seconds']==0 and result['wall_seconds']>0
+
+
+def test_rotation_dominant_rollout_result_is_json_serializable(monkeypatch):
+    # Exercise the pre-existing NumPy division path without changing production
+    # angle calculation, score formula or threshold.
+    monkeypatch.setattr(physics,'angle',lambda _: .01)
+    result=run(config=dict(CFG['rollout'],duration=.002,gravity=0.))
+    assert result['status']=='PASS'
+    assert isinstance(result['stable'],bool) and isinstance(result['global_score'],float)
+    json.dumps(result,allow_nan=False)

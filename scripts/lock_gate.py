@@ -49,15 +49,31 @@ def coplanar_boxes():
     return {'receiver':solid_mesh(checked(bottom)),'peg':solid_mesh(checked(top))}
 
 
+def first_ten_steps(result, dt):
+    frames=result.get('frames',[])
+    if not frames:return dict(available_steps=0,requested_steps=10,complete=False,steps=[])
+    initial=frames[0]['peg']['position_mm'];rows=[]
+    for index,frame in enumerate(frames[1:11],1):
+        pose=frame['peg'];velocity=pose.get('linear_velocity_world_m_s')
+        rows.append(dict(step=index,time_s=index*dt,
+            displacement_xyz_mm=[float(x-y) for x,y in zip(pose['position_mm'],initial)],
+            linear_velocity_xyz_m_s=velocity,
+            speed_m_s=None if velocity is None else float(np.linalg.norm(velocity))))
+    speeds=[r['speed_m_s'] for r in rows if r['speed_m_s'] is not None]
+    return dict(initial_position_mm=initial,available_steps=len(rows),requested_steps=10,complete=len(rows)==10,
+        max_speed_first_ten_m_s=max(speeds) if speeds else None,
+        max_speed_whole_rollout_m_s=result.get('max_linear_speed_m_s'),steps=rows)
+
+
 def rigid_flex_gate(out, config):
-    tests=[];control=None
-    def integrate(parts,folder,cfg,clearance):
+    tests=[]
+    def integrate(parts,folder,cfg,clearance,normal_only=False):
         folder.mkdir()
         for part,mesh in parts.items():mesh.export(folder/f'{part}.stl')
         started=time.monotonic()
         try:
             result=rollout(parts,D=150.,config=cfg,coacd_config=config['coacd'],
-                clearance_mm=clearance,fixed_ids=['receiver'])
+                clearance_mm=clearance,fixed_ids=['receiver'],normal_only_diagnostic=normal_only)
         except (ValueError,RuntimeError) as error:
             result=dict(status='UNAVAILABLE',reason=type(error).__name__,detail=str(error))
         elapsed=time.monotonic()-started
@@ -67,7 +83,7 @@ def rigid_flex_gate(out, config):
 
     for label,headed,gravity in LABELS:
         parts,_,record,D,length=fixture(headed)
-        cfg=dict(config['rollout'],friction=[0.,0.,0.],gravity=gravity)
+        cfg=dict(config['rollout'],gravity=gravity)
         result,elapsed=integrate(parts,out/label,cfg,record['clearance'])
         write_json(out/label/'connector.json',record)
         measured=result.get('metrics',{})
@@ -82,37 +98,46 @@ def rigid_flex_gate(out, config):
         result['gate_pass']=bool(ok)
         write_json(out/label/'result.json',result)
         tests.append(dict(test=label,pass_=bool(ok),status=result['status'],reason=result.get('reason'),
-            rollout_wall_seconds=elapsed,requested_duration_s=config['rollout']['duration'],
+            rollout_wall_seconds=elapsed,requested_duration_s=config['rollout']['duration'],simulated_seconds=result.get('simulated_seconds'),
             flex_element_count=result.get('flex_element_count'),flex_element_counts=result.get('flex_element_counts'),
             initial_contact=result.get('initial_contact'),initial_contact_count=result.get('initial_contact_count'),
             max_contact_count=result.get('max_contact_count'),final_contact_count=result.get('final_contact_count'),
             fixed_displacement_mm=fixed,peg_displacement_mm=motion,peg_final_delta_z_mm=drop,
-            length_mm=length,clearance_mm=record['clearance'],cem96_estimate_seconds=96*elapsed))
+            length_mm=length,clearance_mm=record['clearance'],friction=cfg['friction']))
         print(json.dumps(tests[-1]),flush=True)
-        if not ok:
-            if label=='zero_gravity':
-                plain=coplanar_boxes()
-                cfg=dict(config['rollout'],friction=[0.,0.,0.],gravity=0.)
-                diagnostic,wall=integrate(plain,out/'coplanar_boxes_zero_gravity',cfg,record['clearance'])
-                write_json(out/'coplanar_boxes_zero_gravity/result.json',diagnostic)
-                control=dict(status=diagnostic['status'],reason=diagnostic.get('reason'),rollout_wall_seconds=wall,
-                    flex_element_count=diagnostic.get('flex_element_count'),initial_contact=diagnostic.get('initial_contact'),
-                    initial_contact_count=diagnostic.get('initial_contact_count'),max_contact_count=diagnostic.get('max_contact_count'),
-                    final_contact_count=diagnostic.get('final_contact_count'),metrics=diagnostic.get('metrics'),
-                    connector_count=0,diagnostic_only=True)
-                print(json.dumps(dict(control='coplanar_boxes_zero_gravity',**control)),flush=True)
-            break
-    complete=[t for t in tests if t['status']=='PASS']
-    slowest=max((t['rollout_wall_seconds'] for t in complete),default=None)
+        if not ok:break
+
+    # Always repeat the v4 plain-box control with the aligned production settings.
+    clearance=config['connector']['clearance_ratio']*150.
+    cfg=dict(config['rollout'],gravity=0.)
+    diagnostic,wall=integrate(coplanar_boxes(),out/'coplanar_boxes_zero_gravity',cfg,clearance)
+    write_json(out/'coplanar_boxes_zero_gravity/result.json',diagnostic)
+    def control_record(result,elapsed,normal_only):
+        return dict(status=result['status'],reason=result.get('reason'),rollout_wall_seconds=elapsed,
+            simulated_seconds=result.get('simulated_seconds'),flex_element_count=result.get('flex_element_count'),
+            initial_contact=result.get('initial_contact'),initial_contact_count=result.get('initial_contact_count'),
+            max_contact_count=result.get('max_contact_count'),final_contact_count=result.get('final_contact_count'),
+            metrics=result.get('metrics'),connector_count=0,diagnostic_only=True,
+            condim=1 if normal_only else 3,friction=[0.,0.,0.] if normal_only else config['rollout']['friction'],
+            first_ten_steps=first_ten_steps(result,config['rollout']['dt']))
+    control=control_record(diagnostic,wall,False)
+    print(json.dumps(dict(control='coplanar_boxes_zero_gravity',**control)),flush=True)
+    normal_control=None
+    zero=tests[0]
+    if (zero['test']=='zero_gravity' and not zero['pass_'] and
+            (zero['status']=='PASS' or zero['reason']=='SIMULATION_ERROR')):
+        cfg=dict(config['rollout'],gravity=0.,friction=[0.,0.,0.])
+        result,elapsed=integrate(coplanar_boxes(),out/'coplanar_boxes_condim1_zero_friction',cfg,clearance,True)
+        write_json(out/'coplanar_boxes_condim1_zero_friction/result.json',result)
+        normal_control=control_record(result,elapsed,True)
+        print(json.dumps(dict(control='coplanar_boxes_condim1_zero_friction',**normal_control)),flush=True)
     report=dict(status='PASS' if len(tests)==3 and all(t['pass_'] for t in tests) else 'FAIL',
         collision_backend='rigid_flex',config_sha256=digest(config),fixture_diagonal_mm=150.,
-        tests=tests,coplanar_control=control,next_stage_allowed=len(tests)==3 and all(t['pass_'] for t in tests),
+        tests=tests,coplanar_control=control,normal_only_control=normal_control,
+        next_stage_allowed=len(tests)==3 and all(t['pass_'] for t in tests),
         not_run=[label for label,_,_ in LABELS if label not in {t['test'] for t in tests}],
-        initial_penetration_is_diagnostic_only=True,
-        cem_cost=dict(candidate_count=96,slowest_observed_rollout_seconds=slowest,
-            sample_scope='completed_lock_fixtures_only',
-            estimate_seconds=None if slowest is None else 96*slowest,
-            caveat='96-call extrapolation only; excludes setup, redraws and extra initial/final checks. Not a runtime bound for real cases.'))
+        initial_penetration_is_diagnostic_only=True,settings_source='aDSL fabrication_ablation@9e1f01d selection_v1 standing',
+        uses_ipc=False)
     write_json(out/'gate.json',report)
     return report
 
@@ -151,7 +176,7 @@ def main():
             mesh.export(folder/f'{part}.stl')
             base[part].export(folder/f'{part}_base.stl')
         write_json(folder/'connector.json', record)
-        cfg = dict(config['rollout'], friction=[0., 0., 0.], gravity=gravity)
+        cfg = dict(config['rollout'], gravity=gravity)
         started = time.monotonic()
         try:
             proxies, build = build_zone_proxies(base, [record], D=D, config=config['coacd'], cache_dir=out/'proxy_cache')

@@ -1,0 +1,11 @@
+parameter,before,after,source
+dt,0.001,0.002,selection_v1 standing/material or xml_model; SNAP exceptions documented
+integrator,"""implicitfast""","""implicitfast""",selection_v1 standing/material or xml_model; SNAP exceptions documented
+iterations,100,null,selection_v1 standing/material or xml_model; SNAP exceptions documented
+friction,"[0.5, 0.005, 0.0001]","[0.5, 0.005, 0.0001]",selection_v1 standing/material or xml_model; SNAP exceptions documented
+density,1240.0,1240.0,selection_v1 standing/material or xml_model; SNAP exceptions documented
+collision_backend,"""rigid_flex""","""rigid_flex""",selection_v1 standing/material or xml_model; SNAP exceptions documented
+duration,2.0,2.0,selection_v1 standing/material or xml_model; SNAP exceptions documented
+displacement_ratio,0.05859375,0.05859375,selection_v1 standing/material or xml_model; SNAP exceptions documented
+rotation_deg,10.0,10.0,selection_v1 standing/material or xml_model; SNAP exceptions documented
+gate_friction,"[0,0,0]","[0.5, 0.005, 0.0001]",use formal rollout configuration
