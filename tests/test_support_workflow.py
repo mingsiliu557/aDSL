@@ -474,7 +474,7 @@ def test_initial_and_resumed_coder_receive_nsv_policy(tmp_path,monkeypatch):
     config['physics']={'overhang':dict(support_metric='nsv',shape_editable=True,
         layer_height_mm=.2,overhang_threshold_from_horizontal_deg=45)}
     workspace=tmp_path/'new'
-    request=ObjectRequest('fixture',workspace,'test',fixed_assembly=config)
+    request=ObjectRequest('fixture',workspace,'test',fixed_assembly=config,checker_specs=(physics.checker_spec('assembly_overhang'),))
     captures=[]
     class Runtime:
         usage=SimpleNamespace(update_manifest=lambda **kw:None)

@@ -48,6 +48,9 @@ def test_config_conflicts(tmp_path):
               replace(request(tmp_path),repair_policy=RepairPolicy(print_partition_editable=True))]:
         with pytest.raises(ValueError): ObjectWorkflow._validate_request(r)
     for r in [request(tmp_path),request(tmp_path,metric='nsv'),request(tmp_path,metric='nsv',orientation=True)]:
+        if r.fixed_assembly['physics']['overhang']['support_metric']=='nsv':
+            from adsl.agents.models import CheckerSpec
+            r=replace(r,checker_specs=(CheckerSpec(name='assembly_overhang',command=['stub']),))
         ObjectWorkflow._validate_request(r)
 
 

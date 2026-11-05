@@ -197,12 +197,24 @@ def _ablation_prompt(prompt, *, role, variant):
         if re.search(r'\b(Polygon|linear_extrude|rotate_extrude|loft|hull)\b', prompt):
             raise ValueError('unhandled profile API prompt instruction')
         prompt += '\nUse documented basic primitives and Boolean operations for geometry.'
-    elif variant == 'actions' and role in {'coder','code_critic','code_critic_review','engineering_critic'}:
-        # Remove structured-action sentences, not the modeling API reference.
-        tokens = r'regroup_print_parts|change_print_orientation|add_local_structure|resize|reshape|relayout|grouping_change|Authorized actions|Authorized optional shape actions'
-        prompt = re.sub(r'[^.!?\n]*(?:' + tokens + r')[^.!?]*(?:[.!?]|$)', '', prompt)
-        prompt += ('\nNo Engineering proposal is used. Repair necessary defects directly from current feedback. '
-                   'Proposal-dependent optional optimization is disabled; existing edit permissions still apply.')
+    elif variant == 'actions' and role in {'coder','code_critic','code_critic_review'}:
+        replacements = [
+            ('a structured regroup_print_parts proposal may also change grouping and affected\n  interfaces.',
+             'Keep the current print grouping.'),
+            ('Follow an authorized grouping_change using original\npre-connector bodies/children.',
+             'Preserve grouping while editing the original pre-connector bodies/children.'),
+            ('Regroup only when explicitly\npermitted, using action regroup_print_parts with grouping_change\n(operation, source_part_ids, target_print_parts, connection_changes).',
+             'Keep current print grouping and program-declared print rotations.'),
+        ]
+        # The area Coder contains both fixed-assembly sentences; NSV replaces the
+        # second paragraph and adds the support policy. Critics use the core API.
+        expected = [0, 2] if role == 'coder' and 'Support optimization uses' in prompt else [0, 1] if role == 'coder' else [2] if 'Support optimization uses' in prompt else []
+        for index in expected:
+            old,new=replacements[index]
+            if old not in prompt: raise ValueError('actions prompt policy boundary unavailable: '+old)
+            prompt=prompt.replace(old,new)
+        prompt += ('\nThis variant has no Engineering proposal. Edit code directly to repair necessary '
+                   'defects or reduce support. Do not change print-part grouping or program-declared print orientation.')
     elif variant == 'tracing':
         prompt = prompt.replace(_SOURCE_CANDIDATE_READING, '')
         prompt = prompt.replace('and having source candidates', '')

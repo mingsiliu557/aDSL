@@ -37,6 +37,39 @@ def ablation(config) -> str | None:
     return value
 
 
+def validate_nsv_config(config, specs):
+    overhang = (config or {}).get('physics', {}).get('overhang', {})
+    if overhang.get('support_metric', 'area') != 'nsv':
+        return
+    import math
+    layer = overhang.get('layer_height_mm')
+    angle = overhang.get('overhang_threshold_from_horizontal_deg')
+    if (isinstance(layer,bool) or not isinstance(layer,(int,float)) or not math.isfinite(layer) or layer <= 0 or
+            isinstance(angle,bool) or not isinstance(angle,(int,float)) or not math.isfinite(angle) or not 0 < angle < 90):
+        raise ValueError('NSV requires a finite positive layer height and overhang angle in (0,90)')
+    if not any(s.name=='assembly_overhang' for s in specs):
+        raise ValueError('NSV requires selected assembly_overhang')
+
+
+def _actions_structure_preserved(before, after):
+    import numpy as np
+    def groups(row):
+        return {p['id']: sorted(p.get('components', [])) for p in row.get('part_declarations', [])}
+    try:
+        if groups(before) != groups(after): return False
+        left={p['id']:p for p in before.get('parts', [])}
+        right={p['id']:p for p in after.get('parts', [])}
+        if left.keys() != right.keys(): return False
+        for key in left:
+            a=left[key].get('print_transform_mm'); b=right[key].get('print_transform_mm')
+            if a is None and b is None: continue
+            a=np.asarray(a,dtype=float);b=np.asarray(b,dtype=float)
+            if a.shape != (4,4) or b.shape != (4,4) or not np.isfinite(a).all() or not np.isfinite(b).all():return False
+            if not np.allclose(a[:3,:3],b[:3,:3],rtol=0,atol=1e-9):return False
+        return True
+    except (KeyError,TypeError,ValueError): return False
+
+
 def print_mode(config: dict) -> str:
     value = (config or {}).get('print_mode')
     if value is None:
@@ -589,15 +622,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
     mode_a = bool(not single and nsv and shape_editable and partition is None and not request.repair_policy.print_orientation_editable)
     prompt_options = support_prompt_options(config)
     runtime.usage.update_manifest(print_mode=print_mode(config), ablation=variant)
-    if nsv:
-        import math
-        layer = overhang_config.get('layer_height_mm')
-        angle = overhang_config.get('overhang_threshold_from_horizontal_deg')
-        if (isinstance(layer,bool) or not isinstance(layer,(int,float)) or not math.isfinite(layer) or layer <= 0 or
-                isinstance(angle,bool) or not isinstance(angle,(int,float)) or not math.isfinite(angle) or not 0 < angle < 90):
-            raise ValueError('NSV requires a finite positive layer height and overhang angle in (0,90)')
-        if not any(s.name=='assembly_overhang' for s in specs):
-            raise ValueError('NSV requires selected assembly_overhang')
+    validate_nsv_config(config, specs)
     if partition is not None:
         from .partition_score import (objective_config, create_reference, load_reference,
             reference_shape_comparison, compare_partition_scores, publish_print_layout)
@@ -1349,6 +1374,14 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                         'shape_only' if body_status['status']=='CHANGED' else 'none')
                 if partition is not None:
                     reviews.update(partition_ready=partition_ready,partition_adopted=partition_adopted)
+            if variant == 'actions' and number > 1 and not _actions_structure_preserved(
+                    book['versions'][parent_id]['reviews'].get('geometry', {}), report):
+                accepted = False
+                partition_adopted = False
+                repairable_implementation_issue = True
+                reason = 'ABLATION_STRUCTURED_ACTION_FORBIDDEN'
+                reviews['partition_adopted'] = False
+                reviews['structured_action_check'] = dict(conclusion='REJECT',reason=reason)
             reviews.update(geometry=report, accepted=accepted, reason=reason,
                 execution_binding=binding, parent_version=parent_id if number > 1 else None,
                 edit_purpose=edit_purpose, repair_proposal=proposal.model_dump() if proposal else None)
@@ -1467,10 +1500,11 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                         all(f.category=='optimization_opportunity' for f in actionable))
                 if variant in {'review', 'actions'}:
                     disabled_optional = any(f.category == 'optimization_opportunity' for f in actionable)
-                    actionable = [f for f in actionable if f.category != 'optimization_opportunity']
-                    optimize = False
+                    actionable = [f for f in actionable if f.category != 'optimization_opportunity' or
+                                  variant == 'actions' and f.rule_id == 'SUPPORT_SHAPE_OPPORTUNITY']
+                    optimize = any(f.category == 'optimization_opportunity' for f in actionable)
                     feedback['orientation_only_edit'] = False
-                    if variant == 'actions' and disabled_optional:
+                    if variant == 'actions' and disabled_optional and not optimize:
                         feedback['optional_optimization_disabled_by_ablation'] = True
                         if accepted:
                             stop = 'optional_optimization_disabled_by_ablation'
@@ -1527,7 +1561,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                         optimize=False
                 feedback['actionable_finding_ids']=[f.finding_id for f in actionable]
                 remaining = book['max_rounds']-number
-                if (variant not in {'review', 'actions'} and (not accepted or optimize) and (not nsv or not book['completed']) and not optimization_finished
+                if ((not accepted or optimize) and (not nsv or not book['completed']) and not optimization_finished
                         and terminal_request_error is None and propagate_error is None
                         and not repairable_implementation_issue and reason != 'FLOW_ERROR' and actionable and remaining > 0):
                     budget = RepairController(workspace=workspace,round_root=root,baseline_source=current,
@@ -1537,11 +1571,12 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     if not budget.budget_error():
                         next_proposal=None
                         try:
-                            next_proposal = await engineer(workflow,runtime,request,plan,current,execution,
-                                candidate_root,evidence_runs if len(evidence_runs)>1 or not topology_run else topology_run,
-                                _assembly_context(current,report,version_role='current_candidate',
-                                    report_ref=reviews.get('geometry_report_ref')),
-                                feedback,remaining)
+                            if variant not in {'review', 'actions'}:
+                                next_proposal = await engineer(workflow,runtime,request,plan,current,execution,
+                                    candidate_root,evidence_runs if len(evidence_runs)>1 or not topology_run else topology_run,
+                                    _assembly_context(current,report,version_role='current_candidate',
+                                        report_ref=reviews.get('geometry_report_ref')),
+                                    feedback,remaining)
                             if next_proposal:
                                 _check_single_action(next_proposal, config, request.repair_policy.print_orientation_editable)
                                 regroup_precheck(next_proposal,purpose=feedback.get('next_edit_purpose'),
@@ -1568,12 +1603,12 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                 propagate_error = error
                             feedback['engineering']={'status':'UNAVAILABLE','reason':type(error).__name__,
                                 'report_path':str((candidate_root/'engineering_error.json').resolve())}
-                        if not terminal_request_error and propagate_error is None and partition is not None and feedback['next_edit_purpose'].endswith('_optimization') and not next_proposal:
+                        if feedback['engineering']['status'] != 'DISABLED_ABLATION' and not terminal_request_error and propagate_error is None and partition is not None and feedback['next_edit_purpose'].endswith('_optimization') and not next_proposal:
                             partition_restore=feedback['comparison_baseline_version']
                             unavailable=feedback['engineering']['status']!='NO_PROPOSAL'
                             partition_stop_reason='partition_engineering_unavailable' if unavailable else 'no_reasonable_partition_proposal'
                             partition_mark_stopped=not unavailable
-                        elif not terminal_request_error and propagate_error is None and partition is None and accepted and optimize and not next_proposal:
+                        elif feedback['engineering']['status'] != 'DISABLED_ABLATION' and not terminal_request_error and propagate_error is None and partition is None and accepted and optimize and not next_proposal:
                             optimize=False;stop='no_reasonable_support_proposal' if nsv else 'no_reasonable_orientation_proposal';book['completed']=True
                     else:
                         stop='repair_budget_exhausted';book['completed']=True

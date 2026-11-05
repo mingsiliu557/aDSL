@@ -2501,6 +2501,10 @@ class ObjectWorkflow:
             support_prompt_options(request.fixed_assembly)  # validate explicit mode values before model calls
             from .fixed_assembly import print_mode, ablation
             variant = ablation(request.fixed_assembly)
+            from .fixed_assembly import validate_nsv_config
+            validate_nsv_config(request.fixed_assembly, request.checker_specs)
+            if variant in {'tracing','actions','profile_ops','fab_plan'} and not {'assembly_topology','assembly_overhang'} <= {s.name for s in request.checker_specs}:
+                raise ValueError('ablation requires assembly_topology and assembly_overhang')
             overhang = request.fixed_assembly.get('physics', {}).get('overhang', {})
             if variant == 'review':
                 if (request.fixed_assembly.get('validation_mode') != 'visual_only'

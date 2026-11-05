@@ -7,8 +7,8 @@
 | 值 | 行为 | 必要配置／连带差异 |
 |---|---|---|
 | review | 不调用 Engineering，关闭指定的三类物理审查；源码／导出错误继续交 Coder | split、visual_only；不能选 topology/standing/overhang，不能 NSV 或 partition_objective；制造几何验证也被跳过 |
-| tracing | 保留物理事实，隐藏物理到源码的定位；文件工具仅可读当前源码和脱敏证据 | split；不改变内部检查、定位与提案校验 |
-| actions | 不调用 Engineering；保留必要修复的内部 reshape 路径 | split；依赖提案的可选优化停止，记录 optional_optimization_disabled_by_ablation |
+| tracing | 保留物理事实及递归几何引用，在输出边界隐藏物理到源码的绑定；文件工具仅可读当前源码和脱敏证据 | split；不改变内部检查、定位与提案校验 |
+| actions | 不调用 Engineering；保留必要修复的内部 reshape 路径 | split；保留 NSV 纯形状优化及原采纳／回退；仅分组和手动朝向机会被过滤，只有这些机会时记录 optional_optimization_disabled_by_ablation |
 | profile_ops | 提示不提供五个截面算子，生成源码执行前拒绝其导入／调用 | split；仅检查生成源码，不修改 core 内部实现 |
 | fab_plan | 普通 ObjectPlan → 确定性单打印件计划 → single 流程 | single、require_multiple_parts=false、NSV、shape_editable=true、print_orientation_editable=true；分件编辑关闭，无 partition_objective |
 
@@ -27,7 +27,7 @@ fab_plan 保留同一对象的语义部件描述、关系、checklist 和请求�
 
 原报告、索引、版本记录不移动、不改写。被隐藏的定位按来源版本及角色记录在工作区的 `ablation_private/tracing_*.json`，Agent 无权读取。清理后的证据保存在 `ablation_evidence/sanitized_*.json`，只有本次投影登记的文件和当前 assigned_source 可以读取；路径先 resolve，再检查白名单。JSON pointer 不绕过权限。
 
-原始引用和可回读索引不发送给 Agent；脱敏文件保留物理打印件、空间区域及数值。脱敏仍走原反馈预算，超限保持明确错误。重复投影使用内容标识，不重复写相同文件。此限制针对 Agent 文件工具，不是任意 Python 程序的安全沙箱。
+内部原始引用保持不变；输出引用改写到内容寻址的 JSON 脱敏副本，副本中的引用递归改写。私有日志、索引、版本记录、非 JSON 资产均不能回读。脱敏文件保留物理打印件、空间区域及数值。源码执行／契约诊断的 source_locations、node_path 和 exception 保留：它们属于原有 Python 错误诊断，不是物理问题的源码回溯。脱敏仍走原反馈预算，超限保持明确错误。重复投影使用内容标识，不重复写相同文件。此限制针对 Agent 文件工具，不是任意 Python 程序的安全沙箱。
 
 ## 默认兼容与执行错误
 
@@ -40,3 +40,12 @@ TabSlot 内部未调用这五个 API；RoundedPad 的内部实现保持不变，
 ## 验证范围
 
 只运行 stub／纯接口测试；模型、真实生成、仿真及正式评测均未执行。配置开关本身不是消融效果证据。测试命令、结果及排除的原生测试见 `reports/fabrication_ablation_implementation.md`。
+
+
+## 修复 v2 的比较条件
+
+tracing/actions/profile_ops/fab_plan 必须选择 assembly_topology 和 assembly_overhang；不强制 assembly_standing。完整版及所有变体的 NSV 层厚、角度和 checker 选择由同一函数在首次模型前校验，循环内仍复用该函数作续跑保护。合法完整版的提示、控制流与 frozen hash 保持不变。
+
+fab_plan 必须 shape_editable=True；同表的 Ours split 也必须 shape_editable=True。同一案例采用相同检查器集合，由后续实验配置保证，本次未新增批量配置生成器。
+
+actions 继续创建既有支撑检查点，使用原基线双指标验收。纯形状候选刷新参考后再评价；内部必要修复沿用同一个支撑基线。改变打印件语义分组或程序声明旋转的候选记录 ABLATION_STRUCTURED_ACTION_FORBIDDEN，不能采用。连接变化不参与这个额外比较；checker 自身姿态搜索不受影响。

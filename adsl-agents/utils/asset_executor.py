@@ -65,7 +65,12 @@ def _execute_generated_source(source, output, *, fixed_assembly=False, ablation=
     try:
         if ablation == 'profile_ops':
             check_profile_source(source.read_text(), filename=str(source))
-        namespace = runpy.run_path(str(source), run_name="__adsl_generated__")
+        if ablation == 'profile_ops':
+            from .ablation_source import disabled_profile_runtime
+            with disabled_profile_runtime(source):
+                namespace = runpy.run_path(str(source), run_name="__adsl_generated__")
+        else:
+            namespace = runpy.run_path(str(source), run_name="__adsl_generated__")
         stage = 'source_contract'
         if not isinstance(namespace.get('scene'), Asset):
             raise TypeError("Generated source must assign an adsl Asset to `scene`")

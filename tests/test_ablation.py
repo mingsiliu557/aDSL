@@ -20,7 +20,8 @@ from test_fixed_assembly import CONFIG, plan_data, mock_flow, run_flow
 
 
 def request(tmp_path, variant, **config):
-    return ObjectRequest('make the pictured object',tmp_path,'test',fixed_assembly={**CONFIG,'ablation':variant,**config})
+    return ObjectRequest('make the pictured object',tmp_path,'test',fixed_assembly={**CONFIG,'ablation':variant,**config},
+        checker_specs=tuple(CheckerSpec(name=n,command=['stub']) for n in ('assembly_topology','assembly_overhang')) if variant != 'review' else ())
 
 
 def test_config(tmp_path):
@@ -62,8 +63,8 @@ def test_profile_prompt(role):
 @pytest.mark.parametrize('metric',['area','nsv'])
 def test_actions_prompt(role,metric):
     text=object_prompt(role,articulation=False,fixed_assembly=True,support_metric=metric,shape_editable=True,ablation='actions')
-    for token in ('regroup_print_parts','change_print_orientation','add_local_structure','Authorized actions'):
-        assert token not in text
+    assert 'Edit code directly' in text
+    assert 'Do not change print-part grouping' in text
     assert 'assembly.connect' in text
 
 
@@ -104,19 +105,19 @@ def test_tracing_payload_and_permissions(tmp_path,role):
     out=payload_for_agent(raw,**kw)
     assert raw==before
     assert out['feedback']['part_id']=='head' and out['feedback']['metric']==.125
-    for token in ('source_candidates','source_locations','feature_id','full_ref','secret.json'):assert token not in json.dumps(out)
+    for token in ('source_candidates','source_locations','feature_id','secret.json'):assert token not in json.dumps(out)
     assert payload_for_agent(out,**kw)==out
     logs=list((tmp_path/'ablation_private').glob('*.json'));assert logs and 'line' in logs[0].read_text()
     for path in ['secret.json','source_index.json',str(logs[0])]:
         result=asyncio.run(tool(read_file,ctx,'denied',path=path))
         assert 'ABLATION_READ_DENIED' in result
-    for path in ['source.py',out['evidence_files'][0]['path']]:
+    for path in ['source.py',out['feedback']['full_ref']['path']]:
         result=asyncio.run(tool(read_file,ctx,'allowed',path=path))
         assert 'ABLATION_READ_DENIED' not in result
 
 
 def test_fab_planner_ordinary_input(tmp_path):
-    req=request(tmp_path,'fab_plan',print_mode='single',physics={'overhang':{'support_metric':'nsv','shape_editable':True}})
+    req=request(tmp_path,'fab_plan',print_mode='single',physics={'overhang':{'support_metric':'nsv','shape_editable':True,'layer_height_mm':.2,'overhang_threshold_from_horizontal_deg':45}})
     req=replace(req,repair_policy=RepairPolicy(print_orientation_editable=True))
     ObjectWorkflow._validate_request(req)
     data=plan_data(); obj=ObjectPlan.model_validate(data)
@@ -161,7 +162,7 @@ def test_profile_missing_marker():
 
 @pytest.mark.parametrize('variant',['profile_ops','fab_plan','tracing'])
 def test_initial_resume_actual_prompts_and_plan_file(tmp_path,monkeypatch,variant):
-    cfg={'print_mode':'single','physics':{'overhang':{'support_metric':'nsv','shape_editable':True}}} if variant=='fab_plan' else {}
+    cfg={'print_mode':'single','physics':{'overhang':{'support_metric':'nsv','shape_editable':True,'layer_height_mm':.2,'overhang_threshold_from_horizontal_deg':45}}} if variant=='fab_plan' else {}
     req=request(tmp_path/'case',variant,**cfg)
     if variant=='fab_plan': req=replace(req,repair_policy=RepairPolicy(print_orientation_editable=True))
     captures=[];planners=[]
@@ -205,7 +206,7 @@ def test_real_coder_receives_failure_and_repairs(tmp_path,monkeypatch,variant):
     cfg={**CONFIG,'ablation':variant}
     if variant=='review':cfg['validation_mode']='visual_only'
     req=replace(state[1],fixed_assembly=cfg,checker_specs=(),max_rounds=2)
-    ObjectWorkflow._validate_request(req)
+    ObjectWorkflow._validate_request(replace(req,checker_specs=request(tmp_path,variant).checker_specs))
     state=(state[0],req,*state[2:])
     execute=flow.execute_asset_source;executions=[];captured=[]
     def run(src,out,**kw):
@@ -247,10 +248,10 @@ def test_actions_optional_stops_without_engineering_or_edit(tmp_path,monkeypatch
     state=(state[0],req,*state[2:])
     monkeypatch.setattr(assembly_topology,'engineer',AsyncMock(side_effect=AssertionError('disabled')))
     result,book=run_flow(state)
-    assert result.approved and len(checks)==1 and not captured
-    assert book['stop_reason']=='optional_optimization_disabled_by_ablation'
+    assert result.approved and len(checks)==2 and captured
+    assert book['stop_reason'] != 'no_reasonable_support_proposal'
     assert book['feedback']['engineering']['status']=='DISABLED_ABLATION'
-    assert 'support_checkpoints' not in book
+    assert 'support_checkpoints' in book
 
 
 def test_legacy_checkpoint_resumes_with_null_ablation(tmp_path,monkeypatch):
@@ -302,7 +303,7 @@ def test_tracing_at_actual_role_entry(tmp_path,role):
             assert kw['context'].ablation=='tracing'
             denied=await tool(read_file,kw['context'],'hidden',path=ref['path'])
             assert 'ABLATION_READ_DENIED' in denied
-            allowed=await tool(read_file,kw['context'],'summary',path=sent['evidence_files'][0]['path'])
+            allowed=await tool(read_file,kw['context'],'summary',path=next(iter(kw['context'].sanitized_evidence_paths)).relative_to(tmp_path).as_posix())
             assert 'ABLATION_READ_DENIED' not in allowed
         if role=='engineering':result=EngineeringCriticDecision(approved=False,observations=[],repair_proposals=[])
         elif role=='code_critic':result=GradedCodeCriticDecision(approved=True,observations=[],issues=[])
