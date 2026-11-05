@@ -1,16 +1,45 @@
 """X-Part light wrapper; records and rejects silently omitted parts."""
 from pathlib import Path
 import argparse,time
-from .common import verify_snapshot,scene_parts,write_json,sha
+from contextlib import contextmanager
+import importlib
+from .common import verify_snapshot,verify_auxiliary,scene_parts,write_json,sha
 from .export import export_parts
+
+@contextmanager
+def pinned_sonata(path):
+    """Upstream P3-SAM hardcodes a main-revision download and a root-only cache.
+
+    Redirect its existing loader to the pinned local checkpoint; restore aliases.
+    No third-party source, architecture, weights or inference parameters change.
+    """
+    originals=[]
+    def local_loader(original):
+        def load(name='sonata', *args, **kwargs):
+            if name=='sonata':name=str(path)
+            return original(name,*args,**kwargs)
+        return load
+    try:
+        for name in ['models.sonata','partgen.models.sonata']:
+            module=importlib.import_module(name)
+            originals.append((module,module.load))
+            module.load=local_loader(module.load)
+        yield
+    finally:
+        for module,original in reversed(originals):module.load=original
+
 
 def decompose(mesh_path, *, weights, output, seed=42):
     import torch
     from partgen.partformer_pipeline import PartFormerPipeline
-    if not Path(weights).is_dir():raise ValueError('LOCAL_SNAPSHOT_REQUIRED')
+    weights=Path(weights).resolve()
+    if not weights.is_dir():raise ValueError('LOCAL_SNAPSHOT_REQUIRED')
     identity=verify_snapshot(weights,'Hunyuan3D-Part')
     torch.manual_seed(seed)
-    pipeline=PartFormerPipeline.from_pretrained(str(weights));pipeline.to(device='cuda',dtype=torch.float32)
+    sonata,sonata_identity=verify_auxiliary('sonata')
+    with pinned_sonata(sonata):
+        pipeline=PartFormerPipeline.from_pretrained(str(weights))
+    pipeline.to(device='cuda',dtype=torch.float32)
     original=pipeline._export;attempts=[]
     def capture(*args,**kwargs):
         try:
@@ -25,7 +54,7 @@ def decompose(mesh_path, *, weights, output, seed=42):
     scene,_=pipeline(mesh_path=str(mesh_path),generator=torch.Generator(device='cuda').manual_seed(seed),**opts)
     output=Path(output);output.mkdir(parents=True,exist_ok=False)
     parts=scene_parts(scene)
-    metadata=dict(upstream=identity,input_sha256=sha(mesh_path),options=opts,export_attempts=attempts,upstream_fix_mesh=True,
+    metadata=dict(upstream=identity,sonata_identity=sonata_identity,input_sha256=sha(mesh_path),options=opts,export_attempts=attempts,upstream_fix_mesh=True,
                   elapsed_s=time.monotonic()-start,gpu=torch.cuda.get_device_name())
     export_parts(parts,output,metadata=metadata)
     if any(x['status']!='PASS' for x in attempts) or len(parts)!=len(attempts):

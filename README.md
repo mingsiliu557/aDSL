@@ -4,15 +4,25 @@ Independent research implementation. Not official SNAP3D code. No dependency on 
 installed aDSL checkout. No formal benchmark metrics or training are implemented.
 
 The current default is `rollout.collision_backend: rigid_flex`; `zone_proxy`
-remains available explicitly. The current v5 uses the complete aDSL XML model
-and standing simulation settings, retaining SNAP3D fixed-ground/motion rules.
-The zero-gravity gate still fails its 0.015 mm motion limit, with 0.14224 mm
-observed motion. Real cases remain blocked. See
-`reports/adsl_rollout_implementation_20261105.md`.
+remains available explicitly. Complete aDSL XML and standing settings are used,
+with SNAP3D pinned ground and its own motion criteria.
+
+The artificial phase is closed by explicit user acceptance of the saved soft-contact
+contrast: zero gravity passes the paper half-cell criterion, no-head withdrawal
+is 34.3 mm, and the headed part remains in contact near 0.743 mm downward motion.
+The added <=2c detail was a local rigid-contact gate, not a paper threshold; its
+original FAIL and all traces remain preserved. The accepted handoff has
+`next_stage_allowed=true`; no new artificial simulation was performed. See
+`reports/first_real_preparation.md` for the parameter audit and current first-case
+status. The first real case reached six closed parts but PGE split part_003
+from one material component to two, so later stages were not run. No parameter
+was changed to pass it. This acceptance does not assert exact zero terminal velocity or a drop
+of only c: the recorded headed drop is about 5.1c under soft contact.
 
 ## Frozen provenance
 
 `upstream.lock.json` records exact source commits and Hugging Face revisions.
+`auxiliary.lock.json` pins Sonata and the background-removal checkpoint too.
 The shape model is Hunyuan3D-2 (`hunyuan3d-dit-v2-0`, shape only); decomposition
 uses public X-Part light with P3-SAM. Upstream files are unmodified. Models are not
 included. Resolve ancillary model checkpoints (including background removal and
@@ -46,28 +56,32 @@ outside the allocation, request resources automatically, or install a keeper.
 
 ## Mandatory gate and stage execution
 
-The lock gate compares zero gravity, an unheaded pin, and a headed pin under the
-same withdrawal load. Ground pieces are fixed. Only the load isolation fixture
-uses zero friction; production values remain in `configs/default.yaml`.
-Failure or unavailability stops real inference and CEM. A large initial contact
-impulse is not an acceptable lock. Simulation initialization alone is not success.
+The saved lock comparison uses zero gravity, an unheaded pin, and a headed pin
+under the same withdrawal load, with production friction throughout. Ground
+pieces are fixed. The original strict verdict is preserved and a separately
+identified user-approved soft-contact handoff authorizes the first real case.
+No failing measurement is relabeled as an unchanged strict-rule PASS.
 
-After the gate passes, wrappers accept only local weight snapshots. Set the
+Every real objective call first receives the paper's zero-gravity validity check
+(<0.5D/256 for every free part). Its fixed-body set is reused under gravity. Final
+actual material intersections are also checked, as Appendix B requires. Failed
+validity is recorded and does not trigger parameter tuning.
+
+With the accepted handoff, wrappers accept only local weight snapshots. Set the
 appropriate upstream repository on PYTHONPATH, use each model's environment,
 and supply `--gate` with the passing report to both wrappers:
 
 ```bash
-python -m snap3d.generate --image input.png --weights models/Hunyuan3D-2 --output runs/case_generation --gate runs/lock_gate_NEW/gate.json
-python -m snap3d.decompose --mesh runs/case_generation/whole.ply --weights models/Hunyuan3D-Part --output runs/case_parts --gate runs/lock_gate_NEW/gate.json
-python -m snap3d.pipeline --run runs/case --gate runs/lock_gate_NEW/gate.json --stage initialize --whole runs/case_generation/whole.ply --raw-parts runs/case_parts
+python -m snap3d.generate --image input.png --weights models/Hunyuan3D-2 --output runs/case_generation --gate reports/lock_gate_soft_contact_handoff.json
+python -m snap3d.decompose --mesh runs/case_generation/whole.ply --weights models/Hunyuan3D-Part --output runs/case_parts --gate reports/lock_gate_soft_contact_handoff.json
+python -m snap3d.pipeline --run runs/case --gate reports/lock_gate_soft_contact_handoff.json --stage initialize --whole runs/case_generation/whole.ply --raw-parts runs/case_parts
 # Then --stage repair, pge, cgr, rollout, cem, export, in that order.
 ```
 
 Stage outputs are immutable; retries require a new run. Mesh files and config
 hashes are checked on resume. Failure records preserve the stage and error.
-The fixed pilot order is DensiCrafter_124, DensiCrafter_104,
-Toys4K_deer_moose_027. The first real output may already be stable; use a synthetic
-unstable fixture for a CEM validation in that event. No full benchmark is launched.
+This authorization covers only the fixed first case DensiCrafter_124. If already stable, CEM records zero candidate evaluations. No new artificial
+fixture is run in this phase. No full benchmark is launched.
 
 ## Geometry and protocol
 
@@ -122,7 +136,7 @@ https://github.com/Tencent-Hunyuan/Hunyuan3D-Part .
 ## Zoned proxies: implemented, dynamic gate still blocked
 
 This section describes the historical v3 optional `zone_proxy` backend; the
-historical v4 and current v5 rigid-flex results are recorded below.
+historical v4 and v5 rigid-flex results are recorded below.
 
 The new adapter caches CoACD proxies of each immutable PGE base at
 `far_threshold_ratio=0.01` of the frozen D. All connector exclusion prisms are

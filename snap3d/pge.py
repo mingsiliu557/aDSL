@@ -42,5 +42,5 @@ def pge(parts, *, config):
         p=pairs[k]; p['trim']=p['b'] if p['trim']==p['a'] else p['a']; changed.add(k)
     meshes={i:solid_mesh(output[i]) for i in ids}
     for i,m in meshes.items():
-        if not m.is_volume or component_count(m)>component_count(parts[i]): raise ValueError('PGE_DISCONNECTED_OR_INVALID')
+        if not m.is_volume or component_count(m)!=component_count(parts[i]): raise ValueError('PGE_DISCONNECTED_OR_INVALID')
     return meshes,dict(pairs=pairs,history=history,volumes_before=volumes,volumes_after={i:float(output[i].volume()) for i in ids})

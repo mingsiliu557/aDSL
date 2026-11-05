@@ -1,0 +1,205 @@
+{
+  "status": "FAIL",
+  "reason": "PGE_DISCONNECTED_OR_INVALID",
+  "failed_part_id": "part_003",
+  "parts": [
+    {
+      "part_id": "part_000",
+      "before_components": 1,
+      "after_components": 1,
+      "before_volume_mm3": 23673.18139885114,
+      "after_volume_mm3": 22630.679063003514,
+      "candidate_is_volume": true,
+      "before_triangles": 119672,
+      "after_triangles": 121044
+    },
+    {
+      "part_id": "part_001",
+      "before_components": 1,
+      "after_components": 1,
+      "before_volume_mm3": 29361.068396343107,
+      "after_volume_mm3": 27519.53283722307,
+      "candidate_is_volume": true,
+      "before_triangles": 178604,
+      "after_triangles": 177678
+    },
+    {
+      "part_id": "part_002",
+      "before_components": 1,
+      "after_components": 1,
+      "before_volume_mm3": 3175.17830605697,
+      "after_volume_mm3": 3175.178306056969,
+      "candidate_is_volume": true,
+      "before_triangles": 27992,
+      "after_triangles": 27992
+    },
+    {
+      "part_id": "part_003",
+      "before_components": 1,
+      "after_components": 2,
+      "before_volume_mm3": 4708.668201135604,
+      "after_volume_mm3": 3272.7553444991736,
+      "candidate_is_volume": true,
+      "before_triangles": 38588,
+      "after_triangles": 30718
+    },
+    {
+      "part_id": "part_004",
+      "before_components": 1,
+      "after_components": 1,
+      "before_volume_mm3": 852.9182447329189,
+      "after_volume_mm3": 807.079238659111,
+      "candidate_is_volume": true,
+      "before_triangles": 14820,
+      "after_triangles": 14768
+    },
+    {
+      "part_id": "part_005",
+      "before_components": 1,
+      "after_components": 1,
+      "before_volume_mm3": 858.9579083457414,
+      "after_volume_mm3": 806.053327743269,
+      "candidate_is_volume": true,
+      "before_triangles": 14948,
+      "after_triangles": 14802
+    }
+  ],
+  "assignments": [
+    {
+      "a": "part_000",
+      "b": "part_001",
+      "trim": "part_000",
+      "margin": 0.2141798119238385,
+      "scores": [
+        1.4195564310573952,
+        1.2053766191335566
+      ],
+      "reason": "score"
+    },
+    {
+      "a": "part_000",
+      "b": "part_002",
+      "trim": "part_000",
+      "margin": 12.306134663362453,
+      "scores": [
+        -5.591038992426867,
+        6.715095670935587
+      ],
+      "reason": "insertion_fraction"
+    },
+    {
+      "a": "part_000",
+      "b": "part_003",
+      "trim": "part_003",
+      "margin": 11.479031585359746,
+      "scores": [
+        -4.737781730564433,
+        6.7412498547953135
+      ],
+      "reason": "insertion_fraction"
+    },
+    {
+      "a": "part_000",
+      "b": "part_004",
+      "trim": "part_004",
+      "margin": 20.216111483323495,
+      "scores": [
+        -8.35265643933365,
+        11.863455043989843
+      ],
+      "reason": "insertion_fraction"
+    },
+    {
+      "a": "part_000",
+      "b": "part_005",
+      "trim": "part_005",
+      "margin": 20.177767437534698,
+      "scores": [
+        -8.348081594607134,
+        11.829685842927564
+      ],
+      "reason": "insertion_fraction"
+    },
+    {
+      "a": "part_001",
+      "b": "part_002",
+      "trim": "part_001",
+      "margin": 13.461783368790957,
+      "scores": [
+        -6.067995881269352,
+        7.393787487521606
+      ],
+      "reason": "insertion_fraction"
+    }
+  ],
+  "history": [
+    {
+      "losses": {
+        "part_000": 0.008240932168064763,
+        "part_001": 0.0,
+        "part_002": 0.8468654524780533,
+        "part_003": 0.3049509532844398,
+        "part_004": 0.05374372790930482,
+        "part_005": 0.061591586838475765
+      },
+      "assignments": [
+        "part_000",
+        "part_002",
+        "part_003",
+        "part_004",
+        "part_005",
+        "part_002"
+      ]
+    },
+    {
+      "losses": {
+        "part_000": 0.04403727231601484,
+        "part_001": 0.0,
+        "part_002": 0.5799786284780044,
+        "part_003": 0.3049509532844398,
+        "part_004": 0.05374372790930482,
+        "part_005": 0.061591586838475765
+      },
+      "assignments": [
+        "part_000",
+        "part_000",
+        "part_003",
+        "part_004",
+        "part_005",
+        "part_002"
+      ]
+    },
+    {
+      "losses": {
+        "part_000": 0.04403727231601484,
+        "part_001": 0.06272031842510872,
+        "part_002": 0.0,
+        "part_003": 0.3049509532844398,
+        "part_004": 0.05374372790930482,
+        "part_005": 0.061591586838475765
+      },
+      "assignments": [
+        "part_000",
+        "part_000",
+        "part_003",
+        "part_004",
+        "part_005",
+        "part_001"
+      ]
+    }
+  ],
+  "losses": {
+    "part_000": 0.04403727231601484,
+    "part_001": 0.06272031842510872,
+    "part_002": 0.0,
+    "part_003": 0.3049509532844398,
+    "part_004": 0.05374372790930482,
+    "part_005": 0.061591586838475765
+  },
+  "config_sha256": "3680a5dc6848223c1112f44628708b650bb6807e88d1f02ba8e9eb24951fa992",
+  "same_input_same_parameters": true,
+  "parameter_tuning": false,
+  "diagnostic_replay_wall_seconds": 74.92404294386506,
+  "accepted_output": false,
+  "subsequent_stages_run": false
+}

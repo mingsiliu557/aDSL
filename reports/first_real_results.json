@@ -1,0 +1,121 @@
+{
+  "case_id": "DensiCrafter_124",
+  "status": "STOPPED_PGE_REJECTION",
+  "input_type": "image_only",
+  "seed": 42,
+  "method_parameters_tuned": false,
+  "artificial_gate_reruns": 0,
+  "third_party_sources_modified": false,
+  "gpu_allocation_indices": [
+    4,
+    5,
+    6,
+    7
+  ],
+  "cuda_mapping_verified": true,
+  "successful_decomposition_physical_gpu_indices": [
+    5,
+    6
+  ],
+  "available_next_model_order": [
+    5,
+    6,
+    7,
+    4
+  ],
+  "gpu_type": "NVIDIA A100 80GB PCIe",
+  "successful_progress": [
+    {
+      "stage": "generation",
+      "elapsed_s": 75,
+      "exit_code": 0,
+      "status": "PASS",
+      "log_ref": "generation.log",
+      "reused": true,
+      "original_ref": "runs/first_real_DensiCrafter_124/generation",
+      "simulation_or_generation_rerun": false
+    },
+    {
+      "stage": "decomposition",
+      "elapsed_s": 79,
+      "exit_code": 0,
+      "status": "PASS",
+      "log_ref": "decomposition.log"
+    },
+    {
+      "stage": "initialize",
+      "elapsed_s": 2,
+      "exit_code": 0,
+      "status": "PASS",
+      "log_ref": "initialize.log"
+    },
+    {
+      "stage": "repair",
+      "elapsed_s": 5,
+      "exit_code": 0,
+      "status": "PASS",
+      "log_ref": "repair.log"
+    },
+    {
+      "stage": "pge",
+      "elapsed_s": 11,
+      "exit_code": 1,
+      "status": "FAIL",
+      "log_ref": "pge.log"
+    }
+  ],
+  "resource_attempts": [
+    {
+      "directory": "runs/first_real_DensiCrafter_124",
+      "stage": "decomposition",
+      "wall_seconds": 275,
+      "reason": "GPU_OOM_WITH_CONCURRENT_PROCESS",
+      "gpu_count": 1
+    },
+    {
+      "directory": "runs/first_real_DensiCrafter_124_gpu_retry1",
+      "stage": "decomposition",
+      "wall_seconds": 41,
+      "reason": "GPU_OOM_ON_IDLE_80GB",
+      "gpu_count": 1
+    },
+    {
+      "directory": "runs/first_real_DensiCrafter_124_gpu_retry2",
+      "stage": "decomposition",
+      "wall_seconds": 79,
+      "status": "PASS",
+      "gpu_count": 2,
+      "execution": "official_P3SAM_DataParallel"
+    }
+  ],
+  "part_count": 6,
+  "native_closed_parts": 6,
+  "repaired_parts": 0,
+  "D_mm": 168.50650043496887,
+  "normalization_basis": "raw_parts_assembly_bounds",
+  "total_repaired_input_triangles": 394624,
+  "failure": {
+    "code": "PGE_DISCONNECTED_OR_INVALID",
+    "part_id": "part_003",
+    "before_components": 1,
+    "after_components": 2,
+    "loss_fraction": 0.3049509532844398,
+    "also_rejected_by_base_component_increase_guard": true
+  },
+  "cgr_status": "NOT_RUN_PGE_FAILED",
+  "rollout_status": "NOT_RUN_PGE_FAILED",
+  "zero_gravity_status": "NOT_RUN_PGE_FAILED",
+  "cem_status": "NOT_RUN_PGE_FAILED",
+  "export_status": "NOT_RUN_PGE_FAILED",
+  "actual_flex_element_count": null,
+  "actual_rollout_wall_seconds": null,
+  "original_input_hash": "6816757855b29b07801a502e61158c0b382c12b53aaa933a8b5c47b2cfcdd139",
+  "artifacts": {
+    "whole_glb": "runs/first_real_DensiCrafter_124/generation/whole.glb",
+    "whole_ply": "runs/first_real_DensiCrafter_124/generation/whole.ply",
+    "raw_parts_glb": "runs/first_real_DensiCrafter_124_gpu_retry2/decomposition/assembly.glb",
+    "normalized_parts_glb": "runs/first_real_DensiCrafter_124_gpu_retry2/assembly/repair/assembly.glb",
+    "failure_stage": "runs/first_real_DensiCrafter_124_gpu_retry2/assembly/pge/stage.json",
+    "diagnostic": "runs/first_real_DensiCrafter_124_gpu_retry2/pge_failure_diagnostic.json"
+  }
+}

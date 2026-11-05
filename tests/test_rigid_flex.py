@@ -125,10 +125,16 @@ def test_rigid_flex_pipeline_skips_every_proxy_builder(tmp_path,monkeypatch):
     calls=[]
     def fake(*a,**k):
         calls.append(k)
-        return dict(status='PASS',reason=None,stable=True,flex_element_count=24,initial_contact={'affects_verdict':False})
+        meshes=a[0]
+        poses={key:dict(position_mm=mesh.center_mass.tolist(),rotation=np.eye(3).tolist()) for key,mesh in meshes.items()}
+        return dict(status='PASS',reason=None,stable=True,fixed_ids=['receiver'],
+            metrics={key:dict(max_displacement_mm=0.,max_rotation_rad=0.) for key in meshes},
+            frames=[copy.deepcopy(poses),copy.deepcopy(poses)],
+            flex_element_count=24,initial_contact={'affects_verdict':False})
     monkeypatch.setattr(pipeline,'rollout',fake)
     pipeline.evaluate_geometry(tmp_path,CFG,stage='rollout')
-    assert len(calls)==1 and 'proxy_cache' not in calls[0]
+    assert len(calls)==2 and all(c['proxy_cache'] is None for c in calls)
+    assert calls[0]['config']['gravity']==0. and calls[1]['config']==CFG['rollout']
     result=json.loads((tmp_path/'rollout/result.json').read_text())
     assert result['status']=='PASS'
     evidence=json.loads((tmp_path/'rollout/proxy_check_0000.json').read_text())

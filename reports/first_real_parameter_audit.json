@@ -1,0 +1,501 @@
+{
+  "paper": "https://arxiv.org/html/2609.13146",
+  "paper_version": "2609.13146v1",
+  "base_commit": "25667e9956f1d89e4c1ca6dbe67815058708cff9",
+  "config_unchanged": true,
+  "published_numeric_parameters_match": true,
+  "can_claim_only_simulator_differs": false,
+  "reason": "Public X-Part light, Manifold editing and unpublished geometric/numerical choices remain explicit; exact reproduction cannot be established from Appendix B.",
+  "rows": [
+    {
+      "parameter": "scale_mm",
+      "current": 150,
+      "paper_value": 150,
+      "status": "MATCH",
+      "source": "D, 3D-printed assemblies",
+      "note": "Longest edge, not diagonal; D is frozen afterward"
+    },
+    {
+      "parameter": "contact.delta_ratio",
+      "current": 0.005,
+      "paper_value": 0.005,
+      "status": "MATCH",
+      "source": "B, Table 4",
+      "note": ""
+    },
+    {
+      "parameter": "contact.area_ratio",
+      "current": 1.5e-05,
+      "paper_value": 1.5e-05,
+      "status": "MATCH",
+      "source": "B, Contact graph",
+      "note": ""
+    },
+    {
+      "parameter": "pge.max_loss",
+      "current": 0.35,
+      "paper_value": 0.35,
+      "status": "MATCH",
+      "source": "B, Collision-free geometry editing",
+      "note": "actual cumulative loss"
+    },
+    {
+      "parameter": "pge.wf",
+      "current": 3.0,
+      "paper_value": 3.0,
+      "status": "MATCH",
+      "source": "B, Equation 13",
+      "note": ""
+    },
+    {
+      "parameter": "pge.wv",
+      "current": 3.0,
+      "paper_value": 3.0,
+      "status": "MATCH",
+      "source": "B, Equation 13",
+      "note": ""
+    },
+    {
+      "parameter": "pge.ws",
+      "current": 0.5,
+      "paper_value": 0.5,
+      "status": "MATCH",
+      "source": "B, Equation 13",
+      "note": ""
+    },
+    {
+      "parameter": "connector.clearance_ratio",
+      "current": 0.0009765625,
+      "paper_value": 0.0009765625,
+      "status": "MATCH",
+      "source": "B, Table 4",
+      "note": "per-side clearance"
+    },
+    {
+      "parameter": "connector.overhang_ratio",
+      "current": 0.0029296875,
+      "paper_value": 0.0029296875,
+      "status": "MATCH",
+      "source": "B, Table 4",
+      "note": "head radius exceeds throat by h"
+    },
+    {
+      "parameter": "connector.min_radius_ratio",
+      "current": 0.006,
+      "paper_value": 0.006,
+      "status": "MATCH",
+      "source": "B, Table 4",
+      "note": "fraction of D is primary, cells rounded"
+    },
+    {
+      "parameter": "connector.min_length_ratio",
+      "current": 0.009765625,
+      "paper_value": 0.009765625,
+      "status": "MATCH",
+      "source": "B, Table 4",
+      "note": ""
+    },
+    {
+      "parameter": "connector.cone_deg",
+      "current": 55,
+      "paper_value": 55,
+      "status": "MATCH",
+      "source": "B, Connector optimization",
+      "note": ""
+    },
+    {
+      "parameter": "rollout.duration",
+      "current": 2.0,
+      "paper_value": 2.0,
+      "status": "MATCH",
+      "source": "B, Metrics",
+      "note": "seconds"
+    },
+    {
+      "parameter": "rollout.displacement_ratio",
+      "current": 0.05859375,
+      "paper_value": 0.05859375,
+      "status": "MATCH",
+      "source": "B, Table 4",
+      "note": "all free parts; maximum over trajectory"
+    },
+    {
+      "parameter": "rollout.rotation_deg",
+      "current": 10.0,
+      "paper_value": 10.0,
+      "status": "MATCH",
+      "source": "B, Metrics",
+      "note": "3D rotation, not only tilt"
+    },
+    {
+      "parameter": "gate.zero_gravity_displacement_ratio",
+      "current": 0.001953125,
+      "paper_value": 0.001953125,
+      "status": "MATCH",
+      "source": "A, Validity check; B, Scale and fixed settings",
+      "note": "strict <"
+    },
+    {
+      "parameter": "cem.population",
+      "current": 32,
+      "paper_value": 32,
+      "status": "MATCH",
+      "source": "3.3, Optimization formulation",
+      "note": ""
+    },
+    {
+      "parameter": "cem.elite",
+      "current": 8,
+      "paper_value": 8,
+      "status": "MATCH",
+      "source": "3.3, Equations 9-10",
+      "note": ""
+    },
+    {
+      "parameter": "cem.generations",
+      "current": 3,
+      "paper_value": 3,
+      "status": "MATCH",
+      "source": "B, Connector optimization",
+      "note": ""
+    },
+    {
+      "parameter": "pge.insertion_fraction",
+      "current": 0.05,
+      "paper_value": 0.05,
+      "status": "MATCH",
+      "source": "B, Collision-free geometry editing",
+      "note": "source constant"
+    },
+    {
+      "parameter": "pge.insertion_fraction_ratio",
+      "current": 3.0,
+      "paper_value": 3.0,
+      "status": "MATCH",
+      "source": "B, Collision-free geometry editing",
+      "note": "source constant"
+    },
+    {
+      "parameter": "pge.eccentricity_difference",
+      "current": 0.4,
+      "paper_value": 0.4,
+      "status": "MATCH",
+      "source": "B, Collision-free geometry editing",
+      "note": "source constant"
+    },
+    {
+      "parameter": "cem.first_generation_axis_families",
+      "current": [
+        45,
+        10,
+        45
+      ],
+      "paper_value": [
+        45,
+        10,
+        45
+      ],
+      "status": "MATCH",
+      "source": "B, Connector optimization",
+      "note": "as-built cone, inward-normal narrow, inward-normal cone"
+    },
+    {
+      "parameter": "contact.grid_ratio",
+      "current": 0.001953125,
+      "paper_value": null,
+      "status": "NOT_SPECIFIED_IN_PAPER",
+      "source": "Prior approved formula-reimplementation plan",
+      "note": "anchor raster D/512; not the PGE editing grid"
+    },
+    {
+      "parameter": "repair.diameter_ratio",
+      "current": 0.01,
+      "paper_value": null,
+      "status": "NOT_SPECIFIED_IN_PAPER",
+      "source": "Prior approved formula-reimplementation plan",
+      "note": "added local boundary-loop repair; no cross-part merging"
+    },
+    {
+      "parameter": "repair.planarity_ratio",
+      "current": 0.0001,
+      "paper_value": null,
+      "status": "NOT_SPECIFIED_IN_PAPER",
+      "source": "Prior approved formula-reimplementation plan",
+      "note": "added local planar-loop repair"
+    },
+    {
+      "parameter": "connector.head_thickness_ratio",
+      "current": 0.00390625,
+      "paper_value": null,
+      "status": "NOT_SPECIFIED_IN_PAPER",
+      "source": "Prior approved formula-reimplementation plan",
+      "note": "chosen mushroom-head section"
+    },
+    {
+      "parameter": "connector.circular_segments",
+      "current": 64,
+      "paper_value": null,
+      "status": "NOT_SPECIFIED_IN_PAPER",
+      "source": "Prior approved formula-reimplementation plan",
+      "note": "chosen 64-sided circular section"
+    },
+    {
+      "parameter": "seed",
+      "current": 42,
+      "paper_value": null,
+      "status": "NOT_SPECIFIED_IN_PAPER",
+      "source": "Prior approved formula-reimplementation plan",
+      "note": "fixed run seed; not claimed to be authors seed"
+    },
+    {
+      "parameter": "rollout.ground_ratio",
+      "current": 1e-06,
+      "paper_value": null,
+      "status": "NOT_SPECIFIED_IN_PAPER",
+      "source": "Prior approved formula-reimplementation plan",
+      "note": "numerical ground identification"
+    },
+    {
+      "parameter": "cem.sigma",
+      "current": [
+        0.01,
+        0.01,
+        0.2617993877991494,
+        0.2617993877991494,
+        0.002,
+        0.00390625
+      ],
+      "paper_value": null,
+      "status": "NOT_SPECIFIED_IN_PAPER",
+      "source": "Prior approved formula-reimplementation plan",
+      "note": "fixed initial covariance; paper does not publish these six numbers"
+    },
+    {
+      "parameter": "cem.floor",
+      "current": [
+        0.0005,
+        0.0005,
+        0.0174532925199433,
+        0.0174532925199433,
+        0.00025,
+        0.0009765625
+      ],
+      "paper_value": null,
+      "status": "NOT_SPECIFIED_IN_PAPER",
+      "source": "Prior approved formula-reimplementation plan",
+      "note": "paper requires a floor but does not publish these six values"
+    },
+    {
+      "parameter": "cem.max_draws",
+      "current": 320,
+      "paper_value": null,
+      "status": "NOT_SPECIFIED_IN_PAPER",
+      "source": "Prior approved formula-reimplementation plan",
+      "note": "finite implementation guard; not a published paper value"
+    },
+    {
+      "parameter": "pge.enclosing_sphere",
+      "current": "AABB-centred farthest-vertex radius",
+      "paper_value": null,
+      "status": "NOT_SPECIFIED_IN_PAPER",
+      "source": "Prior approved formula-reimplementation plan",
+      "note": "paper does not specify enclosing-sphere algorithm"
+    },
+    {
+      "parameter": "contact.area_reduction",
+      "current": "min of symmetric area estimates",
+      "paper_value": null,
+      "status": "NOT_SPECIFIED_IN_PAPER",
+      "source": "Prior approved formula-reimplementation plan",
+      "note": "implementation convention; not asserted as unique paper reduction"
+    },
+    {
+      "parameter": "rollout.collision_backend",
+      "current": "rigid_flex",
+      "paper_value": "IPC settings not fully published",
+      "status": "SIMULATOR_ADAPTER",
+      "source": "aDSL fabrication_ablation@9e1f01d selection_v1 standing/material and xml_model",
+      "note": "unchanged; SNAP3D pinned ground and 2 s / 10 deg retained"
+    },
+    {
+      "parameter": "rollout.dt",
+      "current": 0.002,
+      "paper_value": "IPC settings not fully published",
+      "status": "SIMULATOR_ADAPTER",
+      "source": "aDSL fabrication_ablation@9e1f01d selection_v1 standing/material and xml_model",
+      "note": "unchanged; SNAP3D pinned ground and 2 s / 10 deg retained"
+    },
+    {
+      "parameter": "rollout.gravity",
+      "current": 9.81,
+      "paper_value": "IPC settings not fully published",
+      "status": "SIMULATOR_ADAPTER",
+      "source": "aDSL fabrication_ablation@9e1f01d selection_v1 standing/material and xml_model",
+      "note": "unchanged; SNAP3D pinned ground and 2 s / 10 deg retained"
+    },
+    {
+      "parameter": "rollout.density",
+      "current": 1240.0,
+      "paper_value": "IPC settings not fully published",
+      "status": "SIMULATOR_ADAPTER",
+      "source": "aDSL fabrication_ablation@9e1f01d selection_v1 standing/material and xml_model",
+      "note": "unchanged; SNAP3D pinned ground and 2 s / 10 deg retained"
+    },
+    {
+      "parameter": "rollout.friction",
+      "current": [
+        0.5,
+        0.005,
+        0.0001
+      ],
+      "paper_value": "IPC settings not fully published",
+      "status": "SIMULATOR_ADAPTER",
+      "source": "aDSL fabrication_ablation@9e1f01d selection_v1 standing/material and xml_model",
+      "note": "unchanged; SNAP3D pinned ground and 2 s / 10 deg retained"
+    },
+    {
+      "parameter": "rollout.integrator",
+      "current": "implicitfast",
+      "paper_value": "IPC settings not fully published",
+      "status": "SIMULATOR_ADAPTER",
+      "source": "aDSL fabrication_ablation@9e1f01d selection_v1 standing/material and xml_model",
+      "note": "unchanged; SNAP3D pinned ground and 2 s / 10 deg retained"
+    },
+    {
+      "parameter": "coacd.far_threshold_ratio",
+      "current": 0.01,
+      "paper_value": null,
+      "status": "INACTIVE",
+      "source": "Optional legacy zone_proxy backend",
+      "note": "not used by rigid_flex first case"
+    },
+    {
+      "parameter": "coacd.seed",
+      "current": 42,
+      "paper_value": null,
+      "status": "INACTIVE",
+      "source": "Optional legacy zone_proxy backend",
+      "note": "not used by rigid_flex first case"
+    },
+    {
+      "parameter": "coacd.max_convex_hull",
+      "current": -1,
+      "paper_value": null,
+      "status": "INACTIVE",
+      "source": "Optional legacy zone_proxy backend",
+      "note": "not used by rigid_flex first case"
+    },
+    {
+      "parameter": "coacd.resolution",
+      "current": 2000,
+      "paper_value": null,
+      "status": "INACTIVE",
+      "source": "Optional legacy zone_proxy backend",
+      "note": "not used by rigid_flex first case"
+    },
+    {
+      "parameter": "coacd.mcts_nodes",
+      "current": 20,
+      "paper_value": null,
+      "status": "INACTIVE",
+      "source": "Optional legacy zone_proxy backend",
+      "note": "not used by rigid_flex first case"
+    },
+    {
+      "parameter": "coacd.mcts_iterations",
+      "current": 150,
+      "paper_value": null,
+      "status": "INACTIVE",
+      "source": "Optional legacy zone_proxy backend",
+      "note": "not used by rigid_flex first case"
+    },
+    {
+      "parameter": "coacd.mcts_max_depth",
+      "current": 3,
+      "paper_value": null,
+      "status": "INACTIVE",
+      "source": "Optional legacy zone_proxy backend",
+      "note": "not used by rigid_flex first case"
+    },
+    {
+      "parameter": "coacd.pca",
+      "current": false,
+      "paper_value": null,
+      "status": "INACTIVE",
+      "source": "Optional legacy zone_proxy backend",
+      "note": "not used by rigid_flex first case"
+    },
+    {
+      "parameter": "coacd.merge",
+      "current": true,
+      "paper_value": null,
+      "status": "INACTIVE",
+      "source": "Optional legacy zone_proxy backend",
+      "note": "not used by rigid_flex first case"
+    },
+    {
+      "parameter": "pge.geometry_backend",
+      "current": "Manifold material Booleans",
+      "paper_value": "256^3 geometry-editing grid",
+      "status": "IMPLEMENTATION_DIFFERENCE",
+      "source": "B, Scale and fixed settings",
+      "note": "Inherited from approved Manifold formula reimplementation; not equivalent to verifying the authors grid implementation"
+    },
+    {
+      "parameter": "decomposition.release",
+      "current": "public X-Part light",
+      "paper_value": "X-Part",
+      "status": "PUBLIC_RELEASE_LIMITATION",
+      "source": "Hunyuan3D-Part pinned README",
+      "note": "full authors version is not public"
+    },
+    {
+      "parameter": "pge.component_count",
+      "current": "preserve equal component count",
+      "paper_value": "preserve component count",
+      "status": "MATCH",
+      "source": "B, Collision-free geometry editing",
+      "note": "tightened missing invariant from only rejecting increases; no scalar change"
+    },
+    {
+      "parameter": "rollout.final_material_intersection",
+      "current": "checked at final poses",
+      "paper_value": "intersection-free at end",
+      "status": "MATCH",
+      "source": "B, Metrics",
+      "note": "added missing input-independent check; no hidden geometric tolerance"
+    },
+    {
+      "parameter": "cem.global_constraint",
+      "current": "candidate <= pre-edge global baseline",
+      "paper_value": "do not worsen global instability",
+      "status": "MATCH",
+      "source": "3.3, Equations 11-12",
+      "note": "existing logic unchanged"
+    },
+    {
+      "parameter": "cem.rebuild",
+      "current": "immutable PGE + complete current connector parameter set",
+      "paper_value": "current connector configuration",
+      "status": "MATCH",
+      "source": "3.2-3.3",
+      "note": "existing logic unchanged"
+    },
+    {
+      "parameter": "cem.covariance",
+      "current": "full covariance with fixed numerical floor",
+      "paper_value": "full covariance, standard-deviation floor",
+      "status": "MATCH",
+      "source": "B, Connector optimization; 3.3, Equations 9-10",
+      "note": "numeric floor values remain explicitly self-selected"
+    },
+    {
+      "parameter": "pge.local_sliver_cleanup",
+      "current": "Manifold regularization; no separately specified sliver-deletion rule",
+      "paper_value": "remove local slivers after Boolean cuts",
+      "status": "NOT_FULLY_REPRODUCED",
+      "source": "B, Collision-free geometry editing",
+      "note": "Paper gives no deletion threshold/algorithm; none was invented to pass this case."
+    }
+  ]
+}

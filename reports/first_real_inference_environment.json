@@ -1,0 +1,21 @@
+{
+  "python": "3.10.22",
+  "packages": {
+    "torch": "2.6.0+cu124",
+    "torchvision": "0.21.0+cu124",
+    "diffusers": "0.32.2",
+    "transformers": "4.57.1",
+    "huggingface_hub": "0.36.2",
+    "numpy": "1.26.4",
+    "trimesh": "5.2.0",
+    "pymeshlab": "2023.12.post3",
+    "torch-scatter": "2.1.2+pt26cu124",
+    "torch-cluster": "1.6.3+pt26cu124",
+    "rembg": "2.0.67",
+    "onnxruntime": "1.23.2",
+    "flash_attn": "2.7.3"
+  },
+  "gpu": "NVIDIA A100 80GB PCIe",
+  "separate_environment": true,
+  "upstream_api_import_probe": "PASS"
+}

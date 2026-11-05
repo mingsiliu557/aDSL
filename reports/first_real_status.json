@@ -1,0 +1,107 @@
+{
+  "base_commit": "25667e9956f1d89e4c1ca6dbe67815058708cff9",
+  "case_id": "DensiCrafter_124",
+  "input_type": "image_only",
+  "seed": 42,
+  "config_unchanged": true,
+  "method_parameter_tuning": false,
+  "user_approved_formula_implementation_disclosures": true,
+  "artificial_gate_reruns": 0,
+  "new_artificial_controls": 0,
+  "old_gate_artifacts_unchanged": true,
+  "next_stage_allowed": true,
+  "acceptance_protocol": "user_approved_soft_contact_contrast_v1",
+  "headed_final_speed_m_s": 0.0001002597578176745,
+  "headed_last_interval_angular_speed_rad_s": 0.009990575730661321,
+  "weights": {
+    "Hunyuan3D-2": {
+      "snapshot_verified": true,
+      "payload_bytes": 4928151562
+    },
+    "Hunyuan3D-Part": {
+      "snapshot_verified": true,
+      "payload_bytes": 9492999106
+    }
+  },
+  "progress": [
+    {
+      "stage": "generation",
+      "elapsed_s": 75,
+      "exit_code": 0,
+      "status": "PASS",
+      "log_ref": "generation.log",
+      "reused": true,
+      "original_ref": "runs/first_real_DensiCrafter_124/generation",
+      "simulation_or_generation_rerun": false
+    },
+    {
+      "stage": "decomposition",
+      "elapsed_s": 79,
+      "exit_code": 0,
+      "status": "PASS",
+      "log_ref": "decomposition.log"
+    },
+    {
+      "stage": "initialize",
+      "elapsed_s": 2,
+      "exit_code": 0,
+      "status": "PASS",
+      "log_ref": "initialize.log"
+    },
+    {
+      "stage": "repair",
+      "elapsed_s": 5,
+      "exit_code": 0,
+      "status": "PASS",
+      "log_ref": "repair.log"
+    },
+    {
+      "stage": "pge",
+      "elapsed_s": 11,
+      "exit_code": 1,
+      "status": "FAIL",
+      "log_ref": "pge.log"
+    }
+  ],
+  "generation_started": true,
+  "unit_tests": {
+    "passed": 82,
+    "elapsed_seconds": 10.77
+  },
+  "gpu_import_probe": "PASS",
+  "timings_and_triangle_evidence": "runs/first_real_DensiCrafter_124_gpu_retry2/assembly/{rollout,cem}/rollout_calls.json",
+  "model_output_directory": "runs/first_real_DensiCrafter_124_gpu_retry2",
+  "original_attempt_directory": "runs/first_real_DensiCrafter_124",
+  "tmux_runner": "snap3d_first_real",
+  "status": "STOPPED_PGE_REJECTION",
+  "completed_successfully": false,
+  "full_pipeline_completed": false,
+  "successful_decomposition_gpu_count": 2,
+  "allocated_physical_gpu_indices": [
+    4,
+    5,
+    6,
+    7
+  ],
+  "used_physical_gpu_indices": [
+    5,
+    6
+  ],
+  "future_visible_order": [
+    5,
+    6,
+    7,
+    4
+  ],
+  "current_case_code_identity_matches": true,
+  "real_case_can_advance": false,
+  "real_case_flex_element_count": null,
+  "real_case_rollout_wall_seconds": null,
+  "failure": {
+    "stage": "pge",
+    "code": "PGE_DISCONNECTED_OR_INVALID",
+    "part_id": "part_003",
+    "before_components": 1,
+    "after_components": 2
+  }
+}

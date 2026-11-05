@@ -1,0 +1,181 @@
+{
+  "upstream": {
+    "Hunyuan3D-2": {
+      "commit": "f8db63096c8282cb27354314d896feba5ba6ff8a",
+      "tracked_source_unchanged": true
+    },
+    "Hunyuan3D-Part": {
+      "commit": "e96be065375438962375b55326416291342958a7",
+      "tracked_source_unchanged": true
+    }
+  },
+  "files": [
+    {
+      "repository": "tencent/Hunyuan3D-2",
+      "revision": "9cd649ba6913f7a852e3286bad86bfa9a2d83dcf",
+      "file": "config.json",
+      "sha256": "5c9f5d68f9fb773c25de5a1ded6019319aed8039d3db7e01aa62b7cfcbfbb0d5",
+      "upstream_oid": "51910f2ab85038d984d1fd30ab965a063bf9c4d0",
+      "oid_scheme": "Git blob SHA1",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-2",
+      "revision": "9cd649ba6913f7a852e3286bad86bfa9a2d83dcf",
+      "file": "LICENSE",
+      "sha256": "eca02cc10abaf520d85c3c523aef0b88f36b935b85635f1e34370688e93da3dd",
+      "upstream_oid": "93c031e4b363c091de0df09ac958c3e9d27e933f",
+      "oid_scheme": "Git blob SHA1",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-2",
+      "revision": "9cd649ba6913f7a852e3286bad86bfa9a2d83dcf",
+      "file": "NOTICE",
+      "sha256": "7b7ace3714c188b7a27e20edbcceaaac836540bbb63759a37039e5624c8f6bbc",
+      "upstream_oid": "0e623667e16ed2034540ca9ace4ebc8b33865baf",
+      "oid_scheme": "Git blob SHA1",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-2",
+      "revision": "9cd649ba6913f7a852e3286bad86bfa9a2d83dcf",
+      "file": "hunyuan3d-dit-v2-0/config.yaml",
+      "sha256": "70bbfcdd18b9686ee56fe011c3a059b222eae1f5450f904577c50f0e107a8a53",
+      "upstream_oid": "62393f4f028edeccc229fdf6c421866bbd9eb18d",
+      "oid_scheme": "Git blob SHA1",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-2",
+      "revision": "9cd649ba6913f7a852e3286bad86bfa9a2d83dcf",
+      "file": "hunyuan3d-dit-v2-0/model.fp16.safetensors",
+      "sha256": "360bc281fc956d4acac0c3d36d5ec0ebf8cdddbf4b8892e894d12419388d479b",
+      "upstream_oid": "360bc281fc956d4acac0c3d36d5ec0ebf8cdddbf4b8892e894d12419388d479b",
+      "oid_scheme": "LFS sha256",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-Part",
+      "revision": "677174466c53571e8bacd5050dff5948734a1a4d",
+      "file": "LICENSE.txt",
+      "sha256": "e182ee41c13d854c2e9d2ccbfde0c000998b09b74bebedb3eaad78a9103828b7",
+      "upstream_oid": "1006d367c07a96c41ee9cdcaab694294626dc55d",
+      "oid_scheme": "Git blob SHA1",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-Part",
+      "revision": "677174466c53571e8bacd5050dff5948734a1a4d",
+      "file": "NOTICE.txt",
+      "sha256": "b03a519c81c6f88e7decf5e5909d974f57e37ec5494e0ceead27185548ae8c0f",
+      "upstream_oid": "6014d07606ba016c62e765f474cc56546efc5663",
+      "oid_scheme": "Git blob SHA1",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-Part",
+      "revision": "677174466c53571e8bacd5050dff5948734a1a4d",
+      "file": "config.json",
+      "sha256": "4198c44ed73e5cd2d0b897bc6bf86c69f8b20a279864a68203ed96e3f094f022",
+      "upstream_oid": "004995c8b257bc797b1a9e56132f6c7448019333",
+      "oid_scheme": "Git blob SHA1",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-Part",
+      "revision": "677174466c53571e8bacd5050dff5948734a1a4d",
+      "file": "conditioner/config.json",
+      "sha256": "b9ce17a9361be828ab1ce5cff5959ec6a6645a787e5cc8d216bfed4b3b1c9557",
+      "upstream_oid": "454774d1eeafed0eb6a842db95062c2c581ac0fa",
+      "oid_scheme": "Git blob SHA1",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-Part",
+      "revision": "677174466c53571e8bacd5050dff5948734a1a4d",
+      "file": "conditioner/conditioner.safetensors",
+      "sha256": "730518ae5f2b6af51db12137ed0dc0ac791ee04d927cf8e4f2043db9c8218251",
+      "upstream_oid": "730518ae5f2b6af51db12137ed0dc0ac791ee04d927cf8e4f2043db9c8218251",
+      "oid_scheme": "LFS sha256",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-Part",
+      "revision": "677174466c53571e8bacd5050dff5948734a1a4d",
+      "file": "model/config.json",
+      "sha256": "472832eb5ba862a97bbfa3ac79ed4b1758d9549a888ce36a812574e2bcdf393a",
+      "upstream_oid": "dead29b8f15263a065ca075c949cf83fce685a85",
+      "oid_scheme": "Git blob SHA1",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-Part",
+      "revision": "677174466c53571e8bacd5050dff5948734a1a4d",
+      "file": "model/model.safetensors",
+      "sha256": "4ca47998e1357432302d7de0ec85f7e4076b8e64037935f033b881e2fd9973e0",
+      "upstream_oid": "4ca47998e1357432302d7de0ec85f7e4076b8e64037935f033b881e2fd9973e0",
+      "oid_scheme": "LFS sha256",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-Part",
+      "revision": "677174466c53571e8bacd5050dff5948734a1a4d",
+      "file": "p3sam/config.json",
+      "sha256": "fe06e1ef59ff61754e5dad2972eddad0cba397fdaddfc1959eebf82506fb5e9a",
+      "upstream_oid": "89ba9f514208cf45fcc8966c9c01fe71ed72787d",
+      "oid_scheme": "Git blob SHA1",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-Part",
+      "revision": "677174466c53571e8bacd5050dff5948734a1a4d",
+      "file": "p3sam/p3sam.safetensors",
+      "sha256": "eb76550cfbe06f154c6e9b17167ccfc28222bb4a216ec7b12ac2bf7d762de38c",
+      "upstream_oid": "eb76550cfbe06f154c6e9b17167ccfc28222bb4a216ec7b12ac2bf7d762de38c",
+      "oid_scheme": "LFS sha256",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-Part",
+      "revision": "677174466c53571e8bacd5050dff5948734a1a4d",
+      "file": "scheduler/config.json",
+      "sha256": "da3176daee897fb8d67b06d7fb930a0f0e100af4ec5ed585fbb0ba8a1844f56d",
+      "upstream_oid": "de15338345a1395263b48e93c34a9e8b72edad11",
+      "oid_scheme": "Git blob SHA1",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-Part",
+      "revision": "677174466c53571e8bacd5050dff5948734a1a4d",
+      "file": "shapevae/config.json",
+      "sha256": "83d3962adf07f33e18c55dc14ee1eb0f87414da2ab8bee267c445f6db97dd293",
+      "upstream_oid": "07d55a0d72212e7680bd1f99ab2c9404791b2546",
+      "oid_scheme": "Git blob SHA1",
+      "verified": true
+    },
+    {
+      "repository": "tencent/Hunyuan3D-Part",
+      "revision": "677174466c53571e8bacd5050dff5948734a1a4d",
+      "file": "shapevae/shapevae.safetensors",
+      "sha256": "3d46179a603c529c42ce8c1eac6d56667700b1f16626e4bc5bc319c99a4f3b88",
+      "upstream_oid": "3d46179a603c529c42ce8c1eac6d56667700b1f16626e4bc5bc319c99a4f3b88",
+      "oid_scheme": "LFS sha256",
+      "verified": true
+    }
+  ],
+  "all_verified": true,
+  "auxiliary": {
+    "sonata": {
+      "weight_repo": "facebook/sonata",
+      "weight_revision": "df99897472c09f91ba9288da0a034aacffc0b010",
+      "filename": "sonata.pth",
+      "sha256": "c5ced5acdae30d1c469713398073a866e25e6e414e23feed5dc025373657ac50"
+    },
+    "u2net": {
+      "url": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx",
+      "expected_md5": "60024c5c889badc19c04ad937298a77b",
+      "sha256": "8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491"
+    }
+  }
+}

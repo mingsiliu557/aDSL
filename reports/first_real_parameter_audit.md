@@ -1,0 +1,69 @@
+# First real-case parameter audit
+
+Source: [SNAP3D v1](https://arxiv.org/html/2609.13146), Appendix B with the cited supporting sections.
+
+All published numeric values below match; config values are unchanged from `25667e9`.
+The implementation cannot truthfully be described as differing only in simulator: the prior
+Manifold editing choice, public X-Part light and unpublished connector/numerical details remain.
+No new grid implementation, full-model substitution or parameter tuning was performed.
+
+| Parameter | Current | Paper | Assessment | Source / note |
+|---|---|---|---|---|
+| scale_mm | 150 | 150 | MATCH | D, 3D-printed assemblies; Longest edge, not diagonal; D is frozen afterward |
+| contact.delta_ratio | 0.005 | 0.005 | MATCH | B, Table 4;  |
+| contact.area_ratio | 1.5e-05 | 1.5e-05 | MATCH | B, Contact graph;  |
+| pge.max_loss | 0.35 | 0.35 | MATCH | B, Collision-free geometry editing; actual cumulative loss |
+| pge.wf | 3.0 | 3.0 | MATCH | B, Equation 13;  |
+| pge.wv | 3.0 | 3.0 | MATCH | B, Equation 13;  |
+| pge.ws | 0.5 | 0.5 | MATCH | B, Equation 13;  |
+| connector.clearance_ratio | 0.0009765625 | 0.0009765625 | MATCH | B, Table 4; per-side clearance |
+| connector.overhang_ratio | 0.0029296875 | 0.0029296875 | MATCH | B, Table 4; head radius exceeds throat by h |
+| connector.min_radius_ratio | 0.006 | 0.006 | MATCH | B, Table 4; fraction of D is primary, cells rounded |
+| connector.min_length_ratio | 0.009765625 | 0.009765625 | MATCH | B, Table 4;  |
+| connector.cone_deg | 55 | 55 | MATCH | B, Connector optimization;  |
+| rollout.duration | 2.0 | 2.0 | MATCH | B, Metrics; seconds |
+| rollout.displacement_ratio | 0.05859375 | 0.05859375 | MATCH | B, Table 4; all free parts; maximum over trajectory |
+| rollout.rotation_deg | 10.0 | 10.0 | MATCH | B, Metrics; 3D rotation, not only tilt |
+| gate.zero_gravity_displacement_ratio | 0.001953125 | 0.001953125 | MATCH | A, Validity check; B, Scale and fixed settings; strict < |
+| cem.population | 32 | 32 | MATCH | 3.3, Optimization formulation;  |
+| cem.elite | 8 | 8 | MATCH | 3.3, Equations 9-10;  |
+| cem.generations | 3 | 3 | MATCH | B, Connector optimization;  |
+| pge.insertion_fraction | 0.05 | 0.05 | MATCH | B, Collision-free geometry editing; source constant |
+| pge.insertion_fraction_ratio | 3.0 | 3.0 | MATCH | B, Collision-free geometry editing; source constant |
+| pge.eccentricity_difference | 0.4 | 0.4 | MATCH | B, Collision-free geometry editing; source constant |
+| cem.first_generation_axis_families | [45, 10, 45] | [45, 10, 45] | MATCH | B, Connector optimization; as-built cone, inward-normal narrow, inward-normal cone |
+| contact.grid_ratio | 0.001953125 | null | NOT_SPECIFIED_IN_PAPER | Prior approved formula-reimplementation plan; anchor raster D/512; not the PGE editing grid |
+| repair.diameter_ratio | 0.01 | null | NOT_SPECIFIED_IN_PAPER | Prior approved formula-reimplementation plan; added local boundary-loop repair; no cross-part merging |
+| repair.planarity_ratio | 0.0001 | null | NOT_SPECIFIED_IN_PAPER | Prior approved formula-reimplementation plan; added local planar-loop repair |
+| connector.head_thickness_ratio | 0.00390625 | null | NOT_SPECIFIED_IN_PAPER | Prior approved formula-reimplementation plan; chosen mushroom-head section |
+| connector.circular_segments | 64 | null | NOT_SPECIFIED_IN_PAPER | Prior approved formula-reimplementation plan; chosen 64-sided circular section |
+| seed | 42 | null | NOT_SPECIFIED_IN_PAPER | Prior approved formula-reimplementation plan; fixed run seed; not claimed to be authors seed |
+| rollout.ground_ratio | 1e-06 | null | NOT_SPECIFIED_IN_PAPER | Prior approved formula-reimplementation plan; numerical ground identification |
+| cem.sigma | [0.01, 0.01, 0.2617993877991494, 0.2617993877991494, 0.002, 0.00390625] | null | NOT_SPECIFIED_IN_PAPER | Prior approved formula-reimplementation plan; fixed initial covariance; paper does not publish these six numbers |
+| cem.floor | [0.0005, 0.0005, 0.0174532925199433, 0.0174532925199433, 0.00025, 0.0009765625] | null | NOT_SPECIFIED_IN_PAPER | Prior approved formula-reimplementation plan; paper requires a floor but does not publish these six values |
+| cem.max_draws | 320 | null | NOT_SPECIFIED_IN_PAPER | Prior approved formula-reimplementation plan; finite implementation guard; not a published paper value |
+| pge.enclosing_sphere | AABB-centred farthest-vertex radius | null | NOT_SPECIFIED_IN_PAPER | Prior approved formula-reimplementation plan; paper does not specify enclosing-sphere algorithm |
+| contact.area_reduction | min of symmetric area estimates | null | NOT_SPECIFIED_IN_PAPER | Prior approved formula-reimplementation plan; implementation convention; not asserted as unique paper reduction |
+| rollout.collision_backend | rigid_flex | IPC settings not fully published | SIMULATOR_ADAPTER | aDSL fabrication_ablation@9e1f01d selection_v1 standing/material and xml_model; unchanged; SNAP3D pinned ground and 2 s / 10 deg retained |
+| rollout.dt | 0.002 | IPC settings not fully published | SIMULATOR_ADAPTER | aDSL fabrication_ablation@9e1f01d selection_v1 standing/material and xml_model; unchanged; SNAP3D pinned ground and 2 s / 10 deg retained |
+| rollout.gravity | 9.81 | IPC settings not fully published | SIMULATOR_ADAPTER | aDSL fabrication_ablation@9e1f01d selection_v1 standing/material and xml_model; unchanged; SNAP3D pinned ground and 2 s / 10 deg retained |
+| rollout.density | 1240.0 | IPC settings not fully published | SIMULATOR_ADAPTER | aDSL fabrication_ablation@9e1f01d selection_v1 standing/material and xml_model; unchanged; SNAP3D pinned ground and 2 s / 10 deg retained |
+| rollout.friction | [0.5, 0.005, 0.0001] | IPC settings not fully published | SIMULATOR_ADAPTER | aDSL fabrication_ablation@9e1f01d selection_v1 standing/material and xml_model; unchanged; SNAP3D pinned ground and 2 s / 10 deg retained |
+| rollout.integrator | implicitfast | IPC settings not fully published | SIMULATOR_ADAPTER | aDSL fabrication_ablation@9e1f01d selection_v1 standing/material and xml_model; unchanged; SNAP3D pinned ground and 2 s / 10 deg retained |
+| coacd.far_threshold_ratio | 0.01 | null | INACTIVE | Optional legacy zone_proxy backend; not used by rigid_flex first case |
+| coacd.seed | 42 | null | INACTIVE | Optional legacy zone_proxy backend; not used by rigid_flex first case |
+| coacd.max_convex_hull | -1 | null | INACTIVE | Optional legacy zone_proxy backend; not used by rigid_flex first case |
+| coacd.resolution | 2000 | null | INACTIVE | Optional legacy zone_proxy backend; not used by rigid_flex first case |
+| coacd.mcts_nodes | 20 | null | INACTIVE | Optional legacy zone_proxy backend; not used by rigid_flex first case |
+| coacd.mcts_iterations | 150 | null | INACTIVE | Optional legacy zone_proxy backend; not used by rigid_flex first case |
+| coacd.mcts_max_depth | 3 | null | INACTIVE | Optional legacy zone_proxy backend; not used by rigid_flex first case |
+| coacd.pca | false | null | INACTIVE | Optional legacy zone_proxy backend; not used by rigid_flex first case |
+| coacd.merge | true | null | INACTIVE | Optional legacy zone_proxy backend; not used by rigid_flex first case |
+| pge.geometry_backend | Manifold material Booleans | 256^3 geometry-editing grid | IMPLEMENTATION_DIFFERENCE | B, Scale and fixed settings; Inherited from approved Manifold formula reimplementation; not equivalent to verifying the authors grid implementation |
+| decomposition.release | public X-Part light | X-Part | PUBLIC_RELEASE_LIMITATION | Hunyuan3D-Part pinned README; full authors version is not public |
+| pge.component_count | preserve equal component count | preserve component count | MATCH | B, Collision-free geometry editing; tightened missing invariant from only rejecting increases; no scalar change |
+| rollout.final_material_intersection | checked at final poses | intersection-free at end | MATCH | B, Metrics; added missing input-independent check; no hidden geometric tolerance |
+| cem.global_constraint | candidate <= pre-edge global baseline | do not worsen global instability | MATCH | 3.3, Equations 11-12; existing logic unchanged |
+| cem.rebuild | immutable PGE + complete current connector parameter set | current connector configuration | MATCH | 3.2-3.3; existing logic unchanged |
+| cem.covariance | full covariance with fixed numerical floor | full covariance, standard-deviation floor | MATCH | B, Connector optimization; 3.3, Equations 9-10; numeric floor values remain explicitly self-selected |
+| pge.local_sliver_cleanup | Manifold regularization only | remove local slivers after Boolean cuts | NOT_FULLY_REPRODUCED | B, Collision-free geometry editing; no unpublished threshold was invented |

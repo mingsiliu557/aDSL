@@ -13,11 +13,71 @@ from .connector import rebuild
 from .rollout import rollout,select_edges,relative_score
 from .cem import optimize
 from .proxies import build_zone_proxies, verify_zone_proxies
+from .vendor import mesh_solid,checked
 
 def require_gate(path, config):
     gate=json.loads(Path(path).read_text())
     if gate['status']!='PASS' or not gate.get('next_stage_allowed'):raise ValueError('LOCK_GATE_NOT_PASSED')
     if gate['config_sha256']!=digest(config):raise ValueError('LOCK_GATE_CONFIG_MISMATCH')
+
+def zero_gravity_review(result, *, D, config):
+    """Paper Appendix A: every free part must move strictly less than half a cell."""
+    bound=config['gate']['zero_gravity_displacement_ratio']*D
+    fixed=set(result.get('fixed_ids',[]));metrics=result.get('metrics',{})
+    free={key:value.get('max_displacement_mm') for key,value in metrics.items() if key not in fixed}
+    complete=result.get('status')=='PASS' and bool(free) and all(
+        value is not None and np.isfinite(value) for value in free.values())
+    return dict(status='PASS' if complete else 'UNAVAILABLE',
+        valid=all(value<bound for value in free.values()) if complete else None,
+        displacement_bound_mm=bound,free_displacements_mm=free,
+        reason=result.get('reason') if not complete else None)
+
+
+def final_material_review(parts, result):
+    """Appendix B: test actual final material, independently of shell contacts."""
+    import itertools
+    frames=result.get('frames',[])
+    if not frames:raise ValueError('FINAL_MATERIAL_POSES_MISSING')
+    solids={}
+    for key,mesh in parts.items():
+        start=frames[0][key];end=frames[-1][key]
+        rotation=np.asarray(end['rotation'])@np.asarray(start['rotation']).T
+        transform=np.eye(4);transform[:3,:3]=rotation
+        transform[:3,3]=np.asarray(end['position_mm'])-rotation@np.asarray(start['position_mm'])
+        moved=mesh.copy();moved.apply_transform(transform)
+        solids[key]=mesh_solid(moved)
+    pairs=[]
+    for a,b in itertools.combinations(sorted(solids),2):
+        volume=float(checked(solids[a]^solids[b]).volume())
+        pairs.append(dict(a=a,b=b,intersection_volume_mm3=volume))
+    return dict(status='PASS',intersection_free=all(p['intersection_volume_mm3']<=0 for p in pairs),pairs=pairs)
+
+
+def paper_rollout(parts, *, D, config, coacd_config, fixed_ids=None, proxy_cache=None, record=None):
+    """The zero-gravity validity check precedes each gravity objective call."""
+    kwargs=dict(D=D,coacd_config=coacd_config,
+        clearance_mm=config['connector']['clearance_ratio']*D,
+        fixed_ids=fixed_ids,proxy_cache=proxy_cache)
+    zero=rollout(parts,config=dict(config['rollout'],gravity=0.),retain_frames=False,**kwargs)
+    check=zero_gravity_review(zero,D=D,config=config)
+    zero['validity_check']=check
+    if record is not None:record('zero_gravity',zero)
+    if check['status']!='PASS' or not check['valid']:
+        return dict(status='UNAVAILABLE',reason='ZERO_GRAVITY_INVALID',zero_gravity=check,
+            fixed_ids=zero.get('fixed_ids',[]),flex_element_count=zero.get('flex_element_count'))
+    kwargs['fixed_ids']=zero['fixed_ids']
+    result=rollout(parts,config=config['rollout'],**kwargs)
+    result['zero_gravity']=check
+    if result['status']=='PASS':
+        try:geometry=final_material_review(parts,result)
+        except (ValueError,RuntimeError) as error:
+            geometry=dict(status='UNAVAILABLE',intersection_free=None,reason=str(error))
+        result['final_material_check']=geometry
+        result['stable_motion']=result['stable']
+        result['stable']=bool(result['stable'] and geometry['status']=='PASS' and geometry['intersection_free'])
+    if record is not None:record('gravity',result)
+    return result
+
 
 def evaluate_geometry(run, config, *, stage):
     run=Path(run);start=time.monotonic()
@@ -50,14 +110,23 @@ def evaluate_geometry(run, config, *, stage):
         elif stage in ('rollout','cem'):
             base=load_parts(run/'pge');contact=json.loads((run/'cgr/contact.json').read_text())
             edges=contact['edges'];parameters=contact['parameters'];parts=load_parts(run/'cgr')
-            attempt=0
+            attempt=0;rollout_records=[]
             def simulate(p,connectors,fixed=None):
                 nonlocal attempt
                 path=target/f'proxy_check_{attempt:04d}.json';attempt+=1
+                def record(phase,result):
+                    if phase=='zero_gravity':write_json(target/f'zero_gravity_{attempt-1:04d}.json',result)
+                    rollout_records.append(dict(attempt=attempt-1,phase=phase,status=result['status'],
+                        reason=result.get('reason'),wall_seconds=result.get('wall_seconds'),
+                        flex_element_count=result.get('flex_element_count'),
+                        simulated_seconds=result.get('simulated_seconds'),
+                        validity_check=result.get('validity_check'),
+                        final_material_check=result.get('final_material_check')))
+                    write_json(target/'rollout_calls.json',rollout_records)
                 try:
                     if config['rollout'].get('collision_backend','rigid_flex')=='rigid_flex':
-                        result=rollout(p,D=D,config=config['rollout'],coacd_config=config['coacd'],
-                            clearance_mm=config['connector']['clearance_ratio']*D,fixed_ids=fixed)
+                        result=paper_rollout(p,D=D,config=config,coacd_config=config['coacd'],
+                            fixed_ids=fixed,record=record)
                         write_json(path,dict(collision_backend='rigid_flex',proxy_construction=False,
                             initial_contact=result.get('initial_contact'),flex_element_count=result.get('flex_element_count'),
                             status=result['status'],reason=result.get('reason')))
@@ -69,8 +138,8 @@ def evaluate_geometry(run, config, *, stage):
                     write_json(path,dict(build=report,verification=verification))
                     if verification['status']!='PASS':
                         return dict(status='UNAVAILABLE',reason='PROXY_UNVERIFIED',proxy_verification=verification)
-                    result=rollout(p,D=D,config=config['rollout'],coacd_config=config['coacd'],
-                        clearance_mm=config['connector']['clearance_ratio']*D,fixed_ids=fixed,proxy_cache=proxies)
+                    result=paper_rollout(p,D=D,config=config,coacd_config=config['coacd'],
+                        fixed_ids=fixed,proxy_cache=proxies,record=record)
                     result['proxy_evidence_ref']=path.name
                     return result
                 except (ValueError,RuntimeError) as error:
@@ -115,11 +184,14 @@ def evaluate_geometry(run, config, *, stage):
 def initialize(run,whole,raw_parts,config):
     run=Path(run)
     if run.exists():raise ValueError('RUN_EXISTS')
-    mesh=trimesh.load_mesh(whole);_,T,D=normalize(mesh,config['scale_mm'])
     parts=load_parts(raw_parts)
+    # Completion can extend beyond the whole-mesh bounds. Freeze the transform
+    # and D from the actual assembled parts, before any repair/PGE/candidate.
+    assembly=trimesh.util.concatenate(list(parts.values()))
+    _,T,D=normalize(assembly,config['scale_mm'])
     for m in parts.values():m.apply_transform(T)
     run.mkdir(parents=True);export_parts(parts,run/'normalized_parts')
-    write_json(run/'case.json',dict(D_mm=D,transform_mm=T.tolist(),whole_sha256=sha(whole),
+    write_json(run/'case.json',dict(D_mm=D,transform_mm=T.tolist(),normalization_basis='raw_parts_assembly_bounds',whole_sha256=sha(whole),
                raw_parts_manifest_sha256=sha(Path(raw_parts)/'manifest.json'),config_sha256=digest(config),code_identity=code_identity()))
 
 def main():

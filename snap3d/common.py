@@ -65,3 +65,13 @@ def verify_snapshot(directory, name):
         file=(directory/path).resolve()
         if not file.is_relative_to(directory.resolve()) or sha(file)!=expected:raise ValueError('WEIGHT_HASH_MISMATCH')
     return dict(git_commit=lock['git_commit'],weight_repo=record['weight_repo'],weight_revision=record['weight_revision'],snapshot_manifest_sha256=sha(directory/'.snap3d_snapshot.json'))
+
+
+def verify_auxiliary(name):
+    """Bind ancillary inference checkpoints without upstream implicit downloads."""
+    root=Path(__file__).resolve().parent.parent
+    item=json.loads((root/'auxiliary.lock.json').read_text())[name]
+    path=root/'models'/('rembg/u2net.onnx' if name=='u2net' else 'sonata/sonata.pth')
+    if not path.is_file() or sha(path)!=item['sha256']:
+        raise ValueError('AUXILIARY_WEIGHT_HASH_MISMATCH: '+name)
+    return path,item
