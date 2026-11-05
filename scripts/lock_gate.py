@@ -1,4 +1,4 @@
-"""D=150 artificial proxy acceptance followed by the three mandatory lock gates."""
+"""D=150 artificial lock gates, with backend-specific collision construction."""
 from pathlib import Path
 import argparse
 import json
@@ -41,6 +41,82 @@ def fixture(headed):
     return parts, base, record, D, length
 
 
+def coplanar_boxes():
+    """Two plain boxes, a fixed lower body and a free upper body; D=150."""
+    scale=150/float(np.linalg.norm([18.,18.,16.]))
+    bottom=mf.Manifold.cube([18,18,12]).translate([-9,-9,0]).scale([scale]*3)
+    top=mf.Manifold.cube([5,5,4]).translate([-2.5,-2.5,12]).scale([scale]*3)
+    return {'receiver':solid_mesh(checked(bottom)),'peg':solid_mesh(checked(top))}
+
+
+def rigid_flex_gate(out, config):
+    tests=[];control=None
+    def integrate(parts,folder,cfg,clearance):
+        folder.mkdir()
+        for part,mesh in parts.items():mesh.export(folder/f'{part}.stl')
+        started=time.monotonic()
+        try:
+            result=rollout(parts,D=150.,config=cfg,coacd_config=config['coacd'],
+                clearance_mm=clearance,fixed_ids=['receiver'])
+        except (ValueError,RuntimeError) as error:
+            result=dict(status='UNAVAILABLE',reason=type(error).__name__,detail=str(error))
+        elapsed=time.monotonic()-started
+        if 'xml' in result:(folder/'model.xml').write_text(result.pop('xml'))
+        result['rollout_wall_seconds']=elapsed
+        return result,elapsed
+
+    for label,headed,gravity in LABELS:
+        parts,_,record,D,length=fixture(headed)
+        cfg=dict(config['rollout'],friction=[0.,0.,0.],gravity=gravity)
+        result,elapsed=integrate(parts,out/label,cfg,record['clearance'])
+        write_json(out/label/'connector.json',record)
+        measured=result.get('metrics',{})
+        fixed=measured.get('receiver',{}).get('max_displacement_mm')
+        motion=measured.get('peg',{}).get('max_displacement_mm')
+        frames=result.get('frames',[])
+        drop=None if not frames else frames[-1]['peg']['position_mm'][2]-frames[0]['peg']['position_mm'][2]
+        ok=result['status']=='PASS' and fixed is not None and fixed<=1e-4*D
+        if label=='zero_gravity':ok=ok and motion is not None and motion<1e-4*D
+        elif label=='no_head':ok=ok and drop is not None and drop < -length
+        else:ok=ok and drop is not None and drop > -2*record['clearance'] and motion<length
+        result['gate_pass']=bool(ok)
+        write_json(out/label/'result.json',result)
+        tests.append(dict(test=label,pass_=bool(ok),status=result['status'],reason=result.get('reason'),
+            rollout_wall_seconds=elapsed,requested_duration_s=config['rollout']['duration'],
+            flex_element_count=result.get('flex_element_count'),flex_element_counts=result.get('flex_element_counts'),
+            initial_contact=result.get('initial_contact'),initial_contact_count=result.get('initial_contact_count'),
+            max_contact_count=result.get('max_contact_count'),final_contact_count=result.get('final_contact_count'),
+            fixed_displacement_mm=fixed,peg_displacement_mm=motion,peg_final_delta_z_mm=drop,
+            length_mm=length,clearance_mm=record['clearance'],cem96_estimate_seconds=96*elapsed))
+        print(json.dumps(tests[-1]),flush=True)
+        if not ok:
+            if label=='zero_gravity':
+                plain=coplanar_boxes()
+                cfg=dict(config['rollout'],friction=[0.,0.,0.],gravity=0.)
+                diagnostic,wall=integrate(plain,out/'coplanar_boxes_zero_gravity',cfg,record['clearance'])
+                write_json(out/'coplanar_boxes_zero_gravity/result.json',diagnostic)
+                control=dict(status=diagnostic['status'],reason=diagnostic.get('reason'),rollout_wall_seconds=wall,
+                    flex_element_count=diagnostic.get('flex_element_count'),initial_contact=diagnostic.get('initial_contact'),
+                    initial_contact_count=diagnostic.get('initial_contact_count'),max_contact_count=diagnostic.get('max_contact_count'),
+                    final_contact_count=diagnostic.get('final_contact_count'),metrics=diagnostic.get('metrics'),
+                    connector_count=0,diagnostic_only=True)
+                print(json.dumps(dict(control='coplanar_boxes_zero_gravity',**control)),flush=True)
+            break
+    complete=[t for t in tests if t['status']=='PASS']
+    slowest=max((t['rollout_wall_seconds'] for t in complete),default=None)
+    report=dict(status='PASS' if len(tests)==3 and all(t['pass_'] for t in tests) else 'FAIL',
+        collision_backend='rigid_flex',config_sha256=digest(config),fixture_diagonal_mm=150.,
+        tests=tests,coplanar_control=control,next_stage_allowed=len(tests)==3 and all(t['pass_'] for t in tests),
+        not_run=[label for label,_,_ in LABELS if label not in {t['test'] for t in tests}],
+        initial_penetration_is_diagnostic_only=True,
+        cem_cost=dict(candidate_count=96,slowest_observed_rollout_seconds=slowest,
+            sample_scope='completed_lock_fixtures_only',
+            estimate_seconds=None if slowest is None else 96*slowest,
+            caveat='96-call extrapolation only; excludes setup, redraws and extra initial/final checks. Not a runtime bound for real cases.'))
+    write_json(out/'gate.json',report)
+    return report
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', required=True)
@@ -48,6 +124,9 @@ def main():
     out = Path(args.output)
     out.mkdir(parents=True, exist_ok=False)
     config = yaml.safe_load(Path('configs/default.yaml').read_text())
+    if config['rollout'].get('collision_backend','rigid_flex')=='rigid_flex':
+        report=rigid_flex_gate(out,config)
+        raise SystemExit(0 if report['next_stage_allowed'] else 2)
     accepted = []
     tests = []
     prepared = {}

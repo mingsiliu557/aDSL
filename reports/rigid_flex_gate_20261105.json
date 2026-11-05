@@ -1,0 +1,82 @@
+{
+  "status": "FAIL",
+  "collision_backend": "rigid_flex",
+  "config_sha256": "061ae30f093f2618dd644ad1a39132e3ca5d26282e39575659d719123b043075",
+  "fixture_diagonal_mm": 150.0,
+  "tests": [
+    {
+      "test": "zero_gravity",
+      "pass_": false,
+      "status": "PASS",
+      "reason": null,
+      "rollout_wall_seconds": 1.0378296698909253,
+      "requested_duration_s": 2.0,
+      "flex_element_count": 1128,
+      "flex_element_counts": {
+        "peg": 542,
+        "receiver": 586
+      },
+      "initial_contact": {
+        "maximum_penetration_mm": 0.01464843742522607,
+        "contact_count": 50,
+        "total_contact_count": 50,
+        "flex_flex_count": 50,
+        "bound_mm": null,
+        "affects_verdict": false,
+        "pass": null
+      },
+      "initial_contact_count": 50,
+      "max_contact_count": 50,
+      "final_contact_count": 0,
+      "fixed_displacement_mm": 0.0,
+      "peg_displacement_mm": 74982.61092242926,
+      "peg_final_delta_z_mm": 54187.49540061655,
+      "length_mm": 2.9296875,
+      "clearance_mm": 0.146484375,
+      "cem96_estimate_seconds": 99.63164830952883
+    }
+  ],
+  "coplanar_control": {
+    "status": "PASS",
+    "reason": null,
+    "rollout_wall_seconds": 0.7857664078474045,
+    "flex_element_count": 24,
+    "initial_contact": {
+      "maximum_penetration_mm": 0.014584281076652127,
+      "contact_count": 14,
+      "total_contact_count": 14,
+      "flex_flex_count": 14,
+      "bound_mm": null,
+      "affects_verdict": false,
+      "pass": null
+    },
+    "initial_contact_count": 14,
+    "max_contact_count": 17,
+    "final_contact_count": 0,
+    "metrics": {
+      "peg": {
+        "max_displacement_mm": 141420.1956753527,
+        "max_rotation_rad": 3.141447543285509
+      },
+      "receiver": {
+        "max_displacement_mm": 0.0,
+        "max_rotation_rad": 0.0
+      }
+    },
+    "connector_count": 0,
+    "diagnostic_only": true
+  },
+  "next_stage_allowed": false,
+  "not_run": [
+    "no_head",
+    "headed"
+  ],
+  "initial_penetration_is_diagnostic_only": true,
+  "cem_cost": {
+    "candidate_count": 96,
+    "slowest_observed_rollout_seconds": 1.0378296698909253,
+    "sample_scope": "completed_lock_fixtures_only",
+    "estimate_seconds": 99.63164830952883,
+    "caveat": "96-call extrapolation only; excludes setup, redraws and extra initial/final checks. Not a runtime bound for real cases."
+  }
+}

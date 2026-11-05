@@ -17,6 +17,7 @@ from snap3d.vendor import checked, mesh_solid, solid_mesh
 from snap3d.common import union
 
 CFG = yaml.safe_load(Path('configs/default.yaml').read_text())
+CFG['rollout']['collision_backend']='zone_proxy'
 D = 150.
 
 
@@ -192,6 +193,16 @@ def test_zone_acceptance_positive_with_mock_initial_contacts(tmp_path,fast_coacd
     result=verify(parts,values,rec,report)
     assert result['status']=='PASS' and len(initial_stub)==1
     assert result['connectors'][0]['cavity_pass'] and result['connectors'][0]['shoulder_pass']
+
+
+def test_zone_verifier_checks_supplied_proxies_despite_rigid_flex_default(tmp_path,fast_coacd,initial_stub):
+    base,parts,rec=assembly()
+    values,report=p.build_zone_proxies(base,[rec],D=D,config=CFG['coacd'],cache_dir=tmp_path)
+    result=p.verify_zone_proxies(parts,values,[rec],D=D,roles=report['blocks'],
+        rollout_config=dict(CFG['rollout'],collision_backend='rigid_flex'),
+        clearance_mm=rec['clearance'],fixed_ids=['receiver'])
+    assert result['status']=='PASS'
+    assert initial_stub[0]['config']['collision_backend']=='zone_proxy'
 
 
 @pytest.mark.parametrize('bad',['whole_hull','missing_L1','unclipped_far'])

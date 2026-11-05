@@ -55,6 +55,14 @@ def evaluate_geometry(run, config, *, stage):
                 nonlocal attempt
                 path=target/f'proxy_check_{attempt:04d}.json';attempt+=1
                 try:
+                    if config['rollout'].get('collision_backend','rigid_flex')=='rigid_flex':
+                        result=rollout(p,D=D,config=config['rollout'],coacd_config=config['coacd'],
+                            clearance_mm=config['connector']['clearance_ratio']*D,fixed_ids=fixed)
+                        write_json(path,dict(collision_backend='rigid_flex',proxy_construction=False,
+                            initial_contact=result.get('initial_contact'),flex_element_count=result.get('flex_element_count'),
+                            status=result['status'],reason=result.get('reason')))
+                        result['collision_evidence_ref']=path.name
+                        return result
                     proxies,report=build_zone_proxies(base,connectors,D=D,config=config['coacd'],cache_dir=run/'proxy_cache')
                     verification=verify_zone_proxies(p,proxies,connectors,D=D,roles=report['blocks'],
                         rollout_config=config['rollout'],clearance_mm=config['connector']['clearance_ratio']*D,fixed_ids=fixed)

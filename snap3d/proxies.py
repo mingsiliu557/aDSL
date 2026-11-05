@@ -308,7 +308,7 @@ def verify_zone_proxies(parts, proxies, connectors, *, D, roles, rollout_config,
         checks.append(check)
     initial = None
     if valid:
-        initial = rollout(parts, D=D, config=rollout_config, coacd_config={},
+        initial = rollout(parts, D=D, config=dict(rollout_config, collision_backend='zone_proxy'), coacd_config={},
                           clearance_mm=clearance_mm, fixed_ids=fixed_ids,
                           proxy_cache=proxies, initial_only=True)
         valid = initial['status'] == 'PASS'

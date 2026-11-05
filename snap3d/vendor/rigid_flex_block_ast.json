@@ -1,0 +1,14 @@
+{
+  "commit": "9e1f01dc32812bf649dc2f58fdc027c7c3dd8d7d",
+  "source": "adsl-agents/assembly_standing.py",
+  "source_function": "xml_model",
+  "selector": "if rigid_flex",
+  "source_lines": [
+    352,
+    366
+  ],
+  "excluded_statement": "trailing loop-control continue only",
+  "helper": "add_rigid_flex",
+  "helper_prefix_statements": 1,
+  "block_ast_sha256": "c74858ba959510174acb42f2b72f4313cf4ef1919d684d6d7035f6a3eb5d18bf"
+}

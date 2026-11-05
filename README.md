@@ -3,6 +3,11 @@
 Independent research implementation. Not official SNAP3D code. No dependency on an
 installed aDSL checkout. No formal benchmark metrics or training are implemented.
 
+The current default is `rollout.collision_backend: rigid_flex`; `zone_proxy`
+remains available explicitly. The v4 artificial lock gate and its coplanar-box
+control both eject the free body at zero gravity. No real cases are authorized
+by that failed gate. See `reports/rigid_flex_implementation_20261105.md`.
+
 ## Frozen provenance
 
 `upstream.lock.json` records exact source commits and Hugging Face revisions.
@@ -12,6 +17,9 @@ included. Resolve ancillary model checkpoints (including background removal and
 Sonata if required) before inference; offline mode must not fetch unpinned assets.
 
 Vendor source is aDSL `f65b0dbb9c0e3a48d45f870cdb7091949aa2472a`.
+The additional rigid-flex settings, compatibility options, value formatter and
+XML construction statements are copied from `fabrication_ablation@9e1f01d`,
+with separate function/block AST and original-source hash verification.
 `vendor/provenance.json` records source hashes; `function_ast.json` tests copied
 functions against the frozen source. No license file was found at that aDSL
 revision: provenance is retained, no new license is assigned to that code.
@@ -86,7 +94,12 @@ head sweep is removed through the throat. No elastic insertion path is claimed.
 All candidates rebuild from immutable post-PGE geometry and the complete current
 connector set; no old candidate slots persist.
 
-MuJoCo uses explicit true-material inertia and CoACD collisions (mm -> SI).
+MuJoCo uses explicit true-material inertia (mm -> SI). The default rigid-flex
+backend uses each rebuilt material surface directly, with collision-disabled
+display meshes and rigid dim=2 flexes. Shell radius is min(0.01 mm, c/20), with
+paired radii strictly less than c. Initial cross-body depth is diagnostic only.
+The optional zone_proxy backend retains its cached CoACD and analytic zones,
+including its initial c/4 proxy check.
 Initial ground IDs remain fixed throughout a search. Every frame contributes to
 3D displacement and SO(3) rotation; final contacts determine moving groups. This
 fixed-ground optimization protocol is not the online aDSL standing protocol or
@@ -104,6 +117,9 @@ https://github.com/Tencent-Hunyuan/Hunyuan3D-2 ;
 https://github.com/Tencent-Hunyuan/Hunyuan3D-Part .
 
 ## Zoned proxies: implemented, dynamic gate still blocked
+
+This section describes the historical v3 optional `zone_proxy` backend; the
+current v4 rigid-flex results are recorded below and in the new report.
 
 The new adapter caches CoACD proxies of each immutable PGE base at
 `far_threshold_ratio=0.01` of the frozen D. All connector exclusion prisms are
@@ -142,3 +158,19 @@ OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=1 PYTHONPATH=. python scripts/lock_gate.p
 This remains SNAP3D formula reimplementation (Manifold / MuJoCo-CoACD), using
 analytic lock-zone collisions instead of the paper's IPC mesh collisions.
 Static proxy acceptance is not evidence of stable dynamic contact.
+
+## Rigid-flex v4 artificial validation
+
+55 CPU unit tests passed, including original zone-proxy coverage, exact vendored
+AST checks, XML masks/radius/body-local coordinates, shell-clearance rejection,
+flex contact IDs, nonblocking initial depth, pipeline proxy bypass and gate-stop
+behavior. No CoACD or proxy construction is performed in rigid-flex mode.
+
+`runs/lock_gate_v4` preserves the unchanged D=150 fixture and motion thresholds.
+The 2 s zero-gravity rollout completed in 1.0378 s wall time, using 1,128 flex
+triangles and 50 initial contacts; the donor was ejected, so the gate failed.
+The specified connector-free coplanar boxes also eject the free body (24 flex
+triangles, 14 initial contacts, 0.7858 s wall time). The no-head and headed load
+gates were not run. No parameters were tuned. The 96-call extrapolation from
+the observed lock rollout is about 99.63 seconds/edge, not a validated optimization
+cost or bound for real cases. No models, weights, real cases or CEM were run.

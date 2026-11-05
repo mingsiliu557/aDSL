@@ -1,10 +1,32 @@
 """Independent fixed-ground rigid-body protocol. Inputs mm; MuJoCo SI."""
 import itertools
+import time
 import xml.etree.ElementTree as ET
 import numpy as np
 from scipy.spatial.transform import Rotation
+from .vendor.rigid_flex import flex_contact_settings, add_rigid_flex
 
 PROTOCOL='snap3d_fixed_ground_mujoco_coacd_v1'
+RIGID_FLEX_PROTOCOL='snap3d_fixed_ground_mujoco_rigid_flex_v1'
+
+
+def _contact_bodies(model, contact, flex_bodies):
+    """MuJoCo flex contacts use geom=-1; never index geom_bodyid with that ID."""
+    geoms=getattr(contact,'geom',None)
+    if geoms is None:geoms=[contact.geom1,contact.geom2]
+    flexes=getattr(contact,'flex',[-1,-1])
+    return tuple(int(model.geom_bodyid[int(g)]) if int(g)>=0 else flex_bodies.get(int(f))
+                 for g,f in zip(geoms,flexes))
+
+
+def _initial_contacts(model, data, flex_bodies):
+    rows=[]
+    for c in data.contact:
+        a,b=_contact_bodies(model,c,flex_bodies)
+        if a is not None and b is not None and a!=b:rows.append(c)
+    return dict(maximum_penetration_mm=max((max(0.,-float(c.dist)*1000) for c in rows),default=0.),
+                contact_count=len(rows),total_contact_count=int(data.ncon) if hasattr(data,'ncon') else len(data.contact),
+                flex_flex_count=sum(all(int(i)>=0 for i in getattr(c,'flex',[-1,-1])) for c in rows))
 
 def angle(matrix):
     return float(np.linalg.norm(Rotation.from_matrix(matrix).as_rotvec()))
@@ -12,23 +34,37 @@ def angle(matrix):
 def rollout(parts, *, D, config, coacd_config, clearance_mm, fixed_ids=None,
             gravity=None, proxy_cache=None, retain_frames=True, initial_only=False):
     import mujoco
+    started=time.monotonic()
+    backend=config.get('collision_backend','rigid_flex')
     ids=sorted(parts)
     if fixed_ids is None:
         fixed_ids=[i for i in ids if abs(parts[i].bounds[0,2])<=D*config['ground_ratio']]
     fixed_ids=list(fixed_ids)
-    base=dict(protocol_id=PROTOCOL,fixed_ids=fixed_ids,status='UNAVAILABLE',reason=None)
+    base=dict(protocol_id=RIGID_FLEX_PROTOCOL if backend=='rigid_flex' else PROTOCOL,
+              collision_backend=backend,fixed_ids=fixed_ids,status='UNAVAILABLE',reason=None)
     if not fixed_ids: return dict(base,reason='NO_GROUND_PARTS')
     if not set(fixed_ids)<=set(ids): return dict(base,reason='FIXED_ID_MISSING')
     free=[i for i in ids if i not in fixed_ids]
     if not free: return dict(base,reason='NO_FREE_PARTS')
-    if proxy_cache is None or any(not proxy_cache.get(i) for i in ids):
+    if backend not in {'rigid_flex','zone_proxy'}:
+        return dict(base,reason='UNSUPPORTED_COLLISION_BACKEND')
+    if backend=='zone_proxy' and (proxy_cache is None or any(not proxy_cache.get(i) for i in ids)):
         return dict(base,reason='PROXY_MISSING')
+    contact=None
+    if backend=='rigid_flex':
+        # This compatibility report conveys the nominal SNAP3D clearance only;
+        # it creates no connector, constraint, weld or declared material geometry.
+        try:
+            contact=flex_contact_settings(dict(connections=[dict(parameters=dict(fit_offset_mm=clearance_mm))]),config)
+        except ValueError as error:
+            return dict(base,reason='RIGID_FLEX_CONTACT_UNVERIFIED',detail=str(error))
     root=ET.Element('mujoco',model='snap3d')
     ET.SubElement(root,'compiler',angle='radian',inertiafromgeom='false')
     g=config['gravity'] if gravity is None else gravity
     ET.SubElement(root,'option',timestep=str(config['dt']),gravity=f'0 0 {-g}',
                   integrator=config['integrator'],iterations=str(config['iterations']))
     asset=ET.SubElement(root,'asset'); world=ET.SubElement(root,'worldbody')
+    deformable=ET.SubElement(root,'deformable') if backend=='rigid_flex' else None
     ET.SubElement(world,'geom',name='ground',type='plane',size='1 1 .01',friction=' '.join(map(str,config['friction'])))
     proxies_by_id={}; proxies_count={}
     for k,i in enumerate(ids):
@@ -43,6 +79,12 @@ def rollout(parts, *, D, config, coacd_config, clearance_mm, fixed_ids=None,
         if i in free: ET.SubElement(body,'freejoint')
         ET.SubElement(body,'inertial',pos='0 0 0',mass=str(mass),
                       fullinertia=' '.join(map(str,[inertia[0,0],inertia[1,1],inertia[2,2],inertia[0,1],inertia[0,2],inertia[1,2]])))
+        if backend=='rigid_flex':
+            # Upstream branch consumes body-local mm vertices. Our body origin
+            # remains the unchanged true COM, so translate only the view fed to it.
+            local_mesh=mesh.copy();local_mesh.apply_translation(-com*1000)
+            add_rigid_flex(asset,body,deformable,local_mesh,i=k,name=f'part_{k}',contact=contact,config=config)
+            continue
         proxies=proxy_cache[i]
         proxies_by_id[i]=proxies; proxies_count[i]=len(proxies)
         for p,proxy in enumerate(proxies):
@@ -53,34 +95,45 @@ def rollout(parts, *, D, config, coacd_config, clearance_mm, fixed_ids=None,
     xml=ET.tostring(root,encoding='unicode')
     try:
         model=mujoco.MjModel.from_xml_string(xml); data=mujoco.MjData(model); mujoco.mj_forward(model,data)
-        depths=[max(0.,-float(c.dist)*1000) for c in data.contact
-                if model.geom_bodyid[c.geom1]!=model.geom_bodyid[c.geom2]]
-        initial_contact=dict(maximum_penetration_mm=max(depths,default=0.),
-                             bound_mm=clearance_mm/4,contact_count=len(depths))
-        initial_contact['pass']=initial_contact['maximum_penetration_mm']<=initial_contact['bound_mm']
-        if not initial_contact['pass']:
+        flex_bodies={i:int(model.flex_vertbodyid[int(model.flex_vertadr[i])]) for i in range(getattr(model,'nflex',0))}
+        flex_elements={i:int(model.flex_elemnum[i]) for i in range(getattr(model,'nflex',0))}
+        initial_contact=_initial_contacts(model,data,flex_bodies)
+        if backend=='zone_proxy':
+            initial_contact.update(bound_mm=clearance_mm/4,affects_verdict=True)
+            initial_contact['pass']=initial_contact['maximum_penetration_mm']<=initial_contact['bound_mm']
+        else:
+            initial_contact.update(bound_mm=None,affects_verdict=False,**{'pass':None})
+        backend_info=dict(proxy_counts=proxies_count,flex_element_count=sum(flex_elements.values()),
+                          flex_element_counts={i:flex_elements[k] for k,i in enumerate(ids)} if flex_elements else {},
+                          rigid_flex_contact=contact)
+        if backend=='zone_proxy' and not initial_contact['pass']:
             return dict(base,reason='PROXY_UNVERIFIED',initial_contact=initial_contact,
                         proxy_counts=proxies_count,simulation_performed=False)
         if initial_only:
             return dict(base,status='PASS',initial_contact=initial_contact,
-                        proxy_counts=proxies_count,simulation_performed=False)
+                        **backend_info,simulation_performed=False,xml=xml,wall_seconds=time.monotonic()-started)
         bodies={i:mujoco.mj_name2id(model,mujoco.mjtObj.mjOBJ_BODY,f'part_{k}') for k,i in enumerate(ids)}
         reverse={v:k for k,v in bodies.items()}
         def snapshot():
             return {i:dict(position_mm=(data.xpos[b]*1000).tolist(),rotation=data.xmat[b].reshape(3,3).tolist()) for i,b in bodies.items()}
-        frames=[snapshot()]; max_depth=0.
+        frames=[snapshot()]; max_depth=0.;max_contacts=int(data.ncon)
         steps=int(round(config['duration']/config['dt']))
         for _ in range(steps):
             mujoco.mj_step(model,data)
             if not np.isfinite(data.qpos).all() or any(w.number for w in data.warning):
-                return dict(base,reason='SIMULATION_ERROR',frames=frames)
+                return dict(base,reason='SIMULATION_ERROR',frames=frames,**backend_info,
+                    initial_contact=initial_contact,initial_contact_count=initial_contact['total_contact_count'],
+                    max_contact_count=max(max_contacts,int(data.ncon)),last_contact_count=int(data.ncon),
+                    simulated_seconds=float(data.time),wall_seconds=time.monotonic()-started)
             # mj_step's xpos may precede integrated qpos: explicitly synchronize.
             mujoco.mj_forward(model,data)
             frames.append(snapshot())
             max_depth=max(max_depth,max((-float(c.dist)*1000 for c in data.contact),default=0.))
+            max_contacts=max(max_contacts,int(data.ncon))
         contacts=set()
         for c in data.contact:
-            a=reverse.get(int(model.geom_bodyid[c.geom1])); b=reverse.get(int(model.geom_bodyid[c.geom2]))
+            body_a,body_b=_contact_bodies(model,c,flex_bodies)
+            a=reverse.get(body_a); b=reverse.get(body_b)
             if a and b and a!=b: contacts.add(tuple(sorted((a,b))))
         metrics={}
         for i in ids:
@@ -91,8 +144,11 @@ def rollout(parts, *, D, config, coacd_config, clearance_mm, fixed_ids=None,
                       metrics[i]['max_rotation_rad']/np.deg2rad(config['rotation_deg'])) for i in free)
         return dict(base,status='PASS',reason=None,stable=score<=1.,global_score=score,
                     metrics=metrics,frames=frames if retain_frames else [],last_contact_pairs=[list(p) for p in sorted(contacts)],
-                    peak_penetration_mm=max_depth,proxy_counts=proxies_count,xml=xml,
-                    initial_contact=initial_contact)
+                    peak_penetration_mm=max_depth,**backend_info,xml=xml,
+                    initial_contact=initial_contact,final_contact=_initial_contacts(model,data,flex_bodies),
+                    initial_contact_count=int(initial_contact['total_contact_count']),
+                    max_contact_count=max_contacts,final_contact_count=int(data.ncon),
+                    simulated_seconds=float(data.time),wall_seconds=time.monotonic()-started)
     except (ValueError,RuntimeError) as error:
         return dict(base,reason='SIMULATION_ERROR',detail=str(error))
 

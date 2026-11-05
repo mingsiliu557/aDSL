@@ -40,5 +40,32 @@
     "commit": "f65b0dbb9c0e3a48d45f870cdb7091949aa2472a",
     "functions": null,
     "upstream_sha256": "0b3d989f43f1c49cdeaccde5fa6e85659027d4dd29bfd931d1f7203011bbd3a8"
+  },
+  {
+    "file": "rigid_flex.py",
+    "source": "adsl-agents/assembly_standing.py",
+    "commit": "9e1f01dc32812bf649dc2f58fdc027c7c3dd8d7d",
+    "functions": [
+      "flex_contact_settings",
+      "_legacy_flex_contact_options"
+    ],
+    "nested_helpers": [
+      "xml_model.values"
+    ],
+    "extracted_block": {
+      "commit": "9e1f01dc32812bf649dc2f58fdc027c7c3dd8d7d",
+      "source": "adsl-agents/assembly_standing.py",
+      "source_function": "xml_model",
+      "selector": "if rigid_flex",
+      "source_lines": [
+        352,
+        366
+      ],
+      "excluded_statement": "trailing loop-control continue only",
+      "helper": "add_rigid_flex",
+      "helper_prefix_statements": 1,
+      "block_ast_sha256": "c74858ba959510174acb42f2b72f4313cf4ef1919d684d6d7035f6a3eb5d18bf"
+    },
+    "upstream_sha256": "3c016c8017e7dc8ce5c4ce6b5dc9ac6ee730188fffd2a5a665766e760f3aa9e8"
   }
 ]

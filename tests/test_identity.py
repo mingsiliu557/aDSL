@@ -14,7 +14,7 @@ def test_gate_config_and_status(tmp_path):
 
 def test_standalone_import():
     env=dict(os.environ,PYTHONPATH=str(Path('.').resolve()))
-    subprocess.run([sys.executable,'-c','import sys; import snap3d.vendor; assert not any(k == "core" or k.startswith("core.") for k in sys.modules)'],env=env,check=True)
+    subprocess.run([sys.executable,'-c','import sys; import snap3d.vendor; import snap3d.vendor.rigid_flex; assert not any(k == "core" or k.startswith("core.") or k == "adsl" or k.startswith("adsl.") for k in sys.modules)'],env=env,check=True)
 
 def test_vendor_function_ast_matches_recorded_origin():
     # Hashes of ASTs generated from frozen source, not from the vendor copy.

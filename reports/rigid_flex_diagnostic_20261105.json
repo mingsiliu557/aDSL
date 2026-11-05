@@ -1,0 +1,307 @@
+{
+  "zero_gravity": {
+    "protocol_id": "snap3d_fixed_ground_mujoco_rigid_flex_v1",
+    "collision_backend": "rigid_flex",
+    "fixed_ids": [
+      "receiver"
+    ],
+    "status": "PASS",
+    "reason": null,
+    "stable": false,
+    "global_score": 8531.354842729728,
+    "metrics": {
+      "peg": {
+        "max_displacement_mm": 74982.61092242926,
+        "max_rotation_rad": 3.1414071945849984
+      },
+      "receiver": {
+        "max_displacement_mm": 0.0,
+        "max_rotation_rad": 0.0
+      }
+    },
+    "last_contact_pairs": [],
+    "peak_penetration_mm": 1280.175165769926,
+    "proxy_counts": {},
+    "flex_element_count": 1128,
+    "flex_element_counts": {
+      "peg": 542,
+      "receiver": 586
+    },
+    "rigid_flex_contact": {
+      "radius_mm": 0.00732421875,
+      "margin_mm": 0.0,
+      "gap_mm": 0.0,
+      "paired_shell_thickness_mm": 0.0146484375,
+      "minimum_fit_clearance_mm": 0.146484375,
+      "remaining_minimum_clearance_mm": 0.1318359375,
+      "choice": "min(0.01 mm, minimum positive single-sided fit / 20), or explicit radius_mm",
+      "representation": "rigid dim=2 surface flex; not volumetric FEM; no remeshing"
+    },
+    "initial_contact": {
+      "maximum_penetration_mm": 0.01464843742522607,
+      "contact_count": 50,
+      "total_contact_count": 50,
+      "flex_flex_count": 50,
+      "bound_mm": null,
+      "affects_verdict": false,
+      "pass": null
+    },
+    "final_contact": {
+      "maximum_penetration_mm": 0.0,
+      "contact_count": 0,
+      "total_contact_count": 0,
+      "flex_flex_count": 0
+    },
+    "initial_contact_count": 50,
+    "max_contact_count": 50,
+    "final_contact_count": 0,
+    "simulated_seconds": 1.9999999999998905,
+    "wall_seconds": 0.9451533409301192,
+    "rollout_wall_seconds": 1.0378296698909253,
+    "gate_pass": false,
+    "early_motion_samples": [
+      {
+        "step": 0,
+        "time_s": 0.0,
+        "donor_displacement_mm": 0.0,
+        "donor_position_mm": [
+          2.04935589442047e-17,
+          -8.241693416682634e-16,
+          42.887766145148206
+        ]
+      },
+      {
+        "step": 1,
+        "time_s": 0.001,
+        "donor_displacement_mm": 0.14217675119068804,
+        "donor_position_mm": [
+          0.08544351672291475,
+          0.11363817087427294,
+          42.8877539177543
+        ]
+      },
+      {
+        "step": 2,
+        "time_s": 0.002,
+        "donor_displacement_mm": 184.4944378166501,
+        "donor_position_mm": [
+          0.15990815995032945,
+          0.21183865006828453,
+          -141.60648075444615
+        ]
+      },
+      {
+        "step": 3,
+        "time_s": 0.003,
+        "donor_displacement_mm": 349.1656820205311,
+        "donor_position_mm": [
+          0.23417457302122993,
+          0.31003912926304994,
+          -306.2776997000157
+        ]
+      },
+      {
+        "step": 5,
+        "time_s": 0.005,
+        "donor_displacement_mm": 624.1728689736215,
+        "donor_position_mm": [
+          0.3821640455922747,
+          0.5064400876509221,
+          -581.2847803769184
+        ]
+      },
+      {
+        "step": 10,
+        "time_s": 0.01,
+        "donor_displacement_mm": 1066.802407404438,
+        "donor_position_mm": [
+          0.7515589206499942,
+          0.9957061292534986,
+          -1023.9139118495941
+        ]
+      },
+      {
+        "step": 20,
+        "time_s": 0.02,
+        "donor_displacement_mm": 1305.9038427833736,
+        "donor_position_mm": [
+          1.4889553196963685,
+          1.9703890889208644,
+          -1263.013741310631
+        ]
+      },
+      {
+        "step": 50,
+        "time_s": 0.05,
+        "donor_displacement_mm": 526.5404482975161,
+        "donor_position_mm": [
+          3.7009084889233455,
+          4.887757936849437,
+          -483.61698862165974
+        ]
+      },
+      {
+        "step": 100,
+        "time_s": 0.1,
+        "donor_displacement_mm": 1322.8310622055433,
+        "donor_position_mm": [
+          632.5441820358687,
+          -617.2003669108814,
+          1027.1812101919393
+        ]
+      }
+    ]
+  },
+  "coplanar_boxes_zero_gravity": {
+    "protocol_id": "snap3d_fixed_ground_mujoco_rigid_flex_v1",
+    "collision_backend": "rigid_flex",
+    "fixed_ids": [
+      "receiver"
+    ],
+    "status": "PASS",
+    "reason": null,
+    "stable": false,
+    "global_score": 16090.47559684013,
+    "metrics": {
+      "peg": {
+        "max_displacement_mm": 141420.1956753527,
+        "max_rotation_rad": 3.141447543285509
+      },
+      "receiver": {
+        "max_displacement_mm": 0.0,
+        "max_rotation_rad": 0.0
+      }
+    },
+    "last_contact_pairs": [],
+    "peak_penetration_mm": 0.014807575347806773,
+    "proxy_counts": {},
+    "flex_element_count": 24,
+    "flex_element_counts": {
+      "peg": 12,
+      "receiver": 12
+    },
+    "rigid_flex_contact": {
+      "radius_mm": 0.00732421875,
+      "margin_mm": 0.0,
+      "gap_mm": 0.0,
+      "paired_shell_thickness_mm": 0.0146484375,
+      "minimum_fit_clearance_mm": 0.146484375,
+      "remaining_minimum_clearance_mm": 0.1318359375,
+      "choice": "min(0.01 mm, minimum positive single-sided fit / 20), or explicit radius_mm",
+      "representation": "rigid dim=2 surface flex; not volumetric FEM; no remeshing"
+    },
+    "initial_contact": {
+      "maximum_penetration_mm": 0.014584281076652127,
+      "contact_count": 14,
+      "total_contact_count": 14,
+      "flex_flex_count": 14,
+      "bound_mm": null,
+      "affects_verdict": false,
+      "pass": null
+    },
+    "final_contact": {
+      "maximum_penetration_mm": 0.0,
+      "contact_count": 0,
+      "total_contact_count": 0,
+      "flex_flex_count": 0
+    },
+    "initial_contact_count": 14,
+    "max_contact_count": 17,
+    "final_contact_count": 0,
+    "simulated_seconds": 1.9999999999998905,
+    "wall_seconds": 0.7854201819282025,
+    "rollout_wall_seconds": 0.7857664078474045,
+    "early_motion_samples": [
+      {
+        "step": 0,
+        "time_s": 0.0,
+        "donor_displacement_mm": 0.0,
+        "donor_position_mm": [
+          0.0,
+          0.0,
+          69.84496104996265
+        ]
+      },
+      {
+        "step": 1,
+        "time_s": 0.001,
+        "donor_displacement_mm": 4.806312672174338e-05,
+        "donor_position_mm": [
+          4.679223339079632e-07,
+          5.259892212595201e-07,
+          69.84500910793321
+        ]
+      },
+      {
+        "step": 2,
+        "time_s": 0.002,
+        "donor_displacement_mm": 0.13307183154843832,
+        "donor_position_mm": [
+          -0.09417426773945227,
+          0.09401507095587143,
+          69.84565824473914
+        ]
+      },
+      {
+        "step": 3,
+        "time_s": 0.003,
+        "donor_displacement_mm": 70.78195750114705,
+        "donor_position_mm": [
+          -11.086277439962938,
+          -10.710629561384572,
+          138.92797180236943
+        ]
+      },
+      {
+        "step": 5,
+        "time_s": 0.005,
+        "donor_displacement_mm": 212.34363059057384,
+        "donor_position_mm": [
+          -33.07048378440963,
+          -32.319918826065425,
+          277.09259891762986
+        ]
+      },
+      {
+        "step": 10,
+        "time_s": 0.01,
+        "donor_displacement_mm": 566.247995725407,
+        "donor_position_mm": [
+          -88.03099964553454,
+          -86.3431419877654,
+          622.5041667057891
+        ]
+      },
+      {
+        "step": 20,
+        "time_s": 0.02,
+        "donor_displacement_mm": 1274.0567694269462,
+        "donor_position_mm": [
+          -197.9520313677827,
+          -194.38958831117407,
+          1313.32730228212
+        ]
+      },
+      {
+        "step": 50,
+        "time_s": 0.05,
+        "donor_displacement_mm": 3397.483112247611,
+        "donor_position_mm": [
+          -527.7151265345209,
+          -518.5289272814102,
+          3385.7967090111356
+        ]
+      },
+      {
+        "step": 100,
+        "time_s": 0.1,
+        "donor_displacement_mm": 6936.527022857858,
+        "donor_position_mm": [
+          -1077.3202851457593,
+          -1058.7611588984828,
+          6839.912386892833
+        ]
+      }
+    ]
+  }
+}

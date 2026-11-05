@@ -8,6 +8,7 @@ from snap3d.connector import rebuild
 from snap3d.rollout import rollout,relative_score,select_edges
 from snap3d.vendor import mesh_solid,checked
 CFG=yaml.safe_load(Path('configs/default.yaml').read_text())
+CFG['rollout']['collision_backend']='zone_proxy'
 
 def box(extents,center):
     m=trimesh.creation.box(extents);m.apply_translation(center);return m
