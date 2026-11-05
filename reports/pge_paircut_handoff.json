@@ -1,0 +1,565 @@
+{
+  "status": "PASS",
+  "collision_backend": "rigid_flex",
+  "config_sha256": "ade6ea50c57700f7d7f7dfd638a735513d740a3495d963a4716a60b3eb2e780a",
+  "fixture_diagonal_mm": 150.0,
+  "coplanar_control": {
+    "status": "PASS",
+    "reason": null,
+    "rollout_wall_seconds": 0.4022693100851029,
+    "simulated_seconds": 2.0000000000000013,
+    "flex_element_count": 24,
+    "initial_contact": {
+      "maximum_penetration_mm": 0.014584281076638245,
+      "contact_count": 14,
+      "total_contact_count": 14,
+      "flex_flex_count": 14,
+      "bound_mm": null,
+      "affects_verdict": false,
+      "pass": null
+    },
+    "initial_contact_count": 14,
+    "max_contact_count": 18,
+    "final_contact_count": 0,
+    "metrics": {
+      "peg": {
+        "max_displacement_mm": 0.8786720898086846,
+        "max_rotation_rad": 0.005315596694597682,
+        "max_linear_speed_m_s": 0.0004404340682079754
+      },
+      "receiver": {
+        "max_displacement_mm": 0.0,
+        "max_rotation_rad": 0.0,
+        "max_linear_speed_m_s": 0.0
+      }
+    },
+    "connector_count": 0,
+    "diagnostic_only": true,
+    "condim": 3,
+    "friction": [
+      0.5,
+      0.005,
+      0.0001
+    ],
+    "first_ten_steps": {
+      "initial_position_mm": [
+        0.0,
+        0.0,
+        69.84496104996265
+      ],
+      "available_steps": 10,
+      "requested_steps": 10,
+      "complete": true,
+      "max_speed_first_ten_m_s": 0.00044034129922376097,
+      "max_speed_whole_rollout_m_s": 0.0004404340682079754,
+      "steps": [
+        {
+          "step": 1,
+          "time_s": 0.002,
+          "displacement_xyz_mm": [
+            -7.067763669620786e-08,
+            -4.735557080102907e-07,
+            0.00013709532710493022
+          ],
+          "linear_velocity_xyz_m_s": [
+            -3.533881834810393e-08,
+            -2.3677785400514536e-07,
+            6.854766356158446e-05
+          ],
+          "speed_m_s": 6.854808160945427e-05
+        },
+        {
+          "step": 2,
+          "time_s": 0.004,
+          "displacement_xyz_mm": [
+            -1.4984472079648529e-06,
+            1.8226239496814237e-06,
+            0.0003836418623279769
+          ],
+          "linear_velocity_xyz_m_s": [
+            -7.138847856343226e-07,
+            1.1480898288458573e-06,
+            0.0001232732676087117
+          ],
+          "speed_m_s": 0.00012328068076009033
+        },
+        {
+          "step": 3,
+          "time_s": 0.006,
+          "displacement_xyz_mm": [
+            -5.636498098584425e-05,
+            -5.960689892249838e-05,
+            0.0008775478501945599
+          ],
+          "linear_velocity_xyz_m_s": [
+            -2.74332668889397e-05,
+            -3.0714761436089905e-05,
+            0.0002469529939375225
+          ],
+          "speed_m_s": 0.0002503632599184268
+        },
+        {
+          "step": 4,
+          "time_s": 0.008,
+          "displacement_xyz_mm": [
+            -5.7863500691426306e-05,
+            -9.82713458435005e-05,
+            0.00149654218259343
+          ],
+          "linear_velocity_xyz_m_s": [
+            -7.492598527910274e-07,
+            -1.9332223460501063e-05,
+            0.0003094971661914479
+          ],
+          "speed_m_s": 0.0003101012610983556
+        },
+        {
+          "step": 5,
+          "time_s": 0.01,
+          "displacement_xyz_mm": [
+            -9.515620703974306e-05,
+            -0.00013644503021765782,
+            0.002217698545464941
+          ],
+          "linear_velocity_xyz_m_s": [
+            -1.864635317415838e-05,
+            -1.9086842187078665e-05,
+            0.0003605781814393235
+          ],
+          "speed_m_s": 0.0003615641284218604
+        },
+        {
+          "step": 6,
+          "time_s": 0.012,
+          "displacement_xyz_mm": [
+            -0.0001222709889367737,
+            -9.452825140809631e-05,
+            0.0030966105750849238
+          ],
+          "linear_velocity_xyz_m_s": [
+            -1.3557390948515324e-05,
+            2.0958389404780754e-05,
+            0.0004394560148114602
+          ],
+          "speed_m_s": 0.000440164339638894
+        },
+        {
+          "step": 7,
+          "time_s": 0.014,
+          "displacement_xyz_mm": [
+            -0.00014938577083380435,
+            -5.26114725985348e-05,
+            0.003975522604719117
+          ],
+          "linear_velocity_xyz_m_s": [
+            -1.3557390948515324e-05,
+            2.0958389404780754e-05,
+            0.0004394560148114602
+          ],
+          "speed_m_s": 0.000440164339638894
+        },
+        {
+          "step": 8,
+          "time_s": 0.016,
+          "displacement_xyz_mm": [
+            -0.00017608182618364434,
+            -1.0517212156215992e-05,
+            0.004854793457809592
+          ],
+          "linear_velocity_xyz_m_s": [
+            -1.3348027674920002e-05,
+            2.1047130221159404e-05,
+            0.0004396354265396647
+          ],
+          "speed_m_s": 0.00044034129922376097
+        },
+        {
+          "step": 9,
+          "time_s": 0.018000000000000002,
+          "displacement_xyz_mm": [
+            -0.00020277788153348433,
+            3.157704828610282e-05,
+            0.005734064310885856
+          ],
+          "linear_velocity_xyz_m_s": [
+            -1.3348027674920002e-05,
+            2.1047130221159404e-05,
+            0.0004396354265396647
+          ],
+          "speed_m_s": 0.00044034129922376097
+        },
+        {
+          "step": 10,
+          "time_s": 0.02,
+          "displacement_xyz_mm": [
+            -0.00024385745396927148,
+            5.928965664601875e-05,
+            0.006612407535598663
+          ],
+          "linear_velocity_xyz_m_s": [
+            -2.0539786217893586e-05,
+            1.3856304179957966e-05,
+            0.00043917161235118183
+          ],
+          "speed_m_s": 0.00043986996382856266
+        }
+      ]
+    }
+  },
+  "normal_only_control": {
+    "status": "PASS",
+    "reason": null,
+    "rollout_wall_seconds": 0.40243267896585166,
+    "simulated_seconds": 2.0000000000000013,
+    "flex_element_count": 24,
+    "initial_contact": {
+      "maximum_penetration_mm": 0.014584281076638245,
+      "contact_count": 14,
+      "total_contact_count": 14,
+      "flex_flex_count": 14,
+      "bound_mm": null,
+      "affects_verdict": false,
+      "pass": null
+    },
+    "initial_contact_count": 14,
+    "max_contact_count": 18,
+    "final_contact_count": 0,
+    "metrics": {
+      "peg": {
+        "max_displacement_mm": 0.6186106218338239,
+        "max_rotation_rad": 0.009012361715965452,
+        "max_linear_speed_m_s": 0.0003099413458809593
+      },
+      "receiver": {
+        "max_displacement_mm": 0.0,
+        "max_rotation_rad": 0.0,
+        "max_linear_speed_m_s": 0.0
+      }
+    },
+    "connector_count": 0,
+    "diagnostic_only": true,
+    "condim": 1,
+    "friction": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "first_ten_steps": {
+      "initial_position_mm": [
+        0.0,
+        0.0,
+        69.84496104996265
+      ],
+      "available_steps": 10,
+      "requested_steps": 10,
+      "complete": true,
+      "max_speed_first_ten_m_s": 0.00030616241777711766,
+      "max_speed_whole_rollout_m_s": 0.0003099413458809593,
+      "steps": [
+        {
+          "step": 1,
+          "time_s": 0.002,
+          "displacement_xyz_mm": [
+            2.253291792839958e-19,
+            1.126645896419979e-19,
+            0.0001541907928412911
+          ],
+          "linear_velocity_xyz_m_s": [
+            1.126645896419979e-19,
+            5.633229482099895e-20,
+            7.70953964217933e-05
+          ],
+          "speed_m_s": 7.70953964217933e-05
+        },
+        {
+          "step": 2,
+          "time_s": 0.004,
+          "displacement_xyz_mm": [
+            4.506583585679916e-19,
+            2.253291792839958e-19,
+            0.00043186062690381277
+          ],
+          "linear_velocity_xyz_m_s": [
+            1.126645896419979e-19,
+            5.633229482099895e-20,
+            0.00013883491703681251
+          ],
+          "speed_m_s": 0.00013883491703681251
+        },
+        {
+          "step": 3,
+          "time_s": 0.006,
+          "displacement_xyz_mm": [
+            6.865498431309247e-19,
+            3.415145373523061e-19,
+            0.0008269822098299073
+          ],
+          "linear_velocity_xyz_m_s": [
+            1.1794574228146654e-19,
+            5.809267903415516e-20,
+            0.0001975607914644741
+          ],
+          "speed_m_s": 0.0001975607914644741
+        },
+        {
+          "step": 4,
+          "time_s": 0.008,
+          "displacement_xyz_mm": [
+            9.118790224149204e-19,
+            4.436168217153668e-19,
+            0.0013329168207008024
+          ],
+          "linear_velocity_xyz_m_s": [
+            1.126645896419979e-19,
+            5.105114218153029e-20,
+            0.00025296730543654134
+          ],
+          "speed_m_s": 0.00025296730543654134
+        },
+        {
+          "step": 5,
+          "time_s": 0.01,
+          "displacement_xyz_mm": [
+            1.1090420542884167e-18,
+            5.1579257445477155e-19,
+            0.001904084155157193
+          ],
+          "linear_velocity_xyz_m_s": [
+            9.858151593674816e-20,
+            3.6087876369702446e-20,
+            0.00028558366723157707
+          ],
+          "speed_m_s": 0.00028558366723157707
+        },
+        {
+          "step": 6,
+          "time_s": 0.012,
+          "displacement_xyz_mm": [
+            1.296522972989554e-18,
+            5.791664061283954e-19,
+            0.0025021007607506363
+          ],
+          "linear_velocity_xyz_m_s": [
+            9.374045935056855e-20,
+            3.1686915836811906e-20,
+            0.00029900830279806323
+          ],
+          "speed_m_s": 0.00029900830279806323
+        },
+        {
+          "step": 7,
+          "time_s": 0.014,
+          "displacement_xyz_mm": [
+            1.4710210581186638e-18,
+            6.295574042299921e-19,
+            0.003110274620453879
+          ],
+          "linear_velocity_xyz_m_s": [
+            8.7249042564555e-20,
+            2.5195499050798355e-20,
+            0.0003040869298545031
+          ],
+          "speed_m_s": 0.0003040869298545031
+        },
+        {
+          "step": 8,
+          "time_s": 0.016,
+          "displacement_xyz_mm": [
+            1.596778505346011e-18,
+            6.312077644298261e-19,
+            0.0037225994560117215
+          ],
+          "linear_velocity_xyz_m_s": [
+            6.287872361367361e-20,
+            8.25180099916974e-22,
+            0.00030616241777711766
+          ],
+          "speed_m_s": 0.00030616241777711766
+        },
+        {
+          "step": 9,
+          "time_s": 0.018000000000000002,
+          "displacement_xyz_mm": [
+            1.7225359525733583e-18,
+            6.3285812462966e-19,
+            0.004334924291569564
+          ],
+          "linear_velocity_xyz_m_s": [
+            6.287872361367361e-20,
+            8.25180099916974e-22,
+            0.00030616241777711766
+          ],
+          "speed_m_s": 0.00030616241777711766
+        },
+        {
+          "step": 10,
+          "time_s": 0.02,
+          "displacement_xyz_mm": [
+            1.8482933998007056e-18,
+            6.34508484829494e-19,
+            0.004947249127127407
+          ],
+          "linear_velocity_xyz_m_s": [
+            6.287872361367361e-20,
+            8.25180099916974e-22,
+            0.00030616241777711766
+          ],
+          "speed_m_s": 0.00030616241777711766
+        }
+      ]
+    }
+  },
+  "reused_zero_gravity": {
+    "manifest_path": "reports/lock_gate_v6_reuse_identity.json",
+    "manifest_sha256": "278a2e61e4ad07e96b5dd3b6a54654c17a2e526dfbeebf0acb2fe3cd08a2fbd0",
+    "result_path": "runs/lock_gate_v5/zero_gravity/result.json",
+    "result_sha256": "fe1e8d5826147b02c7981116653c44187a74b25faf62a6e51fd4a96ff530ea67",
+    "previous_gate_pass": false,
+    "simulation_rerun": false,
+    "previous_config_sha256": "f3e7fa3694cea0da6d4ce0d157690343a25f79ed1a4a79c745c72fe8f9758875"
+  },
+  "controls_reused": true,
+  "next_stage_allowed": true,
+  "not_run": [],
+  "initial_penetration_is_diagnostic_only": true,
+  "settings_source": "aDSL fabrication_ablation@9e1f01d selection_v1 standing",
+  "uses_ipc": false,
+  "acceptance_reason": "User-approved soft-contact contrast acceptance: zero gravity passes the paper half-cell limit; unheaded withdrawal is 34.309465 mm; headed withdrawal settles near 0.742854 mm and contact is retained. The former headed <=2c detail was an implementation-added rigid-contact assumption, not a paper criterion. The trajectory is consistent with shoulder retention under soft contact, but exceeds the nominal c gap. Raw v6 verdict is preserved; this handoff authorizes the first real case without parameter changes.",
+  "original_gate_status": "FAIL",
+  "original_next_stage_allowed": false,
+  "original_gate_ref": {
+    "path": "runs/lock_gate_v6/gate.json",
+    "sha256": "9f8f29e3fc68d95c08a8e1492f59e9ea30def0d4aab02972f7b5157ca038e036"
+  },
+  "acceptance_protocol": "user_approved_soft_contact_contrast_v1",
+  "headed_final_speed_m_s": 0.00010025975781767449,
+  "headed_contact_retained": true,
+  "headed_nominal_clearance_mm": 0.146484375,
+  "headed_drop_over_clearance": 5.071216679820451,
+  "old_strict_gate_tests": [
+    {
+      "test": "zero_gravity",
+      "pass_": true,
+      "status": "PASS",
+      "reason": null,
+      "rollout_wall_seconds": 2.5970198900904506,
+      "requested_duration_s": 2.0,
+      "simulated_seconds": 2.0000000000000013,
+      "flex_element_count": 1128,
+      "flex_element_counts": {
+        "peg": 542,
+        "receiver": 586
+      },
+      "initial_contact": {
+        "maximum_penetration_mm": 0.01464843742522607,
+        "contact_count": 50,
+        "total_contact_count": 50,
+        "flex_flex_count": 50,
+        "bound_mm": null,
+        "affects_verdict": false,
+        "pass": null
+      },
+      "initial_contact_count": 50,
+      "max_contact_count": 50,
+      "final_contact_count": 0,
+      "fixed_displacement_mm": 0.0,
+      "peg_displacement_mm": 0.14224122955839383,
+      "peg_final_delta_z_mm": -0.06297823981171291,
+      "length_mm": 2.9296875,
+      "clearance_mm": 0.146484375,
+      "friction": [
+        0.5,
+        0.005,
+        0.0001
+      ],
+      "max_linear_speed_m_s": 0.00041591496376879353,
+      "zero_gravity_bound_mm": 0.29296875,
+      "fixed_displacement_bound_mm": 0.015000000000000001,
+      "reused": true
+    },
+    {
+      "test": "no_head",
+      "pass_": true,
+      "status": "PASS",
+      "reason": null,
+      "rollout_wall_seconds": 0.5867562820203602,
+      "requested_duration_s": 2.0,
+      "simulated_seconds": 2.0000000000000013,
+      "flex_element_count": 568,
+      "flex_element_counts": {
+        "peg": 268,
+        "receiver": 300
+      },
+      "initial_contact": {
+        "maximum_penetration_mm": 0.01464843742522607,
+        "contact_count": 50,
+        "total_contact_count": 50,
+        "flex_flex_count": 50,
+        "bound_mm": null,
+        "affects_verdict": false,
+        "pass": null
+      },
+      "initial_contact_count": 50,
+      "max_contact_count": 50,
+      "final_contact_count": 4,
+      "fixed_displacement_mm": 0.0,
+      "peg_displacement_mm": 39.85830267449319,
+      "peg_final_delta_z_mm": -34.30946528508308,
+      "length_mm": 2.9296875,
+      "clearance_mm": 0.146484375,
+      "friction": [
+        0.5,
+        0.005,
+        0.0001
+      ],
+      "max_linear_speed_m_s": 0.8242906165331277,
+      "zero_gravity_bound_mm": null,
+      "fixed_displacement_bound_mm": 0.015000000000000001,
+      "reused": false
+    },
+    {
+      "test": "headed",
+      "pass_": false,
+      "status": "PASS",
+      "reason": null,
+      "rollout_wall_seconds": 7.175328853074461,
+      "requested_duration_s": 2.0,
+      "simulated_seconds": 2.0000000000000013,
+      "flex_element_count": 1128,
+      "flex_element_counts": {
+        "peg": 542,
+        "receiver": 586
+      },
+      "initial_contact": {
+        "maximum_penetration_mm": 0.01464843742522607,
+        "contact_count": 50,
+        "total_contact_count": 50,
+        "flex_flex_count": 50,
+        "bound_mm": null,
+        "affects_verdict": false,
+        "pass": null
+      },
+      "initial_contact_count": 50,
+      "max_contact_count": 50,
+      "final_contact_count": 50,
+      "fixed_displacement_mm": 0.0,
+      "peg_displacement_mm": 0.743244521585691,
+      "peg_final_delta_z_mm": -0.7428540058330739,
+      "length_mm": 2.9296875,
+      "clearance_mm": 0.146484375,
+      "friction": [
+        0.5,
+        0.005,
+        0.0001
+      ],
+      "max_linear_speed_m_s": 0.05896864980376478,
+      "zero_gravity_bound_mm": null,
+      "fixed_displacement_bound_mm": 0.015000000000000001,
+      "reused": false
+    }
+  ],
+  "prior_handoff_ref": "reports/lock_gate_soft_contact_handoff.json",
+  "prior_handoff_sha256": "5f624258a078f8936b725454f9ed8d02ec555baa59840c0bca9352dfbd290e5e",
+  "config_change_scope": "Only PGE grid scale and chosen sliver cleanup cutoff added; artificial fixture and simulator unchanged.",
+  "artificial_gate_rerun": false
+}

@@ -1,0 +1,905 @@
+{
+  "base_commit": "58a72a99510832884dc15bb019394e8aa1673ff7",
+  "case_id": "DensiCrafter_124",
+  "status": "PGE_PASS_CGR_PRECHECK_FAILED",
+  "PGE": {
+    "pairs": [
+      {
+        "a": "part_000",
+        "b": "part_001",
+        "trim": "part_000",
+        "margin": 0.2141798119238385,
+        "scores": [
+          1.4195564310573952,
+          1.2053766191335566
+        ],
+        "reason": "score"
+      },
+      {
+        "a": "part_000",
+        "b": "part_002",
+        "trim": "part_000",
+        "margin": 12.306134663362453,
+        "scores": [
+          -5.591038992426867,
+          6.715095670935587
+        ],
+        "reason": "insertion_fraction"
+      },
+      {
+        "a": "part_000",
+        "b": "part_003",
+        "trim": "part_003",
+        "margin": 11.479031585359746,
+        "scores": [
+          -4.737781730564433,
+          6.7412498547953135
+        ],
+        "reason": "insertion_fraction"
+      },
+      {
+        "a": "part_000",
+        "b": "part_004",
+        "trim": "part_004",
+        "margin": 20.216111483323495,
+        "scores": [
+          -8.35265643933365,
+          11.863455043989843
+        ],
+        "reason": "insertion_fraction"
+      },
+      {
+        "a": "part_000",
+        "b": "part_005",
+        "trim": "part_005",
+        "margin": 20.177767437534698,
+        "scores": [
+          -8.348081594607134,
+          11.829685842927564
+        ],
+        "reason": "insertion_fraction"
+      },
+      {
+        "a": "part_001",
+        "b": "part_002",
+        "trim": "part_001",
+        "margin": 13.461783368790957,
+        "scores": [
+          -6.067995881269352,
+          7.393787487521606
+        ],
+        "reason": "insertion_fraction"
+      }
+    ],
+    "history": [
+      {
+        "losses": {
+          "part_000": 0.008240932168064763,
+          "part_001": 0.0,
+          "part_002": 0.8468654524780533,
+          "part_003": 0.0,
+          "part_004": 0.05374372790930482,
+          "part_005": 0.061591586838475765
+        },
+        "assignments": [
+          "part_000",
+          "part_002",
+          "part_003",
+          "part_004",
+          "part_005",
+          "part_002"
+        ],
+        "cuts": [
+          {
+            "pair": [
+              "part_000",
+              "part_001"
+            ],
+            "pair_index": 0,
+            "trim": "part_000",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 195.08908211022586,
+            "candidate_overlap_after_mm3": -1.0269562977782698e-15,
+            "overlap_after_mm3": -1.0269562977782698e-15
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_002"
+            ],
+            "pair_index": 1,
+            "trim": "part_002",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 847.4132537374,
+            "candidate_overlap_after_mm3": -5.002278430886464e-15,
+            "overlap_after_mm3": -5.002278430886464e-15
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_003"
+            ],
+            "pair_index": 2,
+            "trim": "part_003",
+            "retained": false,
+            "rollback_reasons": [
+              "COMPONENT_COUNT_CHANGED"
+            ],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0.0,
+            "component_count_before": 1,
+            "candidate_component_count": 2,
+            "component_count_after": 1,
+            "overlap_before_mm3": 1435.91285663643,
+            "candidate_overlap_after_mm3": -1.196796568098124e-15,
+            "overlap_after_mm3": 1435.91285663643
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_004"
+            ],
+            "pair_index": 3,
+            "trim": "part_004",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 45.83900607380779,
+            "candidate_overlap_after_mm3": 5.984795992119984e-16,
+            "overlap_after_mm3": 5.984795992119984e-16
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_005"
+            ],
+            "pair_index": 4,
+            "trim": "part_005",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 52.90458060247231,
+            "candidate_overlap_after_mm3": -9.71445146547012e-16,
+            "overlap_after_mm3": -9.71445146547012e-16
+          },
+          {
+            "pair": [
+              "part_001",
+              "part_002"
+            ],
+            "pair_index": 5,
+            "trim": "part_002",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 1841.5355591200346,
+            "candidate_overlap_after_mm3": -2.64921412715044e-16,
+            "overlap_after_mm3": -2.64921412715044e-16
+          }
+        ],
+        "volume_cap_satisfied": false
+      },
+      {
+        "losses": {
+          "part_000": 0.04403727231601484,
+          "part_001": 0.0,
+          "part_002": 0.5799786284780044,
+          "part_003": 0.0,
+          "part_004": 0.05374372790930482,
+          "part_005": 0.061591586838475765
+        },
+        "assignments": [
+          "part_000",
+          "part_000",
+          "part_003",
+          "part_004",
+          "part_005",
+          "part_002"
+        ],
+        "cuts": [
+          {
+            "pair": [
+              "part_000",
+              "part_001"
+            ],
+            "pair_index": 0,
+            "trim": "part_000",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 195.08908211022586,
+            "candidate_overlap_after_mm3": -1.0269562977782698e-15,
+            "overlap_after_mm3": -1.0269562977782698e-15
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_002"
+            ],
+            "pair_index": 1,
+            "trim": "part_000",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 847.4132537374,
+            "candidate_overlap_after_mm3": 1.6063539387545234e-15,
+            "overlap_after_mm3": 1.6063539387545234e-15
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_003"
+            ],
+            "pair_index": 2,
+            "trim": "part_003",
+            "retained": false,
+            "rollback_reasons": [
+              "COMPONENT_COUNT_CHANGED"
+            ],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0.0,
+            "component_count_before": 1,
+            "candidate_component_count": 2,
+            "component_count_after": 1,
+            "overlap_before_mm3": 1435.91285663643,
+            "candidate_overlap_after_mm3": -6.000516923621024e-16,
+            "overlap_after_mm3": 1435.91285663643
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_004"
+            ],
+            "pair_index": 3,
+            "trim": "part_004",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 45.83900607380779,
+            "candidate_overlap_after_mm3": 5.551115123125783e-16,
+            "overlap_after_mm3": 5.551115123125783e-16
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_005"
+            ],
+            "pair_index": 4,
+            "trim": "part_005",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 52.90458060247231,
+            "candidate_overlap_after_mm3": -5.898059818321144e-16,
+            "overlap_after_mm3": -5.898059818321144e-16
+          },
+          {
+            "pair": [
+              "part_001",
+              "part_002"
+            ],
+            "pair_index": 5,
+            "trim": "part_002",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 1841.5355591200346,
+            "candidate_overlap_after_mm3": -8.673617379884035e-16,
+            "overlap_after_mm3": -8.673617379884035e-16
+          }
+        ],
+        "volume_cap_satisfied": false
+      },
+      {
+        "losses": {
+          "part_000": 0.04403727231601484,
+          "part_001": 0.06272031842510872,
+          "part_002": 0.0,
+          "part_003": 0.0,
+          "part_004": 0.05374372790930482,
+          "part_005": 0.061591586838475765
+        },
+        "assignments": [
+          "part_000",
+          "part_000",
+          "part_003",
+          "part_004",
+          "part_005",
+          "part_001"
+        ],
+        "cuts": [
+          {
+            "pair": [
+              "part_000",
+              "part_001"
+            ],
+            "pair_index": 0,
+            "trim": "part_000",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 195.08908211022586,
+            "candidate_overlap_after_mm3": -1.0269562977782698e-15,
+            "overlap_after_mm3": -1.0269562977782698e-15
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_002"
+            ],
+            "pair_index": 1,
+            "trim": "part_000",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 847.4132537374,
+            "candidate_overlap_after_mm3": 1.6063539387545234e-15,
+            "overlap_after_mm3": 1.6063539387545234e-15
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_003"
+            ],
+            "pair_index": 2,
+            "trim": "part_003",
+            "retained": false,
+            "rollback_reasons": [
+              "COMPONENT_COUNT_CHANGED"
+            ],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0.0,
+            "component_count_before": 1,
+            "candidate_component_count": 2,
+            "component_count_after": 1,
+            "overlap_before_mm3": 1435.91285663643,
+            "candidate_overlap_after_mm3": -6.000516923621024e-16,
+            "overlap_after_mm3": 1435.91285663643
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_004"
+            ],
+            "pair_index": 3,
+            "trim": "part_004",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 45.83900607380779,
+            "candidate_overlap_after_mm3": 5.551115123125783e-16,
+            "overlap_after_mm3": 5.551115123125783e-16
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_005"
+            ],
+            "pair_index": 4,
+            "trim": "part_005",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 52.90458060247231,
+            "candidate_overlap_after_mm3": -5.898059818321144e-16,
+            "overlap_after_mm3": -5.898059818321144e-16
+          },
+          {
+            "pair": [
+              "part_001",
+              "part_002"
+            ],
+            "pair_index": 5,
+            "trim": "part_001",
+            "retained": true,
+            "rollback_reasons": [],
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 1841.5355591200346,
+            "candidate_overlap_after_mm3": 1.8124607717440178e-15,
+            "overlap_after_mm3": 1.8124607717440178e-15
+          }
+        ],
+        "volume_cap_satisfied": true
+      }
+    ],
+    "cuts": [
+      {
+        "pair": [
+          "part_000",
+          "part_001"
+        ],
+        "pair_index": 0,
+        "trim": "part_000",
+        "retained": true,
+        "rollback_reasons": [],
+        "slivers_removed_count": 0,
+        "slivers_removed_volume_mm3": 0,
+        "slivers_removed_volumes_mm3": [],
+        "retained_slivers_removed_count": 0,
+        "retained_slivers_removed_volume_mm3": 0,
+        "component_count_before": 1,
+        "candidate_component_count": 1,
+        "component_count_after": 1,
+        "overlap_before_mm3": 195.08908211022586,
+        "candidate_overlap_after_mm3": -1.0269562977782698e-15,
+        "overlap_after_mm3": -1.0269562977782698e-15
+      },
+      {
+        "pair": [
+          "part_000",
+          "part_002"
+        ],
+        "pair_index": 1,
+        "trim": "part_000",
+        "retained": true,
+        "rollback_reasons": [],
+        "slivers_removed_count": 0,
+        "slivers_removed_volume_mm3": 0,
+        "slivers_removed_volumes_mm3": [],
+        "retained_slivers_removed_count": 0,
+        "retained_slivers_removed_volume_mm3": 0,
+        "component_count_before": 1,
+        "candidate_component_count": 1,
+        "component_count_after": 1,
+        "overlap_before_mm3": 847.4132537374,
+        "candidate_overlap_after_mm3": 1.6063539387545234e-15,
+        "overlap_after_mm3": 1.6063539387545234e-15
+      },
+      {
+        "pair": [
+          "part_000",
+          "part_003"
+        ],
+        "pair_index": 2,
+        "trim": "part_003",
+        "retained": false,
+        "rollback_reasons": [
+          "COMPONENT_COUNT_CHANGED"
+        ],
+        "slivers_removed_count": 0,
+        "slivers_removed_volume_mm3": 0,
+        "slivers_removed_volumes_mm3": [],
+        "retained_slivers_removed_count": 0,
+        "retained_slivers_removed_volume_mm3": 0.0,
+        "component_count_before": 1,
+        "candidate_component_count": 2,
+        "component_count_after": 1,
+        "overlap_before_mm3": 1435.91285663643,
+        "candidate_overlap_after_mm3": -6.000516923621024e-16,
+        "overlap_after_mm3": 1435.91285663643
+      },
+      {
+        "pair": [
+          "part_000",
+          "part_004"
+        ],
+        "pair_index": 3,
+        "trim": "part_004",
+        "retained": true,
+        "rollback_reasons": [],
+        "slivers_removed_count": 0,
+        "slivers_removed_volume_mm3": 0,
+        "slivers_removed_volumes_mm3": [],
+        "retained_slivers_removed_count": 0,
+        "retained_slivers_removed_volume_mm3": 0,
+        "component_count_before": 1,
+        "candidate_component_count": 1,
+        "component_count_after": 1,
+        "overlap_before_mm3": 45.83900607380779,
+        "candidate_overlap_after_mm3": 5.551115123125783e-16,
+        "overlap_after_mm3": 5.551115123125783e-16
+      },
+      {
+        "pair": [
+          "part_000",
+          "part_005"
+        ],
+        "pair_index": 4,
+        "trim": "part_005",
+        "retained": true,
+        "rollback_reasons": [],
+        "slivers_removed_count": 0,
+        "slivers_removed_volume_mm3": 0,
+        "slivers_removed_volumes_mm3": [],
+        "retained_slivers_removed_count": 0,
+        "retained_slivers_removed_volume_mm3": 0,
+        "component_count_before": 1,
+        "candidate_component_count": 1,
+        "component_count_after": 1,
+        "overlap_before_mm3": 52.90458060247231,
+        "candidate_overlap_after_mm3": -5.898059818321144e-16,
+        "overlap_after_mm3": -5.898059818321144e-16
+      },
+      {
+        "pair": [
+          "part_001",
+          "part_002"
+        ],
+        "pair_index": 5,
+        "trim": "part_001",
+        "retained": true,
+        "rollback_reasons": [],
+        "slivers_removed_count": 0,
+        "slivers_removed_volume_mm3": 0,
+        "slivers_removed_volumes_mm3": [],
+        "retained_slivers_removed_count": 0,
+        "retained_slivers_removed_volume_mm3": 0,
+        "component_count_before": 1,
+        "candidate_component_count": 1,
+        "component_count_after": 1,
+        "overlap_before_mm3": 1841.5355591200346,
+        "candidate_overlap_after_mm3": 1.8124607717440178e-15,
+        "overlap_after_mm3": 1.8124607717440178e-15
+      }
+    ],
+    "volumes_before": {
+      "part_000": 23673.18139885114,
+      "part_001": 29361.068396343107,
+      "part_002": 3175.1783060569696,
+      "part_003": 4708.668201135604,
+      "part_004": 852.9182447329188,
+      "part_005": 858.9579083457413
+    },
+    "volumes_after": {
+      "part_000": 22630.679063003514,
+      "part_001": 27519.532837223072,
+      "part_002": 3175.1783060569696,
+      "part_003": 4708.668201135604,
+      "part_004": 807.079238659111,
+      "part_005": 806.053327743269
+    },
+    "D_mm": 168.50650043496887,
+    "editing_grid_resolution": 256,
+    "cell_volume_mm3": 0.2851872344186749,
+    "sliver_volume_cells": 1.0,
+    "sliver_limit_mm3": 0.2851872344186749,
+    "rolled_back_cut_count": 1,
+    "retained_cut_count": 5,
+    "slivers_removed_count": 0,
+    "slivers_removed_volume_mm3": 0.0,
+    "residual_overlaps": [
+      {
+        "a": "part_000",
+        "b": "part_001",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_000",
+        "b": "part_002",
+        "volume_mm3": 1.6063539387545234e-15,
+        "volume_cells": 5.6326291814179975e-15
+      },
+      {
+        "a": "part_000",
+        "b": "part_003",
+        "volume_mm3": 1435.91285663643,
+        "volume_cells": 5034.982928192393
+      },
+      {
+        "a": "part_000",
+        "b": "part_004",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_000",
+        "b": "part_005",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_001",
+        "b": "part_002",
+        "volume_mm3": 1.8124607717440178e-15,
+        "volume_cells": 6.355336259838328e-15
+      },
+      {
+        "a": "part_001",
+        "b": "part_003",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_001",
+        "b": "part_004",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_001",
+        "b": "part_005",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_002",
+        "b": "part_003",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_002",
+        "b": "part_004",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_002",
+        "b": "part_005",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_003",
+        "b": "part_004",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_003",
+        "b": "part_005",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_004",
+        "b": "part_005",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      }
+    ],
+    "residual_overlap_volume_mm3": 1435.91285663643,
+    "residual_overlap_volume_cells": 5034.982928192393
+  },
+  "progress": [
+    {
+      "stage": "pge",
+      "wall_seconds": 8,
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "stage": "cgr",
+      "wall_seconds": 123,
+      "exit_code": 1,
+      "status": "FAIL"
+    }
+  ],
+  "stage_records": {
+    "pge": {
+      "status": "PASS",
+      "elapsed_s": 7.08138145878911,
+      "config_sha256": "ade6ea50c57700f7d7f7dfd638a735513d740a3495d963a4716a60b3eb2e780a"
+    },
+    "cgr": {
+      "status": "FAIL",
+      "reason": "ValueError",
+      "detail": "INSUFFICIENT_RECEIVER_MATERIAL",
+      "elapsed_s": 122.67455816920847
+    }
+  },
+  "CGR_failure": {
+    "reason": "INSUFFICIENT_RECEIVER_MATERIAL",
+    "diagnosis_only": true,
+    "parameters_changed": false,
+    "replay_wall_seconds": 6.217421047855169,
+    "edge": {
+      "id": "part_000--part_004",
+      "a": "part_000",
+      "b": "part_004",
+      "donor": "part_004",
+      "receiver": "part_000",
+      "anchor": [
+        3.8421724789187026,
+        -28.84861882310733,
+        89.57453084038748
+      ],
+      "inward": [
+        0.4330265470168335,
+        0.28589856499295535,
+        0.8548391779239223
+      ],
+      "patch_inradius_mm": 2.9620283279584374
+    },
+    "donor": "part_004",
+    "receiver": "part_000",
+    "theta": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0110390026098133,
+      1.6455712933102429
+    ],
+    "radius_mm": 1.0110390026098133,
+    "length_mm": 1.6455712933102429,
+    "required_support_region_volume_mm3": 22.673486986600906,
+    "missing_receiver_material_mm3": 0.03402227413483201,
+    "missing_receiver_material_cells": 0.1192980260991799,
+    "missing_set_empty": false,
+    "CGR_parameters": {
+      "clearance_ratio": 0.0009765625,
+      "overhang_ratio": 0.0029296875,
+      "min_radius_ratio": 0.006,
+      "min_length_ratio": 0.009765625,
+      "head_thickness_ratio": 0.00390625,
+      "cone_deg": 55
+    }
+  },
+  "generation_rerun": false,
+  "decomposition_rerun": false,
+  "artificial_gate_rerun": false,
+  "same_frozen_D_and_inputs": true,
+  "reuse_identity": {
+    "case_id": "DensiCrafter_124",
+    "input_manifest_ref": "runs/first_real_DensiCrafter_124_gpu_retry2/assembly/repair/manifest.json",
+    "input_manifest_sha256": "cb5174a296ae0f57aac27f66fd1557eac9e7b3972550fc9a626da065069c2d2d",
+    "D_mm": 168.50650043496887,
+    "config_sha256": "ade6ea50c57700f7d7f7dfd638a735513d740a3495d963a4716a60b3eb2e780a",
+    "generation_rerun": false,
+    "decomposition_rerun": false,
+    "other_parameters_unchanged": true,
+    "reused_stages": {
+      "normalized_parts": {
+        "original_path": "runs/first_real_DensiCrafter_124_gpu_retry2/assembly/normalized_parts",
+        "original_manifest_sha256": "7667685158a7f5be94f48788e26d2f73e9d510155b4872cc7a76c830fb05e751",
+        "copied_manifest_sha256": "7667685158a7f5be94f48788e26d2f73e9d510155b4872cc7a76c830fb05e751",
+        "reused": true
+      },
+      "repair": {
+        "original_path": "runs/first_real_DensiCrafter_124_gpu_retry2/assembly/repair",
+        "original_manifest_sha256": "cb5174a296ae0f57aac27f66fd1557eac9e7b3972550fc9a626da065069c2d2d",
+        "copied_manifest_sha256": "cb5174a296ae0f57aac27f66fd1557eac9e7b3972550fc9a626da065069c2d2d",
+        "reused": true
+      }
+    }
+  },
+  "all_other_config_values_unchanged": true,
+  "code_identity_matches_continuation": true,
+  "source_changed_only": [
+    "pge.py",
+    "pipeline.py"
+  ],
+  "cut_policy": {
+    "threshold": "new fragment volume < (D/256)^3",
+    "threshold_selected_by_implementer": true,
+    "reject_invalid_cut_and_continue": true,
+    "volume_loss_cap_unchanged": true
+  },
+  "zero_gravity_status": "NOT_RUN_CGR_PRECHECK_FAILED",
+  "gravity_rollout_status": "NOT_RUN_CGR_PRECHECK_FAILED",
+  "CEM_status": "NOT_RUN_CGR_PRECHECK_FAILED",
+  "export_status": "NOT_RUN_CGR_PRECHECK_FAILED",
+  "actual_rigid_flex_triangle_count": null,
+  "actual_rollout_wall_seconds": null,
+  "CEM_total_wall_seconds": null,
+  "unit_tests": {
+    "passed": 91,
+    "wall_seconds": 10.34
+  },
+  "artifact_paths": {
+    "PGE_assembly": "runs/first_real_DensiCrafter_124_pge_paircut_v1/assembly/pge/assembly.glb",
+    "PGE_manifest": "runs/first_real_DensiCrafter_124_pge_paircut_v1/assembly/pge/manifest.json",
+    "contact_graph": "runs/first_real_DensiCrafter_124_pge_paircut_v1/assembly/cgr/contact.json",
+    "CGR_failure": "runs/first_real_DensiCrafter_124_pge_paircut_v1/assembly/cgr/stage.json"
+  }
+}

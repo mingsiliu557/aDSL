@@ -14,9 +14,10 @@ The added <=2c detail was a local rigid-contact gate, not a paper threshold; its
 original FAIL and all traces remain preserved. The accepted handoff has
 `next_stage_allowed=true`; no new artificial simulation was performed. See
 `reports/first_real_preparation.md` for the parameter audit and current first-case
-status. The first real case reached six closed parts but PGE split part_003
-from one material component to two, so later stages were not run. No parameter
-was changed to pass it. This acceptance does not assert exact zero terminal velocity or a drop
+status of the original attempt. The per-cut PGE correction and current continuation
+are recorded in `reports/pge_paircut_implementation.md`: PGE passes after one local
+rollback; CGR then stops at its unchanged receiver-material check. No connector
+or simulation parameter was changed to pass it. This acceptance does not assert exact zero terminal velocity or a drop
 of only c: the recorded headed drop is about 5.1c under soft contact.
 
 ## Frozen provenance
@@ -96,10 +97,18 @@ planarity <= 0.0001D). Existing vertices and other parts are unchanged. No voxel
 rebuilding, large-hole closure, fragment deletion or bridging. Invalid open
 material has null original volume.
 
-PGE uses original material operands, actual cumulative loss, the 35% cap and
-lowest-margin ownership reversal. Each ownership can reverse once; unsatisfied
-caps stop the case. Enclosing sphere radii use the AABB centre and farthest
-vertex, a deterministic implementation choice. Clipping may not add islands.
+PGE scores original material operands and cuts current pairs in deterministic
+order. After each cut, extra material components smaller than `(D/256)^3` are
+removed, preserving cavities and existing small components. This strict one-cell
+cleanup cutoff is our selected implementation, not a published paper value.
+An edit that increases overlap, loses watertightness or changes component count
+is rolled back locally; subsequent pairs still run. The previous whole-case
+component-count stop was a misreading of the paper's per-cut acceptance rule.
+Actual cumulative loss is checked after the complete sequence against the
+unchanged 35% cap. Lowest-margin ownership flips replay from original material,
+and each ownership can reverse once; the existing unsatisfied-cap error remains.
+Enclosing sphere radii use the AABB centre and farthest vertex, an unchanged
+deterministic implementation choice.
 
 Contact uses actual FCL distance and area-weighted facing-area estimation;
 bidirectional minimum is our convention. Anchors use a D/512 raster and EDT,

@@ -1,0 +1,74 @@
+{
+  "base_commit": "58a72a99510832884dc15bb019394e8aa1673ff7",
+  "input_ref": "runs/first_real_DensiCrafter_124_gpu_retry2/assembly/repair/manifest.json",
+  "input_manifest_sha256": "cb5174a296ae0f57aac27f66fd1557eac9e7b3972550fc9a626da065069c2d2d",
+  "input_stl_hashes": {
+    "part_000": "95eb7293210f055edf71aa20f7fb5e98f2a7f8f1d43142a76e4a3e78f3dcfef1",
+    "part_001": "2926e8ae0218e76d4830552f16a83ffef3364a8ca07ca7ad0e637f286d091276",
+    "part_002": "e78a803b8aba98da82fbef9a1aad7ec6490029080cdbee0a660c370f78e2a294",
+    "part_003": "2c2698759826f245c9dee19f043002a0c81e3c167d0fc924e0afa58b48dac9d2",
+    "part_004": "8b913fb35782d9dd6ba3d23888c656399146b67427f977050208f314fc28b3e1",
+    "part_005": "561c452bcb001e165769b5b0ec886946faf2120cff576d7a8d67dbf82a4cc012"
+  },
+  "D_mm": 168.50650043496887,
+  "cell_length_mm": 0.6582285173240972,
+  "cell_volume_mm3": 0.2851872344186749,
+  "part_id": "part_003",
+  "old_result": "PGE_DISCONNECTED_OR_INVALID",
+  "components": [
+    {
+      "component_id": 0,
+      "volume_mm3": 3266.8844517206644,
+      "volume_cells": 11455.226803471325,
+      "bbox_min_mm": [
+        -10.320119857788086,
+        -7.374147891998291,
+        122.53874977201973
+      ],
+      "bbox_max_mm": [
+        12.751487731933594,
+        7.945725440979004,
+        150.0
+      ],
+      "bbox_dimensions_mm": [
+        23.07160758972168,
+        15.319873332977295,
+        27.461250227980273
+      ],
+      "bbox_dimensions_cells": [
+        35.05106050937281,
+        23.27439928500413,
+        41.71993389107291
+      ]
+    },
+    {
+      "component_id": 1,
+      "volume_mm3": 5.870892778509156,
+      "volume_cells": 20.586099481193024,
+      "bbox_min_mm": [
+        9.375076266577578,
+        -3.4938547953614503,
+        125.07199982636459
+      ],
+      "bbox_max_mm": [
+        11.667451610009326,
+        4.510608437677496,
+        129.31927798148058
+      ],
+      "bbox_dimensions_mm": [
+        2.2923753434317486,
+        8.004463233038948,
+        4.247278155115993
+      ],
+      "bbox_dimensions_cells": [
+        3.4826436155500593,
+        12.160614471064807,
+        6.452589098361302
+      ]
+    }
+  ],
+  "config_sha256": "3680a5dc6848223c1112f44628708b650bb6807e88d1f02ba8e9eb24951fa992",
+  "replay_wall_seconds": 16.992299617966637,
+  "diagnosis_only": true,
+  "original_assets_modified": false
+}

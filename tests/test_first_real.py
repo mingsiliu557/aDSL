@@ -90,18 +90,24 @@ def test_soft_contact_handoff_preserves_strict_verdict_and_allows_requested_prep
     assert data['acceptance_protocol']=='user_approved_soft_contact_contrast_v1'
     assert not data['old_strict_gate_tests'][2]['pass_']
     assert data['headed_contact_retained'] and data['headed_drop_over_clearance']>5
-    assert data['config_sha256']==digest(CFG)
+    frozen=copy.deepcopy(CFG)
+    frozen['pge'].pop('editing_grid_resolution');frozen['pge'].pop('sliver_volume_cells')
+    assert data['config_sha256']==digest(frozen)
     path=tmp_path/'handoff.json';path.write_text(json.dumps(data))
-    pipeline.require_gate(path,CFG)
+    pipeline.require_gate(path,frozen)
+    with pytest.raises(ValueError,match='CONFIG_MISMATCH'):pipeline.require_gate(path,CFG)
 
 
-def test_pge_preserves_component_count_when_loss_cap_flips_ownership():
+def test_pge_rolls_back_an_invalid_cut_without_stopping_the_case():
     from snap3d.pge import pge
     large=trimesh.creation.box([10,10,10])
     small=trimesh.creation.box([1,1,1]);small.apply_translation([20,0,0])
     two_islands=trimesh.util.concatenate([large,small])
-    with pytest.raises(ValueError,match='PGE_DISCONNECTED_OR_INVALID'):
-        pge({'A':two_islands,'B':small},config=CFG['pge'])
+    output,report=pge({'A':two_islands,'B':small},config=CFG['pge'])
+    assert report['rolled_back_cut_count']==1
+    assert report['cuts'][0]['rollback_reasons']==['NOT_CLOSED_VOLUME','COMPONENT_COUNT_CHANGED']
+    assert output['A'].volume==pytest.approx(two_islands.volume)
+    assert output['B'].volume==pytest.approx(small.volume)
 
 
 @pytest.mark.parametrize('wrapper',['generate','decompose'])

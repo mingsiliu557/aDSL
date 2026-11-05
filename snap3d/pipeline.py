@@ -100,7 +100,7 @@ def evaluate_geometry(run, config, *, stage):
             for i,m in raw.items():parts[i],records[i]=repair(m,D=D,config=config['repair'])
             export_parts(parts,target,metadata=records)
         elif stage=='pge':
-            parts,records=pge(load_parts(run/'repair'),config=config['pge']);export_parts(parts,target,metadata=records)
+            parts,records=pge(load_parts(run/'repair'),config=config['pge'],D=D);export_parts(parts,target,metadata=records)
         elif stage=='cgr':
             base=load_parts(run/'pge');edges,parameters,pairs=contact_graph(base,D=D,config=config['contact'],connector_config=config['connector'])
             write_json(target/'contact.json',dict(edges=edges,parameters=parameters,pairs=pairs))

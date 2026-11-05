@@ -1,0 +1,48 @@
+{
+  "reason": "INSUFFICIENT_RECEIVER_MATERIAL",
+  "diagnosis_only": true,
+  "parameters_changed": false,
+  "replay_wall_seconds": 6.217421047855169,
+  "edge": {
+    "id": "part_000--part_004",
+    "a": "part_000",
+    "b": "part_004",
+    "donor": "part_004",
+    "receiver": "part_000",
+    "anchor": [
+      3.8421724789187026,
+      -28.84861882310733,
+      89.57453084038748
+    ],
+    "inward": [
+      0.4330265470168335,
+      0.28589856499295535,
+      0.8548391779239223
+    ],
+    "patch_inradius_mm": 2.9620283279584374
+  },
+  "donor": "part_004",
+  "receiver": "part_000",
+  "theta": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0110390026098133,
+    1.6455712933102429
+  ],
+  "radius_mm": 1.0110390026098133,
+  "length_mm": 1.6455712933102429,
+  "required_support_region_volume_mm3": 22.673486986600906,
+  "missing_receiver_material_mm3": 0.03402227413483201,
+  "missing_receiver_material_cells": 0.1192980260991799,
+  "missing_set_empty": false,
+  "CGR_parameters": {
+    "clearance_ratio": 0.0009765625,
+    "overhang_ratio": 0.0029296875,
+    "min_radius_ratio": 0.006,
+    "min_length_ratio": 0.009765625,
+    "head_thickness_ratio": 0.00390625,
+    "cone_deg": 55
+  }
+}
