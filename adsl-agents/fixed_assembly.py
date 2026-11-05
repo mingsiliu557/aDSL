@@ -30,6 +30,13 @@ from .utils.request_errors import (classify_model_request_error, terminal_stop_r
                                    propagate_request_error, safe_request_reason)
 
 
+def ablation(config) -> str | None:
+    value = (config or {}).get('ablation')
+    if value is not None and value not in ('review', 'tracing', 'actions', 'profile_ops', 'fab_plan'):
+        raise ValueError('unknown fixed assembly ablation')
+    return value
+
+
 def print_mode(config: dict) -> str:
     value = (config or {}).get('print_mode')
     if value is None:
@@ -565,6 +572,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
     if sum(s.name == NAME for s in request.checker_specs) > 1:
         raise ValueError('only one assembly_topology specification is allowed')
     config = {**request.fixed_assembly, 'assembly_plan':plan.model_dump()}
+    variant = ablation(config)
+    if variant is None:
+        config.pop('ablation', None)
     single = print_mode(config) == 'single'
     single_id = plan.root_part
     if single:
@@ -578,7 +588,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
     partition = overhang_config.get('partition_objective')
     mode_a = bool(not single and nsv and shape_editable and partition is None and not request.repair_policy.print_orientation_editable)
     prompt_options = support_prompt_options(config)
-    runtime.usage.update_manifest(print_mode=print_mode(config))
+    runtime.usage.update_manifest(print_mode=print_mode(config), ablation=variant)
     if nsv:
         import math
         layer = overhang_config.get('layer_height_mm')
@@ -753,7 +763,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     edit_purpose=edit_purpose,comparison_baseline_version=comparison_baseline))
                 write_json(book_path, book)
                 try:
-                    outcome = await edit(workflow, runtime=runtime, repairer=repairer, workspace=workspace,
+                    outcome = await edit(workflow, **({'ablation':variant} if variant is not None else {}), runtime=runtime, repairer=repairer, workspace=workspace,
                         source_path=current, role=f'coder:assembly:{number}', stage=f'assembly_repair:{number}',
                         reserved_attempt_id=version_id, allow_no_change=True,
                         payload={'requirement':request.requirement, 'plan':plan.model_dump(),
@@ -1420,7 +1430,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                                 next_edit_purpose='required_repair')
             prepare_evidence(feedback,workspace=workspace,source_sha256=file_hash(current),
                              evidence_files=book['evidence_files'])
-            feedback['engineering']={'status':'NOT_REQUESTED'}
+            feedback['engineering']={'status':'DISABLED_ABLATION' if variant in {'review','actions'} else 'NOT_REQUESTED'}
             actionable = []
             optimize = False
             if evidence_runs:
@@ -1455,6 +1465,16 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     optimize = any(f.category=='optimization_opportunity' for f in actionable)
                     feedback['orientation_only_edit'] = bool(partition is None and actionable and reviews.get('appearance_approved') and
                         all(f.category=='optimization_opportunity' for f in actionable))
+                if variant in {'review', 'actions'}:
+                    disabled_optional = any(f.category == 'optimization_opportunity' for f in actionable)
+                    actionable = [f for f in actionable if f.category != 'optimization_opportunity']
+                    optimize = False
+                    feedback['orientation_only_edit'] = False
+                    if variant == 'actions' and disabled_optional:
+                        feedback['optional_optimization_disabled_by_ablation'] = True
+                        if accepted:
+                            stop = 'optional_optimization_disabled_by_ablation'
+                            book['completed'] = True
                 if feedback['orientation_only_edit']:
                     feedback['edit_restriction']='Only literal set_print_orientation(part_id, rotation_deg=(x,y,z)) calls; keep all geometry and assembly unchanged.'
                 if partition is not None:
@@ -1507,7 +1527,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                         optimize=False
                 feedback['actionable_finding_ids']=[f.finding_id for f in actionable]
                 remaining = book['max_rounds']-number
-                if ((not accepted or optimize) and (not nsv or not book['completed']) and not optimization_finished
+                if (variant not in {'review', 'actions'} and (not accepted or optimize) and (not nsv or not book['completed']) and not optimization_finished
                         and terminal_request_error is None and propagate_error is None
                         and not repairable_implementation_issue and reason != 'FLOW_ERROR' and actionable and remaining > 0):
                     budget = RepairController(workspace=workspace,round_root=root,baseline_source=current,
@@ -1743,7 +1763,7 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
     elif single and request.repair_policy.print_orientation_editable:
         print_layout, print_parts = publish_single_print(selected['reviews'].get('assembly_overhang', {}),
             workspace, file_hash(source_path), book['retained'], single_id)
-    write_json(workspace/'assembly_result.json', {'print_mode':print_mode(config), 'version_id':book['retained'], 'source_sha256':file_hash(source_path),
+    write_json(workspace/'assembly_result.json', {'print_mode':print_mode(config), 'ablation':variant, 'version_id':book['retained'], 'source_sha256':file_hash(source_path),
         'working_version':book['working'], 'qualified_version':book['qualified'],
         **({'print_layout':print_layout,'print_parts':print_parts} if partition is not None or single else {}),
         'approved':approved, 'verification_scope':verification_scope,

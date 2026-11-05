@@ -74,12 +74,13 @@ def review_physics(
 
 async def edit(
     workflow, *, runtime, repairer, workspace, source_path,
-    role, stage, payload, reserved_attempt_id=None, allow_no_change=False,
+    role, stage, payload, reserved_attempt_id=None, allow_no_change=False, ablation=None,
 ) -> dict[str, Any] | None:
     return await workflow._repair(
         runtime=runtime, repairer=repairer, workspace=workspace,
         source_path=source_path, role=role, stage=stage, payload=payload,
         reserved_attempt_id=reserved_attempt_id, allow_no_change=allow_no_change,
+        ablation=ablation,
     )
 
 

@@ -485,6 +485,11 @@ validate_partition_proposal = regroup_precheck
 
 
 async def engineer(workflow,runtime,request,plan,source,execution,root,run,context,feedback,remaining):
+    from .fixed_assembly import ablation
+    variant = ablation(request.fixed_assembly)
+    if variant in {'review', 'actions'}:
+        feedback['engineering'] = {'status':'DISABLED_ABLATION'}
+        return None
     from .service import _actionable_findings, _has_assigned_source_read
     from .prompts import object_prompt
     from .tools import READ_TOOLS, AgentToolContext
@@ -579,14 +584,14 @@ visual failures remain necessary repairs; a high score cannot excuse them.
             payload.pop(key,None)
         payload.update(support_evidence=feedback.get('support_evidence'),
             support_baseline_version=feedback.get('support_baseline_version'),support_round=feedback.get('support_round',False))
+    tool_context=AgentToolContext(workspace=request.workspace,source_path=source,ablation=variant)
     payload = payload_for_agent(payload, workspace=request.workspace, source_path=source,
-        source_version=feedback.get('source_version'), role='engineering',
+        source_version=feedback.get('source_version'), role='engineering', ablation=variant, tool_context=tool_context,
         report_ref=feedback.get('geometry_report_ref'), evidence_files=feedback.get('evidence_files', ()))
     write_json(root/'engineering_input.json',payload)
     write_json(root/'engineering_input_metrics.json', {
         **feedback_observation(payload), 'image_count': len(request.image_paths) +
         len(execution.render_paths if execution else ())})
-    tool_context=AgentToolContext(workspace=request.workspace,source_path=source)
     response=await runtime.run(agent=agent,input=user_input(json.dumps(payload, ensure_ascii=False),
         (*request.image_paths,*(execution.render_paths if execution else ()))),
         role=f'engineering-critic:assembly:{root.name}',stage=f'assembly_engineering:{root.name}',context=tool_context)

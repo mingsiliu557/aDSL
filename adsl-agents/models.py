@@ -80,6 +80,7 @@ class FixedAssemblyPlan(ObjectPlan):
 
 
 class FixedAssemblyConfig(BaseModel):
+    ablation: Literal['review', 'tracing', 'actions', 'profile_ops', 'fab_plan'] | None = None
     # The request, not the generated program, freezes scale and required size.
     print_mode: Literal['single', 'split'] | None = None
     validation_mode: Literal['geometry', 'visual_only'] = 'geometry'

@@ -208,4 +208,5 @@ def execution_failure_summary(raw, *, source_path, source_version=None):
     return dict(code=SOURCE_FAILURE_CODE, stage=raw['stage'],
         exception_type=raw['exception_type'], message=raw['message'][:512],
         source_sha256=raw['source_sha256'], source_version=source_version,
-        source_locations=locations[:3], repair_target='generated_source')
+        source_locations=locations[:3], repair_target='generated_source',
+        **({'reason':raw['reason'], 'name':raw.get('name')} if raw.get('reason') == 'ABLATION_DISABLED_API' else {}))

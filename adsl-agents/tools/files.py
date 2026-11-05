@@ -53,6 +53,9 @@ def read_file(
             "path_basis": "Relative paths start at the workspace, not the candidate directory. "
                 "Read evidence_files/result_ref paths directly; do not prepend the candidate directory."})
 
+    if (ctx.ablation == 'tracing' and target != ctx.source_path
+            and target not in ctx.sanitized_evidence_paths):
+        return failed('ABLATION_READ_DENIED', 'tracing allows only assigned source and sanitized evidence')
     if offset < 0 or max_chars <= 0:
         return failed("READ_INVALID_ARGUMENT", "offset must be non-negative and max_chars must be positive")
     if json_pointer and not json_pointer.startswith("/"):

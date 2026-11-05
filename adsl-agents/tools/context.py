@@ -35,6 +35,8 @@ class AgentToolContext:
     events: list[ToolEvent] = field(default_factory=list)
     record_noop_patch: bool = False
     patch_scope_id: str | None = None
+    ablation: str | None = None
+    sanitized_evidence_paths: set[Path] = field(default_factory=set)
 
     def __post_init__(self) -> None:
         self.workspace = self.workspace.expanduser().resolve()

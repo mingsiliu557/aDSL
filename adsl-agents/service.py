@@ -17,6 +17,7 @@ from .checkers import (
     run_checkers,
 )
 from .feedback_schema import build_analysis_context, findings_payload, localized_mesh_feedback
+from .fixed_assembly import ablation as request_ablation
 from .agent_feedback import finding_for_agent, payload_for_agent, feedback_observation, standing_summary_for_agent
 from .utils.request_errors import classify_model_request_error, propagate_request_error
 from .localization import LocalizationReport, localize_findings
@@ -274,7 +275,7 @@ class ObjectWorkflow:
         write_json(workspace / "plan.json", plan.model_dump())
         self._write_checkpoint(workspace, mode="generate", stage="planned")
 
-        context = AgentToolContext(workspace=workspace, source_path=source_path)
+        context = AgentToolContext(workspace=workspace, source_path=source_path, ablation=request_ablation(request.fixed_assembly))
         coder = runtime.agent(
             name="object-coder",
             instructions=object_prompt("coder", articulation=request.articulation, fixed_assembly=bool(request.fixed_assembly),
@@ -455,7 +456,7 @@ class ObjectWorkflow:
         if stage == "planned" and not request.overhang_experiment:
             if mode == "generate":
                 if not source_path.read_text(encoding="utf-8").strip():
-                    context = AgentToolContext(workspace=workspace, source_path=source_path)
+                    context = AgentToolContext(workspace=workspace, source_path=source_path, ablation=request_ablation(request.fixed_assembly))
                     coder = runtime.agent(
                         name="object-coder",
                         instructions=object_prompt("coder", articulation=request.articulation, fixed_assembly=bool(request.fixed_assembly),
@@ -485,7 +486,7 @@ class ObjectWorkflow:
                     not request.check_first
                     and (not initial_hash or initial_hash == self._source_sha256(source_path))
                 ):
-                    context = AgentToolContext(workspace=workspace, source_path=source_path)
+                    context = AgentToolContext(workspace=workspace, source_path=source_path, ablation=request_ablation(request.fixed_assembly))
                     coder = runtime.agent(
                         name="object-coder",
                         instructions=object_prompt("coder", articulation=request.articulation),
@@ -554,6 +555,8 @@ class ObjectWorkflow:
         if request.fixed_assembly:
             from .fixed_assembly import print_mode
             assembly_fields['print_mode'] = print_mode(request.fixed_assembly)
+            from .fixed_assembly import ablation
+            assembly_fields['ablation'] = ablation(request.fixed_assembly)
         runtime.usage.update_manifest(
             task_id=request.task_id,
             mode=mode,
@@ -570,21 +573,24 @@ class ObjectWorkflow:
         runtime: AgentRuntime,
         request: ObjectRequest,
     ) -> ObjectPlan:
+        from .fixed_assembly import ablation
+        fab_plan = ablation(request.fixed_assembly) == 'fab_plan'
+        manufacturing_plan = bool(request.fixed_assembly) and not fab_plan
         planner = runtime.agent(
             name="object-planner",
-            instructions=object_prompt("planner", articulation=request.articulation, fixed_assembly=bool(request.fixed_assembly),
-                **support_prompt_options(request.fixed_assembly)),
-            output_type=FixedAssemblyPlan if request.fixed_assembly else ObjectPlan,
+            instructions=object_prompt("planner", articulation=request.articulation, fixed_assembly=manufacturing_plan,
+                **(support_prompt_options(request.fixed_assembly) if manufacturing_plan else {})),
+            output_type=FixedAssemblyPlan if manufacturing_plan else ObjectPlan,
         )
         from .fixed_assembly import print_mode, check_single_plan
-        single = bool(request.fixed_assembly and print_mode(request.fixed_assembly) == 'single')
+        single = bool(manufacturing_plan and print_mode(request.fixed_assembly) == 'single')
         content = (json.dumps({'requirement':request.requirement, 'fixed_assembly':fixed_assembly_for_agent(request.fixed_assembly)})
-                   if request.fixed_assembly else request.requirement)
+                   if manufacturing_plan else request.requirement)
         for attempt in range(2 if single else 1):
             result = await runtime.run(agent=planner, input=user_input(content, request.image_paths),
                                        role='planner', stage='plan')
-            plan = self._typed_output(result.final_output, FixedAssemblyPlan if request.fixed_assembly else ObjectPlan)
-            if request.fixed_assembly and (plan.mm_per_unit != request.fixed_assembly['mm_per_unit']
+            plan = self._typed_output(result.final_output, FixedAssemblyPlan if manufacturing_plan else ObjectPlan)
+            if manufacturing_plan and (plan.mm_per_unit != request.fixed_assembly['mm_per_unit']
                                            or plan.final_size_mm != request.fixed_assembly['final_size_mm']):
                 raise ValueError('assembly plan changed frozen scale or final dimensions')
             if single:
@@ -596,6 +602,13 @@ class ObjectWorkflow:
                     content += '\n' + str(error)
                     continue
             break
+        if fab_plan:
+            plan = FixedAssemblyPlan.model_validate({**plan.model_dump(),
+                'print_parts':[{'id':'body','components':[c.name for c in plan.components]}],
+                'root_part':'body','connections':[],
+                'mm_per_unit':request.fixed_assembly['mm_per_unit'],
+                'final_size_mm':request.fixed_assembly['final_size_mm']})
+            check_single_plan(plan)
         return plan
 
     async def _plan_edit(
@@ -2188,7 +2201,7 @@ class ObjectWorkflow:
         if render_issue:
             payload['render_issue'] = render_issue  # Negative availability evidence only.
         payload = payload_for_agent(payload, workspace=request.workspace, source_path=source_path,
-            source_version=source_version, role='image_critic',
+            source_version=source_version, role='image_critic', ablation=request_ablation(request.fixed_assembly),
             report_ref=(assembly_context or {}).get('report_ref'))
         write_json(round_root/'image_agent_input.json', payload)
         write_json(round_root/'image_input_metrics.json', {
@@ -2211,7 +2224,7 @@ class ObjectWorkflow:
                                       round_root, code_critic, image_decision, code_history,
                                       render_issue=None, assembly_context=None):
         """Code review of the same generated object and current Image judgement."""
-        context = AgentToolContext(workspace=workspace, source_path=source_path)
+        context = AgentToolContext(workspace=workspace, source_path=source_path, ablation=request_ablation(request.fixed_assembly))
         payload = {
             'requirement':request.requirement, 'plan':plan.model_dump(),
             'assigned_source':source_path.relative_to(workspace).as_posix(),
@@ -2231,7 +2244,7 @@ class ObjectWorkflow:
         payload['render_views'] = self._review_view_labels(renders, start_index=len(request.image_paths) + 1)
         source_version = (assembly_context or {}).get('report_ref', {}).get('source_version') if (assembly_context or {}).get('report_ref') else None
         payload = payload_for_agent(payload, workspace=workspace, source_path=source_path,
-            source_version=source_version, role='code_critic',
+            source_version=source_version, role='code_critic', ablation=request_ablation(request.fixed_assembly), tool_context=context,
             report_ref=(assembly_context or {}).get('report_ref'))
         write_json(round_root/'code_agent_input.json', payload)
         write_json(round_root/'code_input_metrics.json', {
@@ -2363,6 +2376,7 @@ class ObjectWorkflow:
         payload: dict[str, object],
         reserved_attempt_id: str | None = None,
         allow_no_change: bool = False,
+        ablation: str | None = None,
     ) -> dict[str, Any] | None:
         config_path = workspace / "runtime_config.json"
         options = read_json(config_path).get("request", {}).get("overhang_experiment", {}) if config_path.exists() else {}
@@ -2377,7 +2391,7 @@ class ObjectWorkflow:
             write_json(workspace / "overhang_versions.json", versions)
         isolated = bool(options) or allow_no_change
         context = AgentToolContext(workspace=workspace, source_path=source_path, record_noop_patch=isolated,
-                                   patch_scope_id=reserved_attempt_id or stage)
+                                   patch_scope_id=reserved_attempt_id or stage, ablation=ablation)
         assigned_source = source_path.relative_to(workspace).as_posix()
         payload = {"assigned_source": assigned_source, **payload}
         before = file_hash(source_path) if isolated else None
@@ -2385,7 +2399,7 @@ class ObjectWorkflow:
             payload["no_change_contract"] = 'If no appropriate edit exists, return {"edit_action":"NO_CHANGE","reason":"..."}. Do not apply a dummy patch.'
         try:
             payload = payload_for_agent(payload, workspace=workspace, source_path=source_path,
-                source_version=payload.get('source_version'), role='coder',
+                source_version=payload.get('source_version'), role='coder', ablation=ablation, tool_context=context,
                 report_ref=(payload.get('feedback') or {}).get('geometry_report_ref'),
                 evidence_files=payload.get('evidence_files') or ())
             write_json(source_path.parent/'coder_agent_input.json', payload)
@@ -2485,7 +2499,23 @@ class ObjectWorkflow:
         if request.fixed_assembly:
             FixedAssemblyConfig.model_validate(request.fixed_assembly)
             support_prompt_options(request.fixed_assembly)  # validate explicit mode values before model calls
-            from .fixed_assembly import print_mode
+            from .fixed_assembly import print_mode, ablation
+            variant = ablation(request.fixed_assembly)
+            overhang = request.fixed_assembly.get('physics', {}).get('overhang', {})
+            if variant == 'review':
+                if (request.fixed_assembly.get('validation_mode') != 'visual_only'
+                        or any(s.name in {'assembly_topology','assembly_standing','assembly_overhang'} for s in request.checker_specs)
+                        or overhang.get('support_metric') == 'nsv'
+                        or overhang.get('partition_objective') is not None):
+                    raise ValueError('review ablation requires visual_only, no physical checkers, NSV or partition objective')
+            if variant == 'fab_plan':
+                if (print_mode(request.fixed_assembly) != 'single'
+                        or request.fixed_assembly.get('require_multiple_parts', False)
+                        or overhang.get('support_metric') != 'nsv'
+                        or not request.repair_policy.print_orientation_editable):
+                    raise ValueError('fab_plan requires single, NSV and automatic orientation')
+            elif variant is not None and print_mode(request.fixed_assembly) != 'split':
+                raise ValueError('this ablation requires split print mode')
             if print_mode(request.fixed_assembly) == 'single':
                 overhang = request.fixed_assembly.get('physics', {}).get('overhang', {})
                 if request.repair_policy.print_partition_editable:

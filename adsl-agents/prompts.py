@@ -37,7 +37,7 @@ _STANDING_EVALUATION = (
 
 
 def object_prompt(role: str, *, articulation: bool, fixed_assembly: bool = False,
-                  support_metric: str = 'area', shape_editable: bool = False, print_mode: str = 'split') -> str:
+                  support_metric: str = 'area', shape_editable: bool = False, print_mode: str = 'split', ablation: str | None = None) -> str:
     try:
         filename = ROLE_PROMPTS[role]
     except KeyError as exc:
@@ -60,6 +60,8 @@ def object_prompt(role: str, *, articulation: bool, fixed_assembly: bool = False
         prompt = _single_prompt(prompt)
     if fixed_assembly and print_mode != 'single' and support_metric == 'nsv' and role == 'planner':
         prompt += '\n' + (PROMPT_ROOT / 'support_grouping.md').read_text(encoding='utf-8')
+    if fixed_assembly and ablation is not None:
+        prompt = _ablation_prompt(prompt, role=role, variant=ablation)
     return prompt
 
 
@@ -74,6 +76,9 @@ def support_prompt_options(fixed_assembly):
     options = {'support_metric':metric, 'shape_editable':shape} if metric == 'nsv' else {}
     if print_mode(fixed_assembly) == 'single':
         options['print_mode'] = 'single'
+    from .fixed_assembly import ablation
+    if ablation(fixed_assembly) is not None:
+        options['ablation'] = ablation(fixed_assembly)
     return options
 
 
@@ -161,3 +166,54 @@ def _single_prompt(prompt):
             end = min((i for i in ends if i >= 0), default=-1)
             prompt = prompt[:begin] + (prompt[end:] if end >= 0 else '')
     return prompt + '\n' + _SINGLE_PRINT_INSTRUCTION
+
+
+def _cut_prompt_span(text, start, end):
+    if start not in text or end not in text[text.index(start):]:
+        raise ValueError('ablation prompt policy boundary unavailable: ' + start)
+    a = text.index(start)
+    return text[:a] + text[text.index(end, a):]
+
+
+def _ablation_prompt(prompt, *, role, variant):
+    import re
+    if variant == 'profile_ops':
+        # Planner embeds the API; the other text roles also embed examples.
+        if role not in {'image_critic', 'image_critic_review'}:
+            prompt = _cut_prompt_span(prompt, '## Sampled profiles and constructive geometry', '## Boolean operations')
+            # The example is terminal in dsl_example.md; remove its exact rendered text.
+            example = files('adsl.core').joinpath('docs/dsl_example.md').read_text(encoding='utf-8')
+            marker = '## Sampled curved profile with a cutout'
+            if role != 'planner' and (marker not in example or example[example.index(marker):].strip() not in prompt):
+                raise ValueError('ablation prompt example boundary unavailable')
+            if role != 'planner':
+                prompt = prompt.replace(example[example.index(marker):].strip(), '')
+        if role == 'coder':
+            prompt = _cut_prompt_span(prompt, '3. Build geometry with the documented primitives', '4. You should')
+            prompt = _cut_prompt_span(prompt, 'Choose modeling operations from the dominant silhouette',
+                                      'You may write reusable Python helper functions')
+        line = 'Keep loft profiles and strictly increasing positions paired when changing order.\n'
+        if line in prompt: prompt = prompt.replace(line, '')
+        if re.search(r'\b(Polygon|linear_extrude|rotate_extrude|loft|hull)\b', prompt):
+            raise ValueError('unhandled profile API prompt instruction')
+        prompt += '\nUse documented basic primitives and Boolean operations for geometry.'
+    elif variant == 'actions' and role in {'coder','code_critic','code_critic_review','engineering_critic'}:
+        # Remove structured-action sentences, not the modeling API reference.
+        tokens = r'regroup_print_parts|change_print_orientation|add_local_structure|resize|reshape|relayout|grouping_change|Authorized actions|Authorized optional shape actions'
+        prompt = re.sub(r'[^.!?\n]*(?:' + tokens + r')[^.!?]*(?:[.!?]|$)', '', prompt)
+        prompt += ('\nNo Engineering proposal is used. Repair necessary defects directly from current feedback. '
+                   'Proposal-dependent optional optimization is disabled; existing edit permissions still apply.')
+    elif variant == 'tracing':
+        prompt = prompt.replace(_SOURCE_CANDIDATE_READING, '')
+        prompt = prompt.replace('and having source candidates', '')
+        prompt = prompt.replace('and reliable source localization is supplied',
+                                'and reading assigned_source supports a bounded local correction')
+        prompt = prompt.replace('Use only supplied finding IDs, feature IDs, source IDs, and scopes.',
+                                'Use supplied finding IDs and infer real source symbols by reading assigned_source.')
+        prompt = prompt.replace('target feature/source IDs and allowed scopes',
+                                'real source symbols inferred from assigned_source')
+        prompt += ('\nPhysical-to-source tracing is disabled. Read only assigned_source and the sanitized '
+                   'evidence_files. Infer source locations yourself; original reports, indexes, version records '
+                   'and tracing logs are not readable. Leave target feature_ids and source_ids empty; '
+                   'use supplied finding IDs and real source symbols. Preserve the reported physical facts and repair permissions.')
+    return prompt

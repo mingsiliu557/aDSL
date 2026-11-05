@@ -1038,12 +1038,16 @@ def _deduplicate_support_evidence(payload: dict) -> list[dict]:
 
 
 def payload_for_agent(payload, *, workspace, source_path, source_version, role,
-                      report_ref=None, evidence_files=()):
+                      report_ref=None, evidence_files=(), ablation=None, tool_context=None):
     if role not in {'engineering', 'code_critic', 'image_critic', 'coder', 'debugger'}:
         raise AgentFeedbackError('AGENT_FEEDBACK_INVALID', {'reason': 'invalid_role'})
     try:
         view = _Projection(workspace, source_path, source_version, report_ref, evidence_files)
         out = deepcopy(dict(payload))
+        if ablation == 'tracing':
+            from .ablation_views import record_hidden_tracing, sanitized_evidence
+            record_hidden_tracing(out, workspace=workspace, source_path=source_path,
+                                  source_version=source_version, role=role)
         compact_candidates = _assembly_candidate_scope(out, role)
         nsv = (isinstance(out.get('support_evidence'),Mapping) or
             isinstance((out.get('feedback') or {}).get('support_evidence'),Mapping) or
@@ -1211,7 +1215,8 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
         def measure():
             if nsv:
                 _refresh_support_evidence_provenance(out)
-            return len(_encoded(_feedback_view(out)))
+            measured = sanitized_evidence(out, workspace=workspace) if ablation == 'tracing' else out
+            return len(_encoded(_feedback_view(measured)))
 
         # Reduce explanations, never a verdict/permission or current metric.
         for history_limit, candidate_limit, attempt_limit, occurrence_limit, group_limit in (
@@ -1323,6 +1328,8 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
                     minimal_history(container.get(key))
             minimal_history(out)
         actual = measure()
+        if ablation == 'tracing':
+            out = sanitized_evidence(out, workspace=workspace, context=tool_context)
         if actual > FEEDBACK_LIMIT_BYTES:
             raise AgentFeedbackError('AGENT_FEEDBACK_TOO_LARGE', feedback_size_report(out))
         # Feedback only is strict JSON. Images and task/source fields remain as
