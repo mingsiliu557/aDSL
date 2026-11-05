@@ -119,3 +119,32 @@ tracing 的 measure 只规划内存结果，不写脱敏文件；最终输出阶
 使用前文的进程内 worktree 导入命令，回归 files 列表增加 `tests/test_ablation_repairs.py`；其余文件及排除表达式相同。修复定向命令为该导入环境下 `pytest tests/test_ablation_repairs.py -q --tb=short`。
 
 **模型调用、真实生成、仿真及评测均未执行。** 本次结果只验证消融接线与 stub 决策，不构成消融实验效果。
+
+## 修复计划 v3（基准 2e755ce）
+
+本次只修复固定结构基线、非有限数值与显式幂等标记。未改动运行时算子拦截、AST、NSV 校验、采纳公式及已验收的形状优化／停止逻辑；未修改 adsl-core。
+
+| 问题 | 修改位置 | 测试名（tests/test_ablation_repairs_v3.py） |
+|---|---|---|
+| P1 固定结构基线、分组／旋转差异 | fixed_assembly.py:54 `_actions_structure_diff`；`:1398` 固定版本比较；`:1429` 首个完整结构版本登记 | test_fixed_baseline_rejects_cross_round_bypass_and_resume（分组／朝向，直接／续跑四个实例）；test_first_successful_export_establishes_baseline_after_source_failure；test_structure_diff_connections_and_invalid_records |
+| P1 支撑回退保留结构基线 | 沿用 `_restore_support_baseline`，不修改其恢复字段 | test_support_restore_keeps_structure_baseline |
+| P1 给 Coder 明确恢复目标 | fixed_assembly.py:1483 structured_action_violation；`:1658` 专用 primary_objective | test_fixed_baseline_rejects_cross_round_bypass_and_resume；test_source_failure_instruction_precedes_structure_restore |
+| P2 严格 JSON 及最近 dict 标记 | ablation_views.py:65 `_finite_view`；在副本与输出序列化前共用转换 | test_nonfinite_nested_evidence_and_memory_measurement |
+| P3 显式签名标记替代内容猜测 | agent_feedback.py:1047 标记核验及捷径；最终输出增加 ablation_view | test_explicit_marker_is_required_and_invalidated_by_new_feedback；test_nonfinite_nested_evidence_and_memory_measurement |
+
+### 行为
+
+- actions 的 `book.actions_structure_baseline` 只在首次非空 part_declarations/parts 版本登记，并随原 book 持久化。之后候选始终和该版本比较，working 仍按原逻辑前进。完整版及其他变体不添加该字段。差异返回打印件 ID；缺失结构、非法矩阵标为 invalid。只改连接声明可通过结构检查。
+- 连续保留违规改动仍被拒绝，恢复固定基线后可进入原验收。源码执行失败时，修复源码的指令在恢复分组／旋转的指令之前。feedback 包含具体基线与违规件，不再误用“实现授权分组提案”的指令。
+- 副本中的 NaN/Infinity/-Infinity 变为 null；列表长度、索引和 pointer 不变。最近 dict 以 setdefault 添加 NONFINITE，不覆盖已有 value_status。原始证据字节不改写；内容哈希以转换后的数据计算。measure 与最终写入共用转换，内存测量不写文件。
+- tracing 输出顶层 ablation_view 保存 variant 及 `_encoded` 计算的正文摘要。有效标记才允许原样返回；无标记、摘要不匹配都执行正常投影和压缩。旧标记在正常路径中先移除，再对最终 Agent 视图重新签名。内部 payload、feedback 和 book 不写该标记。
+
+### 验证
+
+- 相关 stub 回归：**506 passed，12 deselected**，39.44 秒。排除项仍为既有原生几何执行／测量测试，不算失败。
+- 最后补齐“源码失败指令在前”测试后，v3 定向集合：**10 passed**，1.43 秒；与回归有重叠，不相加当总数。
+- `test_ablation_repairs.py` 更新旧 bool 断言，并在完整版差分分支确认 book 没有 actions_structure_baseline。
+- 默认提示逐字比较、frozen hash、旧 checkpoint 及完整版差分序列继续通过。git diff --check 通过。
+- 使用前文同一进程内 worktree 导入方法，回归文件列表增加 `tests/test_ablation_repairs_v3.py`。定向参数为 `tests/test_ablation_repairs_v3.py -q --tb=short`，其余回归文件与原生测试排除表达式不变。
+
+**没有运行模型调用、真实生成、仿真或评测。**

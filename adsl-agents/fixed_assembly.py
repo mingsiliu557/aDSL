@@ -51,23 +51,44 @@ def validate_nsv_config(config, specs):
         raise ValueError('NSV requires selected assembly_overhang')
 
 
-def _actions_structure_preserved(before, after):
+def _actions_structure_diff(baseline, candidate):
     import numpy as np
-    def groups(row):
-        return {p['id']: sorted(p.get('components', [])) for p in row.get('part_declarations', [])}
-    try:
-        if groups(before) != groups(after): return False
-        left={p['id']:p for p in before.get('parts', [])}
-        right={p['id']:p for p in after.get('parts', [])}
-        if left.keys() != right.keys(): return False
-        for key in left:
-            a=left[key].get('print_transform_mm'); b=right[key].get('print_transform_mm')
-            if a is None and b is None: continue
-            a=np.asarray(a,dtype=float);b=np.asarray(b,dtype=float)
-            if a.shape != (4,4) or b.shape != (4,4) or not np.isfinite(a).all() or not np.isfinite(b).all():return False
-            if not np.allclose(a[:3,:3],b[:3,:3],rtol=0,atol=1e-9):return False
-        return True
-    except (KeyError,TypeError,ValueError): return False
+    result = dict(grouping_changed=[], orientation_changed=[], invalid=False)
+    def records(row, field):
+        rows = row.get(field)
+        if not isinstance(rows, list) or not rows:
+            result['invalid'] = True
+            return {}
+        data = {}
+        for item in rows:
+            if not isinstance(item, dict) or not isinstance(item.get('id'), str) or item['id'] in data:
+                result['invalid'] = True
+                continue
+            if field == 'part_declarations' and (not isinstance(item.get('components'), list)
+                    or not all(isinstance(c, str) for c in item['components'])):
+                result['invalid'] = True
+                item = {**item, 'components':[]}
+            data[item['id']] = item
+        return data
+    left = records(baseline, 'part_declarations'); right = records(candidate, 'part_declarations')
+    for key in sorted(left.keys() | right.keys()):
+        if key not in left or key not in right or sorted(left[key].get('components', [])) != sorted(right[key].get('components', [])):
+            result['grouping_changed'].append(key)
+    left = records(baseline, 'parts'); right = records(candidate, 'parts')
+    for key in sorted(left.keys() | right.keys()):
+        if key not in left or key not in right:
+            result['invalid'] = True
+            continue
+        try:
+            a = np.asarray(left[key].get('print_transform_mm'), dtype=float)
+            b = np.asarray(right[key].get('print_transform_mm'), dtype=float)
+            if a.shape != (4,4) or b.shape != (4,4) or not np.isfinite(a).all() or not np.isfinite(b).all():
+                result['invalid'] = True
+            elif not np.allclose(a[:3,:3], b[:3,:3], rtol=0, atol=1e-9):
+                result['orientation_changed'].append(key)
+        except (TypeError, ValueError):
+            result['invalid'] = True
+    return result
 
 
 def print_mode(config: dict) -> str:
@@ -1374,14 +1395,16 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                         'shape_only' if body_status['status']=='CHANGED' else 'none')
                 if partition is not None:
                     reviews.update(partition_ready=partition_ready,partition_adopted=partition_adopted)
-            if variant == 'actions' and number > 1 and not _actions_structure_preserved(
-                    book['versions'][parent_id]['reviews'].get('geometry', {}), report):
-                accepted = False
-                partition_adopted = False
-                repairable_implementation_issue = True
-                reason = 'ABLATION_STRUCTURED_ACTION_FORBIDDEN'
-                reviews['partition_adopted'] = False
-                reviews['structured_action_check'] = dict(conclusion='REJECT',reason=reason)
+            structure_baseline = book.get('actions_structure_baseline') if variant == 'actions' else None
+            if structure_baseline and number > 1:
+                diff = _actions_structure_diff(book['versions'][structure_baseline]['reviews'].get('geometry', {}), report)
+                if diff['invalid'] or diff['grouping_changed'] or diff['orientation_changed']:
+                    accepted = False
+                    partition_adopted = False
+                    repairable_implementation_issue = True
+                    reason = 'ABLATION_STRUCTURED_ACTION_FORBIDDEN'
+                    reviews['partition_adopted'] = False
+                    reviews['structured_action_check'] = dict(conclusion='REJECT',baseline_version=structure_baseline,**diff)
             reviews.update(geometry=report, accepted=accepted, reason=reason,
                 execution_binding=binding, parent_version=parent_id if number > 1 else None,
                 edit_purpose=edit_purpose, repair_proposal=proposal.model_dump() if proposal else None)
@@ -1403,6 +1426,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
             book['versions'][version_id] = version_record(version_id, current, execution,
                                                           runs=runs,reviews=reviews,
                                                           extra_files=extra)
+            if (variant == 'actions' and not book.get('actions_structure_baseline')
+                    and report.get('part_declarations') and report.get('parts')):
+                book['actions_structure_baseline'] = version_id
             book['working'] = version_id
             write_json(candidate_root/'decision.json', {'version':version_id, 'parent':parent_id,
                 'source_sha256':file_hash(current), 'accepted':accepted, 'reason':reason,
@@ -1453,6 +1479,9 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                     support_baseline_id = None
             if single:
                 feedback['single_part_check'] = single_check
+            if reviews.get('structured_action_check', {}).get('conclusion') == 'REJECT':
+                feedback['structured_action_violation'] = {k:reviews['structured_action_check'][k] for k in (
+                    'baseline_version','grouping_changed','orientation_changed')}
             feedback['repair_history'] = _repair_history(book,specs)
             if partition is not None and not nsv:
                 feedback['partition_change_vs_baseline']=reviews.get('partition_change_vs_baseline')
@@ -1625,6 +1654,14 @@ async def iterate_fixed_assembly(workflow, *, runtime, request, workspace, sourc
                 feedback.update(next_edit_purpose=edit_purpose, comparison_baseline_version=comparison_baseline,
                     partition_candidate_in_progress=bool(intent), partition_intent=intent, grouping_realization=realization)
                 feedback['primary_objective'] = ('Restore mode A single-part identity print rotation; keep its baseline part ID. ' if mode_a and pose_check and pose_check['conclusion']!='ACCEPT' and not source_failure else '') + ('Fix the bound generated-source API/runtime error first. No appearance task without current render. ' if source_failure else 'Implement the authorized print-group declarations before proposing further physical changes. ') + 'Preserve partition_intent, independent bodies, edit purpose and comparison baseline; do not modify mesh backends.'
+            if variant == 'actions' and reason == 'ABLATION_STRUCTURED_ACTION_FORBIDDEN':
+                violation = feedback['structured_action_violation']
+                parts = sorted(set(violation['grouping_changed'] + violation['orientation_changed']))
+                feedback['primary_objective'] = (
+                    'Fix the bound generated-source API/runtime error first. No appearance task without current render. '
+                    if source_failure else '') + (
+                    f"Restore print-part grouping and declared print rotations to structure baseline {violation['baseline_version']} "
+                    f"for parts {parts}; keep the other repairs in this version. Do not change grouping or print rotations in this variant.")
             if single and single_check and single_check['conclusion'] != 'ACCEPT' and not source_failure:
                 feedback['primary_objective'] = (f'Implement exactly one print part {single_id}; preserve all semantic components in its body, '
                     'remove all connections and keep the declared print rotation identity. Do not edit measurement backends.')

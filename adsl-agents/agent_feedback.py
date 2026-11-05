@@ -1043,25 +1043,19 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
         raise AgentFeedbackError('AGENT_FEEDBACK_INVALID', {'reason': 'invalid_role'})
     try:
         if ablation == 'tracing':
-            from .ablation_views import tracing_view, sanitized_evidence
-            def safe_output(value):
-                if isinstance(value,dict):
-                    if (value.get('path') and not str(value['path']).startswith('ablation_evidence/sanitized_')
-                            and (not source_path or (Path(workspace)/value['path']).resolve() != Path(source_path).resolve())):
-                        return False
-                    if 'matches_current_source' in value and value.get('source_sha256') and source_path:
-                        if value['matches_current_source'] != (value['source_sha256'] == hashlib.sha256(Path(source_path).read_bytes()).hexdigest()):
-                            return False
-                    return all(safe_output(v) for v in value.values())
-                return not isinstance(value,list) or all(safe_output(v) for v in value)
-            if ('ablation_evidence/sanitized_' in json.dumps(payload) and
-                    tracing_view(payload) == payload and safe_output(payload)):
-                out = sanitized_evidence(payload,workspace=workspace,source_path=source_path,context=tool_context,write=True)
-                if len(_encoded(_feedback_view(out))) > FEEDBACK_LIMIT_BYTES:
-                    raise AgentFeedbackError('AGENT_FEEDBACK_TOO_LARGE',feedback_size_report(out))
-                return out
+            from .ablation_views import sanitized_evidence
+            marker = payload.get('ablation_view')
+            body = {k:v for k,v in payload.items() if k != 'ablation_view'}
+            if (isinstance(marker,dict) and marker.get('variant') == 'tracing'
+                    and marker.get('sha256') == hashlib.sha256(_encoded(body)).hexdigest()):
+                sanitized_evidence(body,workspace=workspace,source_path=source_path,context=tool_context,write=True)
+                if len(_encoded(_feedback_view(payload))) > FEEDBACK_LIMIT_BYTES:
+                    raise AgentFeedbackError('AGENT_FEEDBACK_TOO_LARGE',feedback_size_report(payload))
+                return deepcopy(payload)
         view = _Projection(workspace, source_path, source_version, report_ref, evidence_files)
         out = deepcopy(dict(payload))
+        if ablation == 'tracing':
+            out.pop('ablation_view', None)
         if ablation == 'tracing':
             from .ablation_views import record_hidden_tracing, sanitized_evidence
 
@@ -1348,6 +1342,7 @@ def payload_for_agent(payload, *, workspace, source_path, source_version, role,
         if ablation == 'tracing':
             record_hidden_tracing(out, workspace=workspace, source_path=source_path, source_version=source_version, role=role)
             out = sanitized_evidence(out, workspace=workspace, source_path=source_path, context=tool_context, write=True)
+            out['ablation_view'] = {'variant':'tracing','sha256':hashlib.sha256(_encoded(out)).hexdigest()}
         if actual > FEEDBACK_LIMIT_BYTES:
             raise AgentFeedbackError('AGENT_FEEDBACK_TOO_LARGE', feedback_size_report(out))
         # Feedback only is strict JSON. Images and task/source fields remain as

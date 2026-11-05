@@ -62,6 +62,24 @@ def record_hidden_tracing(payload, *, workspace, source_path, source_version, ro
 
 
 
+def _finite_view(value):
+    """Mark the nearest containing mapping without altering list positions."""
+    import math
+    def convert(item):
+        if isinstance(item, float) and not math.isfinite(item):
+            return None, True
+        if isinstance(item, list):
+            rows = [convert(v) for v in item]
+            return [v for v,flag in rows], any(flag for v,flag in rows)
+        if isinstance(item, dict):
+            rows = {k:convert(v) for k,v in item.items()}
+            result = {k:v for k,(v,flag) in rows.items()}
+            if any(flag for v,flag in rows.values()): result.setdefault('value_status','NONFINITE')
+            return result, False
+        return deepcopy(item), False
+    return convert(value)[0]
+
+
 def sanitized_evidence(payload, *, workspace, source_path=None, context=None, write=False):
     """Plan references entirely in memory; commit files only for final output."""
     workspace=Path(workspace).resolve()
@@ -110,7 +128,7 @@ def sanitized_evidence(payload, *, workspace, source_path=None, context=None, wr
             if key in active:return hidden(result)
             if key not in cache:
                 active.add(key)
-                try:doc=visit(tracing_view(json.loads(raw)))
+                try:doc=_finite_view(visit(tracing_view(json.loads(raw))))
                 except (ValueError,UnicodeError):active.remove(key);return hidden(result)
                 active.remove(key)
                 text=json.dumps(doc,sort_keys=True,ensure_ascii=False,allow_nan=False)
@@ -128,7 +146,7 @@ def sanitized_evidence(payload, *, workspace, source_path=None, context=None, wr
             for item in value.values():yield from paths(item)
         elif isinstance(value,list):
             for item in value:yield from paths(item)
-    out=tracing_view(visit(payload))
+    out=_finite_view(tracing_view(visit(payload)))
     if write:
         for path,text in pending.items():
             path.parent.mkdir(parents=True,exist_ok=True)

@@ -134,6 +134,7 @@ def test_actions_differential_shape_with_partition(tmp_path,monkeypatch,values,b
                     return runs+[extra]
                 patch.setattr(physics,'run_assembly_checks',with_failure)
             result,book=run_flow(state)
+            if variant is None:assert 'actions_structure_baseline' not in book
             assert book['stop_reason']!='partition_intent_unavailable'
             outputs.append((result.approved,book['retained'],book['qualified'],book['stop_reason'],
                             state[3].read_text(),book['feedback'].get('support_baseline_version'),
@@ -147,11 +148,11 @@ def test_actions_forbids_group_and_authored_rotation():
     import numpy as np
     before={'part_declarations':[{'id':'body','components':['a','b']}],
             'parts':[{'id':'body','print_transform_mm':np.eye(4).tolist()}]}
-    assert flow._actions_structure_preserved(before,deepcopy(before))
+    assert flow._actions_structure_diff(before,deepcopy(before)) == dict(grouping_changed=[],orientation_changed=[],invalid=False)
     candidate=deepcopy(before);candidate['part_declarations'][0]['components']=['a']
-    assert not flow._actions_structure_preserved(before,candidate)
+    assert any(flow._actions_structure_diff(before,candidate).values())
     candidate=deepcopy(before);candidate['parts'][0]['print_transform_mm'][0][0]=-1
-    assert not flow._actions_structure_preserved(before,candidate)
+    assert any(flow._actions_structure_diff(before,candidate).values())
 
 
 def test_tracing_keeps_internal_candidate_verification(tmp_path,monkeypatch):
