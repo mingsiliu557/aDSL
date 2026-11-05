@@ -60,13 +60,13 @@ def _parser() -> argparse.ArgumentParser:
 
 def _execute_generated_source(source, output, *, fixed_assembly=False, ablation=None):
     """Only source execution/contracts; export, render and infrastructure stay outside."""
-    from .ablation_source import check_profile_source, DisabledProfileAPI
+    from adsl.agents.utils.ablation_source import check_profile_source, DisabledProfileAPI
     stage = 'source_execution'
     try:
         if ablation == 'profile_ops':
             check_profile_source(source.read_text(), filename=str(source))
         if ablation == 'profile_ops':
-            from .ablation_source import disabled_profile_runtime
+            from adsl.agents.utils.ablation_source import disabled_profile_runtime
             with disabled_profile_runtime(source):
                 namespace = runpy.run_path(str(source), run_name="__adsl_generated__")
         else:

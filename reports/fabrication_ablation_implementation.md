@@ -167,3 +167,9 @@ tracing 的 measure 只规划内存结果，不写脱敏文件；最终输出阶
 相关单元／stub 回归：**508 passed，12 deselected**，40.10 秒。覆盖三个消融测试文件，以及 Action、Agent feedback、fixed-assembly recovery、single、support、partition selection/feedback；排除项仍是既有原生几何执行／测量测试。使用前文相同导入与回归命令；git diff --check 通过，既有 anyio assertion-rewrite 提示不影响结果。
 
 **未运行生成、模型调用、仿真或评测。** 未修改其他已验收的消融逻辑、core、提示词或续跑 hash。
+
+## 冒烟发现的脚本入口导入修复
+
+实际冒烟通过 `execute_asset_source` 按文件路径启动 asset_executor，而此前测试在包内导入该模块。两处 `from .ablation_source import ...` 因脚本入口没有 parent package 报错，尚未进入生成源码。将两处改为 `from adsl.agents.utils.ablation_source import ...`，不改变执行器判据和异常处理。
+
+新增 `tests/test_asset_executor_script_entry.py::test_executor_file_entry_reaches_source_or_profile_guard`，通过真实文件入口覆盖默认、静态禁用算子、动态禁用算子三种情况。测试在源码异常／算子拦截阶段停止，不执行几何导出或渲染。与三个消融测试文件合跑 **126 passed**（9.67 秒），git diff --check 通过。五组真实冒烟另有独立运行档案，本节不将单元测试算作冒烟完成。
