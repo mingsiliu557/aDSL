@@ -1,0 +1,150 @@
+{
+  "protocol_id": "snap3d_fixed_ground_mujoco_coacd_v1",
+  "fixed_ids": [
+    "receiver"
+  ],
+  "status": "PASS",
+  "reason": null,
+  "stable": false,
+  "global_score": 3975.751806268851,
+  "metrics": {
+    "peg": {
+      "max_displacement_mm": 34943.13110978482,
+      "max_rotation_rad": 3.1392561911319503
+    },
+    "receiver": {
+      "max_displacement_mm": 0.0,
+      "max_rotation_rad": 0.0
+    }
+  },
+  "last_contact_pairs": [],
+  "peak_penetration_mm": 16.931505353019645,
+  "proxy_counts": {
+    "peg": 67,
+    "receiver": 100
+  },
+  "initial_contact": {
+    "maximum_penetration_mm": 0.003946227269360786,
+    "bound_mm": 0.03662109375,
+    "contact_count": 606,
+    "pass": true
+  },
+  "gate_pass": false,
+  "early_motion_samples": [
+    {
+      "step": 0,
+      "time_s": 0.0,
+      "donor_displacement_mm": 0.0,
+      "donor_position_mm": [
+        2.04935589442047e-17,
+        -8.241693416682634e-16,
+        42.887766145148206
+      ]
+    },
+    {
+      "step": 1,
+      "time_s": 0.001,
+      "donor_displacement_mm": 0.03487573519571257,
+      "donor_position_mm": [
+        0.0033372737135293597,
+        -0.001184679345389251,
+        42.853070669298305
+      ]
+    },
+    {
+      "step": 2,
+      "time_s": 0.002,
+      "donor_displacement_mm": 0.06975185776622649,
+      "donor_position_mm": [
+        0.006682288055694208,
+        -0.002358921443451999,
+        42.818375193448404
+      ]
+    },
+    {
+      "step": 3,
+      "time_s": 0.003,
+      "donor_displacement_mm": 0.1046282249421819,
+      "donor_position_mm": [
+        0.010032142578241058,
+        -0.003526637177555583,
+        42.7836797175985
+      ]
+    },
+    {
+      "step": 5,
+      "time_s": 0.005,
+      "donor_displacement_mm": 0.06770476773391663,
+      "donor_position_mm": [
+        0.01673077027536446,
+        -0.005862068645762751,
+        42.82242356292888
+      ]
+    },
+    {
+      "step": 10,
+      "time_s": 0.01,
+      "donor_displacement_mm": 89.4598622740114,
+      "donor_position_mm": [
+        -15.227543355405183,
+        -80.6755913294057,
+        7.354150439804298
+      ]
+    },
+    {
+      "step": 20,
+      "time_s": 0.02,
+      "donor_displacement_mm": 246.62833725963898,
+      "donor_position_mm": [
+        22.499924761931418,
+        -244.89202396942773,
+        24.25481894619742
+      ]
+    },
+    {
+      "step": 50,
+      "time_s": 0.05,
+      "donor_displacement_mm": 760.5501786471076,
+      "donor_position_mm": [
+        135.68256863921346,
+        -737.541089104319,
+        169.6156505685353
+      ]
+    },
+    {
+      "step": 100,
+      "time_s": 0.1,
+      "donor_displacement_mm": 1634.2113992042694,
+      "donor_position_mm": [
+        324.320308434682,
+        -1558.6228643291379,
+        411.88370327243194
+      ]
+    },
+    {
+      "step": 200,
+      "time_s": 0.2,
+      "donor_displacement_mm": 3386.116842408388,
+      "donor_position_mm": [
+        701.59578802561,
+        -3200.786414778776,
+        896.4198086802277
+      ]
+    }
+  ],
+  "role_counts": {
+    "receiver": {
+      "far": 67,
+      "sleeve_L1": 16,
+      "sleeve_L2": 16,
+      "sleeve_L3": 1
+    },
+    "peg": {
+      "far": 65,
+      "shaft": 1,
+      "head": 1
+    }
+  },
+  "interpretation": "Static proxy checks passed. Zero-gravity ejection failed the mandatory gate. Contact-count/partition observations are diagnostic candidates, not proven causal attribution.",
+  "further_gates_run": false
+}

@@ -59,7 +59,11 @@ def rebuild(base, edges, parameters, *, D, config):
             if k not in (donor,receiver) and checked(peg^solids[k]).volume()>0:
                 raise ValueError('THIRD_PART_INTERFERENCE')
         pegs[donor].append(peg); slots[receiver].append(slot)
-        evidence.append(dict(edge=e['id'],anchor=anchor.tolist(),axis=frame[:,2].tolist()))
+        transform=np.eye(4); transform[:3]=T
+        evidence.append(dict(edge=e['id'],anchor=anchor.tolist(),axis=frame[:,2].tolist(),
+                             donor=donor,receiver=receiver,T=transform.tolist(),radius=r,length=l,
+                             clearance=c,overhang=config['overhang_ratio']*D,
+                             head_thickness=config['head_thickness_ratio']*D,headed=True))
     out={}
     for i in solids:
         solid=checked(solids[i]+union(pegs[i])) if pegs[i] else solids[i]

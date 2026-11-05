@@ -3,7 +3,6 @@ import itertools
 import xml.etree.ElementTree as ET
 import numpy as np
 from scipy.spatial.transform import Rotation
-from .vendor import collision_proxies
 
 PROTOCOL='snap3d_fixed_ground_mujoco_coacd_v1'
 
@@ -11,7 +10,7 @@ def angle(matrix):
     return float(np.linalg.norm(Rotation.from_matrix(matrix).as_rotvec()))
 
 def rollout(parts, *, D, config, coacd_config, clearance_mm, fixed_ids=None,
-            gravity=None, proxy_cache=None, retain_frames=True):
+            gravity=None, proxy_cache=None, retain_frames=True, initial_only=False):
     import mujoco
     ids=sorted(parts)
     if fixed_ids is None:
@@ -22,6 +21,8 @@ def rollout(parts, *, D, config, coacd_config, clearance_mm, fixed_ids=None,
     if not set(fixed_ids)<=set(ids): return dict(base,reason='FIXED_ID_MISSING')
     free=[i for i in ids if i not in fixed_ids]
     if not free: return dict(base,reason='NO_FREE_PARTS')
+    if proxy_cache is None or any(not proxy_cache.get(i) for i in ids):
+        return dict(base,reason='PROXY_MISSING')
     root=ET.Element('mujoco',model='snap3d')
     ET.SubElement(root,'compiler',angle='radian',inertiafromgeom='false')
     g=config['gravity'] if gravity is None else gravity
@@ -42,8 +43,7 @@ def rollout(parts, *, D, config, coacd_config, clearance_mm, fixed_ids=None,
         if i in free: ET.SubElement(body,'freejoint')
         ET.SubElement(body,'inertial',pos='0 0 0',mass=str(mass),
                       fullinertia=' '.join(map(str,[inertia[0,0],inertia[1,1],inertia[2,2],inertia[0,1],inertia[0,2],inertia[1,2]])))
-        if proxy_cache is not None and i in proxy_cache: proxies=proxy_cache[i]
-        else: proxies=collision_proxies(mesh,dict(coacd_config,threshold_mm=clearance_mm/4))
+        proxies=proxy_cache[i]
         proxies_by_id[i]=proxies; proxies_count[i]=len(proxies)
         for p,proxy in enumerate(proxies):
             name=f'mesh_{k}_{p}'
@@ -53,6 +53,17 @@ def rollout(parts, *, D, config, coacd_config, clearance_mm, fixed_ids=None,
     xml=ET.tostring(root,encoding='unicode')
     try:
         model=mujoco.MjModel.from_xml_string(xml); data=mujoco.MjData(model); mujoco.mj_forward(model,data)
+        depths=[max(0.,-float(c.dist)*1000) for c in data.contact
+                if model.geom_bodyid[c.geom1]!=model.geom_bodyid[c.geom2]]
+        initial_contact=dict(maximum_penetration_mm=max(depths,default=0.),
+                             bound_mm=clearance_mm/4,contact_count=len(depths))
+        initial_contact['pass']=initial_contact['maximum_penetration_mm']<=initial_contact['bound_mm']
+        if not initial_contact['pass']:
+            return dict(base,reason='PROXY_UNVERIFIED',initial_contact=initial_contact,
+                        proxy_counts=proxies_count,simulation_performed=False)
+        if initial_only:
+            return dict(base,status='PASS',initial_contact=initial_contact,
+                        proxy_counts=proxies_count,simulation_performed=False)
         bodies={i:mujoco.mj_name2id(model,mujoco.mjtObj.mjOBJ_BODY,f'part_{k}') for k,i in enumerate(ids)}
         reverse={v:k for k,v in bodies.items()}
         def snapshot():
@@ -80,7 +91,8 @@ def rollout(parts, *, D, config, coacd_config, clearance_mm, fixed_ids=None,
                       metrics[i]['max_rotation_rad']/np.deg2rad(config['rotation_deg'])) for i in free)
         return dict(base,status='PASS',reason=None,stable=score<=1.,global_score=score,
                     metrics=metrics,frames=frames if retain_frames else [],last_contact_pairs=[list(p) for p in sorted(contacts)],
-                    peak_penetration_mm=max_depth,proxy_counts=proxies_count,xml=xml)
+                    peak_penetration_mm=max_depth,proxy_counts=proxies_count,xml=xml,
+                    initial_contact=initial_contact)
     except (ValueError,RuntimeError) as error:
         return dict(base,reason='SIMULATION_ERROR',detail=str(error))
 

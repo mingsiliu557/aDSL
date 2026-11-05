@@ -1,0 +1,215 @@
+{
+  "status": "FAIL",
+  "proxy_acceptance": [
+    {
+      "test": "zero_gravity",
+      "pass_": true,
+      "status": "PASS",
+      "elapsed_s": 1.9281076651532203,
+      "proxy_counts": {
+        "receiver": 100,
+        "peg": 67
+      },
+      "zones": [
+        {
+          "edge": "lock",
+          "k1": 4,
+          "k2": 4,
+          "sagitta1_mm": 0.020107903828025655,
+          "sagitta2_mm": 0.03136652859175782,
+          "intrusion_bound_mm": 0.03662109375,
+          "entrance_proxy_omitted_local_z": [
+            -0.146484375,
+            0.146484375
+          ]
+        }
+      ],
+      "verification": {
+        "status": "PASS",
+        "reason": null,
+        "connectors": [
+          {
+            "edge": "lock",
+            "cavity_intersection_mm3": 0.0,
+            "cavity_pass": true,
+            "shoulder_missing_mm3": -1.249000902703301e-16,
+            "shoulder_pass": true,
+            "volume_tolerance_mm3": 0.0033750000000000004
+          }
+        ],
+        "initial_contact": {
+          "maximum_penetration_mm": 0.003946227269360786,
+          "bound_mm": 0.03662109375,
+          "contact_count": 606,
+          "pass": true
+        },
+        "initial_model_status": "PASS",
+        "initial_model_reason": null
+      },
+      "far": {
+        "receiver": {
+          "cache_key": "55b4bc4900e08becbd7bdf48106480b77c3de97830a9d0685f1baa4b707d589b",
+          "cache_hit": false,
+          "threshold_mm": 1.5,
+          "coacd_elapsed_s": 0.7963187859859318,
+          "base_mesh_sha256": "5f469b890331040e53567045459556c0900a8a953ccb0146d7ba21bcc27292dd"
+        },
+        "peg": {
+          "cache_key": "45cf5b09c0b7e3a09960ff24e0efcfdc47fa0e7cbc4ee077ab04c0847ab6f8c6",
+          "cache_hit": false,
+          "threshold_mm": 1.5,
+          "coacd_elapsed_s": 0.49657195596955717,
+          "base_mesh_sha256": "98308d1ee0abcc9df37fca00a0484a4f6a05ae93e368c309301a6acdeefd0ded"
+        }
+      }
+    },
+    {
+      "test": "no_head",
+      "pass_": true,
+      "status": "PASS",
+      "elapsed_s": 0.4687108627986163,
+      "proxy_counts": {
+        "receiver": 100,
+        "peg": 66
+      },
+      "zones": [
+        {
+          "edge": "lock",
+          "k1": 4,
+          "k2": 4,
+          "sagitta1_mm": 0.020107903828025655,
+          "sagitta2_mm": 0.020107903828025655,
+          "intrusion_bound_mm": 0.03662109375,
+          "entrance_proxy_omitted_local_z": [
+            -0.146484375,
+            0.146484375
+          ]
+        }
+      ],
+      "verification": {
+        "status": "PASS",
+        "reason": null,
+        "connectors": [
+          {
+            "edge": "lock",
+            "cavity_intersection_mm3": 0.0,
+            "cavity_pass": true,
+            "shoulder_missing_mm3": 6.17214612752548e-15,
+            "shoulder_pass": true,
+            "volume_tolerance_mm3": 0.0033750000000000004
+          }
+        ],
+        "initial_contact": {
+          "maximum_penetration_mm": 0.003945868333521402,
+          "bound_mm": 0.03662109375,
+          "contact_count": 606,
+          "pass": true
+        },
+        "initial_model_status": "PASS",
+        "initial_model_reason": null
+      },
+      "far": {
+        "receiver": {
+          "cache_key": "55b4bc4900e08becbd7bdf48106480b77c3de97830a9d0685f1baa4b707d589b",
+          "cache_hit": true,
+          "threshold_mm": 1.5,
+          "coacd_elapsed_s": 0.0,
+          "base_mesh_sha256": "5f469b890331040e53567045459556c0900a8a953ccb0146d7ba21bcc27292dd"
+        },
+        "peg": {
+          "cache_key": "45cf5b09c0b7e3a09960ff24e0efcfdc47fa0e7cbc4ee077ab04c0847ab6f8c6",
+          "cache_hit": true,
+          "threshold_mm": 1.5,
+          "coacd_elapsed_s": 0.0,
+          "base_mesh_sha256": "98308d1ee0abcc9df37fca00a0484a4f6a05ae93e368c309301a6acdeefd0ded"
+        }
+      }
+    },
+    {
+      "test": "headed",
+      "pass_": true,
+      "status": "PASS",
+      "elapsed_s": 0.4495994870085269,
+      "proxy_counts": {
+        "receiver": 100,
+        "peg": 67
+      },
+      "zones": [
+        {
+          "edge": "lock",
+          "k1": 4,
+          "k2": 4,
+          "sagitta1_mm": 0.020107903828025655,
+          "sagitta2_mm": 0.03136652859175782,
+          "intrusion_bound_mm": 0.03662109375,
+          "entrance_proxy_omitted_local_z": [
+            -0.146484375,
+            0.146484375
+          ]
+        }
+      ],
+      "verification": {
+        "status": "PASS",
+        "reason": null,
+        "connectors": [
+          {
+            "edge": "lock",
+            "cavity_intersection_mm3": 0.0,
+            "cavity_pass": true,
+            "shoulder_missing_mm3": -1.249000902703301e-16,
+            "shoulder_pass": true,
+            "volume_tolerance_mm3": 0.0033750000000000004
+          }
+        ],
+        "initial_contact": {
+          "maximum_penetration_mm": 0.003946227269360786,
+          "bound_mm": 0.03662109375,
+          "contact_count": 606,
+          "pass": true
+        },
+        "initial_model_status": "PASS",
+        "initial_model_reason": null
+      },
+      "far": {
+        "receiver": {
+          "cache_key": "55b4bc4900e08becbd7bdf48106480b77c3de97830a9d0685f1baa4b707d589b",
+          "cache_hit": true,
+          "threshold_mm": 1.5,
+          "coacd_elapsed_s": 0.0,
+          "base_mesh_sha256": "5f469b890331040e53567045459556c0900a8a953ccb0146d7ba21bcc27292dd"
+        },
+        "peg": {
+          "cache_key": "45cf5b09c0b7e3a09960ff24e0efcfdc47fa0e7cbc4ee077ab04c0847ab6f8c6",
+          "cache_hit": true,
+          "threshold_mm": 1.5,
+          "coacd_elapsed_s": 0.0,
+          "base_mesh_sha256": "98308d1ee0abcc9df37fca00a0484a4f6a05ae93e368c309301a6acdeefd0ded"
+        }
+      }
+    }
+  ],
+  "tests": [
+    {
+      "test": "zero_gravity",
+      "pass_": false,
+      "elapsed_s": 0.918878671946004,
+      "status": "PASS",
+      "reason": null,
+      "fixed_displacement_mm": 0.0,
+      "peg_displacement_mm": 34943.13110978482,
+      "peg_final_delta_z_mm": 9575.181939875423,
+      "length_mm": 2.9296875,
+      "clearance_mm": 0.146484375
+    }
+  ],
+  "config_sha256": "44368094869ced81ab78f226d1067b1dbcd57b64ac903fb11084d0125111af4e",
+  "next_stage_allowed": false,
+  "not_run": [
+    "no_head",
+    "headed"
+  ],
+  "fixture_diagonal_mm": 150.0,
+  "coacd_timeout_s_per_part": 300,
+  "far_threshold_ratio": 0.01,
+  "entrance_approximation": "No proxy in local z [-c,c]; no lock-head or shoulder geometry changed."
+}

@@ -12,6 +12,7 @@ from .contact import contact_graph
 from .connector import rebuild
 from .rollout import rollout,select_edges,relative_score
 from .cem import optimize
+from .proxies import build_zone_proxies, verify_zone_proxies
 
 def require_gate(path, config):
     gate=json.loads(Path(path).read_text())
@@ -43,13 +44,33 @@ def evaluate_geometry(run, config, *, stage):
         elif stage=='cgr':
             base=load_parts(run/'pge');edges,parameters,pairs=contact_graph(base,D=D,config=config['contact'],connector_config=config['connector'])
             write_json(target/'contact.json',dict(edges=edges,parameters=parameters,pairs=pairs))
-            parts,checks=rebuild(base,edges,parameters,D=D,config=config['connector']);export_parts(parts,target,metadata=dict(checks=checks))
+            parts,checks=rebuild(base,edges,parameters,D=D,config=config['connector'])
+            write_json(target/'contact.json',dict(edges=edges,parameters=parameters,pairs=pairs,connectors=checks))
+            export_parts(parts,target,metadata=dict(checks=checks))
         elif stage in ('rollout','cem'):
             base=load_parts(run/'pge');contact=json.loads((run/'cgr/contact.json').read_text())
             edges=contact['edges'];parameters=contact['parameters'];parts=load_parts(run/'cgr')
-            def simulate(p,fixed=None):return rollout(p,D=D,config=config['rollout'],coacd_config=config['coacd'],clearance_mm=config['connector']['clearance_ratio']*D,fixed_ids=fixed)
+            attempt=0
+            def simulate(p,connectors,fixed=None):
+                nonlocal attempt
+                path=target/f'proxy_check_{attempt:04d}.json';attempt+=1
+                try:
+                    proxies,report=build_zone_proxies(base,connectors,D=D,config=config['coacd'],cache_dir=run/'proxy_cache')
+                    verification=verify_zone_proxies(p,proxies,connectors,D=D,roles=report['blocks'],
+                        rollout_config=config['rollout'],clearance_mm=config['connector']['clearance_ratio']*D,fixed_ids=fixed)
+                    write_json(path,dict(build=report,verification=verification))
+                    if verification['status']!='PASS':
+                        return dict(status='UNAVAILABLE',reason='PROXY_UNVERIFIED',proxy_verification=verification)
+                    result=rollout(p,D=D,config=config['rollout'],coacd_config=config['coacd'],
+                        clearance_mm=config['connector']['clearance_ratio']*D,fixed_ids=fixed,proxy_cache=proxies)
+                    result['proxy_evidence_ref']=path.name
+                    return result
+                except (ValueError,RuntimeError) as error:
+                    reason=str(error).split(':',1)[0]
+                    write_json(path,dict(status='UNAVAILABLE',reason=reason,detail=str(error)))
+                    return dict(status='UNAVAILABLE',reason=reason,detail=str(error))
             if stage=='rollout':
-                result=simulate(parts);write_json(target/'result.json',result)
+                result=simulate(parts,contact['connectors']);write_json(target/'result.json',result)
                 if result['status']!='PASS':raise ValueError(result['reason'])
             else:
                 current=json.loads((run/'rollout/result.json').read_text())
@@ -64,7 +85,7 @@ def evaluate_geometry(run, config, *, stage):
                         candidate=dict(parameters);candidate[eid]=np.asarray(theta).tolist()
                         try:
                             meshes,checks=rebuild(base,edges,candidate,D=D,config=config['connector'])
-                            result=simulate(meshes,fixed)
+                            result=simulate(meshes,checks,fixed)
                         except (ValueError,RuntimeError) as error:return dict(status='FAIL',reason=str(error))
                         if result['status']!='PASS':return dict(status='FAIL',reason=result['reason'])
                         return dict(status='PASS',local_score=relative_score(result,e['a'],e['b'],D=D,config=config['rollout']),global_score=result['global_score'],rollout=result)

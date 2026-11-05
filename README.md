@@ -102,3 +102,43 @@ retained. Formal NSV, connectivity and CLIP evaluation is intentionally absent.
 Sources: https://arxiv.org/abs/2609.13146 ;
 https://github.com/Tencent-Hunyuan/Hunyuan3D-2 ;
 https://github.com/Tencent-Hunyuan/Hunyuan3D-Part .
+
+## Zoned proxies: implemented, dynamic gate still blocked
+
+The new adapter caches CoACD proxies of each immutable PGE base at
+`far_threshold_ratio=0.01` of the frozen D. All connector exclusion prisms are
+subtracted from every part's far proxies using convex half-space pieces. Locks
+use analytic 64-gon stems/heads, layered sleeve sectors and a cap. Sector angles
+are read from the actual Manifold cylinder, and sector sagitta is bounded by c/4.
+There is no surrounding far-field/sleeve proxy in local z [-c,c]: this omits a
+depth-c entrance layer on each side; the analytic pin itself remains. Exported
+material geometry and inertia are unchanged.
+
+The native worker watchdog is 300 seconds per base part. Cached STL hashes,
+configuration and base geometry identity are checked before reuse. Rollout never
+falls back to whole-part fine CoACD: absent proxies give `PROXY_MISSING`. Both
+pipeline and artificial gate check cavity clearance, shoulder coverage and
+initial inter-body contact depth before dynamics. The new config hash invalidates
+old passing gates. Vendored files, friction, connector dimensions, MCTS settings
+and rollout acceptance thresholds are unchanged.
+
+Actual CPU-only validation of D=150 fixtures is recorded in
+`reports/zone_proxy_implementation_20261105.md`. Geometry/stub stage: 42 passed,
+two real MuJoCo unit tests deferred. Full regression: 44 passed, including those
+two tests and all original 21 tests. All three fixtures passed static proxy
+acceptance. Cold far CoACD took about 1.29 seconds total, with subsequent cache
+hits. **The zero-gravity dynamic gate failed by ejecting the donor.** The no-head
+and headed dynamic gates were not run. Do not advance to models, real cases or
+CEM with this gate. The original `runs/lock_gate_v1` and `v2` are unchanged; new
+artifacts are under `runs/lock_gate_v3`.
+
+```bash
+OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 PYTHONPATH=. python -m pytest -q tests -k 'not real_mujoco'
+OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 PYTHONPATH=. python -m pytest -q tests
+# Manual CPU-only gate, unique output directory; stop on its first failure:
+OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=1 PYTHONPATH=. python scripts/lock_gate.py --output runs/lock_gate_NEW
+```
+
+This remains SNAP3D formula reimplementation (Manifold / MuJoCo-CoACD), using
+analytic lock-zone collisions instead of the paper's IPC mesh collisions.
+Static proxy acceptance is not evidence of stable dynamic contact.
