@@ -1,0 +1,1335 @@
+{
+  "base_commit": "ba4e154917703d7c34f44c12f15c47eaa864831a",
+  "run_directory": "runs/first_real_DensiCrafter_124_flow_v2",
+  "case_id": "DensiCrafter_124",
+  "reused": {
+    "case_id": "DensiCrafter_124",
+    "source_run": "runs/first_real_DensiCrafter_124_pge_paircut_v1/assembly",
+    "source_repair_manifest_sha256": "cb5174a296ae0f57aac27f66fd1557eac9e7b3972550fc9a626da065069c2d2d",
+    "copied_repair_manifest_sha256": "cb5174a296ae0f57aac27f66fd1557eac9e7b3972550fc9a626da065069c2d2d",
+    "generation_rerun": false,
+    "decomposition_rerun": false,
+    "repair_rerun": false
+  },
+  "D_mm": 168.50650043496887,
+  "generation_rerun": false,
+  "decomposition_rerun": false,
+  "repair_rerun": false,
+  "full_artificial_gate_rerun": false,
+  "formal_evaluation": false,
+  "status": "STOPPED_SIMULATOR_ERROR",
+  "completed_stages": [
+    {
+      "stage": "pge",
+      "status": "PASS",
+      "elapsed_s": 11.153291740920395
+    },
+    {
+      "stage": "cgr",
+      "status": "PASS",
+      "elapsed_s": 196.2954786727205
+    }
+  ],
+  "pge": {
+    "cuts": [
+      {
+        "pair": [
+          "part_000",
+          "part_001"
+        ],
+        "pair_index": 0,
+        "trim": "part_000",
+        "retained": true,
+        "rollback_reasons": [],
+        "component_count_diagnostic": null,
+        "slivers_removed_count": 0,
+        "slivers_removed_volume_mm3": 0,
+        "slivers_removed_volumes_mm3": [],
+        "slivers_removed_thicknesses_mm": [],
+        "retained_slivers_removed_count": 0,
+        "retained_slivers_removed_volume_mm3": 0,
+        "component_count_before": 1,
+        "candidate_component_count": 1,
+        "component_count_after": 1,
+        "overlap_before_mm3": 195.08908211022586,
+        "candidate_overlap_after_mm3": -1.0269562977782698e-15,
+        "overlap_after_mm3": -1.0269562977782698e-15
+      },
+      {
+        "pair": [
+          "part_000",
+          "part_002"
+        ],
+        "pair_index": 1,
+        "trim": "part_002",
+        "retained": true,
+        "rollback_reasons": [],
+        "component_count_diagnostic": null,
+        "slivers_removed_count": 0,
+        "slivers_removed_volume_mm3": 0,
+        "slivers_removed_volumes_mm3": [],
+        "slivers_removed_thicknesses_mm": [],
+        "retained_slivers_removed_count": 0,
+        "retained_slivers_removed_volume_mm3": 0,
+        "component_count_before": 1,
+        "candidate_component_count": 1,
+        "component_count_after": 1,
+        "overlap_before_mm3": 847.4132537374,
+        "candidate_overlap_after_mm3": -5.002278430886464e-15,
+        "overlap_after_mm3": -5.002278430886464e-15
+      },
+      {
+        "pair": [
+          "part_000",
+          "part_003"
+        ],
+        "pair_index": 2,
+        "trim": "part_003",
+        "retained": true,
+        "rollback_reasons": [],
+        "component_count_diagnostic": null,
+        "slivers_removed_count": 1,
+        "slivers_removed_volume_mm3": 5.870892778509155,
+        "slivers_removed_volumes_mm3": [
+          5.870892778509155
+        ],
+        "slivers_removed_thicknesses_mm": [
+          0.24220299772589782
+        ],
+        "retained_slivers_removed_count": 1,
+        "retained_slivers_removed_volume_mm3": 5.870892778509155,
+        "component_count_before": 1,
+        "candidate_component_count": 1,
+        "component_count_after": 1,
+        "overlap_before_mm3": 1435.91285663643,
+        "candidate_overlap_after_mm3": -5.334274688628682e-16,
+        "overlap_after_mm3": -5.334274688628682e-16
+      },
+      {
+        "pair": [
+          "part_000",
+          "part_004"
+        ],
+        "pair_index": 3,
+        "trim": "part_004",
+        "retained": true,
+        "rollback_reasons": [],
+        "component_count_diagnostic": null,
+        "slivers_removed_count": 0,
+        "slivers_removed_volume_mm3": 0,
+        "slivers_removed_volumes_mm3": [],
+        "slivers_removed_thicknesses_mm": [],
+        "retained_slivers_removed_count": 0,
+        "retained_slivers_removed_volume_mm3": 0,
+        "component_count_before": 1,
+        "candidate_component_count": 1,
+        "component_count_after": 1,
+        "overlap_before_mm3": 45.83900607380779,
+        "candidate_overlap_after_mm3": 5.984795992119984e-16,
+        "overlap_after_mm3": 5.984795992119984e-16
+      },
+      {
+        "pair": [
+          "part_000",
+          "part_005"
+        ],
+        "pair_index": 4,
+        "trim": "part_005",
+        "retained": true,
+        "rollback_reasons": [],
+        "component_count_diagnostic": null,
+        "slivers_removed_count": 0,
+        "slivers_removed_volume_mm3": 0,
+        "slivers_removed_volumes_mm3": [],
+        "slivers_removed_thicknesses_mm": [],
+        "retained_slivers_removed_count": 0,
+        "retained_slivers_removed_volume_mm3": 0,
+        "component_count_before": 1,
+        "candidate_component_count": 1,
+        "component_count_after": 1,
+        "overlap_before_mm3": 52.90458060247231,
+        "candidate_overlap_after_mm3": -9.71445146547012e-16,
+        "overlap_after_mm3": -9.71445146547012e-16
+      },
+      {
+        "pair": [
+          "part_001",
+          "part_002"
+        ],
+        "pair_index": 5,
+        "trim": "part_002",
+        "retained": false,
+        "rollback_reasons": [
+          "INVALID_CUT_MATERIAL"
+        ],
+        "component_count_diagnostic": {
+          "code": "INPUT_GEOMETRY_INVALID",
+          "message": "mesh is not closed, manifold and consistently oriented",
+          "stage": "input_geometry",
+          "failure_kind": "input_geometry",
+          "metrics": {
+            "vertex_count": 11322,
+            "triangle_count": 22644,
+            "self_intersection": "NOT_EVALUATED",
+            "self_intersection_reason": "No reliable complete triangle self-intersection detector is installed",
+            "nonfinite_coordinates": 0,
+            "invalid_indices": 0,
+            "exact_coordinate_duplicates": 2,
+            "duplicate_faces": 0,
+            "zero_area_triangles": 0,
+            "nonfinite_face_geometry": 0,
+            "nonfinite_geometry_measurements": 0,
+            "surface_area": 875.0690892820478,
+            "signed_volume": 486.22949319953506,
+            "boundary_edges": 0,
+            "nonmanifold_edges": 1,
+            "inconsistent_edges": 0,
+            "nonmanifold_vertices": 3,
+            "shell_components": 1,
+            "empty": false,
+            "valid": false
+          }
+        },
+        "slivers_removed_count": 0,
+        "slivers_removed_volume_mm3": 0,
+        "slivers_removed_volumes_mm3": [],
+        "slivers_removed_thicknesses_mm": [],
+        "retained_slivers_removed_count": 0,
+        "retained_slivers_removed_volume_mm3": 0.0,
+        "component_count_before": 1,
+        "candidate_component_count": 1,
+        "component_count_after": 1,
+        "overlap_before_mm3": 1841.5355591200346,
+        "candidate_overlap_after_mm3": -2.64921412715044e-16,
+        "overlap_after_mm3": 1841.5355591200346
+      }
+    ],
+    "history": [
+      {
+        "losses": {
+          "part_000": 0.008240932168064763,
+          "part_001": 0.0,
+          "part_002": 0.26688682400004904,
+          "part_003": 0.30619777988757424,
+          "part_004": 0.05374372790930482,
+          "part_005": 0.061591586838475765
+        },
+        "assignments": [
+          "part_000",
+          "part_002",
+          "part_003",
+          "part_004",
+          "part_005",
+          "part_002"
+        ],
+        "cuts": [
+          {
+            "pair": [
+              "part_000",
+              "part_001"
+            ],
+            "pair_index": 0,
+            "trim": "part_000",
+            "retained": true,
+            "rollback_reasons": [],
+            "component_count_diagnostic": null,
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "slivers_removed_thicknesses_mm": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 195.08908211022586,
+            "candidate_overlap_after_mm3": -1.0269562977782698e-15,
+            "overlap_after_mm3": -1.0269562977782698e-15
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_002"
+            ],
+            "pair_index": 1,
+            "trim": "part_002",
+            "retained": true,
+            "rollback_reasons": [],
+            "component_count_diagnostic": null,
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "slivers_removed_thicknesses_mm": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 847.4132537374,
+            "candidate_overlap_after_mm3": -5.002278430886464e-15,
+            "overlap_after_mm3": -5.002278430886464e-15
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_003"
+            ],
+            "pair_index": 2,
+            "trim": "part_003",
+            "retained": true,
+            "rollback_reasons": [],
+            "component_count_diagnostic": null,
+            "slivers_removed_count": 1,
+            "slivers_removed_volume_mm3": 5.870892778509155,
+            "slivers_removed_volumes_mm3": [
+              5.870892778509155
+            ],
+            "slivers_removed_thicknesses_mm": [
+              0.24220299772589782
+            ],
+            "retained_slivers_removed_count": 1,
+            "retained_slivers_removed_volume_mm3": 5.870892778509155,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 1435.91285663643,
+            "candidate_overlap_after_mm3": -5.334274688628682e-16,
+            "overlap_after_mm3": -5.334274688628682e-16
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_004"
+            ],
+            "pair_index": 3,
+            "trim": "part_004",
+            "retained": true,
+            "rollback_reasons": [],
+            "component_count_diagnostic": null,
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "slivers_removed_thicknesses_mm": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 45.83900607380779,
+            "candidate_overlap_after_mm3": 5.984795992119984e-16,
+            "overlap_after_mm3": 5.984795992119984e-16
+          },
+          {
+            "pair": [
+              "part_000",
+              "part_005"
+            ],
+            "pair_index": 4,
+            "trim": "part_005",
+            "retained": true,
+            "rollback_reasons": [],
+            "component_count_diagnostic": null,
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "slivers_removed_thicknesses_mm": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 52.90458060247231,
+            "candidate_overlap_after_mm3": -9.71445146547012e-16,
+            "overlap_after_mm3": -9.71445146547012e-16
+          },
+          {
+            "pair": [
+              "part_001",
+              "part_002"
+            ],
+            "pair_index": 5,
+            "trim": "part_002",
+            "retained": false,
+            "rollback_reasons": [
+              "INVALID_CUT_MATERIAL"
+            ],
+            "component_count_diagnostic": {
+              "code": "INPUT_GEOMETRY_INVALID",
+              "message": "mesh is not closed, manifold and consistently oriented",
+              "stage": "input_geometry",
+              "failure_kind": "input_geometry",
+              "metrics": {
+                "vertex_count": 11322,
+                "triangle_count": 22644,
+                "self_intersection": "NOT_EVALUATED",
+                "self_intersection_reason": "No reliable complete triangle self-intersection detector is installed",
+                "nonfinite_coordinates": 0,
+                "invalid_indices": 0,
+                "exact_coordinate_duplicates": 2,
+                "duplicate_faces": 0,
+                "zero_area_triangles": 0,
+                "nonfinite_face_geometry": 0,
+                "nonfinite_geometry_measurements": 0,
+                "surface_area": 875.0690892820478,
+                "signed_volume": 486.22949319953506,
+                "boundary_edges": 0,
+                "nonmanifold_edges": 1,
+                "inconsistent_edges": 0,
+                "nonmanifold_vertices": 3,
+                "shell_components": 1,
+                "empty": false,
+                "valid": false
+              }
+            },
+            "slivers_removed_count": 0,
+            "slivers_removed_volume_mm3": 0,
+            "slivers_removed_volumes_mm3": [],
+            "slivers_removed_thicknesses_mm": [],
+            "retained_slivers_removed_count": 0,
+            "retained_slivers_removed_volume_mm3": 0.0,
+            "component_count_before": 1,
+            "candidate_component_count": 1,
+            "component_count_after": 1,
+            "overlap_before_mm3": 1841.5355591200346,
+            "candidate_overlap_after_mm3": -2.64921412715044e-16,
+            "overlap_after_mm3": 1841.5355591200346
+          }
+        ],
+        "volume_cap_satisfied": true
+      }
+    ],
+    "rolled_back_cut_count": 1,
+    "retained_cut_count": 5,
+    "slivers_removed_count": 1,
+    "slivers_removed_volume_mm3": 5.870892778509155,
+    "residual_overlaps": [
+      {
+        "a": "part_000",
+        "b": "part_001",
+        "volume_mm3": -1.0269562977782698e-15,
+        "volume_cells": -3.600989714254271e-15
+      },
+      {
+        "a": "part_000",
+        "b": "part_002",
+        "volume_mm3": 3.9898639947466563e-17,
+        "volume_cells": 1.3990331660109498e-16
+      },
+      {
+        "a": "part_000",
+        "b": "part_003",
+        "volume_mm3": 1.117595599398058e-15,
+        "volume_cells": 3.918813553054584e-15
+      },
+      {
+        "a": "part_000",
+        "b": "part_004",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_000",
+        "b": "part_005",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_001",
+        "b": "part_002",
+        "volume_mm3": 1841.5355591200346,
+        "volume_cells": 6457.286080401941
+      },
+      {
+        "a": "part_001",
+        "b": "part_003",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_001",
+        "b": "part_004",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_001",
+        "b": "part_005",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_002",
+        "b": "part_003",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_002",
+        "b": "part_004",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_002",
+        "b": "part_005",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_003",
+        "b": "part_004",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_003",
+        "b": "part_005",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      },
+      {
+        "a": "part_004",
+        "b": "part_005",
+        "volume_mm3": 0.0,
+        "volume_cells": 0.0
+      }
+    ],
+    "residual_overlap_volume_mm3": 1841.5355591200346,
+    "residual_overlap_volume_cells": 6457.286080401941,
+    "volume_cap_satisfied": true,
+    "warnings": []
+  },
+  "cgr": {
+    "edges": [
+      {
+        "id": "part_000--part_001",
+        "a": "part_000",
+        "b": "part_001",
+        "donor": "part_000",
+        "receiver": "part_001",
+        "anchor": [
+          2.1121280845225776,
+          -7.260778482019918,
+          87.64665629773377
+        ],
+        "inward": [
+          0.05445580547159369,
+          -0.028247100879849153,
+          -0.9981165595972864
+        ],
+        "patch_inradius_mm": 5.317003569819078
+      },
+      {
+        "id": "part_000--part_002",
+        "a": "part_000",
+        "b": "part_002",
+        "donor": "part_002",
+        "receiver": "part_000",
+        "anchor": [
+          0.7406144580744046,
+          -9.694625003293462,
+          87.61929418632688
+        ],
+        "inward": [
+          -0.03326208948072494,
+          0.026358243860108606,
+          0.999099032320614
+        ],
+        "patch_inradius_mm": 3.3563200542388176
+      },
+      {
+        "id": "part_000--part_003",
+        "a": "part_000",
+        "b": "part_003",
+        "donor": "part_003",
+        "receiver": "part_000",
+        "anchor": [
+          4.864920656737869,
+          0.7092301676918956,
+          131.71412002204937
+        ],
+        "inward": [
+          0.44559552491552024,
+          -0.02174659862866823,
+          -0.8949702305794007
+        ],
+        "patch_inradius_mm": 1.6781600271194088
+      },
+      {
+        "id": "part_000--part_004",
+        "a": "part_000",
+        "b": "part_004",
+        "donor": "part_004",
+        "receiver": "part_000",
+        "anchor": [
+          3.8510239891833074,
+          -28.83308734751447,
+          89.56485256905454
+        ],
+        "inward": [
+          0.4330265470168335,
+          0.28589856499295535,
+          0.8548391779239223
+        ],
+        "patch_inradius_mm": 2.9620283279584374
+      },
+      {
+        "id": "part_000--part_005",
+        "a": "part_000",
+        "b": "part_005",
+        "donor": "part_005",
+        "receiver": "part_000",
+        "anchor": [
+          4.33650094337076,
+          29.202883390001396,
+          89.03759573685994
+        ],
+        "inward": [
+          0.3746431807892545,
+          -0.31700347258600053,
+          0.8712928815596549
+        ],
+        "patch_inradius_mm": 3.0342835392637473
+      },
+      {
+        "id": "part_001--part_002",
+        "a": "part_001",
+        "b": "part_002",
+        "donor": "part_002",
+        "receiver": "part_001",
+        "anchor": [
+          -0.3554367024938756,
+          13.38965389346172,
+          86.94673703292689
+        ],
+        "inward": [
+          0.08308882498147266,
+          -0.9443825948565067,
+          -0.31817882031224143
+        ],
+        "patch_inradius_mm": 0.465437848170236
+      }
+    ],
+    "pairs": [
+      {
+        "a": "part_000",
+        "b": "part_001",
+        "distance_mm": 0.0,
+        "distance_method": "manifold_intersection",
+        "area": {
+          "status": "PASS",
+          "edge": true,
+          "minimum_facing_area_mm2": 0.4259166103326025,
+          "facing_area_estimate_mm2": 423.2206271913745,
+          "facing_area_interval_mm2": [
+            421.96595325266765,
+            424.4541519699333
+          ],
+          "threshold_in_sampling_interval": false,
+          "directional_areas": [
+            {
+              "area_estimate_mm2": 435.46422939522773,
+              "area_interval_mm2": [
+                433.83752224513813,
+                437.0714166264074
+              ],
+              "sampling_area_mm2": 537.895501689642,
+              "sample_count": 65536,
+              "hit_count": 53056,
+              "seed": 0,
+              "is_exact_zero": false,
+              "threshold_in_sampling_interval": false,
+              "stop_reason": "fixed_surface_samples_completed"
+            },
+            {
+              "area_estimate_mm2": 423.2206271913745,
+              "area_interval_mm2": [
+                421.96595325266765,
+                424.4541519699333
+              ],
+              "sampling_area_mm2": 485.61151032309544,
+              "sample_count": 65536,
+              "hit_count": 57116,
+              "seed": 0,
+              "is_exact_zero": false,
+              "threshold_in_sampling_interval": false,
+              "stop_reason": "fixed_surface_samples_completed"
+            }
+          ],
+          "method": "area_weighted_surface_sampling_v1",
+          "decision_basis": "estimated_area; statistical intervals are not certified geometric bounds",
+          "reason": null
+        },
+        "connector_status": "INITIALIZED"
+      },
+      {
+        "a": "part_000",
+        "b": "part_002",
+        "distance_mm": 0.0,
+        "distance_method": "manifold_intersection",
+        "area": {
+          "status": "PASS",
+          "edge": true,
+          "minimum_facing_area_mm2": 0.4259166103326025,
+          "facing_area_estimate_mm2": 533.8800824116695,
+          "facing_area_interval_mm2": [
+            531.4320775638096,
+            536.3079275925833
+          ],
+          "threshold_in_sampling_interval": false,
+          "directional_areas": [
+            {
+              "area_estimate_mm2": 533.8800824116695,
+              "area_interval_mm2": [
+                531.4320775638096,
+                536.3079275925833
+              ],
+              "sampling_area_mm2": 723.8123478129703,
+              "sample_count": 65536,
+              "hit_count": 48339,
+              "seed": 0,
+              "is_exact_zero": false,
+              "threshold_in_sampling_interval": false,
+              "stop_reason": "fixed_surface_samples_completed"
+            },
+            {
+              "area_estimate_mm2": 538.3729569787689,
+              "area_interval_mm2": [
+                535.7004820459728,
+                541.0270513696952
+              ],
+              "sampling_area_mm2": 763.1520798685051,
+              "sample_count": 65536,
+              "hit_count": 46233,
+              "seed": 0,
+              "is_exact_zero": false,
+              "threshold_in_sampling_interval": false,
+              "stop_reason": "fixed_surface_samples_completed"
+            }
+          ],
+          "method": "area_weighted_surface_sampling_v1",
+          "decision_basis": "estimated_area; statistical intervals are not certified geometric bounds",
+          "reason": null
+        },
+        "connector_status": "INITIALIZED"
+      },
+      {
+        "a": "part_000",
+        "b": "part_003",
+        "distance_mm": 0.0,
+        "distance_method": "manifold_intersection",
+        "area": {
+          "status": "PASS",
+          "edge": true,
+          "minimum_facing_area_mm2": 0.4259166103326025,
+          "facing_area_estimate_mm2": 102.07271448736758,
+          "facing_area_interval_mm2": [
+            100.84294304072259,
+            103.31142719264008
+          ],
+          "threshold_in_sampling_interval": false,
+          "directional_areas": [
+            {
+              "area_estimate_mm2": 105.55973721278798,
+              "area_interval_mm2": [
+                104.00810291100225,
+                107.1282399830773
+              ],
+              "sampling_area_mm2": 498.91554435145486,
+              "sample_count": 65536,
+              "hit_count": 13866,
+              "seed": 0,
+              "is_exact_zero": false,
+              "threshold_in_sampling_interval": false,
+              "stop_reason": "fixed_surface_samples_completed"
+            },
+            {
+              "area_estimate_mm2": 102.07271448736758,
+              "area_interval_mm2": [
+                100.84294304072259,
+                103.31142719264008
+              ],
+              "sampling_area_mm2": 356.69390085550395,
+              "sample_count": 65536,
+              "hit_count": 18754,
+              "seed": 0,
+              "is_exact_zero": false,
+              "threshold_in_sampling_interval": false,
+              "stop_reason": "fixed_surface_samples_completed"
+            }
+          ],
+          "method": "area_weighted_surface_sampling_v1",
+          "decision_basis": "estimated_area; statistical intervals are not certified geometric bounds",
+          "reason": null
+        },
+        "connector_status": "INITIALIZED"
+      },
+      {
+        "a": "part_000",
+        "b": "part_004",
+        "distance_mm": 0.0,
+        "distance_method": "manifold_intersection",
+        "area": {
+          "status": "PASS",
+          "edge": true,
+          "minimum_facing_area_mm2": 0.4259166103326025,
+          "facing_area_estimate_mm2": 35.99744565743749,
+          "facing_area_interval_mm2": [
+            35.58511131541932,
+            36.412423478404484
+          ],
+          "threshold_in_sampling_interval": false,
+          "directional_areas": [
+            {
+              "area_estimate_mm2": 36.697033466270426,
+              "area_interval_mm2": [
+                36.392370044921144,
+                37.002078502563165
+              ],
+              "sampling_area_mm2": 79.90487026531659,
+              "sample_count": 65536,
+              "hit_count": 30098,
+              "seed": 0,
+              "is_exact_zero": false,
+              "threshold_in_sampling_interval": false,
+              "stop_reason": "fixed_surface_samples_completed"
+            },
+            {
+              "area_estimate_mm2": 35.99744565743749,
+              "area_interval_mm2": [
+                35.58511131541932,
+                36.412423478404484
+              ],
+              "sampling_area_mm2": 117.09577597686123,
+              "sample_count": 65536,
+              "hit_count": 20147,
+              "seed": 0,
+              "is_exact_zero": false,
+              "threshold_in_sampling_interval": false,
+              "stop_reason": "fixed_surface_samples_completed"
+            }
+          ],
+          "method": "area_weighted_surface_sampling_v1",
+          "decision_basis": "estimated_area; statistical intervals are not certified geometric bounds",
+          "reason": null
+        },
+        "connector_status": "INITIALIZED"
+      },
+      {
+        "a": "part_000",
+        "b": "part_005",
+        "distance_mm": 0.0,
+        "distance_method": "manifold_intersection",
+        "area": {
+          "status": "PASS",
+          "edge": true,
+          "minimum_facing_area_mm2": 0.4259166103326025,
+          "facing_area_estimate_mm2": 37.15163812156675,
+          "facing_area_interval_mm2": [
+            36.73634056522894,
+            37.569428370219995
+          ],
+          "threshold_in_sampling_interval": false,
+          "directional_areas": [
+            {
+              "area_estimate_mm2": 37.96038747121613,
+              "area_interval_mm2": [
+                37.64884312667407,
+                38.2722664790483
+              ],
+              "sampling_area_mm2": 81.63052740889947,
+              "sample_count": 65536,
+              "hit_count": 30476,
+              "seed": 0,
+              "is_exact_zero": false,
+              "threshold_in_sampling_interval": false,
+              "stop_reason": "fixed_surface_samples_completed"
+            },
+            {
+              "area_estimate_mm2": 37.15163812156675,
+              "area_interval_mm2": [
+                36.73634056522894,
+                37.569428370219995
+              ],
+              "sampling_area_mm2": 116.83156218498073,
+              "sample_count": 65536,
+              "hit_count": 20840,
+              "seed": 0,
+              "is_exact_zero": false,
+              "threshold_in_sampling_interval": false,
+              "stop_reason": "fixed_surface_samples_completed"
+            }
+          ],
+          "method": "area_weighted_surface_sampling_v1",
+          "decision_basis": "estimated_area; statistical intervals are not certified geometric bounds",
+          "reason": null
+        },
+        "connector_status": "INITIALIZED"
+      },
+      {
+        "a": "part_001",
+        "b": "part_002",
+        "distance_mm": 0.0,
+        "distance_method": "manifold_intersection",
+        "area": {
+          "status": "PASS",
+          "edge": true,
+          "minimum_facing_area_mm2": 0.4259166103326025,
+          "facing_area_estimate_mm2": 17.88869908797893,
+          "facing_area_interval_mm2": [
+            16.948888837629237,
+            18.879514862384106
+          ],
+          "threshold_in_sampling_interval": false,
+          "directional_areas": [
+            {
+              "area_estimate_mm2": 17.88869908797893,
+              "area_interval_mm2": [
+                16.948888837629237,
+                18.879514862384106
+              ],
+              "sampling_area_mm2": 905.9921046598047,
+              "sample_count": 65536,
+              "hit_count": 1294,
+              "seed": 0,
+              "is_exact_zero": false,
+              "threshold_in_sampling_interval": false,
+              "stop_reason": "fixed_surface_samples_completed"
+            },
+            {
+              "area_estimate_mm2": 21.920436562621607,
+              "area_interval_mm2": [
+                20.633808655106716,
+                23.285927647217893
+              ],
+              "sampling_area_mm2": 1389.3401649593516,
+              "sample_count": 65536,
+              "hit_count": 1034,
+              "seed": 0,
+              "is_exact_zero": false,
+              "threshold_in_sampling_interval": false,
+              "stop_reason": "fixed_surface_samples_completed"
+            }
+          ],
+          "method": "area_weighted_surface_sampling_v1",
+          "decision_basis": "estimated_area; statistical intervals are not certified geometric bounds",
+          "reason": null
+        },
+        "connector_status": "INITIALIZED"
+      },
+      {
+        "a": "part_001",
+        "b": "part_003",
+        "distance_mm": 34.95562246775375,
+        "distance_method": "fcl_triangle_distance"
+      },
+      {
+        "a": "part_001",
+        "b": "part_004",
+        "distance_mm": 12.087419833956046,
+        "distance_method": "fcl_triangle_distance"
+      },
+      {
+        "a": "part_001",
+        "b": "part_005",
+        "distance_mm": 12.126969164004423,
+        "distance_method": "fcl_triangle_distance"
+      },
+      {
+        "a": "part_002",
+        "b": "part_003",
+        "distance_mm": 34.74510987384163,
+        "distance_method": "fcl_triangle_distance"
+      },
+      {
+        "a": "part_002",
+        "b": "part_004",
+        "distance_mm": 11.458372149806868,
+        "distance_method": "fcl_triangle_distance"
+      },
+      {
+        "a": "part_002",
+        "b": "part_005",
+        "distance_mm": 11.323506562690808,
+        "distance_method": "fcl_triangle_distance"
+      },
+      {
+        "a": "part_003",
+        "b": "part_004",
+        "distance_mm": 42.09060986209006,
+        "distance_method": "fcl_triangle_distance"
+      },
+      {
+        "a": "part_003",
+        "b": "part_005",
+        "distance_mm": 41.58135651089855,
+        "distance_method": "fcl_triangle_distance"
+      },
+      {
+        "a": "part_004",
+        "b": "part_005",
+        "distance_mm": 52.132466669395825,
+        "distance_method": "fcl_triangle_distance"
+      }
+    ],
+    "connectors": [
+      {
+        "edge": "part_000--part_001",
+        "donor": "part_000",
+        "receiver": "part_001",
+        "status": "SKIPPED",
+        "reason": "THIRD_PART_INTERFERENCE",
+        "warnings": []
+      },
+      {
+        "edge": "part_000--part_002",
+        "donor": "part_002",
+        "receiver": "part_000",
+        "status": "SKIPPED",
+        "reason": "THIRD_PART_INTERFERENCE",
+        "warnings": []
+      },
+      {
+        "edge": "part_000--part_003",
+        "status": "PLACED",
+        "warnings": [
+          {
+            "code": "INSUFFICIENT_RECEIVER_MATERIAL",
+            "missing_volume_mm3": 0.07580059360154012
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_001"
+            ],
+            "volume_mm3": 3.446804186809474e-06
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_002"
+            ],
+            "volume_mm3": 2.4119535595333543e-06
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_003"
+            ],
+            "volume_mm3": 4.489142027643396e-06
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_004"
+            ],
+            "volume_mm3": 1.4710943970552017e-06
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_005"
+            ],
+            "volume_mm3": 1.3062127872464444e-06
+          }
+        ],
+        "anchor": [
+          4.864920656737872,
+          0.7092301676918955,
+          131.71412002204937
+        ],
+        "axis": [
+          0.44559552491552024,
+          -0.02174659862866823,
+          -0.8949702305794007
+        ],
+        "donor": "part_003",
+        "receiver": "part_000",
+        "T": [
+          [
+            -0.8951819278912014,
+            0.009692479159315093,
+            0.44559552491552024,
+            4.864920656737872
+          ],
+          [
+            0.0,
+            0.9997635147614078,
+            -0.02174659862866823,
+            0.7092301676918955
+          ],
+          [
+            -0.44570092660548927,
+            -0.019467162085487384,
+            -0.8949702305794007,
+            131.71412002204937
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "radius": 1.0110390026098133,
+        "length": 1.6455712933102429,
+        "clearance": 0.1645571293310243,
+        "overhang": 0.49367138799307286,
+        "head_thickness": 0.6582285173240972,
+        "headed": true
+      },
+      {
+        "edge": "part_000--part_004",
+        "status": "PLACED",
+        "warnings": [
+          {
+            "code": "INSUFFICIENT_RECEIVER_MATERIAL",
+            "missing_volume_mm3": 0.03159524695206697
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_001"
+            ],
+            "volume_mm3": 3.446804186809474e-06
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_002"
+            ],
+            "volume_mm3": 2.4119535595333543e-06
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_003"
+            ],
+            "volume_mm3": 4.489142027643396e-06
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_004"
+            ],
+            "volume_mm3": 1.4710943970552017e-06
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_005"
+            ],
+            "volume_mm3": 1.3062127872464444e-06
+          }
+        ],
+        "anchor": [
+          3.851023989183303,
+          -28.833087347514475,
+          89.56485256905454
+        ],
+        "axis": [
+          0.4330265470168335,
+          0.28589856499295535,
+          0.8548391779239223
+        ],
+        "donor": "part_004",
+        "receiver": "part_000",
+        "T": [
+          [
+            0.8920744672221225,
+            -0.12919425106808935,
+            0.4330265470168335,
+            3.851023989183303
+          ],
+          [
+            0.0,
+            0.9582598867400061,
+            0.28589856499295535,
+            -28.833087347514475
+          ],
+          [
+            -0.451888420885473,
+            -0.25504281004566,
+            0.8548391779239223,
+            89.56485256905454
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "radius": 1.0110390026098133,
+        "length": 1.6455712933102429,
+        "clearance": 0.1645571293310243,
+        "overhang": 0.49367138799307286,
+        "head_thickness": 0.6582285173240972,
+        "headed": true
+      },
+      {
+        "edge": "part_000--part_005",
+        "status": "PLACED",
+        "warnings": [
+          {
+            "code": "INSUFFICIENT_RECEIVER_MATERIAL",
+            "missing_volume_mm3": 0.04628213525167126
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_001"
+            ],
+            "volume_mm3": 3.446804186809474e-06
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_002"
+            ],
+            "volume_mm3": 2.4119535595333543e-06
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_003"
+            ],
+            "volume_mm3": 4.489142027643396e-06
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_004"
+            ],
+            "volume_mm3": 1.4710943970552017e-06
+          },
+          {
+            "code": "ASSEMBLY_INTERSECTION",
+            "parts": [
+              "part_000",
+              "part_005"
+            ],
+            "volume_mm3": 1.3062127872464444e-06
+          }
+        ],
+        "anchor": [
+          4.336500943370758,
+          29.202883390001396,
+          89.03759573685994
+        ],
+        "axis": [
+          0.3746431807892545,
+          -0.31700347258600053,
+          0.8712928815596549
+        ],
+        "donor": "part_005",
+        "receiver": "part_000",
+        "T": [
+          [
+            0.9186740692676427,
+            0.12522156980065516,
+            0.3746431807892545,
+            4.336500943370758
+          ],
+          [
+            0.0,
+            0.9484243767261662,
+            -0.31700347258600053,
+            29.202883390001396
+          ],
+          [
+            -0.395016397704235,
+            0.2912228701325547,
+            0.8712928815596549,
+            89.03759573685994
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "radius": 1.0110390026098133,
+        "length": 1.6455712933102429,
+        "clearance": 0.1645571293310243,
+        "overhang": 0.49367138799307286,
+        "head_thickness": 0.6582285173240972,
+        "headed": true
+      },
+      {
+        "edge": "part_001--part_002",
+        "donor": "part_002",
+        "receiver": "part_001",
+        "status": "SKIPPED",
+        "reason": "THIRD_PART_INTERFERENCE",
+        "warnings": []
+      }
+    ],
+    "placed_count": 3,
+    "skipped_count": 3
+  },
+  "rigid_flex_input_triangles": {
+    "part_000": 122850,
+    "part_001": 178604,
+    "part_002": 31154,
+    "part_003": 29904,
+    "part_004": 15322,
+    "part_005": 15362
+  },
+  "total_rigid_flex_input_triangles": 393196,
+  "engine_element_count": null,
+  "engine_element_count_reason": "Initialization failed before runtime metadata was saved",
+  "failed_stage": "rollout",
+  "error_type": "FatalError",
+  "error": "mj_stackAlloc: out of memory, stack overflow at mj_collideTree, line 1250\n  max = 3949320, available = 1484912, requested = 7400036\n nefc = 0, ncon = 0",
+  "rollout_attempt_wall_seconds": 80.31522943684831,
+  "simulated_seconds": null,
+  "initialization_failed": true,
+  "gravity_rollout_complete": false,
+  "stable": null,
+  "cem": {
+    "status": "NOT_RUN",
+    "wall_seconds": null,
+    "evaluations": 0
+  },
+  "final_export": {
+    "status": "NOT_RUN"
+  },
+  "final_zero_gravity": {
+    "status": "NOT_RUN",
+    "valid": null
+  },
+  "retained_cgr_asset": {
+    "path": "runs/first_real_DensiCrafter_124_flow_v2/assembly/cgr/assembly.glb",
+    "sha256": "ba2bbbd07d7f11b2cba60e7fe1166414569b45bb4bf7f8eac87af6ec294529a8"
+  },
+  "tests": {
+    "primary": "71 passed in 14.19s",
+    "supplementary": "71 passed in 15.77s",
+    "primary_command": "OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 PYTHONPATH=. python -m pytest -q tests",
+    "meshfix_smoke": {
+      "status": "PASS",
+      "pymeshfix_version": "0.18.1",
+      "watertight": true,
+      "methods": [
+        "trimesh.fill_holes",
+        "pymeshfix.repair"
+      ]
+    }
+  }
+}

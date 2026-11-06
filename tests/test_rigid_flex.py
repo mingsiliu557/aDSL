@@ -29,7 +29,7 @@ def parts():
 
 def run(meshes=None,*,clearance=.1,config=None,**kwargs):
     return physics.rollout(parts() if meshes is None else meshes,D=150.,config=CFG['rollout'] if config is None else config,
-        coacd_config=CFG['coacd'],clearance_mm=clearance,fixed_ids=['receiver'],**kwargs)
+        clearance_mm=clearance,fixed_ids=['receiver'],**kwargs)
 
 
 def test_vendor_source_provenance_and_complete_xml_ast():
@@ -54,7 +54,7 @@ def test_vendor_source_provenance_and_complete_xml_ast():
 def test_rigid_flex_xml_display_disabled_radius_and_com_frame(clearance,expected):
     result=run(clearance=clearance,initial_only=True)
     assert result['status']=='PASS' and result['collision_backend']=='rigid_flex'
-    assert result['proxy_counts']=={} and result['simulation_performed'] is False
+    assert result['simulation_performed'] is False
     root=ET.fromstring(result['xml'])
     displays=root.findall('./worldbody/body/geom')
     assert len(displays)==2
@@ -112,33 +112,19 @@ def test_contact_ids_resolve_flex_and_ground_without_negative_index():
     assert physics._contact_bodies(model,contact,{0:7})==(7,0)
 
 
-def test_rigid_flex_pipeline_skips_every_proxy_builder(tmp_path,monkeypatch):
+def test_rigid_flex_pipeline_runs_one_gravity_call(tmp_path,monkeypatch):
     from snap3d import pipeline
     from snap3d.common import write_json,digest,code_identity
+    from test_first_real import observation
     write_json(tmp_path/'case.json',dict(D_mm=150.,config_sha256=digest(CFG),code_identity=code_identity()))
-    write_json(tmp_path/'cgr/stage.json',dict(status='PASS'))
     write_json(tmp_path/'cgr/contact.json',dict(edges=[],parameters={},connectors=[]))
     monkeypatch.setattr(pipeline,'load_parts',lambda _:parts())
-    def forbidden(*a,**k):raise AssertionError('rigid_flex must not build or verify zone proxies')
-    monkeypatch.setattr(pipeline,'build_zone_proxies',forbidden)
-    monkeypatch.setattr(pipeline,'verify_zone_proxies',forbidden)
     calls=[]
-    def fake(*a,**k):
-        calls.append(k)
-        meshes=a[0]
-        poses={key:dict(position_mm=mesh.center_mass.tolist(),rotation=np.eye(3).tolist()) for key,mesh in meshes.items()}
-        return dict(status='PASS',reason=None,stable=True,fixed_ids=['receiver'],
-            metrics={key:dict(max_displacement_mm=0.,max_rotation_rad=0.) for key in meshes},
-            frames=[copy.deepcopy(poses),copy.deepcopy(poses)],
-            flex_element_count=24,initial_contact={'affects_verdict':False})
+    def fake(meshes,**kwargs):calls.append(kwargs);return observation(meshes)
     monkeypatch.setattr(pipeline,'rollout',fake)
     pipeline.evaluate_geometry(tmp_path,CFG,stage='rollout')
-    assert len(calls)==2 and all(c['proxy_cache'] is None for c in calls)
-    assert calls[0]['config']['gravity']==0. and calls[1]['config']==CFG['rollout']
-    result=json.loads((tmp_path/'rollout/result.json').read_text())
-    assert result['status']=='PASS'
-    evidence=json.loads((tmp_path/'rollout/proxy_check_0000.json').read_text())
-    assert evidence['collision_backend']=='rigid_flex' and evidence['proxy_construction'] is False
+    assert len(calls)==1 and calls[0]['config']['gravity']==9.81
+    assert json.loads((tmp_path/'rollout/result.json').read_text())['status']=='PASS'
 
 
 @pytest.mark.parametrize('zero_status',['PASS','UNAVAILABLE'])
@@ -156,7 +142,6 @@ def test_rigid_flex_gate_stops_and_runs_only_coplanar_control(tmp_path,monkeypat
             initial_contact={'affects_verdict':False},initial_contact_count=1,max_contact_count=1,final_contact_count=1)
     monkeypatch.setattr(module,'rollout',fake)
     def forbidden(*a,**k):raise AssertionError('no zone builder in rigid_flex gate')
-    monkeypatch.setattr(module,'build_zone_proxies',forbidden)
     report=module.rigid_flex_gate(tmp_path,CFG)
     assert report['status']=='FAIL' and report['not_run']==['no_head','headed']
     assert len(calls)==3 and report['coplanar_control']['diagnostic_only']
@@ -171,7 +156,7 @@ def test_rigid_flex_gate_stops_and_runs_only_coplanar_control(tmp_path,monkeypat
 def test_default_backend_and_real_rigid_flex_free_fall():
     assert CFG['rollout']['collision_backend']=='rigid_flex'
     result=run(config=dict(CFG['rollout'],duration=.03))
-    assert result['status']=='PASS' and result['proxy_counts']=={}
+    assert result['status']=='PASS'
     assert result['metrics']['receiver']['max_displacement_mm']==0
     assert result['frames'][-1]['peg']['position_mm'][2]<result['frames'][0]['peg']['position_mm'][2]
     assert result['initial_contact']['affects_verdict'] is False

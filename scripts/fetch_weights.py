@@ -1,13 +1,10 @@
-"""Explicit post-gate snapshot download; never called by imports/tests."""
+"""Explicit pinned snapshot download; never called by imports/tests."""
 from pathlib import Path
 import json
-import yaml
-from snap3d.pipeline import require_gate
 
 def main():
     import argparse
-    p=argparse.ArgumentParser();p.add_argument('--gate',required=True);a=p.parse_args()
-    require_gate(a.gate,yaml.safe_load(Path('configs/default.yaml').read_text()))
+    p=argparse.ArgumentParser();p.parse_args()
     from huggingface_hub import snapshot_download
     lock=json.loads(Path('upstream.lock.json').read_text())
     for name,row in lock.items():

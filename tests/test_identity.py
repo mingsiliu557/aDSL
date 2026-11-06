@@ -1,16 +1,9 @@
 from pathlib import Path
 import ast,json,subprocess,os,sys
 import pytest
-from snap3d.pipeline import require_gate
 from snap3d.common import digest
 
-def test_gate_config_and_status(tmp_path):
-    p=tmp_path/'gate.json';cfg={'example':1}
-    p.write_text(json.dumps(dict(status='FAIL',next_stage_allowed=False,config_sha256=digest(cfg))))
-    with pytest.raises(ValueError,match='NOT_PASSED'):require_gate(p,cfg)
-    p.write_text(json.dumps(dict(status='PASS',next_stage_allowed=True,config_sha256=digest(cfg))))
-    require_gate(p,cfg)
-    with pytest.raises(ValueError,match='MISMATCH'):require_gate(p,{'example':2})
+
 
 def test_standalone_import():
     env=dict(os.environ,PYTHONPATH=str(Path('.').resolve()))

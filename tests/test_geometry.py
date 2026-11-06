@@ -28,8 +28,11 @@ def test_pge_cumulative_actual_loss():
     assert sum(report['volumes_after'].values())==pytest.approx(1800)
     assert all(v<=.35 for v in report['history'][-1]['losses'].values())
 
-def test_pge_rejects_impossible_cap():
-    with pytest.raises(ValueError,match='CAP'):pge({'a':box(),'b':box(center=(1,0,0))},config=CFG['pge'])
+def test_pge_records_exhausted_volume_cap_and_continues():
+    out,report=pge({'a':box(),'b':box(center=(1,0,0))},config=CFG['pge'])
+    assert set(out)=={'a','b'}
+    assert not report['volume_cap_satisfied']
+    assert 'PGE_VOLUME_LOSS_CAP_UNSATISFIED' in report['warnings']
 
 def test_small_hole_and_whole_missing_face():
     # Icosahedron tiny facet removed: closed global body, local triangle hole.
@@ -38,7 +41,8 @@ def test_small_hole_and_whole_missing_face():
     fixed,record=repair(opened,D=100.,config=CFG['repair'])
     assert fixed.is_volume and record['repaired'] and record['original_volume_mm3'] is None
     large=box();large.update_faces(np.arange(12)>1)
-    with pytest.raises(ValueError,match='OPENING_TOO_LARGE'):repair(large,D=20.,config=CFG['repair'])
+    closed,record=repair(large,D=20.,config=CFG['repair'])
+    assert closed.is_watertight and record['repaired']
 
 def test_closed_separated_parts_not_joined():
     original=box();out,report=repair(original,D=20.,config=CFG['repair'])

@@ -1,18 +1,19 @@
-protocol: snap3d_formula_mujoco_coacd_v1
+protocol: snap3d_formula_mujoco_rigid_flex_v2
 seed: 42
 scale_mm: 150.0
 contact: {delta_ratio: 0.005, area_ratio: 0.000015, grid_ratio: 0.001953125}
-repair: {diameter_ratio: 0.01, planarity_ratio: 0.0001}
+repair: {}  # trimesh / PyMeshFix closure; interventions recorded.
 pge:
   max_loss: 0.35
   wf: 3.0
   wv: 3.0
   ws: 0.5
   # Appendix B specifies local-sliver cleanup, but not its implementation.
-  # Our chosen strict volume cutoff is one cell of its 256^3 editing grid.
+  # Our chosen thin-sliver rule: new fragments with mean thickness 2V/A < D/256.
+  # This thickness cutoff is our implementation detail, not a published threshold.
   # https://arxiv.org/html/2609.13146 (Appendix B, geometry editing)
   editing_grid_resolution: 256
-  sliver_volume_cells: 1.0
+  sliver_thickness_cells: 1.0
 connector: {clearance_ratio: 0.0009765625, overhang_ratio: 0.0029296875, min_radius_ratio: 0.006, min_length_ratio: 0.009765625, head_thickness_ratio: 0.00390625, cone_deg: 55}
 rollout:
   # Simulation values: aDSL fabrication_ablation@9e1f01d,
@@ -26,7 +27,10 @@ rollout:
   density: 1240.0
   friction: [0.5, 0.005, 0.0001]
   integrator: implicitfast
-  ground_ratio: 0.000001
+  # Pin parts whose lowest point is within contact delta of the ground.
+  ground_ratio: 0.005
+  # Soft-contact adaptation, not the IPC intersection-free predicate.
+  final_penetration_ratio: 0.00390625  # D/256
   displacement_ratio: 0.05859375
   rotation_deg: 10.0
 gate:
@@ -34,16 +38,6 @@ gate:
   # Appendix B (Scale and fixed settings): one cell = D/256.
   # https://arxiv.org/html/2609.13146 (Appendices A and B)
   zero_gravity_displacement_ratio: 0.001953125  # 0.5/256; fixed-body bound remains 1e-4 D.
-coacd:
-  far_threshold_ratio: 0.01
-  seed: 42
-  max_convex_hull: -1
-  resolution: 2000
-  mcts_nodes: 20
-  mcts_iterations: 150
-  mcts_max_depth: 3
-  pca: false
-  merge: true
 cem:
   population: 32
   elite: 8

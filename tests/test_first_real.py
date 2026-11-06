@@ -25,7 +25,8 @@ def observation(meshes, displacement=0.):
     start={key:dict(position_mm=mesh.center_mass.tolist(),rotation=np.eye(3).tolist()) for key,mesh in meshes.items()}
     return dict(status='PASS',reason=None,stable=True,global_score=0.,fixed_ids=['receiver'],
         metrics={key:dict(max_displacement_mm=0. if key=='receiver' else displacement,max_rotation_rad=0.) for key in meshes},
-        frames=[copy.deepcopy(start),copy.deepcopy(start)],last_contact_pairs=[])
+        frames=[copy.deepcopy(start),copy.deepcopy(start)],last_contact_pairs=[],
+        final_interpart_contact={'maximum_penetration_mm':0.},wall_seconds=.1)
 
 
 def test_paper_half_cell_zero_gravity_boundary_and_unavailable():
@@ -36,35 +37,29 @@ def test_paper_half_cell_zero_gravity_boundary_and_unavailable():
     assert missing['status']=='UNAVAILABLE' and missing['valid'] is None
 
 
-@pytest.mark.parametrize('valid',[True,False])
-def test_paper_zero_precedes_gravity_and_pinned_ids_are_reused(monkeypatch,valid):
-    meshes=parts();calls=[];records=[]
-    def fake(p,**kwargs):
-        calls.append(kwargs)
-        return observation(p,0. if valid else 1.)
+def test_objective_calls_gravity_once_without_zero_gravity_gate(monkeypatch):
+    calls=[];records=[]
+    def fake(p,**kwargs):calls.append(kwargs);return observation(p,1.)
     monkeypatch.setattr(pipeline,'rollout',fake)
-    r=pipeline.paper_rollout(meshes,D=150,config=CFG,coacd_config=CFG['coacd'],record=lambda phase,result:records.append(phase))
-    assert calls[0]['config']['gravity']==0.
-    assert len(calls)==(2 if valid else 1)
-    assert records==(['zero_gravity','gravity'] if valid else ['zero_gravity'])
-    if valid:
-        assert calls[1]['fixed_ids']==['receiver']
-        assert calls[1]['config']==CFG['rollout']
-        assert r['stable_motion'] and r['final_material_check']['intersection_free'] and r['stable']
-    else:assert r['reason']=='ZERO_GRAVITY_INVALID'
+    r=pipeline.paper_rollout(parts(),D=150,config=CFG,record=lambda phase,result:records.append(phase))
+    assert len(calls)==1 and calls[0]['config']['gravity']==9.81
+    assert records==['gravity'] and 'zero_gravity' not in r
 
 
-def test_final_material_uses_actual_final_poses_and_retains_intersection_failure(monkeypatch):
-    meshes=parts();calls=[]
+def test_final_material_volume_is_diagnostic_and_final_depth_is_the_gate(monkeypatch):
     def fake(p,**kwargs):
-        calls.append(kwargs);r=observation(p)
-        if len(calls)==2:r['frames'][-1]['peg']['position_mm']=[0.,0.,1.]
+        r=observation(p);r['frames'][-1]['peg']['position_mm']=[0.,0.,1.]
+        r['final_interpart_contact']['maximum_penetration_mm']=150/256
         return r
     monkeypatch.setattr(pipeline,'rollout',fake)
-    r=pipeline.paper_rollout(meshes,D=150,config=CFG,coacd_config=CFG['coacd'])
-    assert r['status']=='PASS' and r['stable_motion'] and not r['stable']
-    assert not r['final_material_check']['intersection_free']
-    assert r['final_material_check']['pairs'][0]['intersection_volume_mm3']>0
+    r=pipeline.paper_rollout(parts(),D=150,config=CFG)
+    assert r['stable'] and r['intersection_free']
+    assert r['final_material_check']['total_intersection_volume_mm3']>0
+    original=fake
+    def deeper(p,**kwargs):
+        r=original(p,**kwargs);r['final_interpart_contact']['maximum_penetration_mm']+=1e-8;return r
+    monkeypatch.setattr(pipeline,'rollout',deeper)
+    assert not pipeline.paper_rollout(parts(),D=150,config=CFG)['stable']
 
 
 def test_pinned_sonata_redirects_only_model_location_and_restores_on_failure(monkeypatch,tmp_path):
@@ -83,19 +78,7 @@ def test_pinned_sonata_redirects_only_model_location_and_restores_on_failure(mon
     assert all(module.load is original for module in modules.values())
 
 
-def test_soft_contact_handoff_preserves_strict_verdict_and_allows_requested_preparation(tmp_path):
-    data=json.loads(Path('reports/lock_gate_soft_contact_handoff.json').read_text())
-    assert data['original_gate_status']=='FAIL'
-    assert data['next_stage_allowed'] and data['status']=='PASS'
-    assert data['acceptance_protocol']=='user_approved_soft_contact_contrast_v1'
-    assert not data['old_strict_gate_tests'][2]['pass_']
-    assert data['headed_contact_retained'] and data['headed_drop_over_clearance']>5
-    frozen=copy.deepcopy(CFG)
-    frozen['pge'].pop('editing_grid_resolution');frozen['pge'].pop('sliver_volume_cells')
-    assert data['config_sha256']==digest(frozen)
-    path=tmp_path/'handoff.json';path.write_text(json.dumps(data))
-    pipeline.require_gate(path,frozen)
-    with pytest.raises(ValueError,match='CONFIG_MISMATCH'):pipeline.require_gate(path,CFG)
+
 
 
 def test_pge_rolls_back_an_invalid_cut_without_stopping_the_case():

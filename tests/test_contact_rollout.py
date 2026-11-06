@@ -8,7 +8,6 @@ from snap3d.connector import rebuild
 from snap3d.rollout import rollout,relative_score,select_edges
 from snap3d.vendor import mesh_solid,checked
 CFG=yaml.safe_load(Path('configs/default.yaml').read_text())
-CFG['rollout']['collision_backend']='zone_proxy'
 
 def box(extents,center):
     m=trimesh.creation.box(extents);m.apply_translation(center);return m
@@ -41,8 +40,8 @@ def test_contact_area_and_anchor():
 
 def test_real_mujoco_ground_fixed_free_falls():
     parts={'grounded':box([10,10,10],[0,0,5]),'free':box([2,2,2],[20,0,12])}
-    result=rollout(parts,D=30,config=dict(CFG['rollout'],duration=.03),coacd_config=CFG['coacd'],clearance_mm=.03,
-                   proxy_cache={i:[m] for i,m in parts.items()})
+    result=rollout(parts,D=30,config=dict(CFG['rollout'],duration=.03),clearance_mm=.03,
+)
     assert result['status']=='PASS'
     assert result['fixed_ids']==['grounded']
     np.testing.assert_allclose(result['frames'][0]['free']['position_mm'],[20,0,12])
@@ -50,8 +49,8 @@ def test_real_mujoco_ground_fixed_free_falls():
     assert result['frames'][-1]['free']['position_mm'][2]<12
     assert 'last_contact_pairs' in result
 
-def test_missing_ground_and_no_free():
+def test_all_pinned_is_a_completed_static_simulation():
     part=box([2,2,2],[0,0,1])
-    kwargs=dict(D=4,config=CFG['rollout'],coacd_config=CFG['coacd'],clearance_mm=.01)
-    assert rollout({'x':part},fixed_ids=[],**kwargs)['reason']=='NO_GROUND_PARTS'
-    assert rollout({'x':part},**kwargs)['reason']=='NO_FREE_PARTS'
+    result=rollout({'x':part},D=4,config=dict(CFG['rollout'],duration=.002),clearance_mm=.01)
+    assert result['status']=='PASS' and result['stable'] and result['global_score']==0.
+    assert result['fixed_ids']==['x']

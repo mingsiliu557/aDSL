@@ -7,6 +7,9 @@ from .vendor.contact_area import facing_area, _sampling_surface
 from .vendor import mesh_solid,checked
 from .connector import basis
 
+class AnchorUnavailable(ValueError):
+    """An edge has no usable contact anchor; other edges remain usable."""
+
 def material_distance(a,b):
     overlap=checked(mesh_solid(a)^mesh_solid(b))
     if overlap.volume()>0: return 0.,'manifold_intersection'
@@ -18,7 +21,7 @@ def material_distance(a,b):
 
 def anchor(receiver,donor,*,D,delta,grid_ratio):
     surface,normals=_sampling_surface(receiver,donor,delta)
-    if surface is None: raise ValueError('NO_CONTACT_PATCH')
+    if surface is None: raise AnchorUnavailable('NO_CONTACT_PATCH')
     points,faces=trimesh.sample.sample_surface(surface,65536,seed=0)
     keep=[]
     for start in range(0,len(points),1024):
@@ -26,14 +29,14 @@ def anchor(receiver,donor,*,D,delta,grid_ratio):
         n=normals[faces[start:start+1024]]
         keep.extend(((d<=delta)&(np.einsum('ij,ij->i',n,donor.face_normals[t])<0)).tolist())
     keep=np.asarray(keep); points=points[keep]; ns=normals[faces[keep]]
-    if not len(points): raise ValueError('NO_CONTACT_SAMPLES')
+    if not len(points): raise AnchorUnavailable('NO_CONTACT_SAMPLES')
     normal=ns.mean(axis=0)
-    if np.linalg.norm(normal)<1e-6: raise ValueError('AMBIGUOUS_CONTACT_NORMAL')
+    if np.linalg.norm(normal)<1e-6: raise AnchorUnavailable('AMBIGUOUS_CONTACT_NORMAL')
     normal/=np.linalg.norm(normal); B=basis(-normal); center=points.mean(axis=0)
     uv=(points-center)@B[:,:2]; step=grid_ratio*D
     lo=uv.min(axis=0)-step; hi=uv.max(axis=0)+step
     sizes=np.ceil((hi-lo)/step).astype(int)+1
-    if np.prod(sizes)>2_000_000: raise ValueError('CONTACT_RASTER_TOO_LARGE')
+    if np.prod(sizes)>2_000_000: raise AnchorUnavailable('CONTACT_RASTER_TOO_LARGE')
     ij=np.indices(tuple(sizes)).reshape(2,-1).T; grid=lo+ij*step
     guesses=center+grid@B[:,:2].T; valid=np.zeros(len(grid),dtype=bool); projected=np.empty_like(guesses); faceids=np.empty(len(grid),dtype=int)
     for start in range(0,len(grid),1024):
@@ -42,7 +45,7 @@ def anchor(receiver,donor,*,D,delta,grid_ratio):
         sl=slice(start,start+len(q)); projected[sl]=q;faceids[sl]=tr
         valid[sl]=(dr<=step)&(dd<=delta)&(np.einsum('ij,ij->i',receiver.face_normals[tr],donor.face_normals[td])<0)
     mask=valid.reshape(tuple(sizes)); mask[[0,-1],:]=False;mask[:,[0,-1]]=False
-    if not mask.any(): raise ValueError('CONTACT_PATCH_BELOW_RASTER_RESOLUTION')
+    if not mask.any(): raise AnchorUnavailable('CONTACT_PATCH_BELOW_RASTER_RESOLUTION')
     distances=distance_transform_edt(mask); k=int(np.argmax(distances))
     return projected[k],-receiver.face_normals[faceids[k]],float(distances.ravel()[k]*step)
 
@@ -54,7 +57,12 @@ def contact_graph(parts, *, D, config, connector_config):
             area=facing_area(parts[a],parts[b],delta_mm=delta,minimum_area_mm2=config['area_ratio']*D*D);row['area']=area
             if area['edge']:
                 donor,receiver=sorted([a,b],key=lambda i:(parts[i].volume,i))
-                p,n,margin=anchor(parts[receiver],parts[donor],D=D,delta=delta,grid_ratio=config['grid_ratio'])
+                try:
+                    p,n,margin=anchor(parts[receiver],parts[donor],D=D,delta=delta,grid_ratio=config['grid_ratio'])
+                except AnchorUnavailable as error:
+                    row.update(connector_status='SKIPPED',reason=str(error));pairs.append(row);continue
+                if not np.isfinite([*p,*n,margin]).all():raise ValueError('NONFINITE_ANCHOR')
+                row['connector_status']='INITIALIZED'
                 edges.append(dict(id=f'{a}--{b}',a=a,b=b,donor=donor,receiver=receiver,anchor=p.tolist(),inward=n.tolist(),patch_inradius_mm=margin))
         pairs.append(row)
     theta={e['id']:[0.,0.,0.,0.,connector_config['min_radius_ratio']*D,connector_config['min_length_ratio']*D] for e in edges}
