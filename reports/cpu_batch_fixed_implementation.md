@@ -47,3 +47,13 @@ mesh repair outside the existing per-case flow or standalone rollout is started.
 The five-item method-deviation table and zero-gravity explanation remain in each
 batch report. Thin-shell separation/drift is a supported mechanism, not an
 unmeasured claim that it dominates every final-invalid case.
+
+## Verified launch
+
+Implementation: `57ac7a2`. **101 tests passed in 9.16 s** in the implementation
+workspace. The frozen controller was started in tmux with the fixed 3×4/512M
+configuration. The first three cases reached CGR; no standalone calibration was
+run. The known previous failure remains terminal with NONMANIFOLD_AFTER_PGE.
+`cpu_batch_fixed_summary_snapshot.csv` is an explicitly incomplete 100-row launch
+snapshot; the run directory's CSV/report/resource files update automatically.
+No batch success rate is reported while cases are pending.
