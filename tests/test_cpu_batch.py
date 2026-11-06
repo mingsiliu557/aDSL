@@ -69,3 +69,42 @@ def test_summary_has_stage_metrics_and_unchanged_failure_causes(tmp_path):
     assert result['simplify_total_faces_after']==400000
     assert result['pge_rolled_back_cut_count']==1 and result['connectors_skipped']==2
     assert result['final_stable'] is None and result['reason']=='SIMULATION_ERROR'
+
+
+def test_low_memory_waits_only_before_dispatch(tmp_path,monkeypatch):
+    batch.STOP_EVENT.clear();values=iter([3*2**30,5*2**30]);waits=[]
+    monkeypatch.setattr(batch,'memory_availability',lambda:dict(available_bytes=next(values)))
+    monkeypatch.setattr(batch.STOP_EVENT,'wait',lambda seconds:waits.append(seconds))
+    assert batch.wait_for_memory(tmp_path,'demo') is True
+    assert waits==[5.] and batch.read(tmp_path/'memory_dispatch.json')['paused'] is False
+
+
+def test_nonmanifold_after_pge_is_classified_without_repair(tmp_path):
+    batch.write(tmp_path/'current_stage.json',{'stage':'cgr'});batch.write(tmp_path/'pge/stage.json',{'status':'PASS'})
+    error=ValueError('INPUT_GEOMETRY_INVALID');error.diagnostic={'code':'INPUT_GEOMETRY_INVALID','metrics':{'nonmanifold_vertices':6}}
+    assert batch.classify_failure(error,tmp_path)=='NONMANIFOLD_AFTER_PGE'
+    batch.write(tmp_path/'current_stage.json',{'stage':'repair'})
+    assert batch.classify_failure(error,tmp_path)=='INPUT_GEOMETRY_INVALID'
+
+
+def test_failure_summary_lists_simplification_for_nonmanifold_cases(tmp_path):
+    batch.write(tmp_path/'inputs.json',{'cases':[{'case_id':'demo'}]})
+    batch.write(tmp_path/'cases/demo/case_status.json',{'status':'FAILED','reason':'NONMANIFOLD_AFTER_PGE'})
+    batch.write(tmp_path/'cases/demo/assembly/simplify/manifest.json',{'metadata':{
+        'simplification_requested':True,'total_faces_before':500000,'total_faces_after':400000,
+        'parts':[{'unchanged':False}],'fallback_parts':[]}})
+    result=batch.summarize(tmp_path)
+    assert result['nonmanifold_after_pge_count']==1
+    assert result['nonmanifold_after_pge_cases'][0]['simplify_applied'] is True
+    assert result['failures_by_reason']['NONMANIFOLD_AFTER_PGE']==['demo']
+
+
+def test_worker_events_record_os_peak_rss_and_pid(tmp_path,monkeypatch):
+    from snap3d import pipeline
+    monkeypatch.setattr(pipeline,'paper_rollout',lambda *a,**k:dict(status='PASS',wall_seconds=1.,stable=True,global_score=.5))
+    monkeypatch.setattr(pipeline,'relative_score',lambda *a,**k:.5)
+    job=dict(generation=0,candidate_index=1,family=None,index=0,output=str(tmp_path),parts={},D=150.,
+        config={'rollout':{}},fixed_ids=[],model_path=None,a='a',b='b',checks=[])
+    pipeline._simulate_candidate(job)
+    event=batch.read(tmp_path/'worker_0000.json')
+    assert event['status']=='COMPLETE' and event['pid']>0 and event['peak_rss_bytes']>0

@@ -1,6 +1,6 @@
 """File-based formula reimplementation; edge failures do not gate the case."""
 from pathlib import Path
-import argparse,json,time
+import argparse,json,time,os,resource
 import numpy as np
 import trimesh
 import yaml
@@ -82,17 +82,17 @@ def _simulate_candidate(job):
     def event(**fields):
         pending=path.with_suffix('.tmp')
         write_json(pending,dict(meta,**fields));pending.replace(path)
-    event(status='RUNNING')
+    event(status='RUNNING',pid=os.getpid())
     try:
         result=paper_rollout(job['parts'],D=job['D'],config=job['config'],fixed_ids=job['fixed_ids'],model_path=job['model_path'])
         if result['status']!='PASS':
             raise RuntimeError('ROLLOUT_FAILED: '+str(result.get('detail',result.get('reason'))))
         score=relative_score(result,job['a'],job['b'],D=job['D'],config=job['config']['rollout'])
-        event(status='COMPLETE',wall_seconds=result['wall_seconds'],stable=result['stable'])
+        event(status='COMPLETE',wall_seconds=result['wall_seconds'],stable=result['stable'],pid=os.getpid(),peak_rss_bytes=int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)*1024)
         return dict(status='PASS',local_score=score,global_score=result['global_score'],
             rollout=result,connectors=job['checks'],candidate_meta=meta)
     except Exception as error:
-        event(status='FAILED',reason=type(error).__name__,detail=str(error))
+        event(status='FAILED',reason=type(error).__name__,detail=str(error),pid=os.getpid(),peak_rss_bytes=int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)*1024)
         raise
 
 

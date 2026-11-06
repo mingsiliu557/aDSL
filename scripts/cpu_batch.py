@@ -3,6 +3,7 @@ import argparse,concurrent.futures,copy,csv,datetime,hashlib,json,math,os,resour
 from pathlib import Path
 
 STOP_EVENT=threading.Event()
+DISPATCH_LOCK=threading.Lock()
 STAGES=['initialize','repair','simplify','pge','cgr','rollout','cem','export']
 
 def read(path,default=None):
@@ -20,6 +21,109 @@ def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 def immutable_config(config):
     result=copy.deepcopy(config);result['cem'].pop('workers',None);return result
+
+def memory_availability():
+    import psutil
+    system=int(psutil.virtual_memory().available);limits=[]
+    for line in Path('/proc/self/cgroup').read_text().splitlines():
+        _,controllers,relative=line.split(':',2)
+        if controllers=='':base=Path('/sys/fs/cgroup');names=('memory.current','memory.max','memory.stat')
+        elif 'memory' in controllers.split(','):base=Path('/sys/fs/cgroup/memory');names=('memory.usage_in_bytes','memory.limit_in_bytes','memory.stat')
+        else:continue
+        directory=base/relative.lstrip('/')
+        while directory.is_relative_to(base):
+            try:
+                raw=(directory/names[1]).read_text().strip()
+                if raw!='max' and int(raw)<2**60:
+                    used=int((directory/names[0]).read_text());stats=dict(l.split() for l in (directory/names[2]).read_text().splitlines())
+                    reclaimable=int(stats.get('total_inactive_file',stats.get('inactive_file',0)))
+                    limits.append(max(0,int(raw)-max(0,used-reclaimable)))
+            except (OSError,ValueError):pass
+            if directory==base:break
+            directory=directory.parent
+    cgroup=min(limits) if limits else None
+    return dict(system_available_bytes=system,cgroup_available_bytes=cgroup,
+        available_bytes=min(system,cgroup) if cgroup is not None else system)
+
+
+def wait_for_memory(root,case_id,threshold=4*2**30):
+    while not STOP_EVENT.is_set():
+        memory=memory_availability();paused=memory['available_bytes']<threshold
+        write(Path(root)/'memory_dispatch.json',dict(memory,paused=paused,case_id=case_id,
+            threshold_bytes=threshold,updated_at=time.time()))
+        if not paused:return True
+        STOP_EVENT.wait(5.)
+    return False
+
+
+def classify_failure(error,run):
+    diagnostic=getattr(error,'diagnostic',{});metrics=diagnostic.get('metrics',{})
+    stage=read(Path(run)/'current_stage.json',{}).get('stage')
+    post_pge=stage in ['cgr','rollout','cem','export'] and read(Path(run)/'pge/stage.json',{}).get('status')=='PASS'
+    if post_pge and (metrics.get('nonmanifold_edges',0)>0 or metrics.get('nonmanifold_vertices',0)>0):return 'NONMANIFOLD_AFTER_PGE'
+    if diagnostic.get('code'):return diagnostic['code']
+    import re
+    match=re.match(r'^([A-Z][A-Z0-9_]+)(?::|$)',str(error))
+    return match.group(1) if match else type(error).__name__
+
+
+class ResourceSampler:
+    """One-second observations; OS high-water RSS is recorded separately."""
+    def __init__(self,root):self.root=Path(root);self.stop=threading.Event();self.lock=threading.Lock()
+    def start(self):
+        self.value=dict(interval_seconds=1.,sample_count=0,host_memory_used_peak_bytes=0,host_cpu_peak_percent=0.,task_rss_sum_peak_bytes=0)
+        self.thread=threading.Thread(target=self.loop,daemon=True);self.thread.start();return self
+    def loop(self):
+        import psutil
+        process=psutil.Process();psutil.cpu_percent(None)
+        with (self.root/'system_resource_samples.jsonl').open('a') as stream:
+            while not self.stop.is_set():
+                memory=psutil.virtual_memory();rss=0
+                try:children=[process]+process.children(recursive=True)
+                except psutil.Error:children=[process]
+                for child in children:
+                    try:rss+=child.memory_info().rss
+                    except psutil.Error:pass
+                sample=dict(time=time.time(),host_memory_used_bytes=memory.used,host_memory_available_bytes=memory.available,
+                    host_cpu_percent=psutil.cpu_percent(None),task_rss_sum_bytes=rss)
+                stream.write(json.dumps(sample)+'\n');stream.flush()
+                with self.lock:
+                    self.value['sample_count']+=1
+                    self.value['host_memory_used_peak_bytes']=max(self.value['host_memory_used_peak_bytes'],memory.used)
+                    self.value['host_cpu_peak_percent']=max(self.value['host_cpu_peak_percent'],sample['host_cpu_percent'])
+                    self.value['task_rss_sum_peak_bytes']=max(self.value['task_rss_sum_peak_bytes'],rss)
+                    write(self.root/'system_resources.json',self.value)
+                self.stop.wait(1.)
+    def finish(self):self.stop.set();self.thread.join()
+
+
+def observe_case_process(process,records):
+    import psutil
+    try:main=psutil.Process(process.pid);children=[main]+main.children(recursive=True)
+    except psutil.Error:return
+    for p in children:
+        try:
+            name='main' if p.pid==process.pid else ('support' if 'resource_tracker' in ' '.join(p.cmdline()) else 'worker')
+            item=records.setdefault(str(p.pid),dict(pid=p.pid,role=name,peak_rss_sampled_bytes=0))
+            item['peak_rss_sampled_bytes']=max(item['peak_rss_sampled_bytes'],p.memory_info().rss)
+        except psutil.Error:pass
+
+
+def case_resources(run,observations):
+    processes=dict(observations)
+    main=read(Path(run)/'main_resource.json')
+    if main:
+        key=str(main['pid']);processes[key]=dict(processes.get(key,{}),role='main',peak_rss_os_bytes=main['peak_rss_bytes'])
+    for path in (Path(run)/'cem/worker_events').glob('*/*.json'):
+        event=read(path,{})
+        if 'pid' not in event:continue
+        key=str(event['pid']);row=processes.setdefault(key,dict(pid=event['pid'],role='worker'))
+        if event.get('peak_rss_bytes') is not None:row['peak_rss_os_bytes']=max(row.get('peak_rss_os_bytes',0),event['peak_rss_bytes'])
+    return dict(processes=list(processes.values()),
+        main_peak_rss_bytes=max((max(p.get('peak_rss_os_bytes',0),p.get('peak_rss_sampled_bytes',0)) for p in processes.values() if p['role']=='main'),default=None),
+        worker_peak_rss_bytes=max((max(p.get('peak_rss_os_bytes',0),p.get('peak_rss_sampled_bytes',0)) for p in processes.values() if p['role']=='worker'),default=None),
+        sampled_peaks_are_lower_bounds=True)
+
 
 def concurrency_plan(peak_rss_bytes):
     if not isinstance(peak_rss_bytes,int) or peak_rss_bytes<=0:raise ValueError('INVALID_PEAK_RSS')
@@ -117,6 +221,15 @@ def case_summary(root,case_id,state):
         row[label+'_stable']=result.get('stable')
     final=read(run/'export/result.json',{});row['zero_gravity_valid']=final.get('zero_gravity_validity',{}).get('valid')
     row['zero_gravity_status']=final.get('zero_gravity_validity',{}).get('status')
+    simple=read(run/'simplify/manifest.json',{}).get('metadata',{})
+    row['simplify_requested']=simple.get('simplification_requested')
+    row['simplify_applied']=any(not p.get('unchanged',True) for p in simple.get('parts',[])) if simple else None
+    measured=read(Path(root)/'cases'/case_id/'resources.json',{})
+    row['main_peak_rss_bytes']=measured.get('main_peak_rss_bytes');row['worker_peak_rss_bytes']=measured.get('worker_peak_rss_bytes')
+    row['reason_detail']=state.get('detail')
+    if state.get('status') in ['RUNNING','INTERRUPTED']:
+        stage=read(run/'current_stage.json',{}).get('stage')
+        if stage and row.get(stage+'_status')!='PASS':row[stage+'_status']=state['status']
     if state.get('status')=='TIMEOUT':
         stage=read(run/'current_stage.json',{}).get('stage')
         if stage and row.get(stage+'_status')!='PASS':row[stage+'_status']='TIMEOUT'
@@ -145,10 +258,15 @@ def execute_case(root,entry,affinity,stop_after='export',profile_baseline=False)
     if remaining<=0:state.update(status='TIMEOUT',reason='CASE_WALL_TIME_LIMIT');write(state_path,state);return state
     cmd=[sys.executable,str(Path(__file__).resolve()),'--root',str(root),'--case-id',cid,'--stop-after',stop_after,'--affinity',','.join(map(str,affinity))]
     if profile_baseline:cmd+=['--profile-baseline']
-    started=time.monotonic()
-    with (directory/'case.log').open('a') as log:
+    with DISPATCH_LOCK:
+        if not wait_for_memory(root,cid):return dict(previous,status='INTERRUPTED',case_id=cid,wall_seconds=prior)
+        started=time.monotonic()
+        log=(directory/'case.log').open('a')
         process=subprocess.Popen(cmd,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+    observations={}
+    with log:
         while True:
+            observe_case_process(process,observations)
             code=process.poll();elapsed=time.monotonic()-started
             state['wall_seconds']=prior+elapsed;write(state_path,state)
             if code is not None:
@@ -156,12 +274,14 @@ def execute_case(root,entry,affinity,stop_after='export',profile_baseline=False)
                 if code:
                     failure=read(directory/'case_error.json',{})
                     state['reason']=failure.get('reason',f'CASE_PROCESS_EXIT_{code}')
+                    state['detail']=failure.get('detail')
                 break
             if STOP_EVENT.is_set():
                 terminate_group(process);state.update(status='INTERRUPTED',reason='BATCH_INTERRUPTED');break
             if elapsed>=remaining:
                 terminate_group(process);state.update(status='TIMEOUT',reason='CASE_WALL_TIME_LIMIT');break
             time.sleep(1.)
+    write(directory/'resources.json',case_resources(directory/'assembly',observations))
     write(state_path,state);write(directory/'summary.json',case_summary(root,cid,state));return state
 
 
@@ -170,7 +290,7 @@ def summarize(root):
     for entry in entries:
         directory=root/'cases'/entry['case_id'];state=read(directory/'case_status.json',{})
         row=read(directory/'summary.json') if state.get('status') in ['COMPLETE','FAILED','TIMEOUT'] else None
-        if row is None:row=case_summary(root,entry['case_id'],state)
+        if row is None or row.get('reason')!=state.get('reason') or 'simplify_applied' not in row:row=case_summary(root,entry['case_id'],state)
         rows.append(row)
     fields=list(rows[0]);temporary=root/'summary_table.tmp'
     with temporary.open('w') as f:
@@ -185,6 +305,10 @@ def summarize(root):
         zero_gravity_valid_count=sum(r['status']=='COMPLETE' and r['zero_gravity_valid'] is True for r in rows),
         unfinished=terminal<len(rows),case_wall_seconds_sum=sum(r['wall_seconds'] for r in rows),
         batch_active_wall_seconds=read(root/'batch_clock.json',{}).get('wall_seconds'),
+        failures_by_reason={str(reason):[r['case_id'] for r in rows if r['status'] in ['FAILED','TIMEOUT'] and r['reason']==reason] for reason in sorted({r['reason'] for r in rows if r['status'] in ['FAILED','TIMEOUT']},key=str)},
+        nonmanifold_after_pge_cases=[{k:r[k] for k in ['case_id','simplify_status','simplify_requested','simplify_applied','simplify_total_faces_before','simplify_total_faces_after']} for r in rows if r['reason']=='NONMANIFOLD_AFTER_PGE'],
+        nonmanifold_after_pge_count=sum(r['reason']=='NONMANIFOLD_AFTER_PGE' for r in rows),
+        resource_peaks=read(root/'system_resources.json'),
         campaign_active_wall_seconds=read(root/'batch_clock.json',{}).get('wall_seconds',0.)+read(root/'concurrency.json',{}).get('preflight_wall_seconds',0.),concurrency=read(root/'concurrency.json'))
     write(root/'summary.json',result);write(root/'summary_rows.json',rows)
     report='''# CPU batch with budget-only mesh simplification
@@ -210,6 +334,15 @@ it is the dominant cause across this batch; validity and displacement remain in
 each original observation. Zero-gravity invalidity does not erase the export or
 change CEM eligibility.
 
+Execution is fixed at three cases and four CEM workers per case, memory=512M.
+OMP/BLAS/MKL threads are one. No calibration or automatic concurrency tuning is
+used. New case starts wait while effective available memory is below 4 GiB;
+already-running cases continue. System RAM and Slurm/cgroup availability are
+recorded separately; inactive file cache is reclaimable. Host-wide CPU/memory
+include other jobs. Sampling is at one-second intervals; OS high-water RSS is
+recorded for completed main/worker processes. Killed processes may only have a
+sampled lower bound.
+
 All 100 active cases stay in the denominator. Failed/timeout cases are unsuccessful,
 not fabricated observed falls. Pending cases keep the full-batch rate incomplete.
 Each case has a cumulative four-hour active wall limit across resumes; completed
@@ -231,7 +364,10 @@ def run_batch(root):
     import yaml
     root=Path(root).resolve();plan=read(root/'concurrency.json');cfg=yaml.safe_load((root/'run_config.yaml').read_text())
     assert cfg['cem']['workers']==plan['cem_workers']
-    assert plan['total_simulation_workers']*plan['measured_peak_rss_bytes']<=26*2**30 and plan['total_simulation_workers']<=30
+    if plan.get('mode')=='fixed':
+        if (plan['case_workers'],plan['cem_workers'],cfg['rollout']['memory'])!=(3,4,'512M'):raise ValueError('FIXED_EXECUTION_CONFIG_MISMATCH')
+    else:
+        assert plan['total_simulation_workers']*plan['measured_peak_rss_bytes']<=26*2**30 and plan['total_simulation_workers']<=30
     entries=read(root/'inputs.json')['cases'];allowed=sorted(os.sched_getaffinity(0));slots=plan['case_workers']
     assert len(allowed)>=plan['total_simulation_workers']
     started=time.monotonic();prior=read(root/'batch_clock.json',{}).get('wall_seconds',0.)
@@ -249,11 +385,13 @@ def run_batch(root):
                 directory=root/'cases'/entry['case_id'];previous=read(directory/'case_status.json',{})
                 state=dict(previous,status='FAILED',reason=public_reason(f'{type(error).__name__}: {error}',root))
                 write(directory/'case_status.json',state);write(directory/'summary.json',case_summary(root,entry['case_id'],state))
+    sampler=ResourceSampler(root).start()
     with concurrent.futures.ThreadPoolExecutor(max_workers=slots) as pool:
         futures=[pool.submit(lane,i) for i in range(slots)]
         while not all(f.done() for f in futures):
             write(root/'batch_clock.json',dict(wall_seconds=prior+time.monotonic()-started));summarize(root);time.sleep(10.)
         for f in futures:f.result()
+    sampler.finish()
     write(root/'batch_clock.json',dict(wall_seconds=prior+time.monotonic()-started));summarize(root)
 
 
@@ -264,7 +402,10 @@ def main():
     if a.case_id:
         try:run_case(root,a.case_id,a.stop_after,a.profile_baseline,a.affinity)
         except BaseException as error:
-            write(root/'cases'/a.case_id/'case_error.json',dict(reason=public_reason(f'{type(error).__name__}: {error}',root)));raise
+            run=root/'cases'/a.case_id/'assembly'
+            write(root/'cases'/a.case_id/'case_error.json',dict(reason=classify_failure(error,run),detail=public_reason(f'{type(error).__name__}: {error}',root)));raise
+        finally:
+            write(root/'cases'/a.case_id/'assembly/main_resource.json',dict(pid=os.getpid(),peak_rss_bytes=int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)*1024))
     elif a.prepare_case or a.calibrate_case:
         cid=a.prepare_case or a.calibrate_case;entry=next(r for r in read(root/'inputs.json')['cases'] if r['case_id']==cid)
         state=execute_case(root,entry,sorted(os.sched_getaffinity(0)),stop_after='cgr' if a.prepare_case else 'rollout',profile_baseline=bool(a.calibrate_case))
