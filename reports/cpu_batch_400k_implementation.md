@@ -85,3 +85,24 @@ finish. Stable observations, end-to-end completion and zero-gravity validity sta
 separate. Zero-gravity failure can arise from thin-shell separation/drift, as in
 the earlier control and first case; the batch does not assert this is the dominant
 cause without per-case supporting diagnostics.
+
+## Initial calibration result
+
+Code commit: `c41ab0d`. The selected case completed repair and simplification:
+3,691,428 faces → 399,980, all 20 retained parts `is_volume=True`, no fallback;
+maximum absolute per-part volume change 0.0482444%. PGE completed 57 retained
+cuts and 16 rollbacks, with 78,378.8561943 mm³ residual overlap.
+
+CGR then failed its unchanged material-input validation before any baseline
+rollout. Post-PGE parts `part_004`, `part_006`, `part_009`, `part_015`, and
+`part_017` fail strict manifold validation. Both PLY and decoded STL reproduce
+the failure, so it is not solely an STL decoding issue. In particular, part_017
+passes Trimesh's volume/closedness checks but has six nonmanifold vertices under
+the stricter material validator. No extra repair or threshold change was applied.
+
+The case is recorded as failed, with physical observations unknown. Its RSS
+calibration is unavailable; no concurrency is fabricated and the 100-case loop
+has not started. Replacing the explicitly requested calibration case awaits
+confirmation. `cpu_batch_400k_calibration.json` holds the diagnostics;
+`cpu_batch_400k_summary_snapshot.csv` is an explicitly incomplete 100-row snapshot
+(1 failed, 99 pending), not an experiment success-rate table.
