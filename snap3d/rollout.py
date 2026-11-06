@@ -1,5 +1,7 @@
 """Independent fixed-ground rigid-body protocol. Inputs mm; MuJoCo SI."""
-import itertools
+import hashlib
+from pathlib import Path
+from functools import lru_cache
 import time
 import xml.etree.ElementTree as ET
 import numpy as np
@@ -42,6 +44,9 @@ def _rigid_flex_xml(parts, ids, fixed_ids, config, clearance_mm, gravity=None, *
     source_config=dict(config,timestep_seconds=config['dt'],collision_backend='rigid_flex')
     contact=flex_contact_settings(report,source_config)
     root=ET.fromstring(xml_model(report,parts,{},source_config,config['density'],body_layout=dict(bodies=bodies)))
+    size=root.find('size')
+    if size is None:size=ET.SubElement(root,'size')
+    size.set('memory',str(config.get('memory','1G')))
     for k,part in enumerate(ids):
         if part in fixed_ids:
             body=root.find(f"./worldbody/body[@name='part_{k}']")
@@ -60,8 +65,23 @@ def _rigid_flex_xml(parts, ids, fixed_ids, config, clearance_mm, gravity=None, *
 def angle(matrix):
     return float(np.linalg.norm(Rotation.from_matrix(matrix).as_rotvec()))
 
+
+@lru_cache(maxsize=32)
+def _saved_xml_hash(path,mtime_ns,size):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def _model_evidence(xml,model_path):
+    current=hashlib.sha256(xml.encode()).hexdigest()
+    if model_path is None:return dict(model_sha256=current,xml_ref=None)
+    path=Path(model_path);path.parent.mkdir(parents=True,exist_ok=True)
+    if not path.exists():path.write_text(xml)
+    stat=path.stat();saved=_saved_xml_hash(str(path.resolve()),stat.st_mtime_ns,stat.st_size)
+    return dict(model_sha256=current,xml_ref=dict(path=path.name,sha256=saved,
+        relative_to='case_root',scope='first_case_model',matches_current_model=saved==current))
+
 def rollout(parts, *, D, config, clearance_mm, fixed_ids=None,
-            gravity=None, retain_frames=True, initial_only=False, normal_only_diagnostic=False):
+            gravity=None, retain_frames=True, initial_only=False, normal_only_diagnostic=False,model_path=None):
     import mujoco
     started=time.monotonic()
     backend=config.get('collision_backend','rigid_flex')
@@ -81,6 +101,10 @@ def rollout(parts, *, D, config, clearance_mm, fixed_ids=None,
                                    normal_only_diagnostic=normal_only_diagnostic)
     except ValueError as error:
         return dict(base,reason=str(error).split(':',1)[0],detail=str(error))
+    base.update(_model_evidence(xml,model_path))
+    backend_info=dict(flex_element_count=sum(len(parts[i].faces) for i in ids),
+                      flex_element_counts={i:len(parts[i].faces) for i in ids},rigid_flex_contact=contact)
+    completed_steps=0;initialization_wall_seconds=None;step_started=None
     try:
         model=mujoco.MjModel.from_xml_string(xml); data=mujoco.MjData(model); mujoco.mj_forward(model,data)
         flex_bodies={i:int(model.flex_vertbodyid[int(model.flex_vertadr[i])]) for i in range(getattr(model,'nflex',0))}
@@ -92,7 +116,7 @@ def rollout(parts, *, D, config, clearance_mm, fixed_ids=None,
                           rigid_flex_contact=contact)
         if initial_only:
             return dict(base,status='PASS',initial_contact=initial_contact,
-                        **backend_info,simulation_performed=False,xml=xml,wall_seconds=time.monotonic()-started)
+                        **backend_info,simulation_performed=False,wall_seconds=time.monotonic()-started)
         bodies={i:mujoco.mj_name2id(model,mujoco.mjtObj.mjOBJ_BODY,f'part_{k}') for k,i in enumerate(ids)}
         reverse={v:k for k,v in bodies.items()}
         def snapshot():
@@ -105,18 +129,23 @@ def rollout(parts, *, D, config, clearance_mm, fixed_ids=None,
             return out
         frames=[snapshot()]; max_depth=0.;max_contacts=int(data.ncon)
         steps=int(round(config['duration']/config['dt']))
+        initialization_wall_seconds=time.monotonic()-started;step_started=time.monotonic()
         for _ in range(steps):
             mujoco.mj_step(model,data)
             if not np.isfinite(data.qpos).all() or not np.isfinite(data.qvel).all() or any(w.number for w in data.warning):
                 return dict(base,reason='SIMULATION_ERROR',frames=frames,**backend_info,
                     initial_contact=initial_contact,initial_contact_count=initial_contact['total_contact_count'],
                     max_contact_count=max(max_contacts,int(data.ncon)),last_contact_count=int(data.ncon),
-                    simulated_seconds=float(data.time),wall_seconds=time.monotonic()-started)
+                    simulated_seconds=float(data.time),wall_seconds=time.monotonic()-started,
+                    initialization_wall_seconds=initialization_wall_seconds,step_count=completed_steps,
+                    step_wall_seconds=time.monotonic()-step_started)
             # mj_step's xpos may precede integrated qpos: explicitly synchronize.
             mujoco.mj_forward(model,data)
             frames.append(snapshot())
+            completed_steps+=1
             max_depth=max(max_depth,max((-float(c.dist)*1000 for c in data.contact),default=0.))
             max_contacts=max(max_contacts,int(data.ncon))
+        step_wall_seconds=time.monotonic()-step_started
         contacts=set()
         for c in data.contact:
             body_a,body_b=_contact_bodies(model,c,flex_bodies)
@@ -133,15 +162,21 @@ def rollout(parts, *, D, config, clearance_mm, fixed_ids=None,
         score=float(score)
         return dict(base,status='PASS',reason=None,stable=score<=1.,global_score=score,
                     metrics=metrics,frames=frames if retain_frames else [],last_contact_pairs=[list(p) for p in sorted(contacts)],
-                    peak_penetration_mm=max_depth,**backend_info,xml=xml,
+                    peak_penetration_mm=max_depth,**backend_info,
+                    initialization_wall_seconds=initialization_wall_seconds,
+                    step_count=completed_steps,step_wall_seconds=step_wall_seconds,
+                    mean_step_wall_seconds=step_wall_seconds/completed_steps if completed_steps else None,
                     initial_contact=initial_contact,final_contact=_initial_contacts(model,data,flex_bodies),
                     final_interpart_contact=_initial_contacts(model,data,flex_bodies,include_ground=False),
                     initial_contact_count=int(initial_contact['total_contact_count']),
                     max_contact_count=max_contacts,final_contact_count=int(data.ncon),
                     simulated_seconds=float(data.time),wall_seconds=time.monotonic()-started,
                     max_linear_speed_m_s=max((metrics[i]['max_linear_speed_m_s'] for i in free),default=0.))
-    except (ValueError,RuntimeError) as error:
-        return dict(base,reason='SIMULATION_ERROR',detail=str(error))
+    except (ValueError,RuntimeError,getattr(mujoco,'FatalError',RuntimeError)) as error:
+        return dict(base,reason='SIMULATION_ERROR',detail=str(error),error_type=type(error).__name__,
+                    **backend_info,wall_seconds=time.monotonic()-started,
+                    initialization_wall_seconds=initialization_wall_seconds,step_count=completed_steps,
+                    step_wall_seconds=None if step_started is None else time.monotonic()-step_started)
 
 def relative_score(result, a, b, *, D, config):
     def pose(frame):

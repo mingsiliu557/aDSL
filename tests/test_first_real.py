@@ -54,7 +54,8 @@ def test_final_material_volume_is_diagnostic_and_final_depth_is_the_gate(monkeyp
     monkeypatch.setattr(pipeline,'rollout',fake)
     r=pipeline.paper_rollout(parts(),D=150,config=CFG)
     assert r['stable'] and r['intersection_free']
-    assert r['final_material_check']['total_intersection_volume_mm3']>0
+    assert 'final_material_check' not in r
+    assert pipeline.final_material_review(parts(),r)['total_intersection_volume_mm3']>0
     original=fake
     def deeper(p,**kwargs):
         r=original(p,**kwargs);r['final_interpart_contact']['maximum_penetration_mm']+=1e-8;return r

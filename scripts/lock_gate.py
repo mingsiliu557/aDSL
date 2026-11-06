@@ -125,11 +125,10 @@ def rigid_flex_gate(out, config, *, reuse_manifest=None):
         started=time.monotonic()
         try:
             result=rollout(parts,D=150.,config=cfg,
-                clearance_mm=clearance,fixed_ids=['receiver'],normal_only_diagnostic=normal_only)
+                clearance_mm=clearance,fixed_ids=['receiver'],normal_only_diagnostic=normal_only,model_path=folder/'model.xml')
         except (ValueError,RuntimeError) as error:
             result=dict(status='UNAVAILABLE',reason=type(error).__name__,detail=str(error))
         elapsed=time.monotonic()-started
-        if 'xml' in result:(folder/'model.xml').write_text(result.pop('xml'))
         result['rollout_wall_seconds']=elapsed
         return result,elapsed
 

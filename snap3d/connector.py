@@ -4,7 +4,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 import manifold3d as mf
 from .vendor import mesh_solid,solid_mesh,checked
-from .common import component_count,union
+from .common import union
 
 class ConnectorInfeasible(ValueError):
     """A local proposal violates a retained connector constraint."""
@@ -44,19 +44,20 @@ def rebuild(base, edges, parameters, *, D, config, strict_edge=None):
             continue
         pegs[e['donor']].append(peg);slots[e['receiver']].append(slot)
         evidence.append(record)
-    out={}
+    out={};out_solids={}
     for i in solids:
         solid=checked(solids[i]+union(pegs[i])) if pegs[i] else solids[i]
         if slots[i]: solid=checked(solid-union(slots[i]))
         mesh=solid_mesh(solid)
-        if not mesh.is_volume or component_count(mesh)>component_count(base[i]):
+        if solid.status()!=mf.Error.NoError or solid.is_empty() or sum(s.volume()>0 for s in solid.decompose())>sum(s.volume()>0 for s in solids[i].decompose()):
             for record in evidence:
                 if record['status']=='PLACED' and i in (record['donor'],record['receiver']):
                     record['warnings'].append(dict(code='CONNECTOR_DISCONNECTS_PART',part_id=i))
         out[i]=mesh
+        out_solids[i]=solid
     for a,b in itertools.combinations(out,2):
-        volume=float(checked(mesh_solid(out[a])^mesh_solid(out[b])).volume())
-        if volume>0:
+        volume=float(checked(out_solids[a]^out_solids[b]).volume())
+        if volume>1e-9*D**3:
             for record in evidence:
                 if record['status']=='PLACED' and {a,b}&{record['donor'],record['receiver']}:
                     record['warnings'].append(dict(code='ASSEMBLY_INTERSECTION',parts=[a,b],volume_mm3=volume))
@@ -91,7 +92,7 @@ def _edge_geometry(base,solids,e,theta,*,D,config):
     if not missing.is_empty():warnings.append(dict(code='INSUFFICIENT_RECEIVER_MATERIAL',missing_volume_mm3=float(missing.volume())))
     if checked(peg^solids[donor]).is_empty(): warnings.append(dict(code='PEG_NOT_ROOTED'))
     for k in solids:
-        if k not in (donor,receiver) and checked(peg^solids[k]).volume()>0:
+        if k not in (donor,receiver) and checked(peg^solids[k]).volume()>1e-9*D**3:
             raise ConnectorInfeasible('THIRD_PART_INTERFERENCE')
     transform=np.eye(4); transform[:3]=T
     return dict(edge=e['id'],status='PLACED',warnings=warnings,anchor=anchor.tolist(),axis=frame[:,2].tolist(),

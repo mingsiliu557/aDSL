@@ -21,6 +21,7 @@ rollout:
   # Integrator and unspecified solver defaults: its assembly_standing.xml_model.
   # SNAP3D retains duration=2, fixed ground, displacement_ratio and rotation_deg.
   collision_backend: rigid_flex
+  memory: 1G  # MuJoCo collision workspace; no physics/solver change.
   duration: 2.0
   dt: 0.002
   gravity: 9.81

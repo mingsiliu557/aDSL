@@ -1,14 +1,13 @@
 """Deterministic pairwise PGE with per-cut sliver cleanup and rollback."""
 import itertools
 import numpy as np
-from .common import component_count
+import manifold3d as mf
 from .vendor import mesh_solid, solid_mesh, checked
-from .vendor.mesh_validity import MeshEvaluationError
 
 
 def _cut(before, cutter, *, sliver_thickness_mm):
-    before_count=component_count(solid_mesh(before))
     before_components=[s for s in before.decompose() if s.volume()>0]
+    before_count=len(before_components)
     candidate=checked(before-cutter)
     children=[s for s in candidate.decompose() if s.volume()>0]
     by_parent=[[] for _ in before_components]
@@ -24,33 +23,23 @@ def _cut(before, cutter, *, sliver_thickness_mm):
         # children are new fragments; existing isolated small parts stay intact.
         principal=max(indices,key=lambda i:(float(children[i].volume()),-i))
         removed.extend(i for i in indices if i!=principal and
-                       2*float(children[i].volume())/float(solid_mesh(children[i]).area)<sliver_thickness_mm)
+                       2*float(children[i].volume())/float(children[i].surface_area())<sliver_thickness_mm)
     for index in removed:
         candidate=checked(candidate-children[index])
-    mesh=solid_mesh(candidate)
     before_overlap=float(checked(before^cutter).volume())
     proposed_overlap=float(checked(candidate^cutter).volume())
-    count_error=None
-    try:
-        after_count=component_count(mesh) if mesh.is_volume else len(children)
-    except MeshEvaluationError as error:
-        metrics=error.diagnostic.get('metrics',{})
-        if any(value for key,value in metrics.items() if key.startswith('nonfinite_') or key=='invalid_indices'):
-            raise
-        # A non-manifold cut is a local rejected edit, not a bad input case.
-        count_error=error.diagnostic;after_count=len(children)
+    after_count=sum(s.volume()>0 for s in candidate.decompose())
     reasons=[]
     if proposed_overlap>before_overlap:reasons.append('OVERLAP_INCREASED')
-    if not mesh.is_volume:reasons.append('NOT_CLOSED_VOLUME')
-    if count_error is not None:reasons.append('INVALID_CUT_MATERIAL')
+    if candidate.status()!=mf.Error.NoError or candidate.is_empty():reasons.append('NOT_CLOSED_VOLUME')
     if after_count!=before_count:reasons.append('COMPONENT_COUNT_CHANGED')
     retained=not reasons
     removed_volume=sum(float(children[i].volume()) for i in removed)
     return (candidate if retained else before),dict(
-        retained=retained,rollback_reasons=reasons,component_count_diagnostic=count_error,
+        retained=retained,rollback_reasons=reasons,
         slivers_removed_count=len(removed),slivers_removed_volume_mm3=removed_volume,
         slivers_removed_volumes_mm3=[float(children[i].volume()) for i in removed],
-        slivers_removed_thicknesses_mm=[2*float(children[i].volume())/float(solid_mesh(children[i]).area) for i in removed],
+        slivers_removed_thicknesses_mm=[2*float(children[i].volume())/float(children[i].surface_area()) for i in removed],
         retained_slivers_removed_count=len(removed) if retained else 0,
         retained_slivers_removed_volume_mm3=removed_volume if retained else 0.,
         component_count_before=before_count,candidate_component_count=after_count,

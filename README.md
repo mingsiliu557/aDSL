@@ -40,11 +40,13 @@ recorded; no maximum opening size or patch-planarity gate remains.
 PGE retains the score, insertion tests, deterministic pair order, per-cut overlap,
 closure and component-count checks, and lowest-margin ownership reversal. New
 fragments with average thickness `2V/A < D/256` are removed: this is our chosen
-interpretation of thin slivers. Rejected cuts roll back locally. Exhausting the
+interpretation of thin slivers. Counts and closure are tested directly on Manifold (positive-volume decomposition,
+normal status and nonempty material), without a mesh round trip. Rejected cuts
+roll back locally. Exhausting the
 35% cumulative-loss reversal options is recorded as a warning.
 
 CGR uses triangle distance and symmetric, area-weighted facing samples. An anchor
-failure skips only its edge. Each connector is rebuilt from immutable PGE material.
+failure skips only its edge. Each connector is rebuilt from immutable PGE material. Intersections below 1e-9 D³ are numeric noise.
 Axis angles above 55 degrees and third-part peg intersections remain infeasible;
 shaft-radius and insertion-length lower bounds also remain. Material support,
 rooting, anchor-location, disconnection and assembly-intersection diagnostics are
@@ -57,10 +59,13 @@ are vendored with source and AST provenance; their function bodies remain unchan
 The copied XML contains an unused legacy branch, which SNAP3D never selects.
 The CoACD and zone-proxy modules, configuration and exposed rollout paths are
 removed. Simulation uses aDSL standing settings, 2 seconds under gravity, and the
-SNAP3D displacement/rotation thresholds. Parts whose minimum z is at most 0.005D
+SNAP3D displacement/rotation thresholds. MuJoCo collision workspace is 1G
+(`rollout.memory`); other simulation settings are unchanged. Parts whose minimum z is at most 0.005D
 are pinned; that set remains fixed throughout CEM. Initial thin-shell contacts are
 diagnostics. End-frame cross-part depth <= D/256 is the soft-contact adaptation of
-intersection-free; actual final-pose Boolean volumes are recorded independently.
+intersection-free; actual final-pose Boolean volumes are recorded independently, once at terminal export. XML is saved once per case; each result
+records current model hash and a separately identified saved-model reference.
+Changed candidates never claim to match the saved baseline XML.
 
 CEM retains 32 candidates, 8 elites, 3 generations, theta0 per generation, bounded
 redraws, full covariance and the per-edge global-motion constraint. Infeasible
@@ -74,8 +79,9 @@ final zero-gravity validity are separate recorded conclusions.
 
 ## Evidence and limitations
 
-Current implementation and first-case measurements are in
-`reports/flow_continuation_implementation.md`. Earlier reports and artificial
+The latest Manifold correction and timing continuation are in
+`reports/manifold_memory_speed_implementation.md`. The earlier simulator-stack
+failure is retained in `reports/flow_continuation_implementation.md`. Earlier reports and artificial
 traces preserve their original protocols; they are not results of the current
 configuration. No new artificial gates, generation models or formal benchmark
 measurements are run by this continuation.
@@ -88,3 +94,16 @@ reproduction of the authors' simulator or unpublished implementation.
 Sources: [SNAP3D, sections 3 and Appendices A/B](https://arxiv.org/html/2609.13146),
 [Hunyuan3D-2](https://github.com/Tencent-Hunyuan/Hunyuan3D-2),
 [Hunyuan3D-Part](https://github.com/Tencent-Hunyuan/Hunyuan3D-Part).
+
+## One-case timing continuation
+
+```bash
+PYTHONPATH=. python scripts/continue_case.py --run runs/case/assembly
+```
+
+This reuses a prepared case.json and repair stage, reruns PGE/CGR, and measures
+a 0.1-second gravity probe before the full two-second baseline. It records
+initialization and average per-step time, projected rollout/CEM cost, and the
+unchanged edge selection. At a projected case cost above 24 hours it stops after
+the full baseline; otherwise it proceeds through CEM, export and terminal
+zero-gravity validity. No remeshing, inference or benchmark suite is launched.

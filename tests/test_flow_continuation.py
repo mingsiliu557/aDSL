@@ -83,14 +83,17 @@ def test_end_to_end_only_final_export_gets_zero_gravity_and_identity_warnings(tm
     write_json(tmp_path/'case.json',dict(D_mm=150.,config_sha256='old',code_identity={'old':'old'}))
     export_parts(meshes,tmp_path/'repair')
     monkeypatch.setattr(pipeline,'contact_graph',lambda *a,**k:([],{},[]))
-    calls=[]
+    calls=[];reviews=[]
+    original=pipeline.final_material_review
+    def material(*a,**k):reviews.append(1);return original(*a,**k)
+    monkeypatch.setattr(pipeline,'final_material_review',material)
     def simulate(parts,**kwargs):
         calls.append(kwargs['config']['gravity'])
         return observation(parts,1. if kwargs['config']['gravity']==0 else 0.)
     monkeypatch.setattr(pipeline,'rollout',simulate)
     for stage in ['pge','cgr','rollout','cem','export']:
         pipeline.evaluate_geometry(tmp_path,CFG,stage=stage)
-    assert calls==[9.81,0.]
+    assert calls==[9.81,0.] and len(reviews)==1
     result=json.loads((tmp_path/'export/result.json').read_text())
     assert result['stable'] and result['zero_gravity_validity']['validity']=='invalid'
     assert set(load_parts(tmp_path/'export'))==set(meshes)
@@ -110,31 +113,19 @@ def test_simulation_failure_is_not_swallowed_as_geometric_infeasibility(tmp_path
     assert json.loads((tmp_path/'rollout/stage.json').read_text())['status']=='FAIL'
 
 
-def test_invalid_boolean_cut_rolls_back_but_nonfinite_geometry_is_fatal(monkeypatch):
+def test_manifold_vertex_touch_cut_is_retained_without_mesh_roundtrip(monkeypatch):
+    import manifold3d as mf
     from snap3d import pge as module
-    from snap3d.vendor import mesh_solid
+    from snap3d.vendor import solid_mesh,mesh_solid
     from snap3d.vendor.mesh_validity import MeshEvaluationError
-    before=mesh_solid(box([10,10,10],[0,0,0]));cutter=mesh_solid(box([10,10,10],[8,0,0]))
-    original=module.component_count;calls=[]
-    def counter(mesh):
-        calls.append(1)
-        if len(calls)==2:
-            raise MeshEvaluationError('INPUT_GEOMETRY_INVALID','fixture cut defect',metrics={'nonmanifold_vertices':1})
-        return original(mesh)
-    monkeypatch.setattr(module,'component_count',counter)
-    retained,record=module._cut(before,cutter,sliver_thickness_mm=.1)
-    assert not record['retained'] and 'INVALID_CUT_MATERIAL' in record['rollback_reasons']
-    assert retained.volume()==before.volume()
-    assert record['overlap_after_mm3']==record['overlap_before_mm3']
-    calls.clear()
-    def numerical(mesh):
-        calls.append(1)
-        if len(calls)==2:
-            raise MeshEvaluationError('INPUT_GEOMETRY_INVALID','bad numeric',metrics={'nonfinite_coordinates':1})
-        return original(mesh)
-    monkeypatch.setattr(module,'component_count',numerical)
-    with pytest.raises(MeshEvaluationError,match='bad numeric'):
-        module._cut(before,cutter,sliver_thickness_mm=.1)
+    before=mf.Manifold.cube([1,1,1])+mf.Manifold.cube([1,1,1]).translate([1,1,1])
+    cutter=mf.Manifold.cube([.2,2,2]).translate([0,-.5,-.5])
+    def forbidden(*a,**k):raise AssertionError('PGE cut must remain in Manifold')
+    monkeypatch.setattr(module,'solid_mesh',forbidden)
+    result,record=module._cut(before,cutter,sliver_thickness_mm=.001)
+    assert result.status()==mf.Error.NoError and record['retained']
+    assert record['component_count_before']==record['component_count_after']==2
+    with pytest.raises(MeshEvaluationError):mesh_solid(solid_mesh(result))
 
 
 def test_cem_exhausted_edge_continues_to_next_edge(tmp_path,monkeypatch):

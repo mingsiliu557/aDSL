@@ -51,12 +51,11 @@ def final_material_review(parts, result):
         total_intersection_volume_mm3=sum(p['intersection_volume_mm3'] for p in pairs),pairs=pairs)
 
 
-def paper_rollout(parts, *, D, config, fixed_ids=None, record=None):
+def paper_rollout(parts, *, D, config, fixed_ids=None, record=None,model_path=None):
     """One gravity objective call. Only final cross-part depth affects stability."""
     result=rollout(parts,D=D,config=config['rollout'],
-        clearance_mm=config['connector']['clearance_ratio']*D,fixed_ids=fixed_ids)
+        clearance_mm=config['connector']['clearance_ratio']*D,fixed_ids=fixed_ids,model_path=model_path)
     if result['status']=='PASS':
-        result['final_material_check']=final_material_review(parts,result)
         depth=result['final_interpart_contact']['maximum_penetration_mm']
         if not np.isfinite(depth):raise ValueError('NONFINITE_FINAL_CONTACT_DEPTH')
         bound=D*config['rollout']['final_penetration_ratio']
@@ -66,6 +65,22 @@ def paper_rollout(parts, *, D, config, fixed_ids=None, record=None):
         result['stable']=bool(result['stable_motion'] and result['intersection_free'])
     if record is not None:record('gravity',result)
     return result
+
+
+def rollout_cost(probe, *, config, edge_count, rebuild_seconds=0.):
+    """Projection from a completed timing probe; not a stability measurement."""
+    if probe['status']!='PASS' or probe.get('step_count',0)<=0:raise ValueError('SPEED_PROBE_INCOMPLETE')
+    per_step=probe['step_wall_seconds']/probe['step_count']
+    initialization=probe['initialization_wall_seconds']
+    overhead=max(0.,probe['wall_seconds']-probe['step_wall_seconds'])
+    steps=int(round(config['rollout']['duration']/config['rollout']['dt']))
+    single=overhead+per_step*steps
+    evaluations=config['cem']['population']*config['cem']['generations']*edge_count
+    return dict(flex_element_count=probe['flex_element_count'],measured_steps=probe['step_count'],
+        mean_step_wall_seconds=per_step,initialization_wall_seconds=initialization,
+        projected_single_rollout_seconds=single,optimization_edge_count=edge_count,
+        nominal_evaluations=evaluations,projected_cem_rollout_seconds=single*evaluations,
+        projected_cem_with_rebuild_seconds=(single+rebuild_seconds)*evaluations)
 
 
 def evaluate_geometry(run, config, *, stage):
@@ -87,12 +102,17 @@ def evaluate_geometry(run, config, *, stage):
             export_parts(parts,target,metadata=records)
         elif stage=='cgr':
             base=load_parts(run/'pge')
+            contact_started=time.monotonic()
             edges,parameters,pairs=contact_graph(base,D=D,config=config['contact'],connector_config=config['connector'])
+            contact_seconds=time.monotonic()-contact_started
             write_json(target/'contact.json',dict(edges=edges,parameters=parameters,pairs=pairs))
+            rebuild_started=time.monotonic()
             parts,checks=rebuild(base,edges,parameters,D=D,config=config['connector'])
+            rebuild_seconds=time.monotonic()-rebuild_started
             placed={c['edge'] for c in checks if c['status']=='PLACED'}
             write_json(target/'contact.json',dict(edges=[e for e in edges if e['id'] in placed],
-                all_edges=edges,parameters=parameters,pairs=pairs,connectors=checks))
+                all_edges=edges,parameters=parameters,pairs=pairs,connectors=checks,
+                timing=dict(contact_seconds=contact_seconds,rebuild_seconds=rebuild_seconds)))
             export_parts(parts,target,metadata=dict(checks=checks))
         elif stage in ('rollout','cem'):
             base=load_parts(run/'pge');contact=json.loads((run/'cgr/contact.json').read_text())
@@ -109,7 +129,7 @@ def evaluate_geometry(run, config, *, stage):
                         final_interpart_contact=result.get('final_interpart_contact'),
                         final_material_check=result.get('final_material_check')))
                     write_json(target/'rollout_calls.json',rollout_records)
-                result=paper_rollout(p,D=D,config=config,fixed_ids=fixed,record=record)
+                result=paper_rollout(p,D=D,config=config,fixed_ids=fixed,record=record,model_path=run/'model.xml')
                 if result['status']!='PASS':
                     write_json(target/f'rollout_error_{index:04d}.json',result)
                     raise RuntimeError('ROLLOUT_FAILED: '+str(result.get('reason')))
@@ -157,11 +177,12 @@ def evaluate_geometry(run, config, *, stage):
             parts=load_parts(run/'cem')
             export_parts(parts,target,metadata=dict(source_stage='cem'))
             current=json.loads((run/'cem/result.json').read_text())
+            current['final_material_check']=final_material_review(parts,current)
             # Once, on the exact exported geometry, in its assembled input pose.
             exported=load_parts(target)
             zero=rollout(exported,D=D,config=dict(config['rollout'],gravity=0.),
                          clearance_mm=config['connector']['clearance_ratio']*D,
-                         fixed_ids=current['fixed_ids'],retain_frames=False)
+                         fixed_ids=current['fixed_ids'],retain_frames=False,model_path=run/'model.xml')
             review=zero_gravity_review(zero,D=D,config=config)
             write_json(target/'zero_gravity.json',zero)
             current=dict(current,zero_gravity_validity=review,zero_gravity_wall_seconds=zero.get('wall_seconds'))

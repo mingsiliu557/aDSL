@@ -42,6 +42,8 @@ def test_xml_has_source_defaults_and_only_fixed_body_joint_removed():
     parts=meshes();ids=sorted(parts)
     xml,_=_rigid_flex_xml(parts,ids,['receiver'],CFG['rollout'],150/1024,0.)
     root=ET.fromstring(xml)
+    assert CFG['rollout']['memory']=='1G'
+    assert root.find('size').get('memory')=='1G'
     assert root.find('compiler').attrib=={'angle':'radian'}
     option=root.find('option')
     assert set(option.attrib)=={'timestep','gravity','integrator'}

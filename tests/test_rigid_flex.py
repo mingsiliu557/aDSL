@@ -51,11 +51,13 @@ def test_vendor_source_provenance_and_complete_xml_ast():
 
 
 @pytest.mark.parametrize('clearance,expected',[(.1,.005),(.4,.01)])
-def test_rigid_flex_xml_display_disabled_radius_and_com_frame(clearance,expected):
-    result=run(clearance=clearance,initial_only=True)
+def test_rigid_flex_xml_display_disabled_radius_and_com_frame(clearance,expected,tmp_path):
+    result=run(clearance=clearance,initial_only=True,model_path=tmp_path/"model.xml")
     assert result['status']=='PASS' and result['collision_backend']=='rigid_flex'
     assert result['simulation_performed'] is False
-    root=ET.fromstring(result['xml'])
+    assert 'xml' not in result
+    assert result['xml_ref']['sha256']==hashlib.sha256((tmp_path/'model.xml').read_bytes()).hexdigest()
+    root=ET.fromstring((tmp_path/'model.xml').read_text())
     displays=root.findall('./worldbody/body/geom')
     assert len(displays)==2
     assert all(g.get('contype')=='0' and g.get('conaffinity')=='0' and g.get('density')=='0' for g in displays)
