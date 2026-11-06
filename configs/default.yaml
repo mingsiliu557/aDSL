@@ -2,6 +2,9 @@ protocol: snap3d_formula_mujoco_rigid_flex_v2
 seed: 42
 scale_mm: 150.0
 contact: {delta_ratio: 0.005, area_ratio: 0.000015, grid_ratio: 0.001953125}
+preprocess:
+  # 为计算预算所做的偏离；论文未简化 X-Part 输出
+  max_faces_per_case: 400000
 repair: {}  # trimesh / PyMeshFix closure; interventions recorded.
 pge:
   max_loss: 0.35

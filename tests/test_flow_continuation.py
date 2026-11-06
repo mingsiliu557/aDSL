@@ -91,7 +91,7 @@ def test_end_to_end_only_final_export_gets_zero_gravity_and_identity_warnings(tm
         calls.append(kwargs['config']['gravity'])
         return observation(parts,1. if kwargs['config']['gravity']==0 else 0.)
     monkeypatch.setattr(pipeline,'rollout',simulate)
-    for stage in ['pge','cgr','rollout','cem','export']:
+    for stage in ['simplify','pge','cgr','rollout','cem','export']:
         pipeline.evaluate_geometry(tmp_path,CFG,stage=stage)
     assert calls==[9.81,0.] and len(reviews)==1
     result=json.loads((tmp_path/'export/result.json').read_text())

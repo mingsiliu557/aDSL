@@ -7,6 +7,7 @@ import yaml
 from .common import normalize,write_json,sha,digest,code_identity
 from .export import export_parts,load_parts
 from .repair import repair
+from .preprocess import simplify_parts
 from .pge import pge
 from .contact import contact_graph
 from .connector import rebuild,ConnectorInfeasible
@@ -101,7 +102,7 @@ def evaluate_geometry(run, config, *, stage):
     warnings=[]
     if metadata['config_sha256']!=digest(config):warnings.append('CONFIG_CHANGED')
     if metadata['code_identity']!=code_identity():warnings.append('CODE_CHANGED')
-    stages=['repair','pge','cgr','rollout','cem','export']
+    stages=['repair','simplify','pge','cgr','rollout','cem','export']
     if stage not in stages:raise ValueError(stage)
     target=run/stage;target.mkdir(parents=True,exist_ok=True)
     try:
@@ -109,8 +110,12 @@ def evaluate_geometry(run, config, *, stage):
             raw=load_parts(run/'normalized_parts');records={};parts={}
             for i,m in raw.items():parts[i],records[i]=repair(m,D=D,config=config['repair'])
             export_parts(parts,target,metadata=records)
+        elif stage=='simplify':
+            parts,records=simplify_parts(load_parts(run/'repair'),max_faces_per_case=config['preprocess']['max_faces_per_case'])
+            export_parts(parts,target,metadata=records)
         elif stage=='pge':
-            parts,records=pge(load_parts(run/'repair'),config=config['pge'],D=D)
+            input_stage='simplify' if config.get('preprocess') else 'repair'
+            parts,records=pge(load_parts(run/input_stage),config=config['pge'],D=D)
             export_parts(parts,target,metadata=records)
         elif stage=='cgr':
             base=load_parts(run/'pge')
@@ -230,7 +235,7 @@ def initialize(run,whole,raw_parts,config):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--run',required=True);p.add_argument('--config',default='configs/default.yaml')
-    p.add_argument('--stage',required=True,choices=['initialize','repair','pge','cgr','rollout','cem','export']);p.add_argument('--whole');p.add_argument('--raw-parts')
+    p.add_argument('--stage',required=True,choices=['initialize','repair','simplify','pge','cgr','rollout','cem','export']);p.add_argument('--whole');p.add_argument('--raw-parts')
     a=p.parse_args();cfg=yaml.safe_load(Path(a.config).read_text())
     if a.stage=='initialize':initialize(a.run,a.whole,a.raw_parts,cfg)
     else:evaluate_geometry(a.run,cfg,stage=a.stage)

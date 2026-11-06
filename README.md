@@ -18,7 +18,7 @@ python -m pytest -q tests
 python -m snap3d.generate --image input.png --weights models/Hunyuan3D-2 --output runs/case_generation
 python -m snap3d.decompose --mesh runs/case_generation/whole.ply --weights models/Hunyuan3D-Part --output runs/case_parts
 python -m snap3d.pipeline --run runs/case --stage initialize --whole runs/case_generation/whole.ply --raw-parts runs/case_parts
-# Then --stage repair, pge, cgr, rollout, cem, export, in that order.
+# Then --stage repair, simplify, pge, cgr, rollout, cem, export, in that order.
 ```
 
 Artificial gates are historical diagnostics, not prerequisites. Explicit stage
@@ -116,3 +116,17 @@ flex counts with the saved baseline, then continues CEM, export and terminal
 zero-gravity validity. There is no timing probe, cost projection or time guard.
 No remeshing, inference or benchmark suite is launched. Results and limitations:
 `reports/parallel_budget_first_case_implementation.md`.
+
+## CPU batch with a preprocessing budget
+
+Repaired meshes now pass through `preprocess.max_faces_per_case` (400,000 faces)
+before PGE. Quadric targets are proportional by part; invalid simplification gets
+one PyMeshFix attempt, then original fallback. Fallback overages and volume changes
+are explicit. This is a compute-budget deviation; paper X-Part output is not
+simplified. Connector construction can add faces after this stage.
+
+`scripts/cpu_batch.py` runs the fixed prepared batch, reuses hash-verified completed
+stages and applies four active wall hours per case across resumes. Use its `--root`
+argument with the prepared run directory; `--summarize` refreshes its CSV/JSON/report.
+Execution setup and the five-item deviation table are in
+`reports/cpu_batch_400k_implementation.md`. No new model inference is part of it.
