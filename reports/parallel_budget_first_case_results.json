@@ -1,0 +1,1374 @@
+{
+  "D_mm": 168.50650043496887,
+  "base_commit": "1203685",
+  "baseline": {
+    "global_score": 1.5640164091790127,
+    "max_displacement_mm": 13.955196903120301,
+    "max_rotation_deg": 15.640164091790128,
+    "stable": false
+  },
+  "baseline_metrics": {
+    "part_000": {
+      "max_displacement_mm": 6.229714967992948,
+      "max_linear_speed_m_s": 0.011416023748643226,
+      "max_rotation_rad": 0.27297235895392635
+    },
+    "part_001": {
+      "max_displacement_mm": 0.0,
+      "max_linear_speed_m_s": 0.0,
+      "max_rotation_rad": 0.0
+    },
+    "part_002": {
+      "max_displacement_mm": 0.8012403278700796,
+      "max_linear_speed_m_s": 0.002745918325784098,
+      "max_rotation_rad": 0.09413967874177824
+    },
+    "part_003": {
+      "max_displacement_mm": 13.955196903120301,
+      "max_linear_speed_m_s": 0.027035383676717283,
+      "max_rotation_rad": 0.2520743726855066
+    },
+    "part_004": {
+      "max_displacement_mm": 4.835655449763675,
+      "max_linear_speed_m_s": 0.06514588153293135,
+      "max_rotation_rad": 0.15182285491218983
+    },
+    "part_005": {
+      "max_displacement_mm": 3.304705667300788,
+      "max_linear_speed_m_s": 0.04136540100985346,
+      "max_rotation_rad": 0.21439204581503338
+    }
+  },
+  "case_id": "DensiCrafter_124",
+  "cem_termination_reason": "NO_UNTRIED_ELIGIBLE_EDGE",
+  "cgr_summary": [
+    {
+      "edge": "part_000--part_002",
+      "status": "PLACED",
+      "warnings": []
+    },
+    {
+      "edge": "part_000--part_003",
+      "status": "PLACED",
+      "warnings": [
+        {
+          "code": "INSUFFICIENT_RECEIVER_MATERIAL",
+          "missing_volume_mm3": 0.06429874625355801
+        }
+      ]
+    },
+    {
+      "edge": "part_000--part_004",
+      "status": "PLACED",
+      "warnings": [
+        {
+          "code": "INSUFFICIENT_RECEIVER_MATERIAL",
+          "missing_volume_mm3": 0.03402227413483201
+        }
+      ]
+    },
+    {
+      "edge": "part_000--part_005",
+      "status": "PLACED",
+      "warnings": [
+        {
+          "code": "INSUFFICIENT_RECEIVER_MATERIAL",
+          "missing_volume_mm3": 0.04941796057511916
+        }
+      ]
+    },
+    {
+      "edge": "part_001--part_002",
+      "status": "PLACED",
+      "warnings": []
+    }
+  ],
+  "config_file_sha256": "b6cda15eff5bc2d1c12247b56d644b11e982fd9e917ab27baef9956029b05b9e",
+  "continuation_wall_seconds": 2101.064505740069,
+  "cost_scope": "retained successful stages plus this continuation; excludes prior failed attempts and waits; historical timing probe not repeated",
+  "evidence_root": "runs/first_real_DensiCrafter_124_parallel_budget_v4/assembly",
+  "final_interpart_contact": {
+    "contact_count": 300,
+    "flex_flex_count": 300,
+    "maximum_penetration_mm": 0.15882332096004687,
+    "total_contact_count": 300
+  },
+  "final_material_check": {
+    "affects_verdict": false,
+    "pairs": [
+      {
+        "a": "part_000",
+        "b": "part_001",
+        "intersection_volume_mm3": 0.0
+      },
+      {
+        "a": "part_000",
+        "b": "part_002",
+        "intersection_volume_mm3": 499.02967805851097
+      },
+      {
+        "a": "part_000",
+        "b": "part_003",
+        "intersection_volume_mm3": 0.1440988627754064
+      },
+      {
+        "a": "part_000",
+        "b": "part_004",
+        "intersection_volume_mm3": 0.07639214358886383
+      },
+      {
+        "a": "part_000",
+        "b": "part_005",
+        "intersection_volume_mm3": 0.02278819469576701
+      },
+      {
+        "a": "part_001",
+        "b": "part_002",
+        "intersection_volume_mm3": 452.22989531126734
+      },
+      {
+        "a": "part_001",
+        "b": "part_003",
+        "intersection_volume_mm3": 0.0
+      },
+      {
+        "a": "part_001",
+        "b": "part_004",
+        "intersection_volume_mm3": 0.0
+      },
+      {
+        "a": "part_001",
+        "b": "part_005",
+        "intersection_volume_mm3": 0.0
+      },
+      {
+        "a": "part_002",
+        "b": "part_003",
+        "intersection_volume_mm3": 0.0
+      },
+      {
+        "a": "part_002",
+        "b": "part_004",
+        "intersection_volume_mm3": 0.0
+      },
+      {
+        "a": "part_002",
+        "b": "part_005",
+        "intersection_volume_mm3": 0.0
+      },
+      {
+        "a": "part_003",
+        "b": "part_004",
+        "intersection_volume_mm3": 0.0
+      },
+      {
+        "a": "part_003",
+        "b": "part_005",
+        "intersection_volume_mm3": 0.0
+      },
+      {
+        "a": "part_004",
+        "b": "part_005",
+        "intersection_volume_mm3": 0.0
+      }
+    ],
+    "status": "PASS",
+    "total_intersection_volume_mm3": 951.5028525708383
+  },
+  "flex_element_count": 391226,
+  "implementation_commit": "01bfdc5",
+  "initialization": {
+    "after_seconds": 75.19514950690791,
+    "after_source": "initialization only, no displays",
+    "after_xml": {
+      "matches_current_model": true,
+      "path": "model.xml",
+      "relative_to": "case_root",
+      "scope": "first_case_model",
+      "sha256": "7549f6d8dd3dc38563abdb0d3ea6b5197792cd57369e9c86e8611169d198f6a2"
+    },
+    "before_seconds": 81.22405683482066,
+    "before_source": "hash-verified completed baseline (includes displays)",
+    "before_xml": {
+      "path": "../../first_real_DensiCrafter_124_manifold_memory_v3/assembly/model.xml",
+      "sha256": "7ab944e86c671706e7ab8eaaa96b507dae90f31ef5ed130630dc23ff5cc1155f"
+    },
+    "flex_element_count": 391244,
+    "initial_contact": {
+      "affects_verdict": false,
+      "bound_mm": null,
+      "contact_count": 250,
+      "flex_flex_count": 250,
+      "maximum_penetration_mm": 0.016460784985980643,
+      "pass": null,
+      "total_contact_count": 250
+    },
+    "unchanged": true
+  },
+  "no_formal_benchmark": true,
+  "no_new_generation": true,
+  "optimization": [
+    {
+      "actual_rollouts": {
+        "completed": 16,
+        "failed": 0,
+        "started": 16,
+        "terminated_inflight": 0
+      },
+      "adopted": true,
+      "baseline_global": 1.5640164091790127,
+      "early_stop": null,
+      "edge": "part_000--part_004",
+      "elapsed_s": 789.467116819229,
+      "evaluations": 31,
+      "first_generation_feasible_families": {
+        "as_built_45": 3,
+        "normal_10": 2,
+        "normal_45": 2
+      },
+      "history": [
+        {
+          "best_score": 0.10089615485085941,
+          "consumed_rollouts": 8,
+          "draws": 21,
+          "early_stop": null,
+          "eligible": 7,
+          "failures": [
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM"
+          ],
+          "family_counts": {
+            "as_built_45": 7,
+            "normal_10": 7,
+            "normal_45": 6
+          },
+          "generation": 0,
+          "sampling_plan": [
+            {
+              "candidate_index": 1,
+              "family": null,
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0110390026098133,
+                1.6455712933102429
+              ]
+            },
+            {
+              "candidate_index": 2,
+              "family": "as_built_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                1.264559047525837,
+                1.5849126879169244,
+                0.36619577558744293,
+                0.08853317600534094,
+                0.5721875793308078,
+                0.361344293835488
+              ]
+            },
+            {
+              "candidate_index": 3,
+              "family": "normal_10",
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                1.4818427523373399,
+                1.3106299710567337,
+                -0.12880033842054342,
+                0.018651109803166987,
+                1.3909339444743607,
+                1.689034581463838
+              ]
+            },
+            {
+              "candidate_index": 4,
+              "family": "normal_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                1.4802458607933247,
+                -0.08412840541321241,
+                0.08143083834945683,
+                0.10286759944825556,
+                0.7815568934692414,
+                1.523889613844818
+              ]
+            },
+            {
+              "candidate_index": 5,
+              "family": "as_built_45",
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                0.8969755800698328,
+                0.6157970039072236,
+                0.07698595219217645,
+                0.38181137969465206,
+                1.1562312816712963,
+                1.9172436682923726
+              ]
+            },
+            {
+              "candidate_index": 6,
+              "family": "normal_10",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                1.0379653683814964,
+                1.9023917013444072,
+                0.13422823363508063,
+                -0.07451357976735057,
+                0.727895347108357,
+                1.5705678272052241
+              ]
+            },
+            {
+              "candidate_index": 7,
+              "family": "normal_45",
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                -1.1214271178071837,
+                0.39120692086325165,
+                -0.33001838883799733,
+                0.28825189310598853,
+                1.0847399028494935,
+                1.722377220453707
+              ]
+            },
+            {
+              "candidate_index": 8,
+              "family": "as_built_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                0.48718498081111755,
+                1.0637616970185273,
+                0.22811694695752668,
+                -0.5278333972344165,
+                0.9033056466934959,
+                0.6864297784964684
+              ]
+            },
+            {
+              "candidate_index": 9,
+              "family": "normal_10",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                -1.4589817127317308,
+                1.631611969791403,
+                0.03475899811571114,
+                -0.09952378470366409,
+                0.8981783937078882,
+                0.5378584186900297
+              ]
+            },
+            {
+              "candidate_index": 10,
+              "family": "normal_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                -0.587624415385159,
+                -0.7790928255174052,
+                -0.29256181204825343,
+                0.03050326399063377,
+                0.9465669580020627,
+                2.210315485529975
+              ]
+            },
+            {
+              "candidate_index": 11,
+              "family": "as_built_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                0.23999662357125467,
+                1.1635127061556,
+                -0.24228533724902757,
+                -0.3796129052148357,
+                1.0644689396565696,
+                1.364341417389349
+              ]
+            },
+            {
+              "candidate_index": 12,
+              "family": "normal_10",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                -0.6117693315413439,
+                -0.6432531660107355,
+                0.0010445960665801462,
+                -0.15980474426424343,
+                1.1751550597004403,
+                0.8584355364367955
+              ]
+            },
+            {
+              "candidate_index": 13,
+              "family": "normal_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                1.1212171615454463,
+                -0.1659544433832531,
+                -0.309562067688207,
+                0.5478314124433888,
+                0.9841729291282652,
+                1.3669442729876267
+              ]
+            },
+            {
+              "candidate_index": 14,
+              "family": "as_built_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                0.6736455590926211,
+                -1.525791068358853,
+                0.35382753303794257,
+                -0.0780496522295438,
+                1.4488958300618362,
+                1.3966539160574016
+              ]
+            },
+            {
+              "candidate_index": 15,
+              "family": "normal_10",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                -1.6008489180901988,
+                -0.5712927715170697,
+                0.06920649847847506,
+                -0.12791379910664025,
+                0.428909563325829,
+                2.198686072724198
+              ]
+            },
+            {
+              "candidate_index": 16,
+              "family": "normal_45",
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                0.12154290922961243,
+                -0.8922296341017247,
+                0.397048992567192,
+                -0.31022303449649496,
+                1.0184034597481153,
+                1.798725410926838
+              ]
+            },
+            {
+              "candidate_index": 17,
+              "family": "as_built_45",
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                0.37070871323379956,
+                2.2903194173845693,
+                0.3612588113741075,
+                -0.6627977310353063,
+                1.1313091891774225,
+                2.1952653305092755
+              ]
+            },
+            {
+              "candidate_index": 18,
+              "family": "normal_10",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                -0.6568548576502254,
+                -2.319805649220128,
+                -0.003936826637205559,
+                -0.035267510589351535,
+                0.9361470645991444,
+                2.0636457593088844
+              ]
+            },
+            {
+              "candidate_index": 19,
+              "family": "normal_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                3.364621348693778,
+                4.910047668957036,
+                -0.5591740309515774,
+                -0.06705306541675318,
+                0.6775517913026781,
+                1.9183474001406213
+              ]
+            },
+            {
+              "candidate_index": 20,
+              "family": "as_built_45",
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                -1.031422895370146,
+                -0.2372417956316228,
+                0.2228034650996727,
+                -0.6964142392173164,
+                1.0639664116068936,
+                2.3472298801183924
+              ]
+            },
+            {
+              "candidate_index": 21,
+              "family": "normal_10",
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                -0.09062709422861058,
+                2.97907682751643,
+                -0.05013183756834369,
+                0.00626994974440917,
+                1.3422349942931493,
+                1.7313216984244468
+              ]
+            }
+          ],
+          "submitted_rollouts": 8,
+          "theta0_evaluated": true,
+          "valid": 8,
+          "wall_seconds": 416.3232401749119,
+          "workers": 8
+        },
+        {
+          "best_score": 0.05701126266379107,
+          "consumed_rollouts": 8,
+          "draws": 10,
+          "early_stop": null,
+          "eligible": 8,
+          "failures": [
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM"
+          ],
+          "family_counts": {
+            "as_built_45": 0,
+            "normal_10": 0,
+            "normal_45": 0
+          },
+          "generation": 1,
+          "sampling_plan": [
+            {
+              "candidate_index": 1,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0110390026098133,
+                1.6455712933102429
+              ]
+            },
+            {
+              "candidate_index": 2,
+              "family": null,
+              "feasible": false,
+              "generation": 1,
+              "theta": [
+                -0.9813363374366145,
+                -0.2262791314700022,
+                0.2131612509078737,
+                -0.6792398965302127,
+                0.9774316819815526,
+                2.3363327732491332
+              ]
+            },
+            {
+              "candidate_index": 3,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                -1.1457670427194575,
+                0.36970434030591665,
+                -0.3111043784038245,
+                0.2545629561540114,
+                1.0904240786454806,
+                1.743755685754554
+              ]
+            },
+            {
+              "candidate_index": 4,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                -0.9686524187402352,
+                -0.06598154667564263,
+                0.07215484173949718,
+                -0.4280844000332512,
+                1.1218005347321174,
+                2.176952019010257
+              ]
+            },
+            {
+              "candidate_index": 5,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                -1.0914448311234448,
+                0.03970280313146887,
+                -0.020814511677853365,
+                -0.2624907583212549,
+                1.0198019703159011,
+                2.071868877340099
+              ]
+            },
+            {
+              "candidate_index": 6,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                -1.2051086811309244,
+                0.21170574035513845,
+                -0.1721202642641726,
+                0.007009543519281264,
+                1.0713257916683212,
+                1.9008508706907865
+              ]
+            },
+            {
+              "candidate_index": 7,
+              "family": null,
+              "feasible": false,
+              "generation": 1,
+              "theta": [
+                -1.1412068651238318,
+                0.618598534650263,
+                -0.5300475221348361,
+                0.6445364742534916,
+                1.1079004714221479,
+                1.4962825051081758
+              ]
+            },
+            {
+              "candidate_index": 8,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                -1.077269181051539,
+                0.2791321031082294,
+                -0.23143004395702324,
+                0.11264995579832876,
+                1.0812443380789232,
+                1.8338115196646787
+              ]
+            },
+            {
+              "candidate_index": 9,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                -1.1263679497868757,
+                0.10544503533646467,
+                -0.07864604089933452,
+                -0.15948339351011448,
+                1.158994506719277,
+                2.0065026302757283
+              ]
+            },
+            {
+              "candidate_index": 10,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                -1.0131073522506797,
+                -0.19895424692003477,
+                0.18912339938275236,
+                -0.6364245432153264,
+                1.0278393104838803,
+                2.3091636721211786
+              ]
+            }
+          ],
+          "submitted_rollouts": 8,
+          "theta0_evaluated": true,
+          "valid": 8,
+          "wall_seconds": 368.96092583984137,
+          "workers": 8
+        }
+      ],
+      "per_generation_consumed_rollouts": [
+        8,
+        8
+      ],
+      "workers": 8
+    },
+    {
+      "actual_rollouts": {
+        "completed": 16,
+        "failed": 0,
+        "started": 16,
+        "terminated_inflight": 0
+      },
+      "adopted": true,
+      "baseline_global": 1.451600118863509,
+      "early_stop": null,
+      "edge": "part_000--part_002",
+      "elapsed_s": 812.0983351119794,
+      "evaluations": 31,
+      "first_generation_feasible_families": {
+        "as_built_45": 3,
+        "normal_10": 2,
+        "normal_45": 2
+      },
+      "history": [
+        {
+          "best_score": 0.9146972106062583,
+          "consumed_rollouts": 8,
+          "draws": 21,
+          "early_stop": null,
+          "eligible": 5,
+          "failures": [
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM"
+          ],
+          "family_counts": {
+            "as_built_45": 7,
+            "normal_10": 7,
+            "normal_45": 6
+          },
+          "generation": 0,
+          "sampling_plan": [
+            {
+              "candidate_index": 1,
+              "family": null,
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0110390026098133,
+                1.6455712933102429
+              ]
+            },
+            {
+              "candidate_index": 2,
+              "family": "as_built_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                1.264559047525837,
+                1.5849126879169244,
+                0.36619577558744293,
+                0.08853317600534094,
+                0.5721875793308078,
+                0.361344293835488
+              ]
+            },
+            {
+              "candidate_index": 3,
+              "family": "normal_10",
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                1.4818427523373399,
+                1.3106299710567337,
+                -0.12880033842054342,
+                0.018651109803166987,
+                1.3909339444743607,
+                1.689034581463838
+              ]
+            },
+            {
+              "candidate_index": 4,
+              "family": "normal_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                1.4802458607933247,
+                -0.08412840541321241,
+                0.08143083834945683,
+                0.10286759944825556,
+                0.7815568934692414,
+                1.523889613844818
+              ]
+            },
+            {
+              "candidate_index": 5,
+              "family": "as_built_45",
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                0.8969755800698328,
+                0.6157970039072236,
+                0.07698595219217645,
+                0.38181137969465206,
+                1.1562312816712963,
+                1.9172436682923726
+              ]
+            },
+            {
+              "candidate_index": 6,
+              "family": "normal_10",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                1.0379653683814964,
+                1.9023917013444072,
+                0.13422823363508063,
+                -0.07451357976735057,
+                0.727895347108357,
+                1.5705678272052241
+              ]
+            },
+            {
+              "candidate_index": 7,
+              "family": "normal_45",
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                -1.1214271178071837,
+                0.39120692086325165,
+                -0.33001838883799733,
+                0.28825189310598853,
+                1.0847399028494935,
+                1.722377220453707
+              ]
+            },
+            {
+              "candidate_index": 8,
+              "family": "as_built_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                0.48718498081111755,
+                1.0637616970185273,
+                0.22811694695752668,
+                -0.5278333972344165,
+                0.9033056466934959,
+                0.6864297784964684
+              ]
+            },
+            {
+              "candidate_index": 9,
+              "family": "normal_10",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                -1.4589817127317308,
+                1.631611969791403,
+                0.03475899811571114,
+                -0.09952378470366409,
+                0.8981783937078882,
+                0.5378584186900297
+              ]
+            },
+            {
+              "candidate_index": 10,
+              "family": "normal_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                -0.587624415385159,
+                -0.7790928255174052,
+                -0.29256181204825343,
+                0.03050326399063377,
+                0.9465669580020627,
+                2.210315485529975
+              ]
+            },
+            {
+              "candidate_index": 11,
+              "family": "as_built_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                0.23999662357125467,
+                1.1635127061556,
+                -0.24228533724902757,
+                -0.3796129052148357,
+                1.0644689396565696,
+                1.364341417389349
+              ]
+            },
+            {
+              "candidate_index": 12,
+              "family": "normal_10",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                -0.6117693315413439,
+                -0.6432531660107355,
+                0.0010445960665801462,
+                -0.15980474426424343,
+                1.1751550597004403,
+                0.8584355364367955
+              ]
+            },
+            {
+              "candidate_index": 13,
+              "family": "normal_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                1.1212171615454463,
+                -0.1659544433832531,
+                -0.309562067688207,
+                0.5478314124433888,
+                0.9841729291282652,
+                1.3669442729876267
+              ]
+            },
+            {
+              "candidate_index": 14,
+              "family": "as_built_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                0.6736455590926211,
+                -1.525791068358853,
+                0.35382753303794257,
+                -0.0780496522295438,
+                1.4488958300618362,
+                1.3966539160574016
+              ]
+            },
+            {
+              "candidate_index": 15,
+              "family": "normal_10",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                -1.6008489180901988,
+                -0.5712927715170697,
+                0.06920649847847506,
+                -0.12791379910664025,
+                0.428909563325829,
+                2.198686072724198
+              ]
+            },
+            {
+              "candidate_index": 16,
+              "family": "normal_45",
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                0.12154290922961243,
+                -0.8922296341017247,
+                0.397048992567192,
+                -0.31022303449649496,
+                1.0184034597481153,
+                1.798725410926838
+              ]
+            },
+            {
+              "candidate_index": 17,
+              "family": "as_built_45",
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                0.37070871323379956,
+                2.2903194173845693,
+                0.3612588113741075,
+                -0.6627977310353063,
+                1.1313091891774225,
+                2.1952653305092755
+              ]
+            },
+            {
+              "candidate_index": 18,
+              "family": "normal_10",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                -0.6568548576502254,
+                -2.319805649220128,
+                -0.003936826637205559,
+                -0.035267510589351535,
+                0.9361470645991444,
+                2.0636457593088844
+              ]
+            },
+            {
+              "candidate_index": 19,
+              "family": "normal_45",
+              "feasible": false,
+              "generation": 0,
+              "theta": [
+                3.364621348693778,
+                4.910047668957036,
+                -0.5591740309515774,
+                -0.06705306541675318,
+                0.6775517913026781,
+                1.9183474001406213
+              ]
+            },
+            {
+              "candidate_index": 20,
+              "family": "as_built_45",
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                -1.031422895370146,
+                -0.2372417956316228,
+                0.2228034650996727,
+                -0.6964142392173164,
+                1.0639664116068936,
+                2.3472298801183924
+              ]
+            },
+            {
+              "candidate_index": 21,
+              "family": "normal_10",
+              "feasible": true,
+              "generation": 0,
+              "theta": [
+                -0.09062709422861058,
+                2.97907682751643,
+                -0.05013183756834369,
+                0.00626994974440917,
+                1.3422349942931493,
+                1.7313216984244468
+              ]
+            }
+          ],
+          "submitted_rollouts": 8,
+          "theta0_evaluated": true,
+          "valid": 8,
+          "wall_seconds": 418.1005950109102,
+          "workers": 8
+        },
+        {
+          "best_score": 0.7633430717853161,
+          "consumed_rollouts": 8,
+          "draws": 10,
+          "early_stop": null,
+          "eligible": 3,
+          "failures": [
+            "CONNECTOR_BELOW_MINIMUM",
+            "CONNECTOR_BELOW_MINIMUM"
+          ],
+          "family_counts": {
+            "as_built_45": 0,
+            "normal_10": 0,
+            "normal_45": 0
+          },
+          "generation": 1,
+          "sampling_plan": [
+            {
+              "candidate_index": 1,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0110390026098133,
+                1.6455712933102429
+              ]
+            },
+            {
+              "candidate_index": 2,
+              "family": null,
+              "feasible": false,
+              "generation": 1,
+              "theta": [
+                -0.9813363374366145,
+                -0.2262791314700022,
+                0.2131612509078737,
+                -0.6792398965302127,
+                0.9774316819815526,
+                2.3363327732491332
+              ]
+            },
+            {
+              "candidate_index": 3,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                -1.1457670427194575,
+                0.36970434030591665,
+                -0.3111043784038245,
+                0.2545629561540114,
+                1.0904240786454806,
+                1.743755685754554
+              ]
+            },
+            {
+              "candidate_index": 4,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                -0.9686524187402352,
+                -0.06598154667564263,
+                0.07215484173949718,
+                -0.4280844000332512,
+                1.1218005347321174,
+                2.176952019010257
+              ]
+            },
+            {
+              "candidate_index": 5,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                -1.0914448311234448,
+                0.03970280313146887,
+                -0.020814511677853365,
+                -0.2624907583212549,
+                1.0198019703159011,
+                2.071868877340099
+              ]
+            },
+            {
+              "candidate_index": 6,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                -1.2051086811309244,
+                0.21170574035513845,
+                -0.1721202642641726,
+                0.007009543519281264,
+                1.0713257916683212,
+                1.9008508706907865
+              ]
+            },
+            {
+              "candidate_index": 7,
+              "family": null,
+              "feasible": false,
+              "generation": 1,
+              "theta": [
+                -1.1412068651238318,
+                0.618598534650263,
+                -0.5300475221348361,
+                0.6445364742534916,
+                1.1079004714221479,
+                1.4962825051081758
+              ]
+            },
+            {
+              "candidate_index": 8,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                -1.077269181051539,
+                0.2791321031082294,
+                -0.23143004395702324,
+                0.11264995579832876,
+                1.0812443380789232,
+                1.8338115196646787
+              ]
+            },
+            {
+              "candidate_index": 9,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                -1.1263679497868757,
+                0.10544503533646467,
+                -0.07864604089933452,
+                -0.15948339351011448,
+                1.158994506719277,
+                2.0065026302757283
+              ]
+            },
+            {
+              "candidate_index": 10,
+              "family": null,
+              "feasible": true,
+              "generation": 1,
+              "theta": [
+                -1.0131073522506797,
+                -0.19895424692003477,
+                0.18912339938275236,
+                -0.6364245432153264,
+                1.0278393104838803,
+                2.3091636721211786
+              ]
+            }
+          ],
+          "submitted_rollouts": 8,
+          "theta0_evaluated": true,
+          "valid": 8,
+          "wall_seconds": 390.00515502598137,
+          "workers": 8
+        }
+      ],
+      "per_generation_consumed_rollouts": [
+        8,
+        8
+      ],
+      "workers": 8
+    }
+  ],
+  "optimized": {
+    "global_score": 1.3796336981852984,
+    "max_displacement_mm": 12.562802072470266,
+    "max_rotation_deg": 13.796336981852983,
+    "stable": false
+  },
+  "optimized_metrics": {
+    "part_000": {
+      "max_displacement_mm": 5.792073263225981,
+      "max_linear_speed_m_s": 0.01205656159700396,
+      "max_rotation_rad": 0.2407915050479917
+    },
+    "part_001": {
+      "max_displacement_mm": 0.0,
+      "max_linear_speed_m_s": 0.0,
+      "max_rotation_rad": 0.0
+    },
+    "part_002": {
+      "max_displacement_mm": 0.9637575151107358,
+      "max_linear_speed_m_s": 0.002068320890983795,
+      "max_rotation_rad": 0.10842097453641632
+    },
+    "part_003": {
+      "max_displacement_mm": 12.562802072470266,
+      "max_linear_speed_m_s": 0.026387852529980476,
+      "max_rotation_rad": 0.21995546976487373
+    },
+    "part_004": {
+      "max_displacement_mm": 2.359520089654462,
+      "max_linear_speed_m_s": 0.01287920877938055,
+      "max_rotation_rad": 0.23693634470497096
+    },
+    "part_005": {
+      "max_displacement_mm": 3.4134947237638325,
+      "max_linear_speed_m_s": 0.04106260175521341,
+      "max_rotation_rad": 0.18493500900965867
+    }
+  },
+  "original_files_unchanged": true,
+  "pge_summary": {
+    "residual_overlap_volume_cells": 1.6296075179635695e-14,
+    "residual_overlap_volume_mm3": 4.647432612359115e-15,
+    "retained_cut_count": 6,
+    "rolled_back_cut_count": 0,
+    "slivers_removed_count": 1
+  },
+  "real_xml_invariants": {
+    "./deformable": true,
+    "./option": true,
+    "./size": true,
+    "body_pose": true,
+    "inertial": true
+  },
+  "remaining_eligible_edges": [],
+  "reuse_manifest_sha256": "7c5a466659b6c5b70e052d6072fbd48adaa5e9b1209994dc7b0e22d5ef179510",
+  "reused_file_count": 67,
+  "reused_successful_stage_times_seconds": {
+    "cgr": 150.18458179803565,
+    "decomposition": 40.19702524901368,
+    "full_baseline": 307.15680181095377,
+    "generation": 56.404968907823786,
+    "pge": 10.76888239569962,
+    "repair": 4.332172295777127
+  },
+  "stage_times": [
+    {
+      "stage": "cem",
+      "wall_seconds": 1602.8006724603474
+    },
+    {
+      "stage": "export",
+      "wall_seconds": 422.2713404800743
+    }
+  ],
+  "status": "COMPLETE",
+  "successful_stage_cost_sum_seconds": 2670.1089381973725,
+  "test_summary": "85 passed",
+  "zero_gravity": {
+    "displacement_bound_mm": 0.3291142586620486,
+    "free_displacements_mm": {
+      "part_000": 0.37533829076649433,
+      "part_002": 0.18136537658786736,
+      "part_003": 0.6664903845602717,
+      "part_004": 0.3030437224565149,
+      "part_005": 0.8361898485140875
+    },
+    "reason": null,
+    "status": "PASS",
+    "valid": false,
+    "validity": "invalid"
+  },
+  "zero_metrics": {
+    "part_000": {
+      "max_displacement_mm": 0.37533829076649433,
+      "max_linear_speed_m_s": 0.0007270582955735148,
+      "max_rotation_rad": 0.014772774833375107
+    },
+    "part_001": {
+      "max_displacement_mm": 0.0,
+      "max_linear_speed_m_s": 0.0,
+      "max_rotation_rad": 0.0
+    },
+    "part_002": {
+      "max_displacement_mm": 0.18136537658786736,
+      "max_linear_speed_m_s": 0.0016560318323171706,
+      "max_rotation_rad": 0.013626707102529965
+    },
+    "part_003": {
+      "max_displacement_mm": 0.6664903845602717,
+      "max_linear_speed_m_s": 0.0012141902656671586,
+      "max_rotation_rad": 0.02240155237049342
+    },
+    "part_004": {
+      "max_displacement_mm": 0.3030437224565149,
+      "max_linear_speed_m_s": 0.001946812201024186,
+      "max_rotation_rad": 0.024668730465766623
+    },
+    "part_005": {
+      "max_displacement_mm": 0.8361898485140875,
+      "max_linear_speed_m_s": 0.0009902468823138467,
+      "max_rotation_rad": 0.025877036782804144
+    }
+  },
+  "zero_wall_seconds": 417.59735315991566
+}

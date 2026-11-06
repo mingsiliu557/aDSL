@@ -89,8 +89,7 @@ reference to that original XML; the new no-display model has its own hash.
 Generation, decomposition, repair, PGE and CGR are not rerun. No benchmark suite,
 model call, remeshing or weight download is performed.
 
-Run status and measured results will be appended after completion. Measurements
-are reported as observed, without tuning parameters to improve this case.
+Measurements below are observed results, without tuning parameters to improve this case.
 
 Initial-state comparison completed: flex elements **391,244**, initial cross-body
 contacts **250**, maximum initial depth **0.016460784986 mm**, identical to the
@@ -98,3 +97,45 @@ saved baseline. Initialization took **75.195 s** without display assets versus t
 hash-verified earlier **81.224 s** with displays. This compares two observations
 under potentially different concurrent load; it is not a controlled speedup claim.
 Actual-workspace regression: **85 passed in 18.68 s**; `git diff --check` passed.
+
+## Completed real-case continuation
+
+Status: **COMPLETE**. Continuation wall time: **2101.065 s**. No guard/probe was run. Full structured evidence: `reports/parallel_budget_first_case_results.json`. All 67 reused hashes still match after completion.
+
+The real-case XML also has identical deformable/flex elements, option/size settings, body poses and explicit inertials before/after display removal; display mesh assets change from six to zero.
+
+| Motion result | Frozen baseline | After CEM |
+| --- | ---: | ---: |
+| Maximum displacement (mm) | 13.955196903120301 | 12.562802072470266 |
+| Maximum 3D rotation (deg) | 15.640164091790128 | 13.796336981852983 |
+| Global normalized motion score | 1.5640164091790127 | 1.3796336981852984 |
+| Stable | False | False |
+
+Generation numbers in human summaries are one-based. Candidate indices are one-based draw attempts, including geometric redraws; consumed-rollout counts distinguish feasible physics evaluations.
+
+Maximum rotation here is the existing SNAP3D 3D rotation metric, not the separate aDSL benchmark tilt metric.
+
+| Edge | Workers | Generation times (s) | Actual started/completed | Consumed | Adopted | Early stop |
+| --- | ---: | --- | --- | ---: | --- | --- |
+| part_000--part_004 | 8 | 416.323, 368.961 | 16/16 | 16 | True | None |
+| part_000--part_002 | 8 | 418.101, 390.005 | 16/16 | 16 | True | None |
+
+- `part_000--part_004`: edge wall time 789.467 s; first-generation drawn families {'as_built_45': 7, 'normal_10': 7, 'normal_45': 6}; feasible families {'as_built_45': 3, 'normal_10': 2, 'normal_45': 2}; worker accounting {'started': 16, 'completed': 16, 'failed': 0, 'terminated_inflight': 0}. Theta0 is recorded separately.
+- `part_000--part_002`: edge wall time 812.098 s; first-generation drawn families {'as_built_45': 7, 'normal_10': 7, 'normal_45': 6}; feasible families {'as_built_45': 3, 'normal_10': 2, 'normal_45': 2}; worker accounting {'started': 16, 'completed': 16, 'failed': 0, 'terminated_inflight': 0}. Theta0 is recorded separately.
+
+CEM total wall time: **1602.801 s**. Final zero-gravity rollout: **417.597 s**, validity **invalid**, bound 0.329114259 mm. Initial-contact diagnostic remains nonblocking. Terminal cross-part depth: 0.158823321 mm, reference bound 0.658228517 mm. Final-pose Boolean intersection volume is independently recorded as 951.502853 mm³.
+
+| Reused successful stage | Recorded time (s) |
+| --- | ---: |
+| generation | 56.405 |
+| decomposition | 40.197 |
+| repair | 4.332 |
+| pge | 10.769 |
+| cgr | 150.185 |
+| full_baseline | 307.157 |
+
+Sum of retained successful stage costs plus this continuation: **2670.109 s**. This is not uninterrupted elapsed time from the first historical attempt; previous failed runs, waiting and the obsolete timing probe are excluded.
+
+Reused PGE: 6 retained cuts, 0 rollbacks, residual overlap 4.64743261e-15 mm³. CGR: 5 connectors placed. These are preserved inputs, not new PGE/CGR measurements. No claim of formal benchmark performance follows from this one case.
+
+CEM ends because the unchanged selection rule yields no further untried eligible edge, not because stability was reached. Both selected edges used their full 16-rollout budget; no early stop occurred. The final maximum displacement exceeds the 9.873427760 mm limit, and maximum rotation exceeds 10°. Zero-gravity maximum free displacement is 0.836189849 mm, above the half-cell bound. These are completed, failing physical observations; there was no solver/program failure. No batch run or 256M memory trial was started.
