@@ -7,7 +7,6 @@ import trimesh
 import yaml
 
 from snap3d.connector import rebuild,ConnectorInfeasible
-from snap3d.pipeline import rollout_cost
 from snap3d.rollout import rollout,_rigid_flex_xml
 
 CFG=yaml.safe_load(Path('configs/default.yaml').read_text())
@@ -49,47 +48,3 @@ def test_xml_saved_once_and_candidate_hash_does_not_impersonate_saved_model(tmp_
     cfg=dict(CFG['rollout'],memory='2G')
     xml,_=_rigid_flex_xml(parts,sorted(parts),['receiver'],cfg,.1)
     assert ET.fromstring(xml).find('size').get('memory')=='2G'
-
-
-def test_probe_projection_includes_initialization_and_nominal_96_per_edge():
-    probe=dict(status='PASS',step_count=50,step_wall_seconds=.5,initialization_wall_seconds=1.,
-               wall_seconds=1.5,flex_element_count=100)
-    result=rollout_cost(probe,config=CFG,edge_count=3,rebuild_seconds=.25)
-    assert result['mean_step_wall_seconds']==pytest.approx(.01)
-    assert result['projected_single_rollout_seconds']==pytest.approx(11.)
-    assert result['nominal_evaluations']==96*3
-    assert result['projected_cem_with_rebuild_seconds']==pytest.approx(11.25*96*3)
-    with pytest.raises(ValueError,match='INCOMPLETE'):
-        rollout_cost(dict(probe,status='UNAVAILABLE'),config=CFG,edge_count=3)
-
-
-@pytest.mark.parametrize('over_limit',[False,True])
-def test_cost_guard_always_finishes_baseline_before_stopping(tmp_path,monkeypatch,over_limit):
-    import importlib.util,json
-    from snap3d.common import write_json
-    spec=importlib.util.spec_from_file_location('continue_case',Path('scripts/continue_case.py'))
-    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-    calls=[]
-    write_json(tmp_path/'case.json',dict(D_mm=150.))
-    def evaluate(run,config,*,stage):
-        calls.append(stage)
-        if stage=='cgr':write_json(tmp_path/'cgr/contact.json',dict(edges=[{'id':'edge'},{'id':'other'},{'id':'third'}],timing={'rebuild_seconds':.01}))
-        if stage=='rollout':write_json(tmp_path/'rollout/result.json',dict(stable=False,wall_seconds=1.))
-        if stage=='export':write_json(tmp_path/'export/result.json',dict(stable=True,zero_gravity_validity={'valid':True}))
-    monkeypatch.setattr(module,'evaluate_geometry',evaluate)
-    monkeypatch.setattr(module,'load_parts',lambda _: {})
-    monkeypatch.setattr(module,'select_edges',lambda *a,**k:['edge'])
-    def probe(*args,**kwargs):
-        assert kwargs['config']['duration']==.1
-        step=5000. if over_limit else .05
-        return dict(status='PASS',step_count=50,step_wall_seconds=step,
-                    initialization_wall_seconds=.1,wall_seconds=step+.1,flex_element_count=100)
-    monkeypatch.setattr(module,'rollout',probe)
-    result=module.continue_case(tmp_path,CFG)
-    assert calls[:3]==['pge','cgr','rollout']
-    if over_limit:assert result=='STOPPED_COST_LIMIT' and calls==['pge','cgr','rollout']
-    else:assert result=='COMPLETE' and calls==['pge','cgr','rollout','cem','export']
-    guard=json.loads((tmp_path/'speed_probe/cost_guard.json').read_text())
-    assert guard['stop_after_baseline'] is over_limit
-    assert guard['nominal_evaluations']==96 and guard['optimization_edge_count']==1
-    assert guard['placed_edge_count']==3

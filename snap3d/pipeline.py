@@ -67,20 +67,32 @@ def paper_rollout(parts, *, D, config, fixed_ids=None, record=None,model_path=No
     return result
 
 
-def rollout_cost(probe, *, config, edge_count, rebuild_seconds=0.):
-    """Projection from a completed timing probe; not a stability measurement."""
-    if probe['status']!='PASS' or probe.get('step_count',0)<=0:raise ValueError('SPEED_PROBE_INCOMPLETE')
-    per_step=probe['step_wall_seconds']/probe['step_count']
-    initialization=probe['initialization_wall_seconds']
-    overhead=max(0.,probe['wall_seconds']-probe['step_wall_seconds'])
-    steps=int(round(config['rollout']['duration']/config['rollout']['dt']))
-    single=overhead+per_step*steps
-    evaluations=config['cem']['population']*config['cem']['generations']*edge_count
-    return dict(flex_element_count=probe['flex_element_count'],measured_steps=probe['step_count'],
-        mean_step_wall_seconds=per_step,initialization_wall_seconds=initialization,
-        projected_single_rollout_seconds=single,optimization_edge_count=edge_count,
-        nominal_evaluations=evaluations,projected_cem_rollout_seconds=single*evaluations,
-        projected_cem_with_rebuild_seconds=(single+rebuild_seconds)*evaluations)
+def _worker_counts(directory):
+    rows=[json.loads(p.read_text()) for p in Path(directory).glob('*.json')]
+    return dict(started=len(rows),completed=sum(r['status']=='COMPLETE' for r in rows),
+        failed=sum(r['status']=='FAILED' for r in rows),
+        terminated_inflight=sum(r['status']=='RUNNING' for r in rows))
+
+
+def _simulate_candidate(job):
+    """Picklable worker: physics only; geometry and RNG stay in the parent."""
+    meta={k:job[k] for k in ('generation','candidate_index','family','index')}
+    path=Path(job['output'])/f"worker_{job['index']:04d}.json"
+    def event(**fields):
+        pending=path.with_suffix('.tmp')
+        write_json(pending,dict(meta,**fields));pending.replace(path)
+    event(status='RUNNING')
+    try:
+        result=paper_rollout(job['parts'],D=job['D'],config=job['config'],fixed_ids=job['fixed_ids'],model_path=job['model_path'])
+        if result['status']!='PASS':
+            raise RuntimeError('ROLLOUT_FAILED: '+str(result.get('detail',result.get('reason'))))
+        score=relative_score(result,job['a'],job['b'],D=job['D'],config=job['config']['rollout'])
+        event(status='COMPLETE',wall_seconds=result['wall_seconds'],stable=result['stable'])
+        return dict(status='PASS',local_score=score,global_score=result['global_score'],
+            rollout=result,connectors=job['checks'],candidate_meta=meta)
+    except Exception as error:
+        event(status='FAILED',reason=type(error).__name__,detail=str(error))
+        raise
 
 
 def evaluate_geometry(run, config, *, stage):
@@ -146,30 +158,41 @@ def evaluate_geometry(run, config, *, stage):
                     eid=eligible[0];attempted.append(eid);e=next(e for e in edges if e['id']==eid)
                     baseline_global=current['global_score']
                     baseline_local=relative_score(current,e['a'],e['b'],D=D,config=config['rollout'])
-                    candidate_records=[];edge_started=time.monotonic()
-                    def evaluate(theta):
+                    candidate_records=[];edge_started=time.monotonic();draw_index=0
+                    def prepare(theta,*,generation=0,candidate_index=1,family=None):
+                        nonlocal draw_index
+                        index=draw_index;draw_index+=1
                         candidate=dict(parameters);candidate[eid]=np.asarray(theta).tolist()
                         try:
                             meshes,checks=rebuild(base,edges,candidate,D=D,config=config['connector'],strict_edge=eid)
                         except ConnectorInfeasible as error:
-                            candidate_records.append(dict(theta=candidate[eid],status='FAIL',reason=str(error)))
-                            write_json(target/f'candidates_{eid}.json',candidate_records)
                             return dict(status='FAIL',reason=str(error))
-                        result=simulate(meshes,fixed)
-                        candidate_records.append(dict(theta=candidate[eid],status='PASS',connectors=checks,
-                            global_score=result['global_score'],stable=result['stable'],
-                            rollout_wall_seconds=result['wall_seconds']))
+                        return dict(status='PASS',job=dict(parts=meshes,checks=checks,D=D,config=config,
+                            fixed_ids=fixed,model_path=str(run/'model.xml'),output=str(target/'worker_events'/eid),index=index,
+                            generation=generation,candidate_index=candidate_index,family=family,a=e['a'],b=e['b']))
+                    def record_candidate(theta,result):
+                        nonlocal attempt
+                        row=dict(theta=np.asarray(theta).tolist(),status=result['status'],**result.get('candidate_meta',{}))
+                        if result['status']!='PASS':row['reason']=result.get('reason','FAILED')
+                        else:
+                            observed=result['rollout'];row.update(connectors=result['connectors'],global_score=result['global_score'],
+                                stable=observed['stable'],rollout_wall_seconds=observed['wall_seconds'])
+                            rollout_records.append(dict(attempt=attempt,phase='gravity',status=observed['status'],
+                                reason=observed.get('reason'),wall_seconds=observed['wall_seconds'],
+                                flex_element_count=observed.get('flex_element_count'),simulated_seconds=observed.get('simulated_seconds'),
+                                stable=observed['stable'],final_interpart_contact=observed.get('final_interpart_contact')))
+                            attempt+=1;write_json(target/'rollout_calls.json',rollout_records)
+                        candidate_records.append(row)
                         write_json(target/f'candidates_{eid}.json',candidate_records)
-                        return dict(status='PASS',local_score=relative_score(result,e['a'],e['b'],D=D,config=config['rollout']),
-                                    global_score=result['global_score'],rollout=result)
-                    opt=optimize(parameters[eid],D=D,config=config['cem'],evaluate=evaluate,
+                    opt=optimize(parameters[eid],D=D,config=config['cem'],prepare=prepare,simulate=_simulate_candidate,on_result=record_candidate,
                                  baseline_global=baseline_global,seed=config['seed'])
-                    best=opt['best'];adopted=best is not None and best['result']['local_score']<baseline_local
+                    best=opt['best'];adopted=best is not None and (opt.get('early_stop') is not None or best['result']['local_score']<baseline_local)
                     if adopted:
                         parameters[eid]=best['theta'];current=best['result']['rollout']
                         parts,_=rebuild(base,edges,parameters,D=D,config=config['connector'])
                     records.append(dict(edge=eid,adopted=adopted,history=opt['history'],evaluations=opt['evaluations'],
-                                        baseline_global=baseline_global,elapsed_s=time.monotonic()-edge_started))
+                                        baseline_global=baseline_global,workers=opt.get('workers',1),early_stop=opt.get('early_stop'),
+                                        actual_rollouts=_worker_counts(target/'worker_events'/eid),elapsed_s=time.monotonic()-edge_started))
                     write_json(target/'optimization.json',records)
                 export_parts(parts,target,metadata=dict(parameters=parameters,optimization=records))
                 write_json(target/'result.json',current)

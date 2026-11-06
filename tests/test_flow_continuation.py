@@ -143,8 +143,8 @@ def test_cem_exhausted_edge_continues_to_next_edge(tmp_path,monkeypatch):
         tried.append(kwargs['strict_edge'])
         raise connector.ConnectorInfeasible('AXIS_CONE_VIOLATION')
     monkeypatch.setattr(pipeline,'rebuild',reject)
-    def optimize(theta,*,evaluate,**kwargs):
-        assert evaluate(theta)['status']=='FAIL'
+    def optimize(theta,*,prepare,**kwargs):
+        assert prepare(theta)['status']=='FAIL'
         return dict(best=None,history=[],evaluations=1)
     monkeypatch.setattr(pipeline,'optimize',optimize)
     pipeline.evaluate_geometry(tmp_path,CFG,stage='cem')

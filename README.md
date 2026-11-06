@@ -67,10 +67,18 @@ intersection-free; actual final-pose Boolean volumes are recorded independently,
 records current model hash and a separately identified saved-model reference.
 Changed candidates never claim to match the saved baseline XML.
 
-CEM retains 32 candidates, 8 elites, 3 generations, theta0 per generation, bounded
-redraws, full covariance and the per-edge global-motion constraint. Infeasible
-candidates redraw; an exhausted edge leaves the incumbent unchanged and search
-continues with other edges. Baseline and CEM calls perform gravity only.
+CEM uses the explicitly reduced budget: 8 candidates, 2 elites, 2 generations
+(paper: 32 candidates, 8 elites, 3 generations). Theta0 retention, redraw cap,
+initial variance, full covariance and the non-worsening global score are unchanged.
+First-generation draws cycle through the original three directional families.
+Sampling, reconstruction and feasibility remain ordered in the parent; up to
+`cem.workers` CPU processes (default 8, capped by CPU affinity) simulate feasible
+candidates. Both serial and parallel modes prepare the generation before ordered
+result consumption. The first globally eligible stable result is adopted and ends
+that edge's search; outstanding work is terminated. Started/completed/consumed
+counts are distinguished. With no stable candidate, the existing local score rule
+is retained. Baseline and CEM calls perform gravity only. Display geoms and their
+unused mesh assets are removed from generated XML; flex and inertia are unchanged.
 
 After the actual connector-bearing STL/GLB exports, one zero-gravity run records
 final-output validity using the paper half-cell displacement bound. It does not
@@ -101,9 +109,10 @@ Sources: [SNAP3D, sections 3 and Appendices A/B](https://arxiv.org/html/2609.131
 PYTHONPATH=. python scripts/continue_case.py --run runs/case/assembly
 ```
 
-This reuses a prepared case.json and repair stage, reruns PGE/CGR, and measures
-a 0.1-second gravity probe before the full two-second baseline. It records
-initialization and average per-step time, projected rollout/CEM cost, and the
-unchanged edge selection. At a projected case cost above 24 hours it stops after
-the full baseline; otherwise it proceeds through CEM, export and terminal
-zero-gravity validity. No remeshing, inference or benchmark suite is launched.
+This reuses frozen CGR and a completed two-second baseline after verifying the
+files in `reuse_bindings.json` and the unchanged physics configuration. It measures
+no-display initialization (no simulation steps), compares initial contacts and
+flex counts with the saved baseline, then continues CEM, export and terminal
+zero-gravity validity. There is no timing probe, cost projection or time guard.
+No remeshing, inference or benchmark suite is launched. Results and limitations:
+`reports/parallel_budget_first_case_implementation.md`.

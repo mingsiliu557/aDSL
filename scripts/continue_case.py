@@ -1,18 +1,33 @@
-"""Continue one frozen case, with the requested 0.1 s timing probe and 24 h guard."""
+"""Hash-bound continuation from frozen CGR and a completed full baseline."""
 import argparse
 import json
 from pathlib import Path
 import time
 import yaml
 
-from snap3d.common import write_json,code_identity
+from snap3d.common import write_json,code_identity,sha
 from snap3d.export import load_parts
-from snap3d.pipeline import evaluate_geometry,rollout_cost
-from snap3d.rollout import rollout,select_edges
+from snap3d.pipeline import evaluate_geometry
+from snap3d.rollout import rollout
+
+
+def verify_reuse(run,config):
+    binding=json.loads((run/'reuse_bindings.json').read_text())
+    for path,expected in binding['files'].items():
+        if sha(run/path)!=expected:raise ValueError('REUSE_HASH_MISMATCH: '+path)
+    old=binding['original_config'];allowed={'workers','population','elite','generations'}
+    if {k:v for k,v in old.items() if k!='cem'}!={k:v for k,v in config.items() if k!='cem'}:
+        raise ValueError('REUSE_PHYSICS_CONFIG_CHANGED')
+    if {k:v for k,v in old['cem'].items() if k not in allowed}!={k:v for k,v in config['cem'].items() if k not in allowed}:
+        raise ValueError('REUSE_CEM_PARAMETERS_CHANGED')
+    baseline=json.loads((run/'rollout/result.json').read_text())
+    if baseline['status']!='PASS' or baseline['step_count']!=round(config['rollout']['duration']/config['rollout']['dt']):
+        raise ValueError('REUSE_BASELINE_INCOMPLETE')
+    return binding,baseline
 
 
 def continue_case(run,config):
-    run=Path(run);started=time.monotonic();completed=[];stage=None
+    run=Path(run);started=time.monotonic();completed=[];stage='verify_reuse'
     write_json(run/'continuation_code_identity.json',code_identity())
     def progress(status,**fields):
         write_json(run/'continuation.json',dict(status=status,stage=stage,completed=completed,
@@ -24,41 +39,21 @@ def continue_case(run,config):
         completed.append(dict(stage=stage,wall_seconds=time.monotonic()-t))
         print(json.dumps(completed[-1]),flush=True)
     try:
-        execute('pge');execute('cgr')
-        stage='speed_probe';progress('RUNNING');print('START speed_probe',flush=True)
+        binding,baseline=verify_reuse(run,config)
+        stage='initialization_comparison';progress('RUNNING')
         D=json.loads((run/'case.json').read_text())['D_mm']
-        contact=json.loads((run/'cgr/contact.json').read_text())
-        parts=load_parts(run/'cgr')
-        probe=rollout(parts,D=D,config=dict(config['rollout'],duration=.1),
-                      clearance_mm=config['connector']['clearance_ratio']*D,model_path=run/'model.xml')
-        write_json(run/'speed_probe/result.json',probe)
-        if probe['status']!='PASS':raise RuntimeError('SPEED_PROBE_FAILED: '+str(probe.get('detail',probe.get('reason'))))
-        rebuild=contact.get('timing',{}).get('rebuild_seconds',0.)
-        preview=rollout_cost(probe,config=config,edge_count=len(contact['edges']),rebuild_seconds=rebuild)
-        preview['edge_count_assumption']='all placed edges; baseline selection follows'
-        write_json(run/'speed_probe/projection.json',preview)
-        completed.append(dict(stage='speed_probe',wall_seconds=probe['wall_seconds']))
-        print(json.dumps(preview),flush=True)
-        # Even when the preview exceeds 24 h, finish the requested baseline.
-        execute('rollout')
-        baseline=json.loads((run/'rollout/result.json').read_text())
-        selected=[] if baseline['stable'] else select_edges(baseline,contact['edges'],D=D,config=config['rollout'])
-        # Use edges selected from the full baseline, not every contact edge.
-        count=len(selected)
-        cost=rollout_cost(probe,config=config,edge_count=count,rebuild_seconds=rebuild)
-        single=max(cost['projected_single_rollout_seconds'],baseline['wall_seconds'])
-        total=time.monotonic()-started+(single+rebuild)*cost['nominal_evaluations']+single
-        cost.update(baseline_selected_edges=selected,placed_edge_count=len(contact['edges']),
-            edge_count_assumption='edges selected for optimization from the full baseline',
-            measured_baseline_seconds=baseline['wall_seconds'],conservative_single_rollout_seconds=single,
-            projected_case_total_seconds=total,limit_seconds=24*3600,
-            excludes='one terminal Boolean volume sweep and report/export overhead',
-            stop_after_baseline=total>24*3600)
-        write_json(run/'speed_probe/cost_guard.json',cost)
-        print(json.dumps(cost),flush=True)
-        if cost['stop_after_baseline']:
-            progress('STOPPED_COST_LIMIT',cost_guard=cost,stable=baseline['stable'])
-            return 'STOPPED_COST_LIMIT'
+        after=rollout(load_parts(run/'cgr'),D=D,config=config['rollout'],fixed_ids=baseline['fixed_ids'],
+            clearance_mm=config['connector']['clearance_ratio']*D,initial_only=True,model_path=run/'model.xml')
+        write_json(run/'initialization_after.json',after)
+        if after['status']!='PASS':raise RuntimeError('INITIALIZATION_FAILED: '+str(after.get('reason')))
+        if baseline['initial_contact']!=after['initial_contact'] or baseline['flex_element_count']!=after['flex_element_count']:
+            raise ValueError('DISPLAY_REMOVAL_INITIAL_STATE_CHANGED')
+        write_json(run/'initialization_comparison.json',dict(
+            before_seconds=baseline['initialization_wall_seconds'],after_seconds=after['wall_seconds'],
+            before_source='hash-verified completed baseline (includes displays)',after_source='initialization only, no displays',
+            before_xml=binding['baseline_xml'],after_xml=after['xml_ref'],
+            flex_element_count=after['flex_element_count'],initial_contact=after['initial_contact'],unchanged=True))
+        print('INITIALIZATION',json.dumps({'before':baseline['initialization_wall_seconds'],'after':after['wall_seconds']}),flush=True)
         execute('cem');execute('export')
         result=json.loads((run/'export/result.json').read_text())
         progress('COMPLETE',stable=result['stable'],zero_gravity_validity=result['zero_gravity_validity'])

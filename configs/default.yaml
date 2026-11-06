@@ -40,9 +40,11 @@ gate:
   # https://arxiv.org/html/2609.13146 (Appendices A and B)
   zero_gravity_displacement_ratio: 0.001953125  # 0.5/256; fixed-body bound remains 1e-4 D.
 cem:
-  population: 32
-  elite: 8
-  generations: 3
+  workers: 8  # CPU process pool; sampling/rebuild and result ordering remain serial.
+  # 论文为 32/8/3，因计算预算缩减
+  population: 8
+  elite: 2
+  generations: 2
   max_draws: 320
   sigma: [0.01, 0.01, 0.2617993877991494, 0.2617993877991494, 0.002, 0.00390625]
   floor: [0.0005, 0.0005, 0.0174532925199433, 0.0174532925199433, 0.00025, 0.0009765625]

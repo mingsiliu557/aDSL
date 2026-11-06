@@ -44,6 +44,17 @@ def _rigid_flex_xml(parts, ids, fixed_ids, config, clearance_mm, gravity=None, *
     source_config=dict(config,timestep_seconds=config['dt'],collision_backend='rigid_flex')
     contact=flex_contact_settings(report,source_config)
     root=ET.fromstring(xml_model(report,parts,{},source_config,config['density'],body_layout=dict(bodies=bodies)))
+    removed_meshes=set()
+    for body in root.findall('./worldbody/body'):
+        for geom in list(body.findall('geom')):
+            if geom.get('contype')=='0':
+                if geom.get('mesh'):removed_meshes.add(geom.get('mesh'))
+                body.remove(geom)
+    referenced={node.get('mesh') for node in root.findall('.//*[@mesh]')}
+    asset=root.find('asset')
+    if asset is not None:
+        for mesh in list(asset.findall('mesh')):
+            if mesh.get('name') in removed_meshes and mesh.get('name') not in referenced:asset.remove(mesh)
     size=root.find('size')
     if size is None:size=ET.SubElement(root,'size')
     size.set('memory',str(config.get('memory','1G')))

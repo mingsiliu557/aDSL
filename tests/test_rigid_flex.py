@@ -59,8 +59,8 @@ def test_rigid_flex_xml_display_disabled_radius_and_com_frame(clearance,expected
     assert result['xml_ref']['sha256']==hashlib.sha256((tmp_path/'model.xml').read_bytes()).hexdigest()
     root=ET.fromstring((tmp_path/'model.xml').read_text())
     displays=root.findall('./worldbody/body/geom')
-    assert len(displays)==2
-    assert all(g.get('contype')=='0' and g.get('conaffinity')=='0' and g.get('density')=='0' for g in displays)
+    assert displays==[]
+    assert root.findall('./asset/mesh')==[]
     flexes=root.findall('./deformable/flex')
     assert len(flexes)==2 and result['flex_element_count']==24
     for f in flexes:
@@ -74,8 +74,8 @@ def test_rigid_flex_xml_display_disabled_radius_and_com_frame(clearance,expected
     for k,name in enumerate(sorted(meshes)):
         body=root.find(f"./worldbody/body[@name='part_{k}']")
         pos=np.fromstring(body.get('pos'),sep=' ')
-        display=root.find(f"./asset/mesh[@name='display_{k}']")
-        local=np.fromstring(display.get('vertex'),sep=' ').reshape(-1,3)
+        flex=root.find(f"./deformable/flex[@name='contact_{k}']")
+        local=np.fromstring(flex.get('vertex'),sep=' ').reshape(-1,3)
         np.testing.assert_allclose((local+pos)*1000,meshes[name].vertices,atol=1e-12)
         assert (body.find('freejoint') is None)==(name=='receiver')
         inertia=body.find('inertial')
